@@ -1,0 +1,1204 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-qqHteIxkRM9KGn/YIPAdtgYPsUzPIEs9WMrv6MqsJCo=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+// Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
+// another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
+// line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
+if (window.top !== window.self) {
+  document.documentElement.style.display = "none";
+  try { window.top.location = window.self.location.href; } catch (error) { /* the frame may not move the tab */ }
+}
+</script>
+<!-- Copyright (c) 2026 [BRAND NAME], Walk Me Through It (WMTI) ([PUBLIC REPOSITORY URL]). PolyForm Noncommercial License 1.0.0; see LICENSE. -->
+<title>Walk Me Through It</title>
+<meta name="description" content="Walk Me Through It: a retirement income planner that runs on this device">
+<meta name="referrer" content="no-referrer">
+<script>
+// The color scheme saved on this device, set before the first paint: Lagoon and hibiscus when none is saved or
+// storage is blocked. "device" follows the device: Lagoon in light mode, Night lagoon in dark mode. fpt.theme.v1 is
+// the key before the rename; app.js moves it to wmti.theme.v1 on this first load.
+(function () {
+  var scheme = "lagoon";
+  try { scheme = localStorage.getItem("wmti.theme.v1") || localStorage.getItem("fpt.theme.v1") || scheme; } catch (error) { /* storage blocked */ }
+  if (["lagoon", "sunset", "palm", "night", "device"].indexOf(scheme) < 0) scheme = "lagoon";
+  document.documentElement.setAttribute("data-theme", scheme);
+})();
+</script>
+<style>
+/* Layout: one-column phone app. A dark header band (sticky top row with the section label, status, account and menu
+   buttons, and the pinned headline figures; then the title, subtitle and the chips rows with their scroll bars), a
+   light sheet with a rounded top holding the white pane cards, and a fixed bottom tab bar of three tabs (Setup,
+   Inputs, Outputs; hidden while a text field has focus); 16 px side gutters at every width, content capped at 640 px
+   on wider screens.
+   Color schemes: tokens per scheme on :root[data-theme=...] (index.html sets it before the first paint). Lagoon and
+   hibiscus is the default (plain :root, its chart series under its own name); "device" is Lagoon in light mode and
+   Night lagoon in dark mode. Colors darkened from the mockups for WCAG AA (4.5:1) text contrast: muted text (Lagoon #5F7A86 -> #4F6772, Sunset #6A7C88
+   -> #566773, Palm #6E7E74 -> #56665C, also Palm's band subtitle), the hero tile (Sunset #F2675A -> #C4452F, Palm
+   #19A7B6 -> #0E7682) and the accent used for text and buttons (the toggle colors #19B5C4, #F2675A and #2F8F6B are
+   too light for text: Lagoon #0B6E7F, Sunset #B5402C, Palm #1F6B4F). */
+/* Fonts: Public Sans and IBM Plex Mono, Latin subsets, shipped beside the page under fonts/ (SIL Open Font License;
+   legal/third-party), so the page asks no other host for them. */
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("fonts/public-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("fonts/public-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("fonts/public-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("fonts/public-sans-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
+:root {
+  --band: #0B4F6C; --band-ink: #ffffff; --band-sub: #9FD6DE; --band-button: #14627F; --band-button-ink: #D4EEF2;
+  --band-track: #14627F; --band-thumb: #9FD6DE;
+  --chip-on: #19B5C4; --chip-on-ink: #03343B; --chip-off: #14627F; --chip-off-ink: #D4EEF2;
+  --bg: #F6EEDF;
+  --surface: #ffffff;
+  --surface-2: #EDF4F5;
+  --field-bg: #ffffff;
+  --ink: #0B3A4F;
+  --ink-2: #2E5566;
+  --muted: #4F6772;
+  --line: #D6E2E4;
+  --accent: #0B6E7F;
+  --accent-ink: #ffffff;
+  --accent-soft: #DDF3F5;
+  --toggle: #19B5C4; --toggle-off: #CBD2D0;
+  --tint-1: #DDF3F5; --tint-2: #FDE4DF;
+  --hero: #0B4F6C; --hero-ink: #ffffff; --hero-sub: #9FD6DE;
+  --sheet-edge: transparent;
+  --scroll-thumb: rgb(79 103 114 / 0.5);
+  --bad: #b42318;
+  --bad-soft: #fde8e6;
+  --warn: #8a5a00;
+  --warn-soft: #fbf0d9;
+  --edge-shadow: rgb(20 32 43 / 0.18);
+  --good: #1a7f37;
+  /* Information boxes (notes, banners, explanations): their own blue, apart from the tinted field rows */
+  --info-bg: #E8EEFA; --info-ink: #1D3561; --info-line: #3A62B0;
+  /* The chart palette of wmti.dashboard.style in slot order (the fallback); each scheme below sets its own. */
+  --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #eda100;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #e34948;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --gutter: 16px;
+  --radius: 12px;
+  --tabbar: 64px;
+  color-scheme: light;
+}
+/* Lagoon and hibiscus: its chart series (the other tokens are the :root ones) */
+:root[data-theme="lagoon"], :root[data-theme="device"] {
+  --s0: #19B5C4; --s1: #F2675A; --s2: #1baf7a; --s3: #eda100;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #2a78d6;
+}
+/* Sunset over the motu */
+:root[data-theme="sunset"] {
+  --band: #103F5C; --band-ink: #ffffff; --band-sub: #F9C9A5; --band-button: #1C5373; --band-button-ink: #F3DCCB;
+  --band-track: #1C5373; --band-thumb: #F9C9A5;
+  --chip-on: #F59E4C; --chip-on-ink: #3E2205; --chip-off: #1C5373; --chip-off-ink: #F3DCCB;
+  --bg: #FFF5EA; --surface: #ffffff; --surface-2: #FBEEE3; --field-bg: #ffffff; --ink: #103F5C; --ink-2: #34556B;
+  --muted: #566773; --line: #EEDCCD; --accent: #B5402C; --accent-ink: #ffffff; --accent-soft: #FFE6D3;
+  --toggle: #F2675A; --tint-1: #FFE6D3; --tint-2: #DDF2F4; --hero: #C4452F; --hero-ink: #ffffff; --hero-sub: #ffffff;
+  --scroll-thumb: rgb(86 103 115 / 0.5);
+  --info-bg: #ECEFFA; --info-ink: #263866; --info-line: #4A5FAE;
+  --s0: #F59E4C; --s1: #19A7B6; --s2: #1baf7a; --s3: #2a78d6;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #e34948;
+}
+/* Palm and sand (light band) */
+:root[data-theme="palm"] {
+  --band: #F3EBDD; --band-ink: #1F4B3F; --band-sub: #56665C; --band-button: #ffffff; --band-button-ink: #1F4B3F;
+  --band-track: rgb(0 0 0 / 0.08); --band-thumb: #56665C;
+  --chip-on: #1F4B3F; --chip-on-ink: #ffffff; --chip-off: #ffffff; --chip-off-ink: #1F4B3F;
+  --bg: #F3EBDD; --surface: #ffffff; --surface-2: #EEF3EE; --field-bg: #ffffff; --ink: #1F4B3F; --ink-2: #34584C;
+  --muted: #56665C; --line: #DCE3DA; --accent: #1F6B4F; --accent-ink: #ffffff; --accent-soft: #E3F1EA;
+  --toggle: #2F8F6B; --tint-1: #E3F1EA; --tint-2: #E0F4F6; --hero: #0E7682; --hero-ink: #ffffff; --hero-sub: #E0F4F6;
+  --sheet-edge: rgb(0 0 0 / 0.07); --scroll-thumb: rgb(86 102 92 / 0.5);
+  --info-bg: #E9EEF8; --info-ink: #213D6B; --info-line: #3D62A6;
+  --s0: #2F8F6B; --s1: #19A7B6; --s2: #eb6834; --s3: #eda100;
+  --s4: #e87ba4; --s5: #2a78d6; --s6: #4a3aa7; --s7: #e34948;
+}
+/* Night lagoon (dark): dark fills with light text for inputs, tables and help */
+:root[data-theme="night"] {
+  --band: #0F1C24; --band-ink: #ffffff; --band-sub: #7FC9D3; --band-button: #1E3341; --band-button-ink: #C9DCE2;
+  --band-track: #1E3341; --band-thumb: #7FC9D3;
+  --chip-on: #2CC5D2; --chip-on-ink: #04343A; --chip-off: #1E3341; --chip-off-ink: #C9DCE2;
+  --bg: #16252F; --surface: #1D303D; --surface-2: #263C4A; --field-bg: #16252F; --ink: #E4EEF1; --ink-2: #C3D3DA;
+  --muted: #93A8B2; --line: #2E4655; --accent: #2CC5D2; --accent-ink: #04343A; --accent-soft: #1F3746;
+  --toggle: #2CC5D2; --toggle-off: #4A5F6B; --tint-1: #1F3746; --tint-2: #3A2A30;
+  --hero: #0E4A60; --hero-ink: #ffffff; --hero-sub: #7FC9D3; --sheet-edge: transparent;
+  --scroll-thumb: rgb(147 168 178 / 0.45);
+  --bad: #ff8a7f; --bad-soft: #3a1d1b; --warn: #e5b45a; --warn-soft: #3a2f17; --good: #5fcf7c;
+  --edge-shadow: rgb(0 0 0 / 0.55);
+  --s0: #2CC5D2; --s1: #F2786C; --s2: #1baf7a; --s3: #b88000;
+  --s4: #d8668f; --s5: #008300; --s6: #7262d0; --s7: #5a8dee;
+  --info-bg: #1C2B4A; --info-ink: #DCE6FA; --info-line: #8EAEF0;
+  color-scheme: dark;
+}
+/* Match phone (data-theme "device"): Night lagoon in dark mode (the same tokens as above) */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="device"] {
+    --band: #0F1C24; --band-ink: #ffffff; --band-sub: #7FC9D3; --band-button: #1E3341; --band-button-ink: #C9DCE2;
+    --band-track: #1E3341; --band-thumb: #7FC9D3;
+    --chip-on: #2CC5D2; --chip-on-ink: #04343A; --chip-off: #1E3341; --chip-off-ink: #C9DCE2;
+    --bg: #16252F; --surface: #1D303D; --surface-2: #263C4A; --field-bg: #16252F; --ink: #E4EEF1; --ink-2: #C3D3DA;
+    --muted: #93A8B2; --line: #2E4655; --accent: #2CC5D2; --accent-ink: #04343A; --accent-soft: #1F3746;
+    --toggle: #2CC5D2; --toggle-off: #4A5F6B; --tint-1: #1F3746; --tint-2: #3A2A30;
+    --hero: #0E4A60; --hero-ink: #ffffff; --hero-sub: #7FC9D3; --sheet-edge: transparent;
+    --scroll-thumb: rgb(147 168 178 / 0.45);
+    --bad: #ff8a7f; --bad-soft: #3a1d1b; --warn: #e5b45a; --warn-soft: #3a2f17; --good: #5fcf7c;
+    --edge-shadow: rgb(0 0 0 / 0.55);
+    --s0: #2CC5D2; --s1: #F2786C; --s2: #1baf7a; --s3: #b88000;
+    --s4: #d8668f; --s5: #008300; --s6: #7262d0; --s7: #5a8dee;
+    --info-bg: #1C2B4A; --info-ink: #DCE6FA; --info-line: #8EAEF0;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+/* Vertical scroll bars stay visible where the browser draws them: thin, rounded, muted. */
+html, .sheet-body, .menu, .table-scroll { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+body {
+  background: var(--band); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h2 { font-size: 17px; font-weight: 650; }
+p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--muted); font-size: 14px; }
+.mono { font-family: var(--font-data); font-size: 13px; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 600; color: var(--accent); }
+
+/* Boot screen */
+.boot { min-height: 100%; background: var(--bg); display: grid; place-items: center; padding-inline: var(--gutter); padding-block: 32px; }
+.boot-inner { width: 100%; max-width: 440px; display: grid; gap: 14px; }
+.boot-title { font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -0.01em; }
+.boot-lede { color: var(--ink-2); }
+.progress { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.progress span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.4s ease; }
+.boot-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.boot-steps li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; min-height: 32px;
+  color: var(--muted); font-size: 14px; }
+.boot-steps li[data-status="wait"] { color: var(--ink); font-weight: 600; }
+.boot-steps li[data-status="done"] { color: var(--ink-2); }
+.boot-steps li[data-status="fail"] { color: var(--bad); font-weight: 600; }
+.step-mark { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); justify-self: center; }
+li[data-status="wait"] .step-mark { border-color: var(--accent); border-right-color: transparent; animation: spin 0.9s linear infinite; }
+li[data-status="done"] .step-mark { background: var(--accent); border-color: var(--accent); }
+li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--bad); }
+.step-time { font-family: var(--font-data); font-size: 12px; font-variant-numeric: tabular-nums; }
+.boot-time { font-family: var(--font-data); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.boot-error { display: grid; gap: 10px; padding: 12px; border-radius: var(--radius); background: var(--bad-soft); color: var(--ink); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* App frame */
+/* overflow-x: clip keeps the page from scrolling sideways without making .app a scroll container, so a table or
+   the chips row inside it still takes a horizontal swipe. */
+.app { overflow-x: clip; min-height: 100%; }
+/* The header band: its top row and the pinned figures stay on screen; the title, subtitle and chips scroll away. */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--band); color: var(--band-ink);
+  padding-inline: var(--gutter); padding-block: 8px; }
+.topbar-row, .pinned, .panels { max-width: 640px; margin-inline: auto; }
+.topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.band-label { flex: 1; min-width: 0; font-size: 15px; color: var(--band-sub); overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+.round-button { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--band-button);
+  color: var(--band-button-ink); display: grid; place-items: center; cursor: pointer; }
+.round-button:disabled { opacity: 0.4; cursor: default; }
+.round-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.topbar :focus-visible, .band :focus-visible { outline-color: var(--band-sub); }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--band-button-ink);
+  padding: 4px 10px; border-radius: 999px; background: var(--band-button); white-space: nowrap; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.status[data-state="busy"] .status-dot { background: transparent; border: 2px solid var(--accent); border-right-color: transparent;
+  animation: spin 0.9s linear infinite; }
+.status[data-state="error"] { background: var(--bad-soft); color: var(--bad); font-weight: 600; }
+.status[data-state="error"] .status-dot { background: var(--bad); }
+.pinned { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding-top: 6px; }
+.pinned:empty { display: none; }
+.pin { min-width: 0; }
+.pin-label { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 11px; color: var(--band-sub);
+  line-height: 1.2; overflow: hidden; min-height: 2.4em; }
+.pin-value { display: block; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pin-sub { display: block; font-size: 11px; color: var(--band-sub); font-variant-numeric: tabular-nums; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+.app.stale .pin-value, .app.stale .tile-value, .app.stale .chart-plot { opacity: 0.45; }
+
+.band { background: var(--band); color: var(--band-ink); padding: 2px max(var(--gutter), calc((100% - 640px) / 2)) 16px; }
+.band-title { font-size: 28px; line-height: 1.2; font-weight: 650; letter-spacing: -0.01em; }
+.band-sub { color: var(--band-sub); font-size: 15px; margin: 2px 0 14px; }
+.band > .segmented + .chips-wrap:not([hidden]) { margin-top: 10px; }
+.chips-wrap { display: grid; gap: 8px; }
+.chips-track { height: 4px; border-radius: 2px; background: var(--band-track); overflow: hidden; }
+.chips-track span { display: block; height: 100%; width: 100%; border-radius: 2px; background: var(--band-thumb); }
+.chips-track-off { display: none; }
+/* The sheet under the band: light, with a rounded top; it holds the pane cards. */
+.panels { background: var(--bg); border-radius: 30px 30px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
+  padding-inline: var(--gutter); padding-top: 16px; min-height: 100vh;
+  padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 24px); }
+.panel { display: grid; gap: 14px; }
+/* Grid children default to min-width: auto and would grow to a wide table's width; 0 keeps them to the column, so
+   the table's own wrapper is what scrolls. */
+.panel > *, .card > *, .view-intro > *, .group > *, .sheet-body > * { min-width: 0; }
+/* Chips: an icon and a label each; the row scrolls sideways and the bar under it (.chips-track) shows where. */
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter); padding-block: 2px; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; min-height: 40px; padding: 0 14px 0 11px; border-radius: 999px; border: 0;
+  background: var(--chip-off); color: var(--chip-off-ink); font-size: 14px; font-weight: 500; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; }
+.chip-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.chip[aria-selected="true"] { background: var(--chip-on); color: var(--chip-on-ink); font-weight: 600; }
+.chip .soon { font-size: 11px; opacity: 0.8; margin-left: 6px; }
+.chip[aria-selected="true"] .soon { color: inherit; opacity: 0.7; }
+
+.card { background: var(--surface); border: 0; border-radius: 20px; padding: 16px;
+  display: grid; gap: 12px; min-width: 0; }
+.stub { padding: 24px 4px; display: grid; gap: 8px; color: var(--ink-2); }
+.banner { padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 14px; }
+/* Information boxes: notes, plain banners and explanations, in the info color with an "i" icon, so they never
+   look like an input field row. */
+.info-box, .banner:not(.banner-warn):not(.banner-error) { position: relative; padding: 10px 12px 10px 40px;
+  border-radius: 10px; background: var(--info-bg); color: var(--info-ink); border-left: 4px solid var(--info-line);
+  font-size: 13.5px; }
+.info-box::before, .banner:not(.banner-warn):not(.banner-error)::before { content: "i"; position: absolute;
+  left: 10px; top: 10px; width: 20px; height: 20px; border-radius: 50%; background: var(--info-line);
+  color: var(--info-bg); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.banner-error { background: var(--bad-soft); color: var(--ink); border-left: 4px solid var(--bad); }
+.banner-error strong { color: var(--bad); }
+.banner-warn { background: var(--warn-soft); color: var(--ink); border-left: 4px solid var(--warn); }
+.warnings { display: grid; gap: 8px; }
+.warnings:not(:empty) { padding-block: 8px; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.disclosure { padding-block: 0; gap: 0; }
+.disclosure > summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; font-weight: 650; }
+.disclosure[open] { padding-bottom: 16px; }
+.disclosure[open] > summary { margin-bottom: 8px; }
+.notes { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; color: var(--ink-2); }
+.view-intro { display: grid; gap: 10px; }
+.empty-state { color: var(--ink-2); background: var(--surface-2); border: 1px dashed var(--line); }
+
+/* Results */
+.result-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tile { background: var(--surface); border: 0; border-radius: 18px; padding: 12px 14px;
+  display: grid; gap: 4px; align-content: start; min-width: 0; }
+.tile-first { grid-column: 1 / -1; background: var(--hero); color: var(--hero-ink); border-radius: 20px; padding: 16px; }
+.tile-first .tile-label, .tile-first .tile-change, .tile-first .tile-help { color: var(--hero-sub); }
+.tile-label { font-size: 13px; color: var(--ink-2); }
+.tile-value { font-size: clamp(17px, 6vw, 24px); font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+.tile-first .tile-value { font-size: clamp(24px, 8vw, 34px); }
+.tile-change { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.tile-help { font-size: 12.5px; color: var(--muted); }
+
+/* Charts */
+.chart-card { gap: 10px; position: relative; }
+/* Full screen: the corner button, the card on the whole screen (browser full screen, or a fixed overlay turned to
+   landscape while the phone is upright where element full screen is missing) and its Close button */
+.chart-full { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.chart-full svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.chart-full-on { background: var(--surface); overflow: auto; align-content: start; }
+.chart-full-on:fullscreen { padding: 12px 16px; border-radius: 0; }
+.chart-full-on .chart-full, .chart-full-on .view-toggle { display: none; }
+.chart-full-on .chart { padding-right: 96px; }
+.chart-full-close { position: absolute; top: 10px; right: 12px; z-index: 2; }
+.chart-overlay { position: fixed; inset: 0; z-index: 100; margin: 0; border: 0; border-radius: 0;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px; }
+.chart-overlay.chart-rotated { inset: auto; top: 0; left: 100vw; width: 100vh; height: 100vw; transform-origin: top left;
+  transform: rotate(90deg); }
+.chart { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.chart figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.chart-title { font-weight: 650; font-size: 16px; }
+.chart-note { font-size: 12.5px; color: var(--muted); }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--ink-2); }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend .legend-group { flex-basis: 100%; font-weight: 600; color: var(--ink); margin-top: 2px; }
+.key { display: inline-block; flex: none; }
+.key-box { width: 10px; height: 10px; border-radius: 2px; background: var(--key); }
+.key-line { width: 14px; height: 3px; border-radius: 2px; background: var(--key); }
+.key-band { width: 14px; height: 10px; border-radius: 2px; background: var(--key); opacity: 0.25; }
+.key-none { width: 14px; }
+.chart-plot { position: relative; }
+.chart-svg { display: block; width: 100%; height: auto; touch-action: pan-y; font-family: var(--font-body); }
+.chart-svg .grid { stroke: var(--line); stroke-width: 1; }
+.chart-svg .baseline { stroke: var(--muted); stroke-width: 1; }
+.chart-svg .tick { fill: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.chart-svg .area { opacity: 0.88; }
+.chart-svg .seam { fill: none; stroke: var(--surface); stroke-width: 1.5; }
+.chart-svg .band { opacity: 0.2; }
+.chart-svg .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart-svg .dot { stroke: var(--surface); stroke-width: 2; }
+.chart-svg .crosshair { stroke: var(--ink-2); stroke-width: 1; }
+.chart-svg .band-compare { opacity: 0.14; }
+.chart-svg .whisker { fill: none; stroke-width: 2; stroke-linecap: round; }
+.chart-svg .box { fill-opacity: 0.28; stroke-width: 2; }
+.chart-svg .box-picked { fill-opacity: 0.5; }
+.chart-svg .median { stroke: var(--ink); stroke-width: 2.5; }
+.chart-svg .box-label { fill: var(--ink-2); font-size: 11px; font-weight: 600; }
+.chart-empty { padding: 28px 8px; text-align: center; color: var(--muted); background: var(--surface-2); border-radius: 10px; }
+.readout { margin-top: 6px; background: var(--surface-2); border-radius: 10px; padding: 8px 10px; font-size: 13px;
+  display: grid; gap: 3px; }
+.readout-title { font-weight: 600; color: var(--ink-2); }
+.readout-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.readout-row strong { grid-column: 3; grid-row: 1; font-variant-numeric: tabular-nums; text-align: right; }
+.readout-row span:last-child { grid-column: 2; grid-row: 1; color: var(--ink-2); overflow-wrap: anywhere; }
+.chart-svg:focus { outline: none; }
+.chart-svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; justify-self: start; }
+.view-toggle button { min-height: 40px; min-width: 76px; border: 0; background: transparent; border-radius: 999px; color: var(--ink-2); cursor: pointer; }
+.view-toggle button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); font-weight: 600; }
+/* A wide table scrolls inside its own box. The right edge carries a shadow while more columns lie beyond it: the
+   surface-coloured cover scrolls with the content (local) and hides the shadow (scroll) once the end is reached. */
+.table-scroll { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--line); border-radius: 10px; max-width: 100%;
+  -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; overscroll-behavior-x: contain;
+  background: linear-gradient(to left, var(--surface) 40%, transparent) right / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--edge-shadow), transparent) right / 14px 100% no-repeat scroll, var(--surface); }
+.data-table { border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; width: max-content; min-width: 100%; }
+.data-table th, .data-table td { padding: 6px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.data-table thead th { background: var(--surface-2); font-weight: 600; color: var(--ink-2); }
+.data-table thead th:first-child { position: sticky; left: 0; z-index: 1; }
+.data-table tbody th { text-align: left; font-weight: 500; position: sticky; left: 0; background: var(--surface);
+  box-shadow: 1px 0 0 var(--line); }
+.data-table td.text { text-align: left; white-space: normal; min-width: 8em; }
+/* Long row labels (scenario names, setting paths) wrap so the sticky first column leaves room for the figures. */
+.data-table.wrap-first th:first-child { white-space: normal; min-width: 7.5em; max-width: 10.5em; overflow-wrap: anywhere;
+  text-align: left; }
+
+/* Settings */
+.settings { display: grid; gap: 14px; }
+.group { background: var(--surface); border: 0; border-radius: 20px; padding: 4px 16px 14px;
+  margin: 0; min-width: 0; display: grid; }
+.group > legend { font-weight: 650; font-size: 17px; padding: 12px 0 4px; float: left; width: 100%; }
+/* A pane: the icon tile and the title, and the pane's on/off toggle (its switch field) at the right of the title. */
+.pane { position: relative; }
+.legend-title { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.pane-icon { flex: none; width: 30px; height: 30px; border-radius: 10px; background: var(--tint-1); color: var(--ink);
+  display: grid; place-items: center; }
+.pane-svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.pane:has(> .pane-switch) > legend { padding-right: 64px; }
+.pane > .pane-switch .switch { position: absolute; top: 15px; right: 16px; }
+/* A sub-section inside a pane (the HSA in the Medical plan pane): a smaller title, its toggle at the title's right. */
+.subsection > .pane-switch .switch { top: 9px; right: 0; }
+.group .group { border: 0; padding: 0; background: transparent; border-top: 1px solid var(--line); border-radius: 0; margin-top: 6px; }
+.group .group > legend { font-size: 14px; color: var(--ink-2); }
+.sheet-body .group { border: 0; padding: 0; background: transparent; border-top: 1px solid var(--line); border-radius: 0; }
+.sheet-body .group > legend { font-size: 14px; color: var(--ink-2); }
+/* Field rows: rounded and tinted, one tint per section of a pane or sheet (tintSections: the sections alternate the two
+   tints, a pane without sections keeps the first). */
+.field { display: grid; gap: 4px; padding: 10px 12px; margin-top: 8px; border-radius: 12px; background: var(--tint-1);
+  min-width: 0; }
+.field.tint-alt, .tint-alt .field { background: var(--tint-2); }
+.field .field { background: transparent; padding: 0; margin: 0; }
+.group > legend + .field, .group > .note + .field, .sheet-body > .field:first-child { border-top: 0; }
+.field-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+.field-label { font-size: 14px; font-weight: 550; color: var(--ink); }
+.help-button { flex: none; width: 44px; height: 44px; margin: -8px -12px -8px 0; border: 0; background: transparent; color: var(--muted);
+  border-radius: 50%; cursor: pointer; display: grid; place-items: center; }
+.help-button span { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 12px; font-weight: 700;
+  display: grid; place-items: center; }
+.help-button[aria-expanded="true"] { color: var(--accent); }
+/* Red only for help that notes the mean inflation is subtracted from the value in today's value. */
+.help-button.help-inflation { color: var(--bad); }
+/* A heading with its "i" button; the explanation below it shows on a tap (tooltips only, no visible notes). */
+.title-help { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.group > legend.legend-help { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.field-help { font-size: 13px; color: var(--muted); }
+.field-error { font-size: 13px; color: var(--bad); font-weight: 500; }
+.input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--field-bg);
+  font-variant-numeric: tabular-nums; }
+.input:focus { border-color: var(--accent); }
+.input[aria-invalid="true"] { border-color: var(--bad); }
+textarea.input { resize: vertical; }
+.affix { position: relative; display: flex; align-items: center; }
+.affix .input { padding-left: 26px; }
+.affix[data-suffix] .input { padding-left: 12px; padding-right: 30px; }
+.affix::before { content: attr(data-prefix); position: absolute; left: 12px; color: var(--muted); pointer-events: none; }
+.affix[data-suffix]::after { content: attr(data-suffix); position: absolute; right: 12px; color: var(--muted); pointer-events: none; }
+.triple { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.triple label { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
+.field-group { border-top: 1px solid var(--line); padding-block: 6px; }
+.field-group > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer; }
+.field-group > .button { margin-top: 6px; }
+.field-collapse { border-top: 1px solid var(--line); padding-block: 6px; }
+.field-collapse > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer; }
+.field-collapse > .field { margin-top: 0; }
+/* Every collapsible: the browser's marker is replaced by one chevron at the right that turns when it opens. */
+details > summary { list-style: none; gap: 8px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after { content: ""; flex: none; width: 8px; height: 8px; margin-left: auto; margin-right: 4px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.15s; }
+details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.normal-part { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
+.curve-box { display: grid; gap: 2px; }
+.curve { width: 100%; height: 60px; display: block; }
+.curve path { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.curve-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.switch { position: relative; flex: none; width: 52px; height: 32px; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--toggle-off); border: 1px solid transparent; transition: background 0.15s; pointer-events: none; }
+.switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
+  background: #ffffff; box-shadow: 0 1px 3px rgb(0 0 0 / 0.3); transition: transform 0.15s; }
+.switch input:checked + span { background: var(--toggle); border-color: var(--toggle); }
+.switch input:checked + span::after { transform: translateX(20px); }
+.switch input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.map-rows { display: grid; gap: 6px; }
+.map-row { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 44px; gap: 6px; align-items: center; }
+.icon-button { width: 44px; height: 44px; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; cursor: pointer;
+  display: grid; place-items: center; color: var(--ink-2); }
+.icon-button:disabled { opacity: 0.4; cursor: default; }
+.note { font-size: 13.5px; color: var(--ink-2); padding: 8px 0; }
+.items { display: grid; gap: 8px; padding-block: 8px; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; width: 100%; min-height: 56px;
+  text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); cursor: pointer; }
+.item-readonly { cursor: default; background: var(--surface-2); border-style: dashed; margin-top: 6px; }
+.mortgage-rows > .button { justify-self: start; margin-top: 6px; }
+.item-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-detail { font-size: 12.5px; color: var(--muted); grid-column: 1; }
+.item-value { grid-row: 1 / span 2; grid-column: 2; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* An ordered list's card: tick box, the card, drag handle; the bar under the list acts on the ticked cards. */
+.item-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; gap: 4px; align-items: center; }
+.item-select { display: grid; place-items: center; min-height: 56px; cursor: pointer; }
+.item-select input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.drag-handle { display: grid; place-items: center; width: 40px; min-height: 56px; padding: 0; border: 0; border-radius: 10px;
+  background: transparent; color: var(--muted); cursor: grab; touch-action: none; }
+.drag-handle svg { width: 22px; height: 22px; }
+.item-row.dragging { opacity: 0.55; }
+.item-row.dragging .drag-handle { cursor: grabbing; }
+.item-row.drop-target .item { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.list-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-bottom: 8px; }
+.list-bar .button:disabled { opacity: 0.45; cursor: default; }
+.list-bar-count { font-size: 12.5px; color: var(--muted); }
+.row-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.button { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent);
+  color: var(--accent-ink); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.button-quiet { background: transparent; color: var(--accent); }
+.button-danger { background: transparent; border-color: var(--bad); color: var(--bad); justify-self: start; }
+.button-danger[data-armed="true"] { background: var(--bad); color: var(--surface); }
+.button-danger-solid { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.about { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 13.5px; }
+.about dt { color: var(--muted); }
+.about dd { margin: 0; font-family: var(--font-data); font-size: 12.5px; overflow-wrap: anywhere; }
+
+/* Sliders: the surplus split and the deposits */
+.range { width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); background: transparent; cursor: pointer; }
+.range:disabled { cursor: default; opacity: 0.45; }
+.range-row { display: grid; grid-template-columns: minmax(0, 1fr) 4.5em; gap: 10px; align-items: center; }
+.range-value, .surplus-value { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
+.surplus-body { display: grid; gap: 4px; padding-top: 6px; }
+.split-bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; background: var(--surface-2);
+  margin-bottom: 6px; }
+.split-bar span { flex: 0 1 0; min-width: 0; }
+.surplus-row { display: grid; gap: 0; padding-block: 6px; border-top: 1px solid var(--line); }
+.surplus-head { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.surplus-head .field-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.surplus-key { width: 10px; height: 10px; border-radius: 2px; }
+.surplus-control { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; align-items: center; }
+.lock { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+  color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.lock svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.lock[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.lock[aria-pressed="true"] rect { fill: currentColor; }
+.surplus-total { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--line);
+  font-size: 14px; color: var(--ink-2); }
+.surplus-total strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.deposit-title { padding-top: 12px; }
+.deposit-owner { padding-top: 8px; }
+.deposit-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.deposit-head .field-label { overflow-wrap: anywhere; }
+.deposits .button { justify-self: start; margin-top: 8px; }
+
+/* Settings panels: the panel's note (behind the group heading's "i"), the household plan disclosure and the
+   read-only benefit card */
+.panel-note { padding-bottom: 6px; white-space: pre-line; }
+/* A section's rule on screen under its title (Roth conversion: every ceiling applies, the lowest one stops it). */
+.pane-lead { margin: 0 0 6px; font-weight: 600; color: var(--ink-2); }
+.plan-details { display: grid; gap: 4px; border-top: 1px solid var(--line); }
+.plan-details > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600;
+  color: var(--accent); }
+.benefit { display: grid; gap: 8px; padding-block: 10px; border-top: 1px solid var(--line); min-width: 0; }
+.benefit > * { min-width: 0; }
+/* Sub-headings inside a pane (Social Security: You, Partner). */
+.sub-heading-block { padding-top: 10px; }
+.sub-heading { margin: 0; font-size: 15px; font-weight: 650; color: var(--ink-2); flex: 1; }
+/* Sections inside one pane (markPaneSection: Income's You and Partner, the sub-headings) or one sheet (a child's
+   Daycare and College): a larger accent title, and every section after the pane's first below a divider. */
+.group .pane-section, .sheet-body .pane-section { border-top: 0; margin-top: 6px; padding-top: 10px; }
+.group .pane-section.section-break, .sheet-body .pane-section.section-break { margin-top: 14px; padding-top: 12px;
+  border-top: 2px solid var(--line); }
+.group .pane-section > legend, .sheet-body .pane-section > legend, .pane-section .sub-heading { font-size: 20px;
+  font-weight: 700; color: var(--accent); }
+.sheet-intro { padding-top: 8px; }
+#terminal-card .field { border-top: 0; }
+.terminal-rate .row-buttons { padding-top: 6px; }
+
+/* Monte Carlo and Compare: run controls, progress and cancel, stale results */
+.run-controls { display: grid; grid-template-columns: minmax(0, 1fr) 7.5em; gap: 10px; align-items: end; }
+.run-controls .field-label { display: block; margin-bottom: 4px; }
+.segmented { display: flex; border: 1px solid var(--line); border-radius: 10px; padding: 2px; background: var(--bg); }
+.segmented button { flex: 1; min-height: 40px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2);
+  cursor: pointer; font-variant-numeric: tabular-nums; }
+.segmented button[aria-pressed="true"], .segmented button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 650;
+  box-shadow: 0 0 0 1px var(--line); }
+.segmented .view-tab { min-height: 44px; }
+/* The Outputs views in the band: one thin row of underline text tabs on a 1px hairline, scrolling sideways if too narrow. */
+.band .segmented { border: 0; border-radius: 0; padding: 0; background: transparent; gap: 4px; overflow-x: auto;
+  scrollbar-width: none; box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent); }
+.band .segmented::-webkit-scrollbar { display: none; }
+.band .segmented .view-tab { flex: 1 0 auto; padding: 0 12px; border: 0; border-radius: 0; background: transparent;
+  color: var(--band-sub); white-space: nowrap; box-shadow: none; }
+.band .segmented .view-tab[aria-selected="true"] { background: transparent; color: var(--chip-on); font-weight: 650;
+  box-shadow: inset 0 -2px 0 var(--chip-on); }
+.band .segmented .view-tab:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
+.subpanel { display: grid; gap: 14px; }
+.subpanel > * { min-width: 0; }
+.run-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.run-progress { display: grid; gap: 8px; }
+.run-progress .progress span { transition: width 0.2s linear; }
+.progress-text { font-size: 13.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; flex: 1; min-width: 0; }
+.phone-note { font-size: 12.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px;
+  padding: 2px 10px; }
+.stale-results .tile-value, .stale-results .chart-plot, .stale-results .table-scroll { opacity: 0.5; }
+.pin.stale-results .pin-value { opacity: 0.5; }
+.mc-bar { display: grid; gap: 10px; }
+.mc-bar[hidden] { display: none; }
+/* Compare: the Config A and B selects, the make-match buttons and the accounts side by side */
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pair-field { display: grid; gap: 4px; min-width: 0; }
+.pair-names { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; overflow-wrap: anywhere; }
+.match { display: grid; gap: 6px; padding-block: 6px; }
+.match-row { display: grid; gap: 2px; }
+.match-row .button { justify-self: start; }
+.match-row .button[data-armed="true"] { background: var(--warn-soft); border-color: var(--warn); color: var(--ink); }
+.match-row .button:disabled { opacity: 0.5; cursor: default; }
+.account-diff-name { font-size: 14px; font-weight: 650; padding-top: 8px; overflow-wrap: anywhere; }
+.data-table.account-diff td { text-align: left; }
+.data-table td.changed { background: var(--warn-soft); font-weight: 650; }
+/* Setup's open scenario card: accent-edged, the name large, the saved state with the Auto-save switch, then one flat
+   strip of equal-width icon buttons (one outer border, thin dividers). */
+.open-card { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); gap: 8px; }
+.open-label { margin: 0; }
+.open-name { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
+.open-status { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; color: var(--ink-2);
+  flex-wrap: wrap; }
+.open-status > [role="status"] { flex: 1; min-width: 0; }
+.dirty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); flex: none; }
+.mini-switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.mini-toggle { position: relative; width: 40px; height: 24px; flex: none; padding: 0; border: 0; border-radius: 999px;
+  background: var(--toggle-off); cursor: pointer; }
+.mini-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / 0.25); transition: transform 0.15s; }
+.mini-toggle[aria-checked="true"] { background: var(--toggle); }
+.mini-toggle[aria-checked="true"]::after { transform: translateX(16px); }
+.action-strip { display: flex; margin-top: 4px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  background: var(--surface); }
+.strip-button { flex: 1 1 0; min-width: 0; min-height: 56px; display: grid; justify-items: center; align-content: center;
+  gap: 2px; padding: 8px 2px; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent;
+  color: var(--ink); font-size: 12.5px; cursor: pointer; }
+.strip-button:first-child, .strip-button[hidden] + .strip-button { border-left: 0; }
+.strip-button svg, .scenario-open svg, .scenario-more svg, .big-button svg { width: 22px; height: 22px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.strip-button svg { color: var(--accent); }
+.strip-danger svg { color: var(--bad); }
+.strip-button:focus-visible { outline-offset: -3px; }
+/* Other scenarios: one row each (tap to open, "..." for its menu), then New and Import side by side. */
+.other-scenarios { display: grid; gap: 8px; }
+.section-label { font-size: 13px; font-weight: 650; color: var(--ink-2); padding-inline: 4px; }
+.scenario-list { padding-block: 4px; gap: 0; }
+.scenario-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px;
+  border-top: 1px solid var(--line); }
+.scenario-row:first-child { border-top: 0; }
+.scenario-open { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 4px; border: 0;
+  background: transparent; text-align: left; cursor: pointer; min-width: 0; }
+.scenario-open svg, .scenario-more svg { color: var(--muted); }
+.saved-name { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.scenario-more { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 10px;
+  background: transparent; cursor: pointer; }
+.scenario-more[aria-expanded="true"] { background: var(--surface-2); }
+.two-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.big-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 650;
+  background: var(--surface); }
+/* The row menu and the scenario dialog */
+.row-menu { position: fixed; z-index: 75; min-width: 160px; display: grid; padding: 4px 0; background: var(--surface);
+  color: var(--ink); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.2); }
+.row-menu-item { min-height: 44px; padding: 0 16px; border: 0; background: transparent; text-align: left; font-size: 15px;
+  cursor: pointer; }
+.row-menu-item:hover, .row-menu-item:focus-visible { background: var(--surface-2); }
+.row-menu-item:focus-visible { outline-offset: -3px; }
+.row-menu-danger { color: var(--bad); }
+.dialog-backdrop { position: fixed; inset: 0; z-index: 85; background: rgb(0 0 0 / 0.45); }
+.dialog { position: fixed; z-index: 90; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(400px, calc(100% - 2 * var(--gutter))); max-height: calc(100% - 32px); overflow-y: auto; display: grid;
+  gap: 10px; padding: 18px 16px 16px; background: var(--surface); color: var(--ink); border-radius: 16px;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.3); }
+.dialog h2 { overflow-wrap: anywhere; }
+.dialog-body { display: grid; gap: 8px; }
+.dialog-body:empty { display: none; }
+.dialog-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; padding-top: 4px; }
+.dialog-actions .button { padding-inline: 8px; justify-self: stretch; }
+.dialog-wide { width: 100%; }
+.finish-setup strong { color: var(--ink); }
+
+/* Bottom tab bar */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(3, 1fr);
+  background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -4px 18px rgb(0 0 0 / 0.1);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.tab { min-height: var(--tabbar); border: 0; background: transparent; color: var(--muted); display: grid; justify-items: center;
+  align-content: center; gap: 3px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
+.tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab circle { fill: var(--surface); }
+.tab[aria-selected="true"] { color: var(--ink); font-weight: 650; }
+.tab[aria-selected="true"] svg { stroke-width: 2.2; }
+.tab:focus-visible { outline-offset: -3px; }
+.app.typing .tabbar { visibility: hidden; }
+
+/* Bottom sheet for editing one item of a list */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / 0.4); }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; max-height: 88%; display: grid; grid-template-rows: auto 1fr;
+  background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -8px 30px rgb(0 0 0 / 0.25);
+  padding-bottom: env(safe-area-inset-bottom, 0px); max-width: 640px; margin-inline: auto; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px var(--gutter);
+  border-bottom: 1px solid var(--line); }
+.sheet-body { overflow-y: auto; padding: 4px var(--gutter) 16px; display: grid; gap: 0; align-content: start; }
+.sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; }
+
+/* Menu (top right): the walkthrough, Appearance (the color schemes and Match phone), the help and tips */
+.menu-backdrop { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 0.4); }
+.menu { position: fixed; z-index: 70; top: calc(env(safe-area-inset-top, 0px) + 60px);
+  right: max(12px, calc((100% - 640px) / 2 + 12px)); width: min(310px, calc(100% - 24px));
+  max-height: calc(100% - env(safe-area-inset-top, 0px) - 76px); overflow-y: auto; background: var(--surface);
+  color: var(--ink); border-radius: 20px; padding: 6px 14px; box-shadow: 0 12px 40px rgb(0 0 0 / 0.3); }
+.menu svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.menu-item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 6px; border: 0;
+  border-bottom: 1px solid var(--line); background: transparent; font-size: 16px; text-align: left; cursor: pointer; }
+.menu > .menu-item:last-child { border-bottom: 0; }
+.menu-group { display: grid; gap: 2px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.menu-heading { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 6px; font-size: 16px; }
+.scheme { display: grid; grid-template-columns: 26px minmax(0, 1fr) 20px; gap: 10px; align-items: center; min-height: 44px;
+  padding: 0 8px 0 10px; border: 0; border-radius: 10px; background: transparent; font-size: 15px; text-align: left;
+  cursor: pointer; }
+.scheme[aria-checked="true"] { background: var(--surface-2); font-weight: 600; }
+.scheme .tick { visibility: hidden; color: var(--accent); stroke-width: 2.5; }
+.scheme[aria-checked="true"] .tick { visibility: visible; }
+.swatch { width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15); }
+.swatch-lagoon { background: linear-gradient(135deg, #0B4F6C 0 50%, #19B5C4 50% 75%, #F2675A 75%); }
+.swatch-sunset { background: linear-gradient(135deg, #103F5C 0 50%, #F59E4C 50% 75%, #F2675A 75%); }
+.swatch-palm { background: linear-gradient(135deg, #F3EBDD 0 50%, #1F4B3F 50% 75%, #2F8F6B 75%); }
+.swatch-night { background: linear-gradient(135deg, #0F1C24 0 50%, #2CC5D2 50% 75%, #F2786C 75%); }
+.swatch-device { background: linear-gradient(90deg, #F6EEDF 0 50%, #0F1C24 50%); }
+.menu-help { margin: 0; padding: 4px 6px 12px 38px; display: grid; gap: 6px; font-size: 14px; color: var(--ink-2);
+  border-bottom: 1px solid var(--line); }
+
+/* Walkthrough: a full-screen layer over the page, one question at a time. Colors are the scheme tokens only (a test
+   reads this block), so every scheme, Night lagoon included, draws it. Forward: the old screen slides out to the left
+   while the new one slides in from the right, both fading (back: the reverse); transform and opacity only. */
+.walk { position: fixed; inset: 0; z-index: 80; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto;
+  background: var(--bg); color: var(--ink); padding-top: env(safe-area-inset-top, 0px); }
+.walk-top { width: 100%; max-width: 40rem; margin-inline: auto; padding: 12px var(--gutter) 0; }
+.walk-progress { display: flex; gap: 6px; min-height: 5px; }
+.walk-progress span { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
+.walk-progress span[data-state="done"] { background: var(--accent); }
+.walk-progress span[data-state="current"] { background: var(--toggle); }
+.walk-bar { display: flex; align-items: center; gap: 8px; min-height: 56px; }
+.walk-topic { flex: 1; text-align: center; color: var(--ink-2); font-size: 1rem; }
+.walk-icon { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--surface);
+  color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.walk-icon:disabled { visibility: hidden; }
+.walk-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.walk-stage { display: grid; overflow-y: auto; overflow-x: hidden; padding: 8px var(--gutter) 24px; }
+.walk-screen { grid-area: 1 / 1; align-self: center; width: 100%; max-width: 34rem; margin-inline: auto; display: grid;
+  gap: 14px; }
+.walk-screen.walk-review { align-self: start; }
+.walk-eyebrow { color: var(--accent); font-size: 0.8rem; }
+.walk-eyebrow.walk-deeper { color: var(--bad); }
+.walk-head { display: flex; align-items: flex-start; gap: 4px; }
+.walk-question { flex: 1; font-size: clamp(1.6rem, 6vw, 2.2rem); line-height: 1.18; font-weight: 650; letter-spacing: -0.01em; }
+.walk-question:focus { outline: none; }
+.walk-question:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+.walk-head .help-button { margin: 4px 0 0; }
+.walk-lede { color: var(--ink-2); font-size: 1.05rem; }
+.walk-help { font-size: 0.95rem; }
+.walk-controls { display: grid; gap: 14px; padding-top: 6px; }
+.walk-field { display: grid; gap: 8px; }
+.walk-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 600; }
+.walk-label .help-button { margin: -8px -12px -8px 0; }
+.walk-number .input, .walk-select { min-height: 56px; font-size: 20px; border-radius: 16px; background: var(--surface);
+  color: var(--ink); }
+.walk-number .affix .input { padding-left: 32px; }
+.walk-number .affix::before { left: 16px; font-size: 20px; }
+.walk-number .affix[data-suffix]::after { right: 16px; font-size: 20px; }
+.walk-options { display: grid; gap: 10px; }
+.walk-option { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 10px 16px; border: 2px solid var(--line);
+  border-radius: 16px; background: var(--surface); color: var(--ink); font-size: 1.05rem; font-weight: 600; text-align: left;
+  cursor: pointer; }
+.walk-option[aria-checked="true"] { border-color: var(--accent); }
+.walk-radio { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--muted); display: grid;
+  place-items: center; }
+.walk-option[aria-checked="true"] .walk-radio { border-color: var(--accent); }
+.walk-option[aria-checked="true"] .walk-radio::after { content: ""; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent); }
+.walk-field .field { background: var(--surface); margin: 0; }
+.walk-example { justify-self: start; padding: 4px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--ink-2);
+  font-size: 0.85rem; }
+.walk-error { color: var(--bad); font-weight: 600; }
+.walk-actions { width: 100%; max-width: 34rem; margin-inline: auto; display: grid; gap: 8px;
+  padding: 10px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); }
+.walk-primary { min-height: 56px; border-radius: 16px; font-size: 1.05rem; }
+.walk-deeper-button { min-height: 48px; border-radius: 16px; }
+.walk-quiet-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 12px; }
+.walk-quiet { min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--ink-2); font-size: 0.95rem;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+.walk.walk-swapping .walk-stage, .walk.walk-swapping .walk-actions { pointer-events: none; }
+.walk-screen.leaving, .walk-screen.entering { animation: 340ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.walk-screen.leaving.forward { animation-name: walk-out-left; }
+.walk-screen.leaving.back { animation-name: walk-out-right; }
+.walk-screen.entering.forward { animation-name: walk-in-right; }
+.walk-screen.entering.back { animation-name: walk-in-left; }
+.walk-screen.fading-out { animation: walk-fade-out 300ms ease-out both; }
+.walk-screen.fading-in { animation: walk-fade-in 300ms ease-out both; }
+@keyframes walk-out-left { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-48px); } }
+@keyframes walk-out-right { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(48px); } }
+@keyframes walk-in-right { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: none; } }
+@keyframes walk-in-left { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
+@keyframes walk-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes walk-fade-in { from { opacity: 0; } to { opacity: 1; } }
+/* The Trail (bottom sheet) and the review list: topics as headings, questions under them, deeper ones indented. */
+.walk-backdrop { position: fixed; inset: 0; z-index: 85; background: var(--edge-shadow); }
+.walk-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; max-height: 88dvh; max-width: 40rem; margin-inline: auto;
+  display: grid; grid-template-rows: auto 1fr; background: var(--surface); color: var(--ink); border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 30px var(--edge-shadow); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.walk-sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 18px var(--gutter) 8px; }
+.walk-sheet-head h2 { font-size: 1.4rem; }
+.walk-sheet-body { overflow-y: auto; padding: 0 var(--gutter) 20px; }
+.walk-leave { grid-template-rows: none; gap: 10px; padding: 20px var(--gutter) calc(20px + env(safe-area-inset-bottom, 0px)); }
+.walk-leave .button-danger { justify-self: stretch; }
+.walk-trail, .walk-trail-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.walk-topic-group { padding-top: 14px; display: grid; gap: 4px; }
+.walk-trail-list > li { padding-left: calc(var(--depth, 0) * 18px); border-bottom: 1px solid var(--line); }
+.walk-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 10px; border: 0;
+  border-radius: 12px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+.walk-row[aria-current="step"] { background: var(--accent-soft); }
+.walk-row.walk-offer { min-height: 44px; color: var(--accent); font-weight: 600; border: 1px dashed var(--line); margin: 4px 0; }
+.walk-row-text { flex: 1; display: grid; min-width: 0; }
+.walk-row-label { font-weight: 550; }
+.walk-row-answer { color: var(--muted); font-size: 0.9rem; overflow-wrap: anywhere; }
+.walk-tag { flex: none; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); font-size: 0.8rem; }
+.walk-tag[data-status="answered"] { background: var(--accent-soft); color: var(--accent); }
+.walk-tag[data-status="now"] { background: var(--accent); color: var(--accent-ink); }
+.walk-review-row { display: flex; align-items: center; gap: 10px; min-height: 56px; padding-block: 6px; }
+.walk-change { flex: none; min-height: 44px; min-width: 44px; padding: 0 10px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--accent); font-weight: 600; cursor: pointer; }
+.walk-resume { position: fixed; z-index: 75; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); min-height: 44px; padding: 0 18px; border: 0;
+  border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 600;
+  box-shadow: 0 6px 20px var(--edge-shadow); cursor: pointer; }
+.walk-toast { position: fixed; z-index: 75; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); padding: 12px 16px; border-radius: 14px;
+  background: var(--hero); color: var(--hero-ink); box-shadow: 0 6px 20px var(--edge-shadow); }
+/* The "New version ready" bar of the installed (static host) build, above the tab bar */
+.update-bar { position: fixed; z-index: 75; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center;
+  justify-content: space-between; gap: 12px; padding: 10px 12px 10px 16px; border-radius: 14px;
+  background: var(--hero); color: var(--hero-ink); box-shadow: 0 6px 20px var(--edge-shadow); }
+.update-actions { display: flex; flex: none; gap: 8px; }
+/* About: the version line, Check for updates (static host build only) and its short result */
+.about-update { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.about-update #aboutUpdateStatus { flex-basis: 100%; }
+.about-update #aboutUpdateStatus:empty { display: none; }
+
+/* Terms and agreement: the full-screen step before the app on a first visit or a new Terms version */
+.terms { position: fixed; inset: 0; z-index: 95; height: 100dvh; overflow-y: auto; background: var(--bg); color: var(--ink);
+  padding: calc(env(safe-area-inset-top, 0px) + 24px) var(--gutter) calc(env(safe-area-inset-bottom, 0px) + 24px); }
+.terms-inner { width: 100%; max-width: 40rem; margin-inline: auto; display: grid; gap: 14px; }
+.terms-title { font-size: 26px; line-height: 1.15; font-weight: 700; margin: 0; }
+.terms-title:focus { outline: none; }
+.terms-summary { display: grid; gap: 6px; color: var(--ink-2); }
+.terms-summary p { margin: 0; }
+.legal-summary { color: var(--ink-2); }
+.legal-summary ul { margin: 0 0 6px; padding-left: 20px; }
+.legal-summary li { margin: 0 0 2px; }
+.terms-text { max-height: 40dvh; overflow-y: auto; padding: 4px 14px 12px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--surface); font-size: 13.5px; }
+.terms-check { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; }
+.terms-check input { width: 22px; height: 22px; flex: none; margin: 1px 0 0; accent-color: var(--accent); }
+.terms-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.terms .button:disabled { opacity: 0.5; cursor: not-allowed; }
+/* The legal documents, drawn as plain headings and paragraphs (Terms step and Legal window) */
+.legal-doc h3 { font-size: 15px; margin: 14px 0 4px; }
+.legal-doc h4 { font-size: 14px; margin: 12px 0 2px; }
+.legal-doc p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.legal-docs { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  /* The walkthrough still cross-fades (opacity only, no slide). */
+  .walk-stage .walk-screen.fading-out, .walk-stage .walk-screen.fading-in { animation-duration: 300ms !important; }
+}
+
+</style>
+
+<div id="boot" class="boot" aria-live="polite">
+  <div class="boot-inner">
+    <p class="eyebrow">wmti on this device</p>
+    <h1 class="boot-title">Walk Me Through It™</h1>
+    <p class="boot-lede">The full retirement model runs here in your browser. The first load downloads about 20 MB and takes around 20 seconds on a phone; later loads are faster.</p>
+    <div class="progress" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="bootProgress"><span id="bootBar"></span></div>
+    <ol class="boot-steps" id="bootSteps"></ol>
+    <p class="boot-time" id="bootTime">0 s</p>
+    <div class="boot-error" id="bootError" hidden>
+      <p><strong>The engine did not start.</strong> <span id="bootErrorText"></span></p>
+      <button type="button" class="button" id="bootRetry">Try again</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="app" hidden>
+  <header class="topbar">
+    <div class="topbar-row">
+      <span class="band-label" id="bandLabel">Outputs</span>
+      <span class="status" id="status" role="status" data-state="idle"><span class="status-dot"></span><span id="statusText">Ready</span></span>
+      <button type="button" class="round-button" id="undoButton" aria-label="Undo" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+      <button type="button" class="round-button" id="menuButton" aria-label="Menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+    <div class="pinned" id="pinned" aria-label="Headline figures"></div>
+  </header>
+
+  <div class="band">
+    <h1 class="band-title" id="bandTitle">Summary</h1>
+    <p class="band-sub" id="bandSub"></p>
+    <div class="segmented" id="views-outputs" role="tablist" aria-label="Outputs sections" data-place="outputs">
+      <button type="button" role="tab" class="view-tab" id="sub-summary" data-view="summary" aria-controls="view-summary">Summary</button>
+      <button type="button" role="tab" class="view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
+      <button type="button" role="tab" class="view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
+    </div>
+    <div class="chips-wrap" data-place="inputs">
+      <div class="chips" role="tablist" aria-label="Settings groups" id="chips-settings"></div>
+      <div class="chips-track" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="chips-wrap" data-place="outputs/summary">
+      <div class="chips" role="tablist" aria-label="Summary views" id="chips-results"></div>
+      <div class="chips-track" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="chips-wrap" data-place="outputs/plots">
+      <div class="chips" role="tablist" aria-label="Charts" id="chips-plots"></div>
+      <div class="chips-track" aria-hidden="true"><span></span></div>
+    </div>
+  </div>
+
+  <main class="panels">
+    <section class="panel" id="panel-setup" data-tab="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
+      <div class="card open-card" id="savedCard">
+        <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
+        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Clear empties every setting (Undo, top right, brings them back) and Export saves it as a file that the desktop dashboard also opens. Other scenarios lists the copies kept here: tap one to open it, or use its ... menu. Your current settings are also kept as you edit.</p>
+        <p class="open-name" id="loadedName"></p>
+        <div class="open-status">
+          <span class="dirty-dot" id="dirtyDot" aria-hidden="true"></span><span id="saveStatus" role="status"></span>
+          <label class="mini-switch"><span>Auto-save</span><button type="button" class="mini-toggle" id="autoSave" role="switch" aria-checked="false" aria-label="Auto-save"></button></label>
+        </div>
+        <div class="action-strip" role="group" aria-label="Open scenario">
+          <button type="button" class="strip-button" id="saveButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span>Save</span></button>
+          <button type="button" class="strip-button" id="renameButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg><span>Rename</span></button>
+          <button type="button" class="strip-button strip-danger" id="clearButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11M3 11h9M3 16h6"/><path d="M14 13l7 7M21 13l-7 7"/></svg><span>Clear</span></button>
+          <button type="button" class="strip-button" id="exportButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Export</span></button>
+        </div>
+        <div id="exportFallback" hidden>
+          <p class="muted">Saving files is not available here. Copy the text and save it as <span id="exportFilename"></span>.</p>
+          <textarea class="input mono" id="exportText" rows="6" readonly aria-label="Scenario file text"></textarea>
+          <button type="button" class="button button-quiet" id="copyExport">Copy text</button>
+        </div>
+        <p class="banner" id="fileMessage" role="status" hidden></p>
+      </div>
+      <div class="other-scenarios">
+        <h2 class="section-label" id="otherTitle">Other scenarios</h2>
+        <div class="card scenario-list" id="savedList" role="list" aria-labelledby="otherTitle"></div>
+        <p class="banner" id="savedMessage" role="status" hidden></p>
+        <div class="two-buttons">
+          <button type="button" class="button button-quiet big-button" id="newButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
+          <button type="button" class="button button-quiet big-button" id="importButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M12 18v-7M9 14l3-3 3 3"/></svg><span>Import</span></button>
+        </div>
+        <input id="importFile" type="file" hidden>
+      </div>
+      <div class="settings" id="householdCard">
+        <div class="banner banner-error" id="household-error" role="alert" hidden></div>
+        <form id="household-body" class="settings" novalidate></form>
+      </div>
+      <div class="card" id="runCard">
+        <h2>Run</h2>
+        <div id="run-body"></div>
+      </div>
+      <div class="card" id="inflationCard">
+        <h2>Inflation</h2>
+        <div id="inflation-body"></div>
+      </div>
+      <div class="card">
+        <div class="title-help"><h2>Start over</h2><button type="button" class="help-button" aria-expanded="false" aria-controls="help-reset" aria-label="About Start over"><span>i</span></button></div>
+        <p class="field-help" id="help-reset" hidden>Replace your settings with the example household that ships with the model (its figures are fictional). Clear all data removes everything this app keeps in this browser: your settings, saved scenarios, walkthrough progress, preferences, your agreement to the Terms and the offline copy; use it on a shared device when you finish.</p>
+        <div class="row-buttons">
+          <button type="button" class="button button-danger" id="resetButton">Load example household</button>
+          <button type="button" class="button button-danger" id="clearDataButton">Clear all data on this device</button>
+        </div>
+        <p class="banner" id="clearMessage" role="status" hidden></p>
+      </div>
+    </section>
+    <section class="panel" id="panel-inputs" data-tab="inputs" role="tabpanel" aria-labelledby="tab-inputs" hidden>
+      <div class="banner banner-error" id="settings-error" role="alert" hidden></div>
+      <form id="settings-body" class="settings" novalidate></form>
+    </section>
+    <section class="panel" id="panel-outputs" data-tab="outputs" role="tabpanel" aria-labelledby="tab-outputs">
+      <div class="card mc-bar" id="mc-bar" aria-label="Monte Carlo run"></div>
+      <p class="field-help mc-disclaimer" id="mcAdvice">Not financial, tax, legal or investment advice, and we are not your fiduciary: verify any result with a licensed professional before you act. Projections are hypothetical, not guarantees; the assumed returns and law figures may be wrong or outdated.</p>
+      <p class="field-help mc-disclaimer" id="mcDisclaimer">IMPORTANT: THE PROJECTIONS OR OTHER INFORMATION GENERATED BY THE SOFTWARE REGARDING THE LIKELIHOOD OF VARIOUS OUTCOMES ARE HYPOTHETICAL IN NATURE, DO NOT REFLECT ACTUAL RESULTS AND ARE NOT GUARANTEES OF FUTURE RESULTS.</p>
+      <p class="banner" id="exampleBanner" role="status" hidden></p>
+      <div class="subpanel" id="view-summary" data-view="summary" role="tabpanel" aria-labelledby="sub-summary">
+        <div class="card" id="terminal-card" hidden></div>
+        <div class="warnings" id="summary-warnings"></div>
+        <div id="results-body"></div>
+      </div>
+      <div class="subpanel" id="view-plots" data-view="plots" role="tabpanel" aria-labelledby="sub-plots" hidden>
+        <div id="plots-body"></div>
+      </div>
+      <div class="subpanel" id="view-compare" data-view="compare" role="tabpanel" aria-labelledby="sub-compare" hidden>
+        <div id="compare-body"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" class="tab" id="tab-setup" data-tab="setup" aria-controls="panel-setup">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>Setup</span></button>
+    <button type="button" role="tab" class="tab" id="tab-inputs" data-tab="inputs" aria-controls="panel-inputs">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Inputs</span></button>
+    <button type="button" role="tab" class="tab" id="tab-outputs" data-tab="outputs" aria-controls="panel-outputs">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Outputs</span></button>
+  </nav>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Edit</h2>
+      <button type="button" class="button" id="sheetDone">Done</button>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+
+  <div class="sheet-backdrop" id="aboutBackdrop" hidden></div>
+  <div class="sheet" id="aboutSheet" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" hidden>
+    <div class="sheet-head">
+      <h2 id="aboutTitle">About</h2>
+      <button type="button" class="button" id="aboutDone">Done</button>
+    </div>
+    <div class="sheet-body">
+      <p class="field-help">Walk Me Through It (WMTI), a retirement income planner. Everything runs on this device. Nothing you enter is sent anywhere; your settings stay in this browser.</p>
+      <p class="field-help">This planner gives estimates for education only; it is not financial, tax or legal advice. It models United States federal tax and the New Jersey, New York, Pennsylvania and Florida income taxes for the tax year shown below (Law data) only. The example household's figures are fictional.</p>
+      <p class="field-help" id="aboutBuild"></p>
+      <div class="about-update">
+        <p class="field-help" id="aboutVersion"></p>
+        <button type="button" class="button" id="aboutCheck" hidden>Check for updates</button>
+        <p class="field-help" id="aboutUpdateStatus" role="status" aria-live="polite"></p>
+      </div>
+      <dl class="about" id="about"></dl>
+    </div>
+  </div>
+
+  <div class="sheet-backdrop" id="legalBackdrop" hidden></div>
+  <div class="sheet" id="legalSheet" role="dialog" aria-modal="true" aria-labelledby="legalTitle" hidden>
+    <div class="sheet-head">
+      <h2 id="legalTitle">Legal</h2>
+      <button type="button" class="button" id="legalDone">Done</button>
+    </div>
+    <div class="sheet-body">
+      <div class="legal-summary"></div>
+      <p class="field-help" id="legalAccepted"></p>
+      <div class="legal-docs" id="legalDocs" role="group" aria-label="Legal documents"></div>
+      <div class="legal-doc" id="legalDoc"></div>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="dialogBackdrop" hidden></div>
+  <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogText" hidden>
+    <h2 id="dialogTitle"></h2>
+    <p class="muted" id="dialogText"></p>
+    <div class="dialog-body" id="dialogBody"></div>
+    <p class="field-error" id="dialogError" role="alert" hidden></p>
+    <div class="dialog-actions" id="dialogActions"></div>
+  </div>
+  <div class="row-menu" id="rowMenu" role="menu" hidden></div>
+
+  <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+  <div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+    <button type="button" class="menu-item" id="menuWalk">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20c2-6 5-4 7-9s4-6 7-7"/><circle cx="5" cy="20" r="1.5"/><circle cx="19" cy="4" r="1.5"/></svg><span id="menuWalkText">Walk me through it...</span></button>
+    <div class="menu-group" role="radiogroup" aria-labelledby="schemeTitle">
+      <p class="menu-heading" id="schemeTitle">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.2-1-1.6-1-2.6 0-.9.7-1.7 1.7-1.7H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="11" cy="7.5" r="1.2"/><circle cx="15.5" cy="8.5" r="1.2"/></svg><span>Appearance</span></p>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="lagoon"><span class="swatch swatch-lagoon"></span><span class="scheme-name">Lagoon and hibiscus</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="sunset"><span class="swatch swatch-sunset"></span><span class="scheme-name">Sunset over the motu</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="palm"><span class="swatch swatch-palm"></span><span class="scheme-name">Palm and sand</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="night"><span class="swatch swatch-night"></span><span class="scheme-name">Night lagoon</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="device"><span class="swatch swatch-device"></span><span class="scheme-name">Match phone</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+    </div>
+    <button type="button" class="menu-item" id="menuHelpButton" aria-expanded="false" aria-controls="menuHelp">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg><span>Help and tips</span></button>
+    <ul class="menu-help" id="menuHelp" hidden>
+      <li>Tap the "i" beside a field or a heading for its help.</li>
+      <li>Swipe a row of chips sideways for more groups; the bar under it shows where you are.</li>
+      <li>Outputs reruns on its own after every change. Setup holds your scenarios (open, saved, new and imported) and the run; Undo (top right) steps back through your last changes.</li>
+    </ul>
+    <button type="button" class="menu-item" id="menuAbout">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h0"/></svg><span>About</span></button>
+    <button type="button" class="menu-item" id="menuLegal">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg><span>Legal</span></button>
+  </div>
+</div>
+
+<!-- Terms and agreement: shown before the app (and before the walkthrough) on a first visit and whenever the Terms
+     version changes; the app stays locked until the box is ticked and Agree and continue is pressed. -->
+<div class="terms" id="terms" role="dialog" aria-modal="true" aria-labelledby="termsTitle" hidden>
+  <div class="terms-inner">
+    <p class="eyebrow">Before you start</p>
+    <h1 class="terms-title" id="termsTitle" tabindex="-1">Terms and agreement</h1>
+    <div class="terms-summary legal-summary"></div>
+    <div class="terms-text legal-doc" id="termsText" tabindex="0" aria-label="Terms, Privacy notice and license"></div>
+    <label class="terms-check"><input type="checkbox" id="termsAgree"><span>I have read and agree to the Terms</span></label>
+    <div class="terms-actions">
+      <button type="button" class="button" id="termsAccept" disabled>Agree and continue</button>
+      <button type="button" class="button button-quiet" id="termsDecline">Decline</button>
+    </div>
+    <p class="banner banner-error" id="termsDeclined" role="alert" hidden>This app cannot be used without agreeing to the Terms. To use it, tick the box and choose Agree and continue.</p>
+  </div>
+</div>
+
+<!-- The guided walkthrough: one question at a time over the page (which is inert meanwhile), its Trail and the
+     leave sheet. app.js draws the screens from the tree wmti.dashboard.walkthrough sends. -->
+<form class="walk" id="walk" role="dialog" aria-modal="true" aria-labelledby="walkTitle" novalidate hidden>
+  <div class="walk-top">
+    <div class="walk-progress" id="walkProgress" role="progressbar" aria-label="Walkthrough progress" aria-valuemin="0"></div>
+    <div class="walk-bar">
+      <button type="button" class="walk-icon" id="walkBack" aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="walk-topic" id="walkTopic"></span>
+      <button type="button" class="walk-icon" id="walkMapButton" aria-label="Your trail" aria-haspopup="dialog" aria-expanded="false" aria-controls="walkMap">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <button type="button" class="walk-icon" id="walkClose" aria-label="Leave the walkthrough">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+  </div>
+  <p class="sr-only" id="walkLive" aria-live="polite"></p>
+  <div class="walk-stage" id="walkStage"></div>
+  <div class="walk-actions" id="walkActions"></div>
+  <div class="walk-backdrop" id="walkMapBackdrop" hidden></div>
+  <div class="walk-sheet" id="walkMap" role="dialog" aria-modal="true" aria-labelledby="walkMapTitle" hidden>
+    <div class="walk-sheet-head">
+      <div><h2 id="walkMapTitle">Your trail</h2><p class="muted">Tap any step to go there</p></div>
+      <button type="button" class="button button-quiet" id="walkMapDone">Close</button>
+    </div>
+    <div class="walk-sheet-body" id="walkMapBody"></div>
+  </div>
+  <div class="walk-backdrop" id="walkLeaveBackdrop" hidden></div>
+  <div class="walk-sheet walk-leave" id="walkLeave" role="dialog" aria-modal="true" aria-labelledby="walkLeaveTitle" hidden>
+    <h2 id="walkLeaveTitle">Leave the walkthrough?</h2>
+    <p class="muted">Your answers are already in your settings.</p>
+    <button type="button" class="button" id="walkKeep">Keep going</button>
+    <button type="button" class="button button-quiet" id="walkLater">Continue later</button>
+    <button type="button" class="button button-danger" id="walkUndo">Undo my answers</button>
+  </div>
+</form>
+<button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
+<p class="walk-toast" id="walkToast" role="status" hidden></p>
+
+<script>window.WMTI_BUILD = { id: "9b28d63d3eb2", pyodide: "0.29.5" };</script>
+<script src="legal.3250d44a4a.js"></script>
+<script src="shared.f542eba5c8.js"></script>
+<script src="charts.ac17e4cbae.js"></script>
+<script src="app.48959f43c5.js"></script>
+<script>
+// Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
+// served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
+// newer build has installed; its Reload button lets the new build take over and reloads the page. The bar names the
+// build this copy runs; its Later button hides it until the next page load (a fresh load, or the next check that
+// finds the waiting build after one, shows it again). The page asks the host for a newer build whenever it comes back
+// into view. The About window's "Check for updates" asks too, through window.wmtiServiceWorker, and shows the bar
+// through window.wmtiOfferUpdate even after Later. Nothing ever reloads the page on its own.
+(function () {
+  "use strict";
+  var ARTIFACT_HOSTS = /(^|\.)(claude\.ai|claudeusercontent\.com|anthropic\.com)$/;
+  if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)
+      || ARTIFACT_HOSTS.test(location.hostname)) return;
+  var reloading = false;
+  var dismissed = false;  // Later was pressed: no bar until the next page load (or an explicit check)
+
+  function offerUpdate(waiting) {
+    if (dismissed || document.getElementById("updateBar")) return;
+    var bar = document.createElement("div");
+    bar.id = "updateBar";
+    bar.className = "update-bar";
+    bar.setAttribute("role", "status");
+    bar.innerHTML = "<span>New version ready</span><span class=\"update-actions\">"
+      + "<button type=\"button\" class=\"button\" id=\"updateLater\">Later</button>"
+      + "<button type=\"button\" class=\"button\" id=\"updateReload\">Reload</button></span>";
+    bar.firstChild.textContent = "New version ready (this copy is build "
+      + String((window.WMTI_BUILD && window.WMTI_BUILD.id) || "unknown") + ")";
+    document.body.appendChild(bar);
+    bar.querySelector("#updateReload").addEventListener("click", function () {
+      reloading = true;
+      waiting.postMessage({ type: "skipWaiting" });
+    });
+    bar.querySelector("#updateLater").addEventListener("click", function () {
+      dismissed = true;
+      bar.remove();
+    });
+  }
+
+  // Show the bar for a waiting build at the user's request (About, Check for updates), even after Later.
+  window.wmtiOfferUpdate = function (waiting) {
+    dismissed = false;
+    offerUpdate(waiting);
+  };
+
+  try {
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (reloading) location.reload();
+    });
+    window.wmtiServiceWorker = navigator.serviceWorker.register("sw.js").then(function (registration) {
+      if (registration.waiting && navigator.serviceWorker.controller) offerUpdate(registration.waiting);
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState !== "visible") return;
+        registration.update().then(function () {
+          if (registration.waiting && navigator.serviceWorker.controller) offerUpdate(registration.waiting);
+        }).catch(function () { /* offline */ });
+      });
+      registration.addEventListener("updatefound", function () {
+        var incoming = registration.installing;
+        if (!incoming) return;
+        incoming.addEventListener("statechange", function () {
+          if (incoming.state === "installed" && navigator.serviceWorker.controller) offerUpdate(incoming);
+        });
+      });
+      return registration;
+    }).catch(function () { return null; });
+  } catch (error) { /* no offline support in this browser */ }
+})();
+</script>
+</body></html>
