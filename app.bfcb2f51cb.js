@@ -10,7 +10,7 @@
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
-    mergeUndoPop, changedPaths } = window.WmtiShared;
+    mergeUndoPop, changedPaths, spendingStartAge, spendingChangeRows, spendingChangePreview } = window.WmtiShared;
   const charts = window.WmtiCharts;
 
   const BOOT_STEPS = [["script", "Loading the calculator"], ["boot", "Starting up"],
@@ -151,7 +151,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.5a09dfab2d.js");
+      worker = new Worker("worker.b7f6a3733e.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -390,6 +390,7 @@
     renderLoaded();
     const summaryCard = $("expenseSummary");
     if (summaryCard) fillExpenseSummary(summaryCard);
+    refreshSpending();  // the Spending in retirement amounts follow every edit (a percent, the start or stop age)
     clearTimeout(runTimer);
     setStatus("busy", "Updating");
     $("app").classList.add("stale");
@@ -461,6 +462,7 @@
       element.hidden = element.dataset.place !== scrollKey() && element.dataset.place !== state.tab;
     }
     for (const row of document.querySelectorAll(".band .chips")) trackChips(row);
+    if (state.tab === "inputs") { placeBubble($("chips-settings"), false); centerChip($("chips-settings"), false); }
     renderBand();
     placeBand();
     if (state.tab === "inputs") { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
@@ -579,7 +581,276 @@
       chip.addEventListener("click", () => onSelect(item.id));
       return chip;
     }));
+    if (containerId === "chips-settings") {  // Inputs' chips: the bubble over the selected one, kept across renders
+      if (!container.chipBubble) container.chipBubble = makeBubble();
+      container.append(container.chipBubble);
+      const moved = container.dataset.selected != null && container.dataset.selected !== selected;
+      container.dataset.selected = selected;
+      placeBubble(container, moved);
+      if (moved) centerChip(container, true);
+    }
     trackChips(container);
+  }
+
+  // ---- Inputs' chip bubble: one glowing ring over the selected settings chip ----
+  // One SVG capsule inside the chips row (so it scrolls with the chips): a rim in the scheme's --chip-on with a glow
+  // and a nearly clear fill, so the chip's own colors and label show through. While a swipe drags toward a neighbour
+  // chip it stretches there, its waist pinching thinner and its middle filling in like a stretched balloon; on
+  // release, or after a tap, it glides back to a capsule over the selected chip (a spring-like ease, BUBBLE_MS). With
+  // reduced motion it never stretches and moves at once.
+  const BUBBLE_MS = 250;
+  const BUBBLE_FILL = 0.14;  // the fill's opacity at rest (and at the ends while stretched)
+  const BUBBLE_PAD = 3;  // px the capsule stands out from its chip on each side
+
+  function reducedMotion() {
+    return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+
+  function makeBubble() {
+    const holder = document.createElement("div");
+    holder.innerHTML = "<svg class=\"chip-bubble\" aria-hidden=\"true\" focusable=\"false\" width=\"0\" height=\"0\">"
+      + "<defs><linearGradient id=\"chipBubbleFill\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\"><stop offset=\"0\"/>"
+      + "<stop offset=\"0.5\"/><stop offset=\"1\"/></linearGradient></defs><path fill=\"url(#chipBubbleFill)\"/></svg>";
+    return holder.firstElementChild;
+  }
+
+  // The capsule over a chip, in the row's content coordinates.
+  function chipGeom(chip) {
+    return { left: chip.offsetLeft - BUBBLE_PAD, right: chip.offsetLeft + chip.offsetWidth + BUBBLE_PAD,
+      top: chip.offsetTop - BUBBLE_PAD, height: chip.offsetHeight + 2 * BUBBLE_PAD, pinch: 0 };
+  }
+
+  // A capsule from `left` to `right` whose top and bottom edges bow in by `pinch` px at the middle.
+  function bubblePath(geom) {
+    const radius = geom.height / 2;
+    const start = geom.left + radius;
+    const end = Math.max(start, geom.right - radius);
+    const mid = (start + end) / 2;
+    const reach = (end - start) / 4;
+    const top = geom.top;
+    const bottom = geom.top + geom.height;
+    const waistTop = top + geom.pinch;
+    const waistBottom = bottom - geom.pinch;
+    return ["M", start, top, "C", start + reach, top, mid - reach, waistTop, mid, waistTop,
+      "C", mid + reach, waistTop, end - reach, top, end, top, "A", radius, radius, 0, 0, 1, end, bottom,
+      "C", end - reach, bottom, mid + reach, waistBottom, mid, waistBottom,
+      "C", mid - reach, waistBottom, start + reach, bottom, start, bottom, "A", radius, radius, 0, 0, 1, start, top, "Z"]
+      .map((part) => (typeof part === "number" ? String(Math.round(part * 10) / 10) : part)).join(" ");
+  }
+
+  function drawBubble(row, geom) {
+    const bubble = row.chipBubble;
+    bubble.geom = geom;
+    const stretch = Math.max(0, Math.min(1, geom.pinch / (geom.height * 0.3)));
+    bubble.querySelector("path").setAttribute("d", bubblePath(geom));
+    const stops = bubble.querySelectorAll("stop");
+    stops[0].setAttribute("stop-opacity", String(BUBBLE_FILL));
+    stops[1].setAttribute("stop-opacity", String(Math.round((BUBBLE_FILL + 0.5 * stretch) * 100) / 100));
+    stops[2].setAttribute("stop-opacity", String(BUBBLE_FILL));
+  }
+
+  // A spring-like ease: a little past the end, then settled.
+  function springEase(k) {
+    const back = 1.3;
+    return 1 + (back + 1) * (k - 1) ** 3 + back * (k - 1) ** 2;
+  }
+
+  function glideBubble(row, to) {
+    const bubble = row.chipBubble;
+    cancelAnimationFrame(bubble.frame);
+    const from = bubble.geom;
+    if (!from || reducedMotion()) { drawBubble(row, to); return; }
+    const begun = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - begun) / BUBBLE_MS);
+      const ease = springEase(k);
+      const mix = (key) => from[key] + (to[key] - from[key]) * ease;
+      drawBubble(row, { left: mix("left"), right: mix("right"), top: to.top, height: to.height,
+        pinch: Math.max(0, from.pinch * (1 - Math.min(1, k * 1.6))) });
+      if (k < 1) bubble.frame = requestAnimationFrame(step);
+    };
+    bubble.frame = requestAnimationFrame(step);
+  }
+
+  // Put the bubble over the row's selected chip, gliding there when `animate`; nothing while the row is hidden.
+  function placeBubble(row, animate) {
+    const bubble = row && row.chipBubble;
+    const chip = row && row.querySelector(".chip[aria-selected=true]");
+    if (!bubble || !chip || !row.offsetParent) return;
+    bubble.setAttribute("width", "0");
+    bubble.setAttribute("width", String(row.scrollWidth));
+    bubble.setAttribute("height", String(row.clientHeight));
+    if (animate) glideBubble(row, chipGeom(chip));
+    else { cancelAnimationFrame(bubble.frame); drawBubble(row, chipGeom(chip)); }
+  }
+
+  // Stretch the bubble from the selected chip toward `target` by `progress` (0 to 1) of a swipe.
+  function stretchBubble(row, target, progress) {
+    const bubble = row.chipBubble;
+    const chip = row.querySelector(".chip[aria-selected=true]");
+    if (!bubble || !chip || !row.offsetParent || reducedMotion()) return;
+    cancelAnimationFrame(bubble.frame);
+    const from = chipGeom(chip);
+    if (!target) { drawBubble(row, from); return; }
+    const to = chipGeom(target);
+    const head = Math.max(0, Math.min(1, progress * 2));
+    const ahead = to.left > from.left;
+    const geom = { ...from, left: ahead ? from.left : from.left + (to.left - from.left) * head,
+      right: ahead ? from.right + (to.right - from.right) * head : from.right };
+    geom.pinch = from.height * 0.3 * head;
+    drawBubble(row, geom);
+  }
+
+  // Scroll a chips row so its selected chip sits in the middle.
+  function centerChip(row, smooth) {
+    const chip = row.querySelector(".chip[aria-selected=true]");
+    if (!chip || !row.offsetParent) return;
+    const left = Math.max(0, chip.offsetLeft + chip.offsetWidth / 2 - row.clientWidth / 2);
+    row.scrollTo({ left, behavior: smooth && !reducedMotion() ? "smooth" : "auto" });
+  }
+
+  // ---- Swipe: a sideways drag moves to the next or previous Inputs panel, or walkthrough question ----
+  // An enhancement only: the chips, Continue and Back do the same. A touch or pen drag that starts in the area (not in
+  // a field, slider, drag handle, chart or sideways-scrolling table) and goes mostly sideways follows the finger; let
+  // go past a third of the width, or flicked, it moves on (finger to the left: forward), otherwise it springs back.
+  // The area's touch-action (pan-y, styles.css) leaves vertical scrolling to the browser, which cancels the drag.
+  const SWIPE_SLOP = 10;  // px moved before a drag is judged sideways (more across than 1.5 times down) or not
+  const SWIPE_FLICK = 0.5;  // px per ms: a quicker release moves on whatever the distance
+  const SWIPE_SPRING = "transform " + BUBBLE_MS + "ms cubic-bezier(0.34, 1.4, 0.64, 1)";
+
+  function swipeStartsOn(target, root) {
+    if (!target.closest || target.closest("input, select, textarea, [contenteditable], [role=slider], .drag-handle, "
+      + ".chart-svg, canvas")) return false;
+    for (let node = target; node && node !== root; node = node.parentElement) {
+      if (node.scrollWidth > node.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(node).overflowX)) return false;
+    }
+    return true;
+  }
+
+  // Watch `root` for swipes. `handlers.enabled()` says whether a swipe may start, `drag(dx, width)` follows the
+  // finger and `release(direction, dx, width)` ends it (direction 1 forward, -1 back, 0 too short: spring back).
+  function wireSwipe(root, handlers) {
+    root.addEventListener("pointerdown", (down) => {
+      if (down.pointerType === "mouse" || !down.isPrimary || !handlers.enabled() || !swipeStartsOn(down.target, root)) {
+        return;
+      }
+      const width = Math.max(1, root.clientWidth);
+      let sideways = null;
+      let dx = 0;
+      let samples = [];
+      const stop = () => {
+        root.removeEventListener("pointermove", move);
+        root.removeEventListener("pointerup", end);
+        root.removeEventListener("pointercancel", end);
+      };
+      const move = (event) => {
+        if (event.pointerId !== down.pointerId) return;
+        dx = event.clientX - down.clientX;
+        const dy = event.clientY - down.clientY;
+        if (sideways === null) {
+          if (Math.abs(dx) < SWIPE_SLOP && Math.abs(dy) < SWIPE_SLOP) return;
+          sideways = Math.abs(dx) > 1.5 * Math.abs(dy);
+          if (!sideways) { stop(); return; }
+          try { root.setPointerCapture(event.pointerId); } catch (error) { /* already released */ }
+        }
+        samples = samples.filter(([time]) => event.timeStamp - time < 100).concat([[event.timeStamp, dx]]);
+        handlers.drag(dx, width);
+      };
+      const end = (event) => {
+        if (event.pointerId !== down.pointerId) return;
+        stop();
+        if (!sideways) return;
+        if (event.type === "pointercancel") { handlers.release(0, dx, width); return; }
+        const [time, first] = samples[0] || [event.timeStamp, dx];
+        const speed = event.timeStamp > time ? (dx - first) / (event.timeStamp - time) : 0;
+        const far = Math.abs(dx) > width / 3;
+        const flick = Math.abs(dx) > 30 && Math.abs(speed) > SWIPE_FLICK && Math.sign(speed) === Math.sign(dx);
+        handlers.release(far || flick ? -Math.sign(dx) : 0, dx, width);
+      };
+      root.addEventListener("pointermove", move);
+      root.addEventListener("pointerup", end);
+      root.addEventListener("pointercancel", end);
+    });
+  }
+
+  // Slide `element` by `dx` with no transition, or back to rest with the spring (`dx` null).
+  function slideTo(element, dx, spring) {
+    element.style.transition = spring ? SWIPE_SPRING : "none";
+    element.style.transform = dx ? "translateX(" + dx + "px)" : "";
+  }
+
+  // The settings panel `direction` (1 next, -1 previous) chips away from the selected one, or null at an end.
+  function neighbourChip(direction) {
+    const chips = [...$("chips-settings").querySelectorAll(".chip")];
+    const at = chips.findIndex((chip) => chip.getAttribute("aria-selected") === "true");
+    return at < 0 ? null : chips[at + direction] || null;
+  }
+
+  function wireInputsSwipe() {
+    const panel = $("panel-inputs");
+    const row = $("chips-settings");
+    let busy = false;
+    wireSwipe(panel, {
+      enabled: () => state.tab === "inputs" && state.schema != null && !walk.open && !busy,
+      drag: (dx, width) => {
+        const target = neighbourChip(dx < 0 ? 1 : -1);
+        if (reducedMotion()) return;
+        slideTo(panel, target ? dx : dx * 0.3, false);
+        stretchBubble(row, target, Math.abs(dx) / width);
+      },
+      release: (direction, dx, width) => {
+        const target = direction ? neighbourChip(direction) : null;
+        if (!target) {
+          if (panel.style.transform) slideTo(panel, null, true);
+          placeBubble(row, true);
+          return;
+        }
+        const reduced = reducedMotion();
+        const id = [...row.querySelectorAll(".chip")].indexOf(target);
+        const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
+        const open = () => {
+          state.chips.settings = panels[id].id;
+          savePrefs();
+          renderSettings();
+          $("chipsLive").textContent = panels[id].label;
+          if (reduced) { slideTo(panel, null, false); busy = false; return; }
+          slideTo(panel, direction * width * 0.35, false);
+          void panel.offsetWidth;  // start the slide in from the far side
+          slideTo(panel, null, true);
+          setTimeout(() => { panel.style.transition = ""; busy = false; }, BUBBLE_MS);
+        };
+        busy = true;
+        if (reduced) { open(); return; }
+        panel.style.transition = "transform 140ms ease-in";
+        panel.style.transform = "translateX(" + (-direction * width) + "px)";
+        setTimeout(open, 140);
+      },
+    });
+  }
+
+  // In the walkthrough a swipe forward is Continue (refused as Continue would be: the message shows and the
+  // question springs back) and a swipe back is Back.
+  function wireWalkSwipe() {
+    const stage = $("walkStage");
+    const screen = () => stage.querySelector(".walk-screen:last-child");
+    const open = () => walk.open && !walk.busy && $("walkMap").hidden && $("walkLeave").hidden
+      && !$("walk").classList.contains("walk-swapping");
+    wireSwipe(stage, {
+      enabled: open,
+      drag: (dx) => {
+        const element = screen();
+        if (!element || reducedMotion()) return;
+        slideTo(element, dx > 0 && $("walkBack").disabled ? dx * 0.3 : dx, false);
+      },
+      release: async (direction) => {
+        const element = screen();
+        const before = walk.saved.current;
+        if (direction > 0 && open()) await walkSubmit();
+        else if (direction < 0 && open() && !$("walkBack").disabled) walkBack();
+        if (!element) return;
+        slideTo(element, null, walk.open && walk.saved.current === before);
+      },
+    });
   }
 
   // The header band: the section label, the title (the selected settings group on Inputs) and the subtitle.
@@ -1807,11 +2078,11 @@
     return clone(inputs);
   }
 
-  // ---- The load splash: a full-screen card naming the scenario that is opening, for two seconds ----
+  // ---- The load splash: a full-screen card naming the scenario that is opening, for 1.5 seconds ----
   // Shown whenever another scenario replaces the open one (Other scenarios, Duplicate, New, Import, Load example
   // household); never at start-up (the boot screen shows then) nor for edits or Undo. The load work runs underneath;
   // the card takes every tap, and every key press is held back, until it goes.
-  const SPLASH_MS = 2000;
+  const SPLASH_MS = 1500;
   const splash = { timer: null, returnFocus: null, wired: false };
 
   function showLoadSplash(name) {
@@ -2421,6 +2692,9 @@
         element.append(benefitBox(name.split(".")[0]));  // the benefit table and estimate under the claim age
       }
       group.append(element);
+      if (panel.id === "retirement" && name === "retirementSpending.startAge") {
+        group.append(spendingBox());  // Per expense: every Expenses row with its percent; then the change's caption
+      }
     }
     const resetRoots = Object.entries(state.schema.resetGroups || {}).filter(([root, reset]) =>
       reset.panel === panel.id && panel.fields.some((name) => name.startsWith(root + "."))).map(([root]) => root);
@@ -2789,6 +3063,59 @@
     for (const account of state.inputs.accounts) if (kinds.includes(account.kind)) account.deposit = null;
     inputsChanged();
     requestDeposits();
+  }
+
+  // ---- Retirement, Spending in retirement: in Per expense, one row per Expenses row with its own percent (stored in
+  // the row, `expenses.<i>.retirementChange`) and the amount after it; then the monthly rows before and after ----
+  function spendingBox() {
+    const box = document.createElement("div");
+    box.className = "spending";
+    box.id = "spendingBox";
+    if (getPath(state.inputs, "retirementSpending.mode") === "perExpense") {
+      const field = (state.schema.types.ExpenseItem || []).find((item) => item.name === "retirementChange");
+      const { head, text } = titleHelp("h4", "Change per expense", field.help, "spending-title");
+      box.insertAdjacentHTML("beforeend", head + text);
+      const rows = spendingChangeRows(state.inputs);
+      if (!rows.length) box.insertAdjacentHTML("beforeend", "<p class=\"note\">No Expenses rows yet.</p>");
+      rows.forEach((row, position) => {
+        const path = "expenses." + position + ".retirementChange";
+        const id = fieldId(path);
+        const line = document.createElement("div");
+        line.className = "field spending-row";
+        line.dataset.position = String(position);
+        line.innerHTML = "<div class=\"field-head\"><label class=\"field-label\" for=\"" + id + "\">"
+          + escapeText(row.name || "(no name)") + "</label></div><p class=\"note spending-detail\">"
+          + escapeText(row.category + " · " + fullMoney(row.amount) + " a " + row.unit) + "</p>";
+        line.append(numberInput(id, field, row.change, (next) => setValue(path, next)));
+        line.insertAdjacentHTML("beforeend", "<p class=\"note spending-after\"></p>");
+        box.append(line);
+      });
+    }
+    box.insertAdjacentHTML("beforeend", "<p class=\"note spending-preview\" id=\"spendingPreview\"></p>");
+    refreshSpending(box);
+    return box;
+  }
+
+  // Fill the after amounts and the caption from the inputs, in place, so a percent being typed keeps its box.
+  function refreshSpending(holder) {
+    const box = holder || $("spendingBox");
+    if (!box) return;
+    const rows = spendingChangeRows(state.inputs);
+    for (const line of box.querySelectorAll(".spending-row")) {
+      const row = rows[Number(line.dataset.position)];
+      if (row) line.querySelector(".spending-after").textContent = "After: " + fullMoney(row.after) + " a " + row.unit;
+    }
+    const start = spendingStartAge(state.inputs);
+    const preview = spendingChangePreview(state.inputs);
+    let text = "Starts at your age " + start + " (" + yearOfAge(start, state.inputs.you.currentAge,
+      state.info.lawTaxYear) + ").";
+    if (preview) {
+      text += " From then your monthly rows change from " + fullMoney(preview.before) + " to "
+        + fullMoney(preview.after) + " a month (today's value).";
+      if (preview.fromFirstYear) text += " The start age is at or before your age today, so the change applies from "
+        + "the first year; the Expenses totals show the amounts entered.";
+    }
+    box.querySelector(".spending-preview").textContent = text;
   }
 
   // ---- Retirement: each person's benefit table, earnings estimate and claim ages (benefitTables), drawn under the
@@ -5957,7 +6284,7 @@
       element.append(head);
     }
     if (node.hint && walk.plan.facts) {
-      element.append(walkParagraph(walkHint(node.hint.template, walk.plan.facts), "walk-lede"));
+      element.append(walkParagraph(walkHint(node.hint.template, walk.plan.facts), "walk-lede walk-hint"));
     }
     const actions = [];
     if (row.control === "handoff") {
@@ -5973,6 +6300,15 @@
     if (node.action && node.action !== "balances") controls.append(walkAction(node));
     else node.fields.forEach((field, index) => controls.append(walkField(node, field, index)));
     element.append(controls);
+    const hint = element.querySelector(".walk-hint");
+    if (hint && node.hint.fact && !node.action) {
+      // A fact hint follows the shown answer as an edit ends (tap elsewhere, a choice, Enter): the facts of the inputs
+      // with this answer applied, nothing saved. A shape-changing answer's hint describes what it replaces, so it stays.
+      const refresh = () => walkRefreshHint(node, hint);
+      controls.addEventListener("change", refresh);
+      controls.addEventListener("focusout", refresh);
+      controls.addEventListener("click", (event) => { if (event.target.closest(".walk-option")) refresh(); });
+    }
     const example = walkParagraph("Example value", "walk-example");
     example.hidden = !walkIsExample(node);
     const error = walkParagraph("", "walk-error");
@@ -5981,14 +6317,35 @@
     element.append(example, error);
     actions.push(walkButton("Continue", "button walk-primary", null, true));
     if (row.hasDeeper && node.offer && !walk.saved.opened.includes(id)) {
-      actions.push(walkButton("Go deeper: " + node.offer, "button button-quiet walk-deeper-button", walkDeeper));
-      if (node.preview && node.preview.length) actions.push(walkPreview(node.preview));
+      // With preview bullets the button just says "Go deeper" (the bullets say what it covers); else it names the offer.
+      const hasPreview = Boolean(node.preview && node.preview.length);
+      const deeper = walkButton(hasPreview ? "Go deeper" : "Go deeper: " + node.offer,
+        "button button-quiet walk-deeper-button", walkDeeper);
+      if (hasPreview) deeper.setAttribute("aria-label", "Go deeper: " + node.offer);
+      actions.push(deeper);
+      if (hasPreview) actions.push(walkPreview(node.preview));
     }
     const quiet = document.createElement("div");
     quiet.className = "walk-quiet-row";
     quiet.append(walkButton("Skip", "walk-quiet", () => walkAnswerAndMove("skip")));
     actions.push(quiet);
     return { element, actions };
+  }
+
+  // Refill a question's fact hint from the facts of the inputs with the shown (not yet saved) answer applied; an
+  // invalid box or a refused answer keeps the sentence, and only the latest of overlapping refreshes is shown.
+  let walkHintTurn = 0;
+  async function walkRefreshHint(node, hint) {
+    const turn = ++walkHintTurn;
+    let facts = walk.plan.facts;
+    if (walk.pending.touched) {
+      if (hint.closest(".walk-screen").querySelector("[aria-invalid=true]")) return;
+      const reply = await ask("walkthroughApply", [JSON.stringify(state.inputs), node.id,
+        JSON.stringify(walk.pending.values), "answer"]);
+      if (!reply || !reply.ok || !reply.facts) return;
+      facts = reply.facts;
+    }
+    if (turn === walkHintTurn && hint.isConnected && facts) hint.textContent = walkHint(node.hint.template, facts);
   }
 
   // Write the current question's answer: `answer` (Continue: the shown values, written only when one was changed; an
@@ -6054,14 +6411,16 @@
     walkGo(walkAfter(id), "forward");
   }
 
-  // The form's submit (Continue, or Enter in a field): start, answer and move on, or finish.
+  // The form's submit (Continue, Enter in a field or a swipe forward): start, answer and move on, or finish; returns
+  // the answer's promise so a swipe can tell whether it moved on.
   function walkSubmit() {
-    if (walk.busy || !$("walkMap").hidden || !$("walkLeave").hidden) return;
+    if (walk.busy || !$("walkMap").hidden || !$("walkLeave").hidden) return null;
     const current = walk.saved.current;
     if (current === "start") walkGo("welcome", "forward");
     else if (current === "welcome") walkStart();
     else if (current === "review") walkFinish();
-    else walkAnswerAndMove("answer");
+    else return walkAnswerAndMove("answer");
+    return null;
   }
 
   function walkBack() {
@@ -6296,6 +6655,10 @@
     wireWalk();
     markScheme();
     wireTabsPin();
+    wireInputsSwipe();
+    wireWalkSwipe();
+    window.addEventListener("resize", () => placeBubble($("chips-settings"), false));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeBubble($("chips-settings"), false));
     $("saveButton").addEventListener("click", saveButtonPressed);
     $("autoSave").addEventListener("click", toggleAutoSave);
     $("renameButton").addEventListener("click", () => renameDialog(state.scenarioName));

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-ta0RbMkJFnZBx9wJScRamfaiPTINoSjJzix0j2wFU90=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-VbphpKv5PA4X7w9JT0HuiqkmTFm/CS57vUS12qF4gdE=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -276,6 +276,18 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .chip[aria-selected="true"] { background: var(--chip-on); color: var(--chip-on-ink); font-weight: 600; }
 .chip .soon { font-size: 11px; opacity: 0.8; margin-left: 6px; }
 .chip[aria-selected="true"] .soon { color: inherit; opacity: 0.7; }
+/* Inputs' chips: the selected chip keeps its own colors (bolder label) under the bubble (app.js makeBubble), one SVG
+   capsule over it with a glowing --chip-on rim and a nearly clear fill; it stretches toward the next chip during a
+   swipe and glides on a tap. The row's padding leaves room for the glow inside the row's clip. */
+.chips-wrap[data-place="inputs"] .chips { position: relative; padding-block: 8px; margin-block: -6px; }
+.chips-wrap[data-place="inputs"] .chip[aria-selected="true"] { background: var(--chip-off); color: var(--chip-off-ink); }
+.chip-bubble { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none;
+  filter: drop-shadow(0 0 3px var(--chip-on)) drop-shadow(0 0 7px color-mix(in srgb, var(--chip-on) 60%, transparent)); }
+.chip-bubble path { stroke: var(--chip-on); stroke-width: 2; }
+.chip-bubble stop { stop-color: var(--chip-on); }
+/* A swipe moves between Inputs panels and walkthrough questions (app.js wireSwipe): vertical scrolling stays the
+   browser's, sideways drags come to the page (a table or chips row that scrolls sideways takes them back). */
+#panel-inputs, .walk-stage { touch-action: pan-y pinch-zoom; }
 /* The Outputs sub-tabs (the chips rows under Summary | Plots | Compare): one thin row of underline text tabs on a 1px
    hairline, scrolling sideways if too narrow; the open one in the band's selected colour. The Inputs chips stay bubbles. */
 .chips-wrap[data-place^="outputs"] .chips { gap: 4px; padding-block: 0;
@@ -449,6 +461,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .help-button.help-inflation { color: var(--bad); }
 /* A heading with its "i" button; the explanation below it shows on a tap (tooltips only, no visible notes). */
 .title-help { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.mc-notice-row { justify-content: flex-end; }  /* the Outputs legal notice sits behind this info button */
 .group > legend.legend-help { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .field-help { font-size: 13px; color: var(--muted); }
 .field-error { font-size: 13px; color: var(--bad); font-weight: 500; }
@@ -970,6 +983,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
       <button type="button" class="chips-pin" id="chipsPin" aria-pressed="true" aria-label="Unpin tabs">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
       <div class="chips-track" aria-hidden="true"><span></span></div>
+      <p class="sr-only" id="chipsLive" aria-live="polite"></p>
     </div>
     <div class="chips-wrap" data-place="outputs/summary">
       <div class="chips" role="tablist" aria-label="Summary views" id="chips-results"></div>
@@ -1045,8 +1059,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
     </section>
     <section class="panel" id="panel-outputs" data-tab="outputs" role="tabpanel" aria-labelledby="tab-outputs">
       <div class="card mc-bar" id="mc-bar" aria-label="Monte Carlo run"></div>
+      <div class="title-help mc-notice-row"><button type="button" class="help-button" aria-expanded="false" aria-controls="help-mc-notice" aria-label="About these results: not advice, hypothetical"><span>i</span></button></div>
+      <div id="help-mc-notice" hidden>
       <p class="field-help mc-disclaimer" id="mcAdvice">Not financial, tax, legal or investment advice, and we are not your fiduciary: verify any result with a licensed professional before you act. Projections are hypothetical, not guarantees; the assumed returns and law figures may be wrong or outdated.</p>
       <p class="field-help mc-disclaimer" id="mcDisclaimer">IMPORTANT: THE PROJECTIONS OR OTHER INFORMATION GENERATED BY THE SOFTWARE REGARDING THE LIKELIHOOD OF VARIOUS OUTCOMES ARE HYPOTHETICAL IN NATURE, DO NOT REFLECT ACTUAL RESULTS AND ARE NOT GUARANTEES OF FUTURE RESULTS.</p>
+      </div>
       <p class="banner" id="exampleBanner" role="status" hidden></p>
       <div class="subpanel" id="view-summary" data-view="summary" role="tabpanel" aria-labelledby="sub-summary">
         <div class="card" id="terminal-card" hidden></div>
@@ -1144,6 +1161,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
     <ul class="menu-help" id="menuHelp" hidden>
       <li>Tap the "i" beside a field or a heading for its help.</li>
       <li>Swipe a row of chips sideways for more groups; the bar under it shows where you are.</li>
+      <li>On Inputs, swipe the settings sideways to move to the next or previous group.</li>
       <li>Outputs reruns on its own after every change. Setup holds your scenarios (open, saved, new and imported) and the run; Undo (top right) steps back through your last changes.</li>
     </ul>
     <button type="button" class="menu-item" id="menuAbout">
@@ -1217,11 +1235,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   </div>
 </div>
 
-<script>window.WMTI_BUILD = { id: "f1e0a05de308", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "07e05d3f5bbf", pyodide: "0.29.5" };</script>
 <script src="legal.3250d44a4a.js"></script>
-<script src="shared.15ebdc6252.js"></script>
+<script src="shared.fb7c041361.js"></script>
 <script src="charts.a69151b17d.js"></script>
-<script src="app.32de16dd85.js"></script>
+<script src="app.bfcb2f51cb.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

@@ -190,6 +190,7 @@
       if (name === "child" || name === "education" || name === "dependentCare") {
         return "entered on the Children and Benefits pages";
       }
+      if (name === "retirementChange") return "set on the Retirement page";  // Spending in retirement, Per expense
       if (name === "deduction" && item.category === rules.charityCategory) {
         return "always " + rules.charityCategory + " for " + rules.charityCategory + " rows";
       }
@@ -468,6 +469,60 @@
       return item.year <= age && age <= (item.toAge == null ? item.year : item.toAge);
     }
     return (item.year == null || age >= item.year) && (item.toAge == null || age <= item.toAge);
+  }
+
+  // Spending in retirement (wmti.inputs.retirementInputs.spendingStartAge and spendingFactor): from the start age
+  // (blank: the age you stop working, today's age when retired) a row's amount is multiplied by 1 + its percent: in
+  // Equal change the one `equalChange` for the monthly rows (Bills, Planned Spending, Other Spending) only, in Per
+  // expense each row's own `retirementChange`.
+  const MONTHLY_EXPENSE_CATEGORIES = ["Bills", "Planned Spending", "Other Spending"];
+
+  function spendingStartAge(inputs) {
+    const start = ((inputs || {}).retirementSpending || {}).startAge;
+    if (start != null) return start;
+    return inputs.you.retired ? inputs.you.currentAge : inputs.you.salaryEndAge;
+  }
+
+  function spendingFactor(inputs, item, age) {
+    const plan = inputs.retirementSpending || {};
+    if (!plan.enabled || age < spendingStartAge(inputs)) return 1;
+    if (plan.mode === "equal") {
+      return MONTHLY_EXPENSE_CATEGORIES.includes(item.category) ? 1 + (Number(plan.equalChange) || 0) : 1;
+    }
+    return 1 + (Number(item.retirementChange) || 0);
+  }
+
+  // Whether the change alters any row (wmti spendingChangeActive): switched on and a percent the mode reads is not 0.
+  function spendingChangeActive(inputs) {
+    const plan = inputs.retirementSpending || {};
+    const expenses = inputs.expenses || [];
+    if (!plan.enabled) return false;
+    if (plan.mode === "equal") {
+      return Number(plan.equalChange) !== 0 && expenses.some((item) => MONTHLY_EXPENSE_CATEGORIES.includes(item.category));
+    }
+    return expenses.some((item) => Number(item.retirementChange) !== 0);
+  }
+
+  // Every Expenses row as the Per expense list shows it (wmti.dashboard.editing.spendingChangeRows): name, category,
+  // amount, its own `change`, the amount `after` the change from the start age, and `unit` ("month" or "year").
+  function spendingChangeRows(inputs) {
+    const start = spendingStartAge(inputs);
+    return (inputs.expenses || []).map((item) => ({ name: item.name, category: item.category,
+      amount: Number(item.amount) || 0, change: Number(item.retirementChange) || 0,
+      after: (Number(item.amount) || 0) * spendingFactor(inputs, item, start),
+      unit: MONTHLY_EXPENSE_CATEGORIES.includes(item.category) ? "month" : "year" }));
+  }
+
+  // The monthly rows charged at the start age before and after the change, today's value (wmti spendingChangePreview):
+  // {startAge, before, after, fromFirstYear}, or null while the change is off or changes nothing.
+  function spendingChangePreview(inputs) {
+    if (!spendingChangeActive(inputs)) return null;
+    const start = spendingStartAge(inputs);
+    const monthly = (inputs.expenses || []).filter((item) => MONTHLY_EXPENSE_CATEGORIES.includes(item.category)
+      && expenseActiveAt(item, start));
+    return { startAge: start, before: monthly.reduce((sum, item) => sum + (Number(item.amount) || 0), 0),
+      after: monthly.reduce((sum, item) => sum + (Number(item.amount) || 0) * spendingFactor(inputs, item, start), 0),
+      fromFirstYear: start <= inputs.you.currentAge };
   }
 
   function expenseSummary(expenses, categories, age) {
@@ -964,7 +1019,7 @@
     resetGroup, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
-    changedPaths };
+    changedPaths, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);
