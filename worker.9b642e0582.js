@@ -22,7 +22,7 @@ const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "ch
   "matchProblems", "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare" };
-const MODEL_FILE = "wmti.8d154ba8e8.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.d1216169b4.wasm";  // the build gives it a content-hashed name
 const queue = [];
 let pyodide = null;
 let web = null;
