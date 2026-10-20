@@ -908,16 +908,18 @@
     return base + " " + number;
   }
 
-  // A copy's scenario name: `name` with any trailing "_<number>" taken off, then "_1", "_2" and so on, the lowest number
-  // that no name in `taken` uses (letter case ignored). With `bare` true the base itself is used while it is free (a
-  // New scenario); a Duplicate always gets a number.
+  // A numbered scenario name, the lowest number that no name in `taken` uses (letter case ignored). A Duplicate
+  // (`bare` false): `name` with any trailing "_Copy<number>" taken off, then "_Copy1", "_Copy2" and so on; other
+  // suffixes stay ("Q4_2025" gives "Q4_2025_Copy1"). A New scenario (`bare` true): the base itself while it is free,
+  // else "_1", "_2" and so on after any trailing "_<number>" is taken off.
   function numberedName(name, taken, bare) {
-    const base = String(name).replace(/_\d+$/, "");
+    const suffix = bare ? "_" : "_Copy";
+    const base = String(name).replace(bare ? /_\d+$/ : /_Copy\d+$/i, "");
     const used = new Set(taken.map((item) => item.toLowerCase()));
     if (bare && !used.has(base.toLowerCase())) return base;
     let number = 1;
-    while (used.has((base + "_" + number).toLowerCase())) number += 1;
-    return base + "_" + number;
+    while (used.has((base + suffix + number).toLowerCase())) number += 1;
+    return base + suffix + number;
   }
 
   // The undo history of the open scenario: `current` (the settled settings as JSON text) and `stack` (earlier settled
@@ -933,12 +935,36 @@
     return { stack: history.stack.slice(0, -1), current: history.stack[history.stack.length - 1] };
   }
 
+  // The settings paths whose values differ between two settings states, in the order of their keys: dotted, with
+  // list positions as numbers ("expenses.3.amount"), the settings forms' path keys. A list whose length changed, or a
+  // value that is an object on one side only (an optional part set or cleared), is one path for the whole of it.
+  function changedPaths(before, after, prefix = "") {
+    if (sameValue(before, after)) return [];
+    const isObject = (value) => value != null && typeof value === "object";
+    if (!isObject(before) || !isObject(after) || Array.isArray(before) !== Array.isArray(after)
+      || (Array.isArray(after) && after.length !== before.length)) return prefix ? [prefix] : [];
+    const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
+    return keys.flatMap((key) => changedPaths(before[key], after[key], prefix ? prefix + "." + key : key));
+  }
+
+  // The phone's Compare merge undo: entries oldest first, at most `limit`. Push returns a new stack.
+  function mergeUndoPush(stack, entry, limit) {
+    return stack.concat([entry]).slice(-limit);
+  }
+
+  // Take the latest merge off the stack: the entry and the shorter stack, or null when there is nothing to undo.
+  function mergeUndoPop(stack) {
+    if (!stack.length) return null;
+    return { entry: stack[stack.length - 1], stack: stack.slice(0, -1) };
+  }
+
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep };
+    blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
+    changedPaths };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

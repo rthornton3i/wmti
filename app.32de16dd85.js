@@ -9,12 +9,13 @@
     expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep } = window.WmtiShared;
+    blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
+    mergeUndoPop, changedPaths } = window.WmtiShared;
   const charts = window.WmtiCharts;
 
-  const BOOT_STEPS = [["script", "Load the Python engine"], ["boot", "Start Python"],
-    ["packages", "Download numpy and pandas"], ["imports", "Import numpy and pandas"],
-    ["model", "Load the retirement model"], ["startup", "Read settings and the example household"]];
+  const BOOT_STEPS = [["script", "Loading the calculator"], ["boot", "Starting up"],
+    ["packages", "Installing libraries"], ["imports", "Importing libraries"],
+    ["model", "Loading the retirement model"], ["startup", "Reading your settings and the example household"]];
   const NOTES_PANELS = new Set(["accounts", "cars", "expenses", "retirement", "strategies"]);  // panels that show settingsNotes
   const SETUP_PANEL = "household";  // the schema panel drawn on Setup instead of as an Inputs chip
   const INFLATION_CARD_FIELDS = ["useInflation", "inflation"];  // fields of that panel drawn in the Inflation card
@@ -118,7 +119,7 @@
     autoSave: false, exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null },
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
-      armed: null },
+      armed: null, diffs: null, diffsPending: null, mergeUndo: [] },
   };
   const $ = (id) => document.getElementById(id);
   const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -150,7 +151,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.b1910a2b01.js");
+      worker = new Worker("worker.5a09dfab2d.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -461,6 +462,7 @@
     }
     for (const row of document.querySelectorAll(".band .chips")) trackChips(row);
     renderBand();
+    placeBand();
     if (state.tab === "inputs") { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
     if (state.tab === "outputs" && state.view === "summary") requestNotes();
     if (compareShown()) refreshCompare();
@@ -587,6 +589,48 @@
     $("bandLabel").textContent = label;
     $("bandTitle").textContent = title || (chip ? chip.textContent : label);
     $("bandSub").textContent = sub;
+  }
+
+  // ---- Inputs' pinned tabs: the settings-group chips stay under the top bar while the page scrolls ----
+  // Pinned (the default), the band sticks with only its chips row showing below the top bar; unpinned, it scrolls
+  // away as on Outputs. The pin button at the row's right end switches it; the choice is kept on this device.
+  const TABS_PIN_KEY = "wmti.tabsPin.v1";
+  const tabsPin = { on: true };
+
+  function wireTabsPin() {
+    try { tabsPin.on = localStorage.getItem(TABS_PIN_KEY) !== "off"; } catch (error) { /* storage blocked: pinned */ }
+    markTabsPin();
+    $("chipsPin").addEventListener("click", () => {
+      tabsPin.on = !tabsPin.on;
+      try { localStorage.setItem(TABS_PIN_KEY, tabsPin.on ? "on" : "off"); } catch (error) { /* storage blocked */ }
+      markTabsPin();
+      placeBand();
+    });
+    const band = document.querySelector(".band");
+    if (window.ResizeObserver) {
+      const watch = new ResizeObserver(() => placeBand());
+      watch.observe(band);
+      watch.observe(document.querySelector(".topbar"));
+    }
+    window.addEventListener("resize", placeBand);
+  }
+
+  function markTabsPin() {
+    const button = $("chipsPin");
+    button.setAttribute("aria-pressed", String(tabsPin.on));
+    button.setAttribute("aria-label", tabsPin.on ? "Unpin tabs" : "Pin tabs");
+  }
+
+  // Stick the band on Inputs while pinned: its top sits above the top bar's bottom by the height of everything over
+  // the chips row (title and subtitle), less a small margin, so only the chips show once the page scrolls.
+  function placeBand() {
+    const on = state.tab === "inputs" && tabsPin.on;
+    $("app").classList.toggle("inputs-pinned", on);
+    if (!on) return;
+    const band = document.querySelector(".band");
+    const wrap = band.querySelector(".chips-wrap[data-place=\"inputs\"]");
+    const above = Math.max(0, wrap.getBoundingClientRect().top - band.getBoundingClientRect().top - 8);
+    band.style.setProperty("--band-stick", (document.querySelector(".topbar").offsetHeight - above) + "px");
   }
 
   // ---- Menu and color scheme ----
@@ -1080,6 +1124,8 @@
     const current = cachedResult(compare.cache, compareKey());
     const shown = current || compare.cache[0] || null;
     if (shown) body.append(...compareResult(shown, !current));
+    body.append(differencesCard());
+    if (compareShown()) loadDiffs();
   }
 
   function selectHtml(id, label, options, chosen, attributes) {
@@ -1179,47 +1225,189 @@
       figures.push([card.querySelector("figure"), spec]);
       parts.push(card);
     }
-    parts.push(differencesCard(entry, stale));
     requestAnimationFrame(() => figures.forEach(([figure, spec]) => figure && charts.attachChart(figure, spec)));
     return parts;
   }
 
-  // Settings that differ: the two names, the make-match buttons (on a current result), the settings table and the
-  // accounts side by side.
-  function differencesCard(entry, stale) {
-    const result = entry.value;
+  // The inputs a config name stands for, as stored now (no upgrade): the key the differences were found for.
+  function storedConfig(name) {
+    const info = state.info.compare;
+    if (name === info.currentName) return state.inputs;
+    if (name === info.defaultName) return state.defaults;
+    return hasOwn(state.scenarios, name) ? state.scenarios[name] : null;
+  }
+
+  function diffKeyNow() {
+    const [nameA, nameB] = selectedScenarios();
+    return JSON.stringify([storedConfig(nameA), storedConfig(nameB), nameA, nameB]);
+  }
+
+  // Find the differences of the chosen pair (once per pair and settings), then redraw their card in place. A reply
+  // for a pair or settings that changed while it was worked out is dropped.
+  async function loadDiffs() {
+    const compare = state.compare;
+    const [nameA, nameB] = selectedScenarios();
+    if (!nameA || !nameB || nameA === nameB) return;
+    const configA = await configInputs(nameA);
+    const configB = await configInputs(nameB);
+    const key = diffKeyNow();
+    if ((compare.diffs && compare.diffs.key === key) || compare.diffsPending === key) return;
+    let value;
+    if (!configA.ok || !configB.ok) value = { ok: false, error: (configA.ok ? configB : configA).error };
+    else {
+      compare.diffsPending = key;
+      value = await ask("compareDifferences", [JSON.stringify(configA.inputs), JSON.stringify(configB.inputs), nameA,
+        nameB]);
+      if (compare.diffsPending === key) compare.diffsPending = null;
+      if (!value) return;
+    }
+    if (key !== diffKeyNow()) return;
+    compare.diffs = { key, value };
+    const card = $("compareDifferences");
+    if (card) card.replaceWith(differencesCard());
+  }
+
+  const MERGE_LABELS = { A: "Merge A with B", B: "Merge B with A" };  // A takes B's value; B takes A's
+
+  // Settings that differ: the two names, the make-match buttons, Undo last merge, then one card per difference,
+  // grouped by settings panel, each with its two merge buttons. Drawn without a finished comparison.
+  function differencesCard() {
+    const compare = state.compare;
     const card = document.createElement("details");
     card.className = "card disclosure";
     card.id = "compareDifferences";
-    card.open = state.compare.differencesOpen;
-    card.addEventListener("toggle", () => { state.compare.differencesOpen = card.open; });
-    const [nameA, nameB] = result.names;
-    let html = "<summary>Settings that differ</summary><p class=\"pair-names\"><span><strong>A:</strong> "
-      + escapeText(nameA) + "</span><span><strong>B:</strong> " + escapeText(nameB) + "</span></p>";
-    if (!stale) html += matchButtons(result);
-    if (!result.differences.data.length && !result.accounts) {
-      html += "<p class=\"muted\">These configs have identical settings.</p>";
+    card.open = compare.differencesOpen;
+    card.addEventListener("toggle", () => { compare.differencesOpen = card.open; });
+    const [nameA, nameB] = selectedScenarios();
+    const reply = compare.diffs && compare.diffs.key === diffKeyNow() ? compare.diffs.value : null;
+    const differences = reply && reply.ok ? reply.differences : [];
+    let html = "<summary>Settings that differ" + (reply && reply.ok ? " (" + differences.length + ")" : "")
+      + "</summary><p class=\"pair-names\"><span><strong>A:</strong> " + escapeText(nameA)
+      + "</span><span><strong>B:</strong> " + escapeText(nameB) + "</span></p>";
+    if (!reply) html += "<p class=\"muted\">Finding the settings that differ…</p>";
+    else if (!reply.ok) html += messageHtml({ error: true, text: reply.error });
+    else {
+      html += matchButtons([nameA, nameB], reply.problems);
+      if (compare.mergeUndo.length) {
+        html += "<div class=\"run-row\"><button type=\"button\" class=\"button button-quiet\" id=\"compareMergeUndo\">"
+          + "Undo last merge (" + compare.mergeUndo.length + ")</button></div>";
+      }
+      if (!differences.length) html += "<p class=\"muted\">These configs have identical settings.</p>";
+      // Why each side's buttons are off: "Merge A with B" changes A (problem of making A match B), and the reverse.
+      const problems = { A: reply.problems[1], B: reply.problems[0] };
+      let section = null;
+      differences.forEach((difference, index) => {
+        if (difference.section !== section) {
+          section = difference.section;
+          html += "<h3 class=\"diff-section\">" + escapeText(section) + "</h3>";
+        }
+        html += diffCardHtml(difference, index, problems);
+      });
     }
-    if (result.differences.data.length) {
-      html += charts.renderFrame(result.differences, { title: "Settings that differ", indexLabel: "Setting",
-        wrapFirst: true });
-    }
-    if (result.accounts) html += accountDifferences(result.accounts);
     card.innerHTML = html;
     for (const button of card.querySelectorAll("[data-match]")) {
-      button.addEventListener("click", () => makeMatch(Number(button.dataset.match), result));
+      button.addEventListener("click", () => makeMatch(Number(button.dataset.match), { names: [nameA, nameB] }));
     }
+    for (const button of card.querySelectorAll("[data-merge]")) {
+      button.addEventListener("click", () => mergeOne(button.dataset.merge, differences[Number(button.dataset.diff)].id));
+    }
+    const undo = card.querySelector("#compareMergeUndo");
+    if (undo) undo.addEventListener("click", undoMerge);
     return card;
+  }
+
+  // One difference: its label, A's and B's value, the fields behind it, and the two merge buttons stacked.
+  function diffCardHtml(difference, index, problems) {
+    const lines = difference.lines.length ? "<details class=\"diff-lines\"><summary>Show fields</summary>"
+      + "<div class=\"table-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"" + escapeText(difference.label)
+      + " fields\"><table class=\"data-table\"><thead><tr><th scope=\"col\">Field</th><th scope=\"col\">A</th>"
+      + "<th scope=\"col\">B</th></tr></thead><tbody>" + difference.lines.map((line) => "<tr><th scope=\"row\">"
+        + escapeText(line[0]) + "</th><td>" + escapeText(line[1]) + "</td><td>" + escapeText(line[2]) + "</td></tr>")
+        .join("") + "</tbody></table></div></details>" : "";
+    const buttons = ["A", "B"].map((side) => {
+      const problem = problems[side];
+      const why = "mergeWhy" + side + index;
+      return "<div class=\"diff-merge\"><button type=\"button\" class=\"button button-quiet\" data-merge=\"" + side
+        + "\" data-diff=\"" + index + "\" aria-describedby=\"" + why + "\"" + (problem ? " disabled" : "") + ">"
+        + MERGE_LABELS[side] + "</button><p class=\"field-help\" id=\"" + why + "\">"
+        + escapeText(problem || difference[side === "A" ? "toA" : "toB"]) + "</p></div>";
+    }).join("");
+    return "<section class=\"diff-card\"><p class=\"diff-label\">" + escapeText(difference.label) + "</p>"
+      + "<p class=\"diff-values\"><span><strong>A:</strong> " + escapeText(difference.a) + "</span><span><strong>B:</strong> "
+      + escapeText(difference.b) + "</span></p>" + lines + "<div class=\"diff-buttons\">" + buttons + "</div></section>";
+  }
+
+  // The settings a config name holds now, as JSON text, or null when it is gone.
+  function configText(name) {
+    const inputs = storedConfig(name);
+    return inputs ? JSON.stringify(inputs) : null;
+  }
+
+  // Write a config's settings: the working settings for the current settings, else the scenario saved on this device.
+  function writeConfig(name, inputs) {
+    if (name === state.info.compare.currentName) {
+      state.inputs = clone(inputs);  // the loaded scenario stays the base, so Outputs shows the settings as edited
+      renderSettings();
+      inputsChanged();
+    } else {
+      state.scenarios[name] = clone(inputs);
+      storeScenarios();
+      renderSaved();
+    }
+  }
+
+  // Merge one difference at once: side "A" gives A the value of B, "B" gives B the value of A. The comparison is not
+  // run again (it shows as changed); Undo last merge steps back through the last UNDO_LIMIT merges.
+  async function mergeOne(side, diffId) {
+    const compare = state.compare;
+    if (compare.job) return;
+    const [nameA, nameB] = selectedScenarios();
+    const [target, source] = side === "A" ? [nameA, nameB] : [nameB, nameA];
+    if (target === state.info.compare.defaultName) return;
+    const targetConfig = await configInputs(target);
+    const sourceConfig = await configInputs(source);
+    const failed = !targetConfig.ok ? targetConfig : !sourceConfig.ok ? sourceConfig : null;
+    const reply = failed ? null : await ask("mergeCompareDifference", [JSON.stringify(targetConfig.inputs),
+      JSON.stringify(sourceConfig.inputs), diffId]);
+    if (failed || !reply || !reply.ok) {
+      compare.message = { error: true, text: failed ? failed.error : reply ? reply.error : "The merge did not answer; try again." };
+      renderCompare();
+      return;
+    }
+    const before = JSON.stringify(targetConfig.inputs);
+    writeConfig(target, reply.inputs);
+    compare.mergeUndo = mergeUndoPush(compare.mergeUndo, { target, before, after: configText(target), label: reply.label },
+      UNDO_LIMIT);
+    compare.message = { text: reply.label + ": " + target + " now matches " + source + "." };
+    compare.diffs = null;
+    renderCompare();
+  }
+
+  // Undo the last merge, unless its config changed since (later edits are never overwritten).
+  function undoMerge() {
+    const compare = state.compare;
+    const popped = mergeUndoPop(compare.mergeUndo);
+    if (!popped) return;
+    compare.mergeUndo = popped.stack;
+    const entry = popped.entry;
+    if (configText(entry.target) !== entry.after) {
+      compare.message = { error: true, text: entry.target + " changed since that merge; nothing was undone." };
+    } else {
+      writeConfig(entry.target, JSON.parse(entry.before));
+      compare.message = { text: "Undone: " + entry.label + " in " + entry.target + "." };
+    }
+    compare.diffs = null;
+    renderCompare();
   }
 
   const MATCH_LABELS = ["Make B match A", "Make A match B"];  // the accessible names
   const MATCH_ARROWS = ["A → B", "A ← B"];  // the button text: the arrow points the copy direction
 
   // The make-match buttons: off with the desktop's reason, and a first tap that asks for a second.
-  function matchButtons(result) {
-    const [nameA, nameB] = result.names;
+  function matchButtons(names, problems) {
+    const [nameA, nameB] = names;
     return "<div class=\"match\">" + MATCH_LABELS.map((label, position) => {
-      const problem = result.matchProblems[position];
+      const problem = problems[position];
       const [source, target] = position === 0 ? [nameA, nameB] : [nameB, nameA];
       const armed = state.compare.armed === position && !problem;
       return "<div class=\"match-row\"><button type=\"button\" class=\"button button-quiet\" data-match=\"" + position
@@ -1288,42 +1476,6 @@
     renderCompare();
     await checkCompare();
     runCompare();
-  }
-
-  // Accounts that differ, matched by name: one small A | B table per account in both configs, with the differing
-  // cells marked, and the accounts only one config has named.
-  function accountDifferences(accounts) {
-    const fields = state.schema.types.Account;
-    const field = (column) => fields.find((item) => item.name === column) || {};
-    const label = (column) => (column === "priority" ? "Priority (1 is drawn first)" : field(column).label || column);
-    const text = (value, column) => {
-      if (value == null) return "blank";
-      if (typeof value !== "number") return String(value);
-      if (field(column).unit === "money") return fullMoney(value);
-      if (field(column).unit === "percent") return percent(value, 2);
-      return String(value);
-    };
-    const priority = accounts.columns.indexOf("priority");
-    const onlyA = [];
-    const onlyB = [];
-    let tables = "";
-    accounts.a.forEach((rowA, position) => {
-      const rowB = accounts.b[position];
-      const changed = accounts.changed[position];
-      if (!changed.some(Boolean)) return;
-      if (rowB[priority] == null) { onlyA.push(rowA[0]); return; }
-      if (rowA[priority] == null) { onlyB.push(rowB[0]); return; }
-      const rows = accounts.columns.map((column, index) => (index === 0 ? "" : "<tr><th scope=\"row\">"
-        + escapeText(label(column)) + "</th>" + [rowA, rowB].map((row) => "<td" + (changed[index] ? " class=\"changed\""
-          : "") + ">" + escapeText(text(row[index], column)) + "</td>").join("") + "</tr>")).join("");
-      tables += "<h3 class=\"account-diff-name\">" + escapeText(rowA[0]) + "</h3><div class=\"table-scroll\" tabindex=\"0\" "
-        + "role=\"region\" aria-label=\"" + escapeText(rowA[0]) + " in A and B\"><table class=\"data-table account-diff\">"
-        + "<thead><tr><th scope=\"col\">Field</th><th scope=\"col\">A</th><th scope=\"col\">B</th></tr></thead><tbody>"
-        + rows + "</tbody></table></div>";
-    });
-    const help = titleHelp("p", "Accounts", "Matched by name; marked cells differ.", "field-label account-diff-head");
-    return help.head + help.text + (onlyA.length ? "<p class=\"note\">Only in A: " + escapeText(onlyA.join(", ")) + "</p>" : "")
-      + (onlyB.length ? "<p class=\"note\">Only in B: " + escapeText(onlyB.join(", ")) + "</p>" : "") + tables;
   }
 
   // ---- Scenarios on this device (Setup): the open scenario card, Other scenarios, New and Import ----
@@ -1410,11 +1562,116 @@
     if (settleTimer) settle();  // an edit still settling is a step of its own
     const back = undoStep(state.undo);
     if (!back) return;
+    const before = state.inputs;
     state.undo = back;
     state.inputs = JSON.parse(back.current);
     renderSettings();
     inputsChanged();
     renderOpenCard();
+    showUndone(changedPaths(before, state.inputs));
+  }
+
+  // ---- After Undo: go to the field it changed back and flash it ----
+  // The first changed field that is drawn somewhere is brought into view: its tab and Inputs chip are opened, a list
+  // row's sheet is opened when the field is inside one, and a list that changed in size is shown whole. Every changed
+  // field then in view gets a tint that fades over a second. Nothing happens when no changed field is drawn.
+  const UNDO_FLASH_MS = 1000;
+
+  // The field names a settings panel draws, its sections' included.
+  function panelNames(panel) {
+    const names = (panel.fields || []).slice();
+    for (const section of panel.sections || []) {
+      names.push(...(section.fields || []));
+      for (const sub of section.subsections || []) names.push(...(sub.fields || []));
+    }
+    return names;
+  }
+
+  // The places (tab, and chip on Inputs) whose panel draws a path, the closest field name first; Setup when its
+  // cards draw the path outside any panel.
+  function undonePlaces(path) {
+    const places = [];
+    for (const panel of state.schema.panels) {
+      const match = panelNames(panel).filter((name) => path === name || path.startsWith(name + "."))
+        .sort((a, b) => b.length - a.length)[0];
+      if (match) places.push({ length: match.length, tab: panel.id === SETUP_PANEL ? "setup" : "inputs", chip: panel.id });
+    }
+    places.sort((a, b) => b.length - a.length);
+    if (!places.length && $("panel-setup").querySelector("#" + CSS.escape(fieldId(path)))) places.push({ tab: "setup" });
+    return places;
+  }
+
+  // The lists drawn for a list path (a list may be drawn more than once, filtered, such as the Home chip's mortgages).
+  function drawnLists(path) {
+    return Array.from(document.querySelectorAll(".items"))
+      .filter((list) => list.dataset.list === path || list.dataset.list.startsWith(path + " "));
+  }
+
+  // Where a path is drawn on the shown place: its field, or (`row`) the list row whose sheet holds it, or the list
+  // itself when the list changed in size. Null when it is not in view.
+  function drawnField(path, scope) {
+    const shown = (element) => element && element.getClientRects().length > 0;
+    const parts = path.split(".");
+    for (let end = parts.length; end > 0; end -= 1) {
+      const prefix = parts.slice(0, end).join(".");
+      const element = scope.querySelector("#" + CSS.escape(fieldId(prefix)));
+      if (shown(element)) return { element };
+      if (end < parts.length && /^\d+$/.test(parts[end]) && scope === document) {
+        for (const list of drawnLists(prefix)) {
+          const button = list.querySelector(".item[data-position=\"" + parts[end] + "\"]");
+          if (shown(button)) return { element: button, row: true };
+        }
+      }
+    }
+    const list = scope === document ? drawnLists(path).find(shown) : null;
+    return list ? { element: list.closest(".field") || list } : null;
+  }
+
+  function flashField(element) {
+    const target = element.closest(".field") || element.closest(".item-row") || element;
+    target.classList.remove("undo-flash");
+    void target.offsetWidth;  // restart the fade when the same field flashes again
+    target.classList.add("undo-flash");
+    setTimeout(() => target.classList.remove("undo-flash"), UNDO_FLASH_MS);
+    return target;
+  }
+
+  function showUndone(paths) {
+    for (const path of paths) {
+      for (const place of undonePlaces(path)) {
+        if (place.tab === "inputs" && state.chips.settings !== place.chip) {
+          state.chips.settings = place.chip;
+          savePrefs();
+          renderSettings();
+        }
+        goTo(place.tab, state.view);
+        let found = drawnField(path, document);
+        if (!found) continue;
+        if (found.row) {
+          found.element.click();  // opens the row's sheet
+          const inSheet = drawnField(path, $("sheet"));
+          if (inSheet) {
+            const target = flashField(inSheet.element);
+            for (const other of paths) {
+              const more = other !== path && drawnField(other, $("sheet"));
+              if (more) flashField(more.element);
+            }
+            target.scrollIntoView({ block: "center" });
+            return;
+          }
+          closeSheet();
+          found = drawnField(path, document);
+          if (!found) return;
+        }
+        const target = flashField(found.element);
+        for (const other of paths) {
+          const more = other !== path && drawnField(other, document);
+          if (more) flashField(more.element);
+        }
+        target.scrollIntoView({ block: "center" });
+        return;
+      }
+    }
   }
 
   // ---- The scenario dialog: one centered window for New, Import, Rename, Clear, Delete and unsaved changes ----
@@ -1550,9 +1807,51 @@
     return clone(inputs);
   }
 
+  // ---- The load splash: a full-screen card naming the scenario that is opening, for two seconds ----
+  // Shown whenever another scenario replaces the open one (Other scenarios, Duplicate, New, Import, Load example
+  // household); never at start-up (the boot screen shows then) nor for edits or Undo. The load work runs underneath;
+  // the card takes every tap, and every key press is held back, until it goes.
+  const SPLASH_MS = 2000;
+  const splash = { timer: null, returnFocus: null, wired: false };
+
+  function showLoadSplash(name) {
+    const card = $("loadSplash");
+    if (!splash.wired) {
+      splash.wired = true;
+      document.addEventListener("keydown", (event) => {
+        if ($("loadSplash").hidden) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }, true);
+    }
+    $("loadSplashName").textContent = "Loading " + name;
+    clearTimeout(splash.timer);
+    if (card.hidden) {
+      splash.returnFocus = document.activeElement;
+      card.hidden = false;
+      card.focus({ preventScroll: true });
+    }
+    splash.timer = setTimeout(hideLoadSplash, SPLASH_MS);
+  }
+
+  function hideLoadSplash() {
+    clearTimeout(splash.timer);
+    splash.timer = null;
+    const card = $("loadSplash");
+    if (card.hidden) return;
+    card.hidden = true;
+    const back = splash.returnFocus;
+    splash.returnFocus = null;
+    // Focus goes back where it was, unless something opened meanwhile (the walkthrough after New) has taken it.
+    if (document.activeElement === card || document.activeElement === document.body) {
+      if (back && back.isConnected && back.getClientRects().length) back.focus({ preventScroll: true });
+    }
+  }
+
   async function openSaved(name) {
     const inputs = await listedInputs(name);
     if (!inputs) return;
+    showLoadSplash(name);
     state.inputs = inputs;
     state.base = clone(inputs);
     state.scenarioName = name;
@@ -1578,6 +1877,7 @@
   }
 
   function createScenario(name) {
+    showLoadSplash(name);
     state.inputs = blankInputs(state.schema);
     state.base = clone(state.inputs);
     state.scenarioName = name;
@@ -1673,7 +1973,7 @@
     showFileMessage("Cleared " + state.scenarioName + ". Undo (top right) brings the settings back.", false);
   }
 
-  // The strip's Duplicate: a saved copy of the open scenario's current settings as "<name>_1" (the lowest free number,
+  // The strip's Duplicate: a saved copy of the open scenario's current settings as "<name>_Copy1" (the lowest free number,
   // see numberedName), listed in Other scenarios and Compare and then opened, as picking it would (unsaved changes of
   // the scenario left are asked about first; Undo starts afresh on the copy).
   function duplicateOpen() {
@@ -4787,6 +5087,7 @@
     state.inputs = reply.inputs;
     state.base = clone(state.inputs);
     state.scenarioName = fileName ? fileName.replace(/\.json$/i, "") : "Pasted scenario";
+    showLoadSplash(state.scenarioName);
     forgetBlankWalk();
     const upgraded = reply.fromVersion !== reply.inputs.schemaVersion;
     showFileMessage("Opened " + state.scenarioName + "."
@@ -4878,6 +5179,7 @@
     }
     button.dataset.armed = "false";
     button.textContent = "Load example household";
+    showLoadSplash(EXAMPLE_NAME);
     state.inputs = clone(state.defaults);
     state.base = clone(state.defaults);
     state.scenarioName = EXAMPLE_NAME;
@@ -5154,9 +5456,10 @@
   // "start", "welcome" or "review"), trail (the screens visited, for Back), opened (questions and optional topics whose deeper
   // questions are open), answers (id to {status, values}), before}.
   const WALK_SWAP_MS = 340;  // the overlapping slide and fade between two screens
+  const WALK_FLASH_MS = 1000;  // the highlight of a question total that changed
   const WALK_SCREENS = ["start", "welcome", "review"];  // the screens that are not questions
   const walk = { saved: null, index: null, plan: null, open: false, busy: false, pending: null, swap: 0,
-    mapReturn: null, importing: false };
+    mapReturn: null, importing: false, lastTotal: null, flashTimer: null };
 
   function walkSave() {
     store(WALK_KEY, walk.saved);  // with storage blocked `walk.saved` still keeps this visit consistent
@@ -5230,6 +5533,7 @@
       saved.status = "active";
     }
     walk.open = true;
+    walk.lastTotal = null;
     clearTimeout(mcTimer);
     $("walkResume").hidden = true;
     $("walk").hidden = false;
@@ -5292,6 +5596,19 @@
 
   function walkEyebrow(text, className) {
     return walkParagraph(text, "eyebrow walk-eyebrow" + (className ? " " + className : ""));
+  }
+
+  // The short bullets under a Go deeper offer: what its deeper questions cover.
+  function walkPreviewHtml(preview) {
+    if (!preview || !preview.length) return "";
+    return "<ul class=\"walk-preview\">" + preview.map((bullet) => "<li>" + escapeText(bullet) + "</li>").join("")
+      + "</ul>";
+  }
+
+  function walkPreview(preview) {
+    const holder = document.createElement("div");
+    holder.innerHTML = walkPreviewHtml(preview);
+    return holder.firstElementChild;
   }
 
   // Show a screen: the first step, the welcome, a question or the review. `direction` (forward or back) sets the slide;
@@ -5360,6 +5677,22 @@
     $("walkBack").disabled = opening;
     $("walkMapButton").hidden = opening;
     $("walkLive").textContent = where;
+    $("walkCount").hidden = opening || id === "review";
+    $("walkCountNumber").textContent = String(progress.number);
+    $("walkCountTotal").textContent = String(progress.total);
+    if (walk.lastTotal != null && progress.total !== walk.lastTotal) flashWalkTotal();
+    walk.lastTotal = progress.total;
+  }
+
+  // An answer added or removed questions: highlight the total for a second, fading out (held without motion when
+  // reduced motion is on, see styles.css).
+  function flashWalkTotal() {
+    const total = $("walkCountTotal");
+    total.classList.remove("walk-count-flash");
+    void total.offsetWidth;  // restart the animation when the total changes again within the second
+    total.classList.add("walk-count-flash");
+    clearTimeout(walk.flashTimer);
+    walk.flashTimer = setTimeout(() => total.classList.remove("walk-count-flash"), WALK_FLASH_MS);
   }
 
   // The first step: import an existing scenario file (the Setup import's file picker), or continue to the welcome.
@@ -5604,14 +5937,13 @@
   function questionScreen(id) {
     const { node } = walk.index[id];
     const row = walkRow(id) || { depth: 0, control: node.control, hasDeeper: false };
-    const progress = walkProgress(state.walkTree, walkRows(), id);
     walk.pending = { values: {}, touched: false };
     walk.errorText = null;
     const element = document.createElement("div");
     element.className = "walk-screen";
     element.dataset.question = id;
-    element.append(row.depth > 0 ? walkEyebrow("Go deeper", "walk-deeper")
-      : walkEyebrow("Question " + progress.number + " of " + progress.total));
+    // "Question X of Y" is pinned above the stage (renderWalkTop); a deeper question is marked here.
+    if (row.depth > 0) element.append(walkEyebrow("Go deeper", "walk-deeper"));
     const head = document.createElement("div");
     head.className = "walk-head";
     head.append(walkHeading(node.prompt));
@@ -5650,6 +5982,7 @@
     actions.push(walkButton("Continue", "button walk-primary", null, true));
     if (row.hasDeeper && node.offer && !walk.saved.opened.includes(id)) {
       actions.push(walkButton("Go deeper: " + node.offer, "button button-quiet walk-deeper-button", walkDeeper));
+      if (node.preview && node.preview.length) actions.push(walkPreview(node.preview));
     }
     const quiet = document.createElement("div");
     quiet.className = "walk-quiet-row";
@@ -5764,7 +6097,8 @@
         let html = "<li class=\"walk-topic-group\"><h3 class=\"eyebrow\">" + escapeText(group.title) + "</h3>";
         if (group.offer) {
           return html + "<button type=\"button\" class=\"walk-row walk-offer\" data-topic=\"" + escapeText(group.id)
-            + "\">+ Go deeper: " + escapeText(group.title) + "</button></li>";
+            + "\">+ Go deeper: " + escapeText(group.title) + "</button>"
+            + walkPreviewHtml((state.walkTree.topics.find((topic) => topic.id === group.id) || {}).preview) + "</li>";
         }
         html += "<ol class=\"walk-trail-list\">" + group.items.map((item) => {
           const depth = " style=\"--depth:" + item.depth + "\"";
@@ -5961,6 +6295,7 @@
     wireInstall();
     wireWalk();
     markScheme();
+    wireTabsPin();
     $("saveButton").addEventListener("click", saveButtonPressed);
     $("autoSave").addEventListener("click", toggleAutoSave);
     $("renameButton").addEventListener("click", () => renameDialog(state.scenarioName));

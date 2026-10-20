@@ -20,6 +20,9 @@
   let PLOT_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
   const BAR_GAP = 2;
   const MAX_BAR = 24;
+  // The after-tax step of a compared balance: room kept right of the last year, how far past it the first marker sits
+  // and how far apart the configs' markers sit.
+  const AFTER_TAX = { room: 24, out: 9, stagger: 7 };
 
   const color = (series) => "var(--s" + (series.slot % 8) + ", " + series.color + ")";
   const number = (value) => (value == null || !isFinite(value) ? 0 : value);
@@ -252,13 +255,17 @@
         + (last ? endDot(last[0], last[1], series) : "");
       return { marks, ticks, scaleY, positionOf: scaleX, values };
     },
-    // One median line and 10th-90th percentile band per compared scenario on a shared age axis.
+    // One median line and 10th-90th percentile band per compared scenario on a shared age axis. A series with an
+    // after-tax value ends in a dashed step right past the last year, then up or down to a dot at that value.
     compareBands(spec) {
       const values = spec.x.values;
-      const all = spec.series.flatMap((series) => series.low.concat(series.high, series.values)).map(number);
+      const taxed = spec.series.filter((series) => series.afterTax != null);
+      const all = spec.series.flatMap((series) => series.low.concat(series.high, series.values)).map(number)
+        .concat(taxed.map((series) => number(series.afterTax)));
       const ticks = niceTicks(Math.min(0, ...all), Math.max(0, ...all), 4);
       const scaleY = linear(ticks[0], ticks[ticks.length - 1], HEIGHT - MARGIN.bottom, MARGIN.top);
-      const scaleX = linear(0, Math.max(values.length - 1, 1), MARGIN.left, WIDTH - MARGIN.right);
+      const right = WIDTH - MARGIN.right - (taxed.length ? AFTER_TAX.room + AFTER_TAX.stagger * (taxed.length - 1) : 0);
+      const scaleX = linear(0, Math.max(values.length - 1, 1), MARGIN.left, right);
       const bands = spec.series.map((series) => {
         const upper = presentPoints(series.high, scaleX, scaleY);
         const lower = presentPoints(series.low, scaleX, scaleY).reverse();
@@ -271,7 +278,18 @@
         return median.length ? "<path class=\"line\" stroke=\"" + color(series) + "\" d=\"" + linePath(median)
           + "\"></path>" + endDot(last[0], last[1], series) : "";
       }).join("");
-      return { marks: bands + lines, ticks, scaleY, positionOf: scaleX, values };
+      const steps = taxed.map((series, index) => {
+        const median = presentPoints(series.values, scaleX, scaleY);
+        if (!median.length) return "";
+        const last = median[median.length - 1];
+        const x = right + AFTER_TAX.out + AFTER_TAX.stagger * index;
+        const y = scaleY(number(series.afterTax));
+        return "<path class=\"after-tax-step\" stroke=\"" + color(series) + "\" stroke-dasharray=\"3 2\" fill=\"none\" d=\"M"
+          + round(last[0]) + "," + round(last[1]) + "H" + round(x) + "V" + round(y) + "\"></path><circle class=\"dot "
+          + "after-tax-dot\" cx=\"" + round(x) + "\" cy=\"" + round(y) + "\" r=\"4\" fill=\"" + color(series) + "\"><title>"
+          + escapeText(series.name + " after tax: " + formatValue(series.afterTax, "money")) + "</title></circle>";
+      }).join("");
+      return { marks: bands + lines + steps, ticks, scaleY, positionOf: scaleX, values };
     },
     // One horizontal box per compared scenario (whiskers, quartile box, median), its name above it.
     boxes(spec) {
@@ -315,7 +333,10 @@
       return [{ name: "Median", series, key: "line" }, { name: low + "th to " + high + "th percentile", series,
         key: "band" }];
     }
-    if (spec.type === "compareBands") return spec.series.map((series) => ({ name: series.name, series, key: "line" }));
+    if (spec.type === "compareBands") {
+      return spec.series.map((series) => ({ name: series.name + (series.afterTax != null ? " (after tax "
+        + tickMoney(series.afterTax) + ")" : ""), series, key: "line" }));
+    }
     // Series with a group (deposits, withdrawals) get a heading item before the first series of each group.
     const items = [];
     let group = null;
@@ -356,8 +377,11 @@
     const range = values.length ? " by " + spec.x.label.toLowerCase() + " from " + values[0] + " to "
       + values[values.length - 1] : "";
     const names = spec.series.map((series) => series.name).join(", ");
+    const taxed = spec.series.filter((series) => series.afterTax != null);
+    const afterTax = taxed.length ? " After tax at the end (median): " + taxed.map((series) => series.name + " "
+      + tickMoney(series.afterTax)).join("; ") + "." : "";
     return spec.title + ", " + dollarsNote(spec).toLowerCase() + range + ". " + spec.series.length + " series: "
-      + names + ".";
+      + names + "." + afterTax;
   }
 
   // Run `draw` with the viewBox set to `size` ({width, height}; null for the card's own size), then put it back.
@@ -511,9 +535,16 @@
     }
     const title = spec.x.label + " " + spec.x.values[position];
     if (spec.type === "compareBands") {
-      return { title, rows: spec.series.filter((series) => series.values[position] != null).map((series) => [
-        series.name + " (10th to 90th: " + tickMoney(series.low[position]) + " to " + tickMoney(series.high[position])
-          + ")", formatValue(series.values[position], unit), series]) };
+      const rows = [];
+      for (const series of spec.series.filter((item) => item.values[position] != null)) {
+        rows.push([series.name + " (10th to 90th: " + tickMoney(series.low[position]) + " to "
+          + tickMoney(series.high[position]) + ")", formatValue(series.values[position], unit), series]);
+        const last = series.values.reduce((found, value, index) => (value == null ? found : index), -1);
+        if (series.afterTax != null && position === last) {
+          rows.push([series.name, "After tax: " + formatValue(series.afterTax, unit), series]);
+        }
+      }
+      return { title, rows };
     }
     if (spec.type === "bands") {
       const series = spec.series[0];

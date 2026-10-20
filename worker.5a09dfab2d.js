@@ -19,10 +19,11 @@ self.fetch = (input, init) => {
 const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "checkInputs", "applySettings",
   "setPartner", "syncRollover", "importScenario", "exportScenario", "runSingle", "runTables", "runFrames", "rebalanceSurplus",
   "settingsNotes", "compareVariants", "benefitTables", "earningsPreview", "depositSliders", "moveDeposit",
-  "matchProblems", "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply"]);
+  "matchProblems", "compareDifferences", "mergeCompareDifference",
+  "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare" };
-const MODEL_FILE = "wmti.05ce130b14.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.5b56aeb5d3.wasm";  // the build gives it a content-hashed name
 const queue = [];
 let pyodide = null;
 let web = null;
@@ -50,19 +51,19 @@ async function boot() {
   const base = new URL("pyodide/", self.location.href).href;
   const started = performance.now();
   try {
-    await step("script", "Load the Python engine", () => importScripts(base + "pyodide.js"));
-    await step("boot", "Start Python", async () => { pyodide = await loadPyodide({ indexURL: base }); });
-    await step("packages", "Download numpy and pandas", () =>
+    await step("script", "Loading the calculator", () => importScripts(base + "pyodide.js"));
+    await step("boot", "Starting up", async () => { pyodide = await loadPyodide({ indexURL: base }); });
+    await step("packages", "Installing libraries", () =>
       pyodide.loadPackage(["numpy", "pandas"], { messageCallback: () => {} }));
-    await step("imports", "Import numpy and pandas", () => pyodide.runPython("import numpy, pandas"));
-    await step("model", "Load the retirement model", async () => {
+    await step("imports", "Importing libraries", () => pyodide.runPython("import numpy, pandas"));
+    await step("model", "Loading the retirement model", async () => {
       const response = await realFetch(MODEL_FILE);
       if (!response.ok) throw new Error(MODEL_FILE + ": HTTP " + response.status);
       pyodide.unpackArchive(await response.arrayBuffer(), "zip", { extractDir: "/wmti" });
       pyodide.runPython("import sys\nsys.path.insert(0, '/wmti/backend')\nfrom wmti.dashboard import web");
       web = pyodide.globals.get("web");
     });
-    const startup = await step("startup", "Read settings and the example household", () => ({
+    const startup = await step("startup", "Reading your settings and the example household", () => ({
       info: JSON.parse(web.appInfo()), schema: JSON.parse(web.settingsSchema()),
       defaults: JSON.parse(web.defaultInputs()), walkthrough: JSON.parse(web.walkthroughTree()),
     }));
