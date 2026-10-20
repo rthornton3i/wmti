@@ -7,10 +7,12 @@
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary,
     expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
-    moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
+    moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
+    matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
-    mergeUndoPop, changedPaths, spendingStartAge, spendingChangeRows, spendingChangePreview } = window.WmtiShared;
+    mergeUndoPop, changedPaths, hasSocialSecurity, spendingStartAge, spendingChangeRows,
+    spendingChangePreview } = window.WmtiShared;
   const charts = window.WmtiCharts;
 
   const BOOT_STEPS = [["script", "Loading the calculator"], ["boot", "Starting up"],
@@ -69,6 +71,7 @@
   const LEGAL_SUMMARY_CLOSING = "Please read the full Terms below.";
   const TABS = ["setup", "inputs", "outputs"];  // the bottom bar, left to right
   const VIEWS = ["summary", "plots", "compare"];  // the switch inside Outputs
+  const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders" };  // its chips' icons
   // The color scheme, kept per viewer as plain text; index.html applies it before the first paint.
   const THEME_KEY = "wmti.theme.v1";
   // Every key this app keeps in localStorage; Clear all data on this device removes them all.
@@ -151,7 +154,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.b7f6a3733e.js");
+      worker = new Worker("worker.1223fcfab8.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -463,6 +466,7 @@
     }
     for (const row of document.querySelectorAll(".band .chips")) trackChips(row);
     if (state.tab === "inputs") { placeBubble($("chips-settings"), false); centerChip($("chips-settings"), false); }
+    placeViewBubble();
     renderBand();
     placeBand();
     if (state.tab === "inputs") { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
@@ -486,6 +490,15 @@
     showPlace();
     savePrefs();
     window.scrollTo(0, state.scroll[scrollKey()] || 0);
+  }
+
+  // The Outputs view row's bubble: over the selected view, gliding there when the view changed while Outputs showed.
+  function placeViewBubble() {
+    const row = $("views-outputs");
+    const moved = row.dataset.tab === "outputs" && row.dataset.selected !== state.view;
+    row.dataset.tab = state.tab;
+    row.dataset.selected = state.view;
+    if (state.tab === "outputs") placeBubble(row, moved);
   }
 
   function selectTab(tab, remember) {
@@ -582,7 +595,7 @@
       return chip;
     }));
     if (containerId === "chips-settings") {  // Inputs' chips: the bubble over the selected one, kept across renders
-      if (!container.chipBubble) container.chipBubble = makeBubble();
+      if (!container.chipBubble) container.chipBubble = makeBubble("chipBubbleFill");
       container.append(container.chipBubble);
       const moved = container.dataset.selected != null && container.dataset.selected !== selected;
       container.dataset.selected = selected;
@@ -592,7 +605,7 @@
     trackChips(container);
   }
 
-  // ---- Inputs' chip bubble: one glowing ring over the selected settings chip ----
+  // ---- The chip bubble: one glowing ring over the selected Inputs chip, and over the selected Outputs view ----
   // One SVG capsule inside the chips row (so it scrolls with the chips): a rim in the scheme's --chip-on with a glow
   // and a nearly clear fill, so the chip's own colors and label show through. While a swipe drags toward a neighbour
   // chip it stretches there, its waist pinching thinner and its middle filling in like a stretched balloon; on
@@ -606,11 +619,12 @@
     return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
 
-  function makeBubble() {
+  // A bubble whose fill gradient has the id `fillId` (one per row, so the ids stay unique).
+  function makeBubble(fillId) {
     const holder = document.createElement("div");
     holder.innerHTML = "<svg class=\"chip-bubble\" aria-hidden=\"true\" focusable=\"false\" width=\"0\" height=\"0\">"
-      + "<defs><linearGradient id=\"chipBubbleFill\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\"><stop offset=\"0\"/>"
-      + "<stop offset=\"0.5\"/><stop offset=\"1\"/></linearGradient></defs><path fill=\"url(#chipBubbleFill)\"/></svg>";
+      + "<defs><linearGradient id=\"" + fillId + "\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"0\"><stop offset=\"0\"/>"
+      + "<stop offset=\"0.5\"/><stop offset=\"1\"/></linearGradient></defs><path fill=\"url(#" + fillId + ")\"/></svg>";
     return holder.firstElementChild;
   }
 
@@ -709,10 +723,11 @@
     row.scrollTo({ left, behavior: smooth && !reducedMotion() ? "smooth" : "auto" });
   }
 
-  // ---- Swipe: a sideways drag moves to the next or previous Inputs panel, or walkthrough question ----
-  // An enhancement only: the chips, Continue and Back do the same. A touch or pen drag that starts in the area (not in
-  // a field, slider, drag handle, chart or sideways-scrolling table) and goes mostly sideways follows the finger; let
-  // go past a third of the width, or flicked, it moves on (finger to the left: forward), otherwise it springs back.
+  // ---- Swipe: a sideways drag moves to the next or previous Inputs panel, Outputs view, or walkthrough question ----
+  // An enhancement only: the chips, the bottom bar, Continue and Back do the same. A touch or pen drag that starts in
+  // the area (not in a field, slider, drag handle, chart, chips row or sideways-scrolling table) and goes mostly
+  // sideways follows the finger; let go past a third of the width, or flicked, it moves on (finger to the left:
+  // forward), otherwise it springs back. Past an end of Inputs or Outputs it moves on to the next bottom tab.
   // The area's touch-action (pan-y, styles.css) leaves vertical scrolling to the browser, which cancels the drag.
   const SWIPE_SLOP = 10;  // px moved before a drag is judged sideways (more across than 1.5 times down) or not
   const SWIPE_FLICK = 0.5;  // px per ms: a quicker release moves on whatever the distance
@@ -720,7 +735,7 @@
 
   function swipeStartsOn(target, root) {
     if (!target.closest || target.closest("input, select, textarea, [contenteditable], [role=slider], .drag-handle, "
-      + ".chart-svg, canvas")) return false;
+      + ".chart-svg, canvas, .chips")) return false;
     for (let node = target; node && node !== root; node = node.parentElement) {
       if (node.scrollWidth > node.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(node).overflowX)) return false;
     }
@@ -786,39 +801,81 @@
     return at < 0 ? null : chips[at + direction] || null;
   }
 
-  function wireInputsSwipe() {
-    const panel = $("panel-inputs");
-    const row = $("chips-settings");
+  // Where a swipe `direction` (1 forward, -1 back) leads from the shown place: the neighbouring Inputs panel or
+  // Outputs view (`chip`, in the bubble's `row`), else past an end the neighbouring bottom tab (Outputs at its first
+  // view after the last Inputs panel, Setup before the first, Inputs at its last panel before the first Outputs view,
+  // Inputs at its first panel after Setup); null where nothing lies that way (back on Setup, on past Compare).
+  function swipeTarget(direction) {
+    if (state.tab === "inputs") {
+      const chip = neighbourChip(direction);
+      if (chip) return { tab: "inputs", view: state.view, chip, row: $("chips-settings") };
+      return direction > 0 ? { tab: "outputs", view: VIEWS[0] } : { tab: "setup", view: state.view };
+    }
+    if (state.tab === "outputs") {
+      const next = VIEWS[VIEWS.indexOf(state.view) + direction];
+      if (next) return { tab: "outputs", view: next, chip: $("sub-" + next), row: $("views-outputs") };
+      return direction < 0 ? { tab: "inputs", view: state.view, panel: "last" } : null;
+    }
+    return direction > 0 ? { tab: "inputs", view: state.view, panel: "first" } : null;
+  }
+
+  // The shown tab's panel, and its chips row that wears a bubble (none on Setup).
+  const shownPanel = () => $("panel-" + state.tab);
+  const bubbleRow = () => (state.tab === "inputs" ? $("chips-settings")
+    : state.tab === "outputs" ? $("views-outputs") : null);
+
+  // Open a swipe's target and return what a screen reader hears: the Inputs panel's or Outputs view's name, led by
+  // the bottom tab's name when the tab changed.
+  function openSwipeTarget(target) {
+    let label = "";
+    if (target.tab === "inputs" && (target.chip || target.panel)) {
+      const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
+      const chosen = target.chip ? panels[[...$("chips-settings").querySelectorAll(".chip")].indexOf(target.chip)]
+        : panels[target.panel === "first" ? 0 : panels.length - 1];
+      state.chips.settings = chosen.id;
+      savePrefs();
+      renderSettings();
+      label = chosen.label;
+    }
+    const tabChanged = target.tab !== state.tab;
+    if (tabChanged || target.view !== state.view) goTo(target.tab, target.view);
+    if (target.tab === "outputs") label = $("sub-" + target.view).textContent.trim();
+    return tabChanged ? [$("tab-" + target.tab).textContent.trim(), label].filter(Boolean).join(", ") : label;
+  }
+
+  // One swipe for the sheet: Inputs panels, Outputs views, and on past their ends to the next bottom tab.
+  function wirePanelsSwipe() {
     let busy = false;
     // Listen on the whole sheet, so a swipe in the empty space below a short panel works too; the panel still slides.
     wireSwipe(document.querySelector("main.panels"), {
-      enabled: () => state.tab === "inputs" && state.schema != null && !walk.open && !busy,
+      enabled: () => state.schema != null && !walk.open && !busy,
       drag: (dx, width) => {
-        const target = neighbourChip(dx < 0 ? 1 : -1);
+        const target = swipeTarget(dx < 0 ? 1 : -1);
         if (reducedMotion()) return;
-        slideTo(panel, target ? dx : dx * 0.3, false);
-        stretchBubble(row, target, Math.abs(dx) / width);
+        slideTo(shownPanel(), target ? dx : dx * 0.3, false);
+        const row = bubbleRow();
+        if (row) stretchBubble(row, target && target.row === row ? target.chip : null, Math.abs(dx) / width);
       },
       release: (direction, dx, width) => {
-        const target = direction ? neighbourChip(direction) : null;
+        const target = direction ? swipeTarget(direction) : null;
+        const panel = shownPanel();
         if (!target) {
           if (panel.style.transform) slideTo(panel, null, true);
-          placeBubble(row, true);
+          const row = bubbleRow();
+          if (row) placeBubble(row, true);
           return;
         }
         const reduced = reducedMotion();
-        const id = [...row.querySelectorAll(".chip")].indexOf(target);
-        const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
         const open = () => {
-          state.chips.settings = panels[id].id;
-          savePrefs();
-          renderSettings();
-          $("chipsLive").textContent = panels[id].label;
-          if (reduced) { slideTo(panel, null, false); busy = false; return; }
-          slideTo(panel, direction * width * 0.35, false);
-          void panel.offsetWidth;  // start the slide in from the far side
-          slideTo(panel, null, true);
-          setTimeout(() => { panel.style.transition = ""; busy = false; }, BUBBLE_MS);
+          slideTo(panel, null, false);  // the old panel back at rest (hidden when the tab changed)
+          panel.style.transition = "";
+          $("chipsLive").textContent = openSwipeTarget(target);
+          const shown = shownPanel();
+          if (reduced) { busy = false; return; }
+          slideTo(shown, direction * width * 0.35, false);
+          void shown.offsetWidth;  // start the slide in from the far side
+          slideTo(shown, null, true);
+          setTimeout(() => { shown.style.transition = ""; busy = false; }, BUBBLE_MS);
         };
         busy = true;
         if (reduced) { open(); return; }
@@ -2079,51 +2136,18 @@
     return clone(inputs);
   }
 
-  // ---- The load splash: a full-screen card naming the scenario that is opening, for 1.5 seconds ----
-  // Shown whenever another scenario replaces the open one (Other scenarios, Duplicate, New, Import, Load example
-  // household); never at start-up (the boot screen shows then) nor for edits or Undo. The load work runs underneath;
-  // the card takes every tap, and every key press is held back, until it goes.
-  const SPLASH_MS = 1500;
-  const splash = { timer: null, returnFocus: null, wired: false };
-
-  function showLoadSplash(name) {
-    const card = $("loadSplash");
-    if (!splash.wired) {
-      splash.wired = true;
-      document.addEventListener("keydown", (event) => {
-        if ($("loadSplash").hidden) return;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      }, true);
-    }
-    $("loadSplashName").textContent = "Loading " + name;
-    clearTimeout(splash.timer);
-    if (card.hidden) {
-      splash.returnFocus = document.activeElement;
-      card.hidden = false;
-      card.focus({ preventScroll: true });
-    }
-    splash.timer = setTimeout(hideLoadSplash, SPLASH_MS);
-  }
-
-  function hideLoadSplash() {
-    clearTimeout(splash.timer);
-    splash.timer = null;
-    const card = $("loadSplash");
-    if (card.hidden) return;
-    card.hidden = true;
-    const back = splash.returnFocus;
-    splash.returnFocus = null;
-    // Focus goes back where it was, unless something opened meanwhile (the walkthrough after New) has taken it.
-    if (document.activeElement === card || document.activeElement === document.body) {
-      if (back && back.isConnected && back.getClientRects().length) back.focus({ preventScroll: true });
-    }
+  // ---- The opened scenario: its card glows for a second ----
+  // Whenever another scenario replaces the open one (Other scenarios, Duplicate, New, Import, Load example household)
+  // Setup's open-scenario card is brought into view (when Setup shows) and its edge glows, fading over a second like
+  // the Undo flash (same class; held still for that second with reduced motion). Never at start-up nor for edits.
+  function highlightOpenCard() {
+    const card = flashField($("savedCard"));
+    if (card.getClientRects().length) card.scrollIntoView({ block: "nearest" });
   }
 
   async function openSaved(name) {
     const inputs = await listedInputs(name);
     if (!inputs) return;
-    showLoadSplash(name);
     state.inputs = inputs;
     state.base = clone(inputs);
     state.scenarioName = name;
@@ -2133,6 +2157,7 @@
     inputsChanged();
     resetUndo();
     renderSaved();
+    highlightOpenCard();
   }
 
   // New: a brand-new scenario with nothing filled in, opened at the walkthrough's first question.
@@ -2149,7 +2174,6 @@
   }
 
   function createScenario(name) {
-    showLoadSplash(name);
     state.inputs = blankInputs(state.schema);
     state.base = clone(state.inputs);
     state.scenarioName = name;
@@ -2159,6 +2183,7 @@
     resetUndo();
     renderSaved();
     renderCompare();
+    highlightOpenCard();
     startBlankWalk();
   }
 
@@ -2694,6 +2719,7 @@
       }
       group.append(element);
       if (panel.id === "retirement" && name === "retirementSpending.startAge") {
+        spendingStartHint(element);  // the age a blank start means, as the box's placeholder
         group.append(spendingBox());  // Per expense: every Expenses row with its percent; then the change's caption
       }
     }
@@ -3106,10 +3132,12 @@
       const row = rows[Number(line.dataset.position)];
       if (row) line.querySelector(".spending-after").textContent = "After: " + fullMoney(row.after) + " a " + row.unit;
     }
+    spendingStartHint(document);
     const start = spendingStartAge(state.inputs);
     const preview = spendingChangePreview(state.inputs);
-    let text = "Starts at your age " + start + " (" + yearOfAge(start, state.inputs.you.currentAge,
-      state.info.lawTaxYear) + ").";
+    const year = " (" + yearOfAge(start, state.inputs.you.currentAge, state.info.lawTaxYear) + ").";
+    let text = getPath(state.inputs, "retirementSpending.startAge") == null
+      ? "Starts at " + spendingStartDefault() + ", " + start + year : "Starts at age " + start + year;
     if (preview) {
       text += " From then your monthly rows change from " + fullMoney(preview.before) + " to "
         + fullMoney(preview.after) + " a month (today's value).";
@@ -3117,6 +3145,19 @@
         + "the first year; the Expenses totals show the amounts entered.";
     }
     box.querySelector(".spending-preview").textContent = text;
+  }
+
+  // What a blank start age means, in words (wmti defaultSpendingStartAge): your claim age, else your stop age.
+  function spendingStartDefault() {
+    return hasSocialSecurity(state.inputs.you) ? "your Social Security age" : "the age you stop working";
+  }
+
+  // Show the age a blank start age means as the start age box's placeholder, so a blank box is never empty of meaning.
+  function spendingStartHint(holder) {
+    const input = holder.querySelector("#" + fieldId("retirementSpending.startAge"));
+    if (!input) return;
+    const blank = { ...state.inputs, retirementSpending: { ...state.inputs.retirementSpending, startAge: null } };
+    input.placeholder = "Starts at " + spendingStartDefault() + ", " + spendingStartAge(blank);
   }
 
   // ---- Retirement: each person's benefit table, earnings estimate and claim ages (benefitTables), drawn under the
@@ -3650,10 +3691,16 @@
   function setValue(path, value) {
     const account = /^accounts\.(\d+)\.(\w+)$/.exec(path);
     const before = getPath(state.inputs, path);
+    // A block's switch turned off: wmti applySettings puts its other fields back to their defaults (resetDisabledBlock).
+    const previous = /\.enabled$/.test(path) && before && !value ? clone(state.inputs) : null;
     setPath(state.inputs, path, value);
     // An edit makes an account the user's own: the Roth conversion switch no longer removes it.
     const item = account && state.inputs.accounts[Number(account[1])];
     if (item && item.autoCreated && account[2] !== "autoCreated" && before !== value) item.autoCreated = false;
+    if (previous) {
+      switchOff(previous, path, value);
+      return;
+    }
     if (path === ROLLOVER_SWITCH) {
       syncRollover();
       return;
@@ -3664,7 +3711,16 @@
   // The Roth conversion switch adds or removes the rollover account (wmti syncRolloverAccounts); the page is redrawn
   // at once so the account list shows it.
   async function syncRollover() {
-    const reply = await ask("syncRollover", [JSON.stringify(state.inputs)]);
+    takeEngineInputs(await ask("syncRollover", [JSON.stringify(state.inputs)]));
+  }
+
+  // A block switched off (the Roth conversion, a QCD, the retirement plan...): the engine applies the switch to the
+  // inputs before it, putting the block's other fields back to their defaults and syncing the rollover account.
+  async function switchOff(previous, path, value) {
+    takeEngineInputs(await ask("applySettings", [JSON.stringify(previous), JSON.stringify([{ path, value }])]));
+  }
+
+  function takeEngineInputs(reply) {
     if (!reply || !reply.inputs) {
       state.error = reply ? reply.error : "The conversion switch did not answer; try again.";
       setStatus("error", "Check settings");
@@ -3689,7 +3745,32 @@
       return wrap;
     }
     if (/^(you|partner)\.socialSecurityBasis$/.test(path)) return basisToggle(field, path, value);
+    if (/^(you|partner)\.employerMatch\.percent$/.test(path)) return matchPercentField(field, path);
     return null;
+  }
+
+  // A person's employer match as one share of pay (the schema's derived field): shown as rate x cap, and an entered
+  // share outside its bounds is refused with a message; a new share is stored as rate 1 and the share as the cap,
+  // and the stored terms are kept while the share equals theirs (wmti.accounts.contributions.matchTermsFromPercent).
+  function matchPercentField(field, path) {
+    const matchPath = path.slice(0, path.lastIndexOf("."));
+    const id = fieldId(path);
+    const wrap = fieldShell(field.label, field.help, id);
+    wrap.append(numberInput(id, field, matchPercent(getPath(state.inputs, matchPath)), (next) => {
+      const error = walkBoundsError(field, next, null);
+      const input = $(id);
+      const problem = wrap.querySelector(".field-error");
+      if (input) input.setAttribute("aria-invalid", String(Boolean(error)));
+      problem.hidden = !error;
+      problem.textContent = error || "";
+      if (error) return;
+      const match = getPath(state.inputs, matchPath);
+      const terms = matchTermsFromPercent(next, match);
+      if (terms.rate === match.rate && terms.cap === match.cap) return;
+      setPath(state.inputs, matchPath + ".rate", terms.rate);
+      setValue(matchPath + ".cap", terms.cap);
+    }));
+    return wrap;
   }
 
   // The Social Security basis as a two-position toggle (Earnings history, Manual entry), as on the desktop. Without an
@@ -4060,7 +4141,13 @@
     // A child a panel lists by its own `field.child` name is drawn on that panel only (the current ages on Setup, Social
     // Security on Retirement).
     const placed = new Set(state.schema.panels.flatMap((panel) => panel.fields));
-    const children = (state.schema.types[field.type] || []).filter((child) => !placed.has(path + "." + child.name));
+    // A derived field (the employer match percent) is drawn where the first stored field it replaces would be.
+    const derived = (state.schema.derivedFields || {})[field.type] || [];
+    const children = (state.schema.types[field.type] || []).flatMap((child) => {
+      const replacing = derived.filter((entry) => entry.replaces.includes(child.name));
+      if (!replacing.length) return [child];
+      return replacing.filter((entry) => entry.replaces[0] === child.name);
+    }).filter((child) => !placed.has(path + "." + child.name));
     const value = getPath(state.inputs, path);
     const gate = children.find((child) => child.name === "enabled" && child.kind === "toggle");
     if (gate) {
@@ -4359,7 +4446,7 @@
     }
     if (typeName === "Child") {
       const age = state.inputs.you.currentAge - item.yourAgeAtBirth;
-      return { name: item.name, detail: (age < 0 ? "not born yet" : "age " + age + " today") + ", child years to age "
+      return { name: item.name, detail: (age < 0 ? "not born yet" : "age " + age + " today") + ", child years up to age "
         + item.dependentUntilAge, value: "" };
     }
     const fields = state.schema.types[typeName] || [];
@@ -5415,7 +5502,6 @@
     state.inputs = reply.inputs;
     state.base = clone(state.inputs);
     state.scenarioName = fileName ? fileName.replace(/\.json$/i, "") : "Pasted scenario";
-    showLoadSplash(state.scenarioName);
     forgetBlankWalk();
     const upgraded = reply.fromVersion !== reply.inputs.schemaVersion;
     showFileMessage("Opened " + state.scenarioName + "."
@@ -5425,6 +5511,7 @@
     resetUndo();
     renderSaved();
     closeDialog();
+    highlightOpenCard();
     if (walk.open && walk.importing) await walkImported();
     return true;
   }
@@ -5507,7 +5594,6 @@
     }
     button.dataset.armed = "false";
     button.textContent = "Load example household";
-    showLoadSplash(EXAMPLE_NAME);
     state.inputs = clone(state.defaults);
     state.base = clone(state.defaults);
     state.scenarioName = EXAMPLE_NAME;
@@ -5520,6 +5606,7 @@
     inputsChanged();
     resetUndo();
     renderSaved();
+    highlightOpenCard();
   }
 
   // The About window: opened from the menu over the page, closed by Done, the backdrop or Escape.
@@ -6052,14 +6139,17 @@
     });
   }
 
-  // After an import from the first step: the questions the file answers count as answered, and the walkthrough goes
-  // on to the first one it does not answer (the review when it answers them all).
+  // After an import from the first step: the file is a whole scenario, so every question counts as answered, what
+  // Undo my answers puts back is the imported scenario (never the settings it replaced), and the walkthrough closes as
+  // finished on the Summary; the menu reopens it on the review.
   async function walkImported() {
     walk.importing = false;
     await walkReplan();
-    for (const id of walk.plan.notExample || []) walk.saved.answers[id] = { status: "answered", values: null };
-    walkSave();
-    walkGo(firstUnanswered(), "forward");
+    for (const row of walkRows()) walk.saved.answers[row.id] = { status: "answered", values: null };
+    walk.saved.before = clone(state.inputs);
+    walk.saved.current = "review";
+    walkFinish();
+    walkToast("Opened " + state.scenarioName + ".");
   }
 
   function welcomeScreen() {
@@ -6610,8 +6700,11 @@
       tab.addEventListener("click", () => selectTab(tab.dataset.tab));
     }
     for (const tab of document.querySelectorAll(".view-tab")) {
+      tab.insertAdjacentHTML("afterbegin", iconSvg(VIEW_ICONS[tab.dataset.view], "chip-icon"));
       tab.addEventListener("click", () => selectView(tab.dataset.view));
     }
+    $("views-outputs").chipBubble = makeBubble("viewBubbleFill");
+    $("views-outputs").append($("views-outputs").chipBubble);
     wireTabKeys(document.querySelector(".tabbar"), ".tab", (tab) => selectTab(tab.dataset.tab));
     wireTabKeys($("views-outputs"), ".view-tab", (tab) => selectView(tab.dataset.view));
     document.addEventListener("focusin", (event) => $("app").classList.toggle("typing", isTyping(event.target)));
@@ -6656,10 +6749,11 @@
     wireWalk();
     markScheme();
     wireTabsPin();
-    wireInputsSwipe();
+    wirePanelsSwipe();
     wireWalkSwipe();
-    window.addEventListener("resize", () => placeBubble($("chips-settings"), false));
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeBubble($("chips-settings"), false));
+    const placeBubbles = () => { placeBubble($("chips-settings"), false); placeBubble($("views-outputs"), false); };
+    window.addEventListener("resize", placeBubbles);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBubbles);
     $("saveButton").addEventListener("click", saveButtonPressed);
     $("autoSave").addEventListener("click", toggleAutoSave);
     $("renameButton").addEventListener("click", () => renameDialog(state.scenarioName));

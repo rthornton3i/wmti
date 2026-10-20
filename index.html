@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-tmicCRahZXjk7G6kjeGt/rkwlZ37jPnaivfj3w4hp2Y=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-f6gn0nyqC7ni4MObH9PRoMiL8Z3fJcLBsiUOsm6D1hI=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -196,11 +196,6 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 @keyframes spin { to { transform: rotate(360deg); } }
 /* The load splash: the boot screen's look over everything for two seconds when another scenario opens; its bar fills
    over those two seconds (full at once when the device asks for reduced motion). */
-.load-splash { position: fixed; inset: 0; z-index: 97; min-height: 0; height: 100dvh; }
-.load-splash:focus { outline: none; }
-.load-splash-name { font-size: 18px; font-weight: 600; overflow-wrap: anywhere; }
-.load-splash-bar span { animation: load-splash-fill 2s linear forwards; }
-@keyframes load-splash-fill { to { width: 100%; } }
 
 /* App frame */
 /* overflow-x: clip keeps the page from scrolling sideways without making .app a scroll container, so a table or
@@ -239,7 +234,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .band { background: var(--band); color: var(--band-ink); padding: 2px max(var(--gutter), calc((100% - 640px) / 2)) 16px; }
 .band-title { font-size: 28px; line-height: 1.2; font-weight: 650; letter-spacing: -0.01em; }
 .band-sub { color: var(--band-sub); font-size: 15px; margin: 2px 0 14px; }
-.band > .segmented + .chips-wrap:not([hidden]) { margin-top: 10px; }
+.band > .chips-wrap[data-place="outputs"] + .chips-wrap:not([hidden]) { margin-top: 10px; }
 .chips-wrap { display: grid; gap: 8px; }
 .chips-track { height: 4px; border-radius: 2px; background: var(--band-track); overflow: hidden; }
 .chips-track span { display: block; height: 100%; width: 100%; border-radius: 2px; background: var(--band-thumb); }
@@ -276,29 +271,33 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .chip[aria-selected="true"] { background: var(--chip-on); color: var(--chip-on-ink); font-weight: 600; }
 .chip .soon { font-size: 11px; opacity: 0.8; margin-left: 6px; }
 .chip[aria-selected="true"] .soon { color: inherit; opacity: 0.7; }
-/* Inputs' chips: the selected chip keeps its own colors (bolder label) under the bubble (app.js makeBubble), one SVG
-   capsule over it with a glowing --chip-on rim and a nearly clear fill; it stretches toward the next chip during a
-   swipe and glides on a tap. The row's padding leaves room for the glow inside the row's clip. */
-.chips-wrap[data-place="inputs"] .chips { position: relative; padding-block: 8px; margin-block: -6px; }
-.chips-wrap[data-place="inputs"] .chip[aria-selected="true"] { background: var(--chip-off); color: var(--chip-off-ink); }
+/* Inputs' chips and the Outputs view row (Summary, Plots, Compare) share one look: the selected chip keeps its own
+   colors (bolder label) under the bubble (app.js makeBubble), one SVG capsule over it with a glowing --chip-on rim and
+   a nearly clear fill; it stretches toward the next chip during a swipe and glides on a tap. The row's padding leaves
+   room for the glow inside the row's clip. */
+.chips-wrap[data-place="inputs"] .chips, .chips-wrap[data-place="outputs"] .chips { position: relative;
+  padding-block: 8px; margin-block: -6px; }
+.chips-wrap[data-place="inputs"] .chip[aria-selected="true"],
+.chips-wrap[data-place="outputs"] .chip[aria-selected="true"] { background: var(--chip-off); color: var(--chip-off-ink); }
 .chip-bubble { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none;
   filter: drop-shadow(0 0 3px var(--chip-on)) drop-shadow(0 0 7px color-mix(in srgb, var(--chip-on) 60%, transparent)); }
 .chip-bubble path { stroke: var(--chip-on); stroke-width: 2; }
 .chip-bubble stop { stop-color: var(--chip-on); }
-/* A swipe moves between Inputs panels and walkthrough questions (app.js wireSwipe): vertical scrolling stays the
-   browser's, sideways drags come to the page (a table or chips row that scrolls sideways takes them back). */
-#panel-inputs, .walk-stage, .panels:has(> #panel-inputs:not([hidden])) { touch-action: pan-y pinch-zoom; }
+/* A swipe moves between Inputs panels, Outputs views, the bottom tabs past their ends, and walkthrough questions
+   (app.js wireSwipe): vertical scrolling stays the browser's, sideways drags come to the page (a table, chart or chips
+   row takes them back). */
+.panels, .panels > .panel, .walk-stage { touch-action: pan-y pinch-zoom; }
 /* The Outputs sub-tabs (the chips rows under Summary | Plots | Compare): one thin row of underline text tabs on a 1px
    hairline, scrolling sideways if too narrow; the open one in the band's selected colour. The Inputs chips stay bubbles. */
-.chips-wrap[data-place^="outputs"] .chips { gap: 4px; padding-block: 0;
+.chips-wrap[data-place^="outputs/"] .chips { gap: 4px; padding-block: 0;
   box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent); }
-.chips-wrap[data-place^="outputs"] .chip { min-height: 44px; padding: 0 12px; border-radius: 0; background: transparent;
+.chips-wrap[data-place^="outputs/"] .chip { min-height: 44px; padding: 0 12px; border-radius: 0; background: transparent;
   color: var(--band-sub); white-space: nowrap; box-shadow: none; }
-.chips-wrap[data-place^="outputs"] .chip-icon { display: none; }
-.chips-wrap[data-place^="outputs"] .chip[aria-selected="true"] { background: transparent; color: var(--chip-on);
+.chips-wrap[data-place^="outputs/"] .chip-icon { display: none; }
+.chips-wrap[data-place^="outputs/"] .chip[aria-selected="true"] { background: transparent; color: var(--chip-on);
   font-weight: 650; box-shadow: inset 0 -2px 0 var(--chip-on); }
-.chips-wrap[data-place^="outputs"] .chip:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
-.chips-wrap[data-place^="outputs"] .chips-track { display: none; }
+.chips-wrap[data-place^="outputs/"] .chip:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
+.chips-wrap[data-place^="outputs/"] .chips-track { display: none; }
 
 .card { background: var(--surface); border: 0; border-radius: 20px; padding: 16px;
   display: grid; gap: 12px; min-width: 0; }
@@ -603,10 +602,6 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .segmented button[aria-pressed="true"], .segmented button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 650;
   box-shadow: 0 0 0 1px var(--line); }
 .segmented button:disabled { opacity: 0.45; cursor: not-allowed; }
-.segmented .view-tab { min-height: 44px; }
-.band .segmented { border: 0; background: var(--band-button); border-radius: 12px; padding: 3px; }
-.band .segmented button { color: var(--band-button-ink); border-radius: 10px; }
-.band .segmented button[aria-selected="true"] { background: var(--chip-on); color: var(--chip-on-ink); box-shadow: none; }
 .subpanel { display: grid; gap: 14px; }
 .subpanel > * { min-width: 0; }
 .run-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
@@ -640,6 +635,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 /* Setup's open scenario card: accent-edged, the name large, the saved state with the Auto-save switch, then one flat
    strip of equal-width icon buttons (one outer border, thin dividers). */
 .open-card { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); gap: 8px; }
+/* When another scenario opens, the card's edge glows and fades over a second (app.js highlightOpenCard, the Undo
+   flash's class); held still for that second when the device asks for reduced motion. */
+.open-card.undo-flash { animation: open-card-flash 1s ease-out; }
+@keyframes open-card-flash { from { box-shadow: inset 0 0 0 3px var(--accent),
+  0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 18px 4px color-mix(in srgb, var(--accent) 55%, transparent); } }
 .open-label { margin: 0; }
 .open-name { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
 .open-status { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; color: var(--ink-2);
@@ -931,9 +931,10 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-  .load-splash-bar span { animation: none; width: 100%; }
   .undo-flash, .field.undo-flash, .tint-alt .field.undo-flash { animation: none;
     background-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .open-card.undo-flash { animation: none; background-color: var(--accent-soft); box-shadow: inset 0 0 0 3px var(--accent),
+    0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 18px 4px color-mix(in srgb, var(--accent) 55%, transparent); }
   /* The walkthrough still cross-fades (opacity only, no slide). */
   .walk-stage .walk-screen.fading-out, .walk-stage .walk-screen.fading-in { animation-duration: 300ms !important; }
   /* A changed question total stays highlighted for the flash's second, without fading. */
@@ -973,17 +974,19 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   <div class="band">
     <h1 class="band-title" id="bandTitle">Summary</h1>
     <p class="band-sub" id="bandSub"></p>
-    <div class="segmented" id="views-outputs" role="tablist" aria-label="Outputs sections" data-place="outputs">
-      <button type="button" role="tab" class="view-tab" id="sub-summary" data-view="summary" aria-controls="view-summary">Summary</button>
-      <button type="button" role="tab" class="view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
-      <button type="button" role="tab" class="view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
+    <div class="chips-wrap" data-place="outputs">
+      <div class="chips" id="views-outputs" role="tablist" aria-label="Outputs sections">
+        <button type="button" role="tab" class="chip view-tab" id="sub-summary" data-view="summary" aria-controls="view-summary">Summary</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
+      </div>
+      <div class="chips-track" aria-hidden="true"><span></span></div>
     </div>
     <div class="chips-wrap" data-place="inputs">
       <div class="chips" role="tablist" aria-label="Settings groups" id="chips-settings"></div>
       <button type="button" class="chips-pin" id="chipsPin" aria-pressed="true" aria-label="Unpin tabs">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
       <div class="chips-track" aria-hidden="true"><span></span></div>
-      <p class="sr-only" id="chipsLive" aria-live="polite"></p>
     </div>
     <div class="chips-wrap" data-place="outputs/summary">
       <div class="chips" role="tablist" aria-label="Summary views" id="chips-results"></div>
@@ -993,6 +996,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
       <div class="chips" role="tablist" aria-label="Charts" id="chips-plots"></div>
       <div class="chips-track" aria-hidden="true"><span></span></div>
     </div>
+    <p class="sr-only" id="chipsLive" aria-live="polite"></p>
   </div>
 
   <main class="panels">
@@ -1161,7 +1165,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
     <ul class="menu-help" id="menuHelp" hidden>
       <li>Tap the "i" beside a field or a heading for its help.</li>
       <li>Swipe a row of chips sideways for more groups; the bar under it shows where you are.</li>
-      <li>On Inputs, swipe the settings sideways to move to the next or previous group.</li>
+      <li>Swipe the page sideways to move to the next or previous Inputs group or Outputs view; past the last group it goes on to Outputs, before the first back to Setup, and from Setup on to Inputs.</li>
       <li>Outputs reruns on its own after every change. Setup holds your scenarios (open, saved, new and imported) and the run; Undo (top right) steps back through your last changes.</li>
     </ul>
     <button type="button" class="menu-item" id="menuAbout">
@@ -1226,20 +1230,12 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 </form>
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
-<div id="loadSplash" class="boot load-splash" role="status" aria-live="polite" tabindex="-1" hidden>
-  <div class="boot-inner">
-    <p class="eyebrow">wmti on this device</p>
-    <p class="boot-title">Walk Me Through It™</p>
-    <p class="load-splash-name" id="loadSplashName"></p>
-    <div class="progress load-splash-bar" aria-hidden="true"><span></span></div>
-  </div>
-</div>
 
-<script>window.WMTI_BUILD = { id: "0b400cb60bd9", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "0730f4a765eb", pyodide: "0.29.5" };</script>
 <script src="legal.3250d44a4a.js"></script>
-<script src="shared.fb7c041361.js"></script>
+<script src="shared.5583cbcf6b.js"></script>
 <script src="charts.a69151b17d.js"></script>
-<script src="app.d96545306d.js"></script>
+<script src="app.b864592144.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

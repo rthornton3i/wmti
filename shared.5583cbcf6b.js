@@ -472,15 +472,29 @@
   }
 
   // Spending in retirement (wmti.inputs.retirementInputs.spendingStartAge and spendingFactor): from the start age
-  // (blank: the age you stop working, today's age when retired) a row's amount is multiplied by 1 + its percent: in
+  // (blank: your Social Security claim age, or with no benefit entered the age you stop working, today's age when
+  // retired; see defaultSpendingStartAge) a row's amount is multiplied by 1 + its percent: in
   // Equal change the one `equalChange` for the monthly rows (Bills, Planned Spending, Other Spending) only, in Per
   // expense each row's own `retirementChange`.
   const MONTHLY_EXPENSE_CATEGORIES = ["Bills", "Planned Spending", "Other Spending"];
 
+  // Whether a person has a Social Security benefit (wmti hasSocialSecurity): the "earnings" basis, or an entered
+  // amount above 0.
+  function hasSocialSecurity(person) {
+    return person.socialSecurityBasis === "earnings"
+      || Object.values(person.socialSecurityByAge || {}).some((amount) => Number(amount) > 0);
+  }
+
+  // The age a blank start age means (wmti defaultSpendingStartAge): the claim age, else the age pay stops.
+  function defaultSpendingStartAge(person) {
+    if (hasSocialSecurity(person)) return Number(person.socialSecurityAge);
+    return person.retired ? person.currentAge : person.salaryEndAge;
+  }
+
   function spendingStartAge(inputs) {
     const start = ((inputs || {}).retirementSpending || {}).startAge;
     if (start != null) return start;
-    return inputs.you.retired ? inputs.you.currentAge : inputs.you.salaryEndAge;
+    return defaultSpendingStartAge(inputs.you);
   }
 
   function spendingFactor(inputs, item, age) {
@@ -684,9 +698,28 @@
   // ---- The guided walkthrough (the tree, plan and answers come from wmti.dashboard.walkthrough) ----
   const WALK_SELECTOR = /^(\w+)\[([^\]]+)\]$/;
 
+  // A person's employer match as the one share of pay the forms show, rate x cap (50% up to 6% is 3%), and the rate
+  // and cap an entered share is stored as: rate 1 and the share as the cap, or the stored terms when the share is
+  // unchanged (wmti.accounts.contributions.matchPercent and matchTermsFromPercent).
+  const MATCH_PERCENT_FIELD = "percent";
+  const MATCH_PERCENT_TOLERANCE = 1e-9;
+
+  function matchPercent(match) {
+    return match == null ? undefined : match.rate * match.cap;
+  }
+
+  function matchTermsFromPercent(share, match) {
+    if (Math.abs(share - matchPercent(match)) <= MATCH_PERCENT_TOLERANCE) return { rate: match.rate, cap: match.cap };
+    return { rate: 1, cap: share };
+  }
+
   // The value at a walkthrough field path: an input path or an account selector `accounts[Savings].startingValue`
-  // (the first account of that kind); undefined when a part is missing.
+  // (the first account of that kind); undefined when a part is missing. A person's `employerMatch.percent` is read
+  // as rate x cap.
   function walkRead(data, path) {
+    if (path.endsWith("employerMatch." + MATCH_PERCENT_FIELD)) {
+      return matchPercent(walkRead(data, path.slice(0, -(MATCH_PERCENT_FIELD.length + 1))));
+    }
     let target = data;
     for (const part of path.split(".")) {
       if (target == null) return undefined;
@@ -1016,10 +1049,10 @@
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
-    resetGroup, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
+    resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
-    changedPaths, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
+    changedPaths, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);
