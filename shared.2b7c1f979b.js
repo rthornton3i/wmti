@@ -134,13 +134,14 @@
         "surplusShare"],
       groups: { meanReturn: "returns", returnStdDev: "returns", costBasis: "returns", iraBasis: "returns" },
     },
-    // Drawn in titled sections by each field's schema group (Value, Loan, Commute, Running costs, Replacement,
-    // Purchase, Sale); the miles per year close the Commute section, after the commute figures its switch shows.
+    // Drawn in titled sections by each field's schema group (Value, Loan, Commute, Running costs, Replacement, Lease);
+    // the miles per year close the Commute section, after the commute figures its switch shows. The purchase and sale
+    // are set on the timeline (`timelineManaged`), so their sections are not drawn.
     Car: {
       order: ["name", "driver", "valueToday", "depreciationRate", "hasLoan", "loanBalance", "loanRate", "loanMonthsLeft",
         "loanExtraMonthly", "commutes", "commuteMilesOneWay", "commuteDaysPerYear", "commuteTollsPerDay",
         "otherMilesPerYear", "milesPerGallon", "insurancePerYear", "registrationPerYear", "maintenancePerYear",
-        "replaceEveryYears", "replaceInYears", "replacementPrice", "buysLater", "purchaseAge", "purchasePrice",
+        "replaceEveryYears", "replaceInYears", "replacementPrice", "leases", "leaseMonthly", "buysLater", "purchaseAge", "purchasePrice",
         "downPaymentRate", "salesTaxRate", "purchaseFees", "sellsLater", "saleAge", "salePrice", "sellingCostRate",
         "sellingFees", "prepayPenaltyRate"],
       groups: {},
@@ -158,11 +159,17 @@
     Home: { order: [], groups: {}, sections: true },
   };
 
-  // Why a field is left off an item's sheet, or null when it is shown. `rules` is appInfo().sheetRules. The figures
-  // behind an item's switch (a car's loan, commute, purchase and sale; a home's mortgage; a loan's later start and early
-  // payoff: `itemSwitches`) show only while it is on, and the figures a switch replaces (a car bought later has no value
-  // or balance today: `itemSwitchReplaces`) only while it is off.
+  // Why a field is left off an item's sheet, or null when it is shown. `rules` is appInfo().sheetRules. The switches
+  // the ownership timeline sets (a home's or car's purchase and sale: `timelineManaged`) and their figures are left to
+  // the timeline, and so is a car's lane. The figures behind an item's other switches (a car's loan, commute and lease;
+  // a home's mortgage; a loan's later start and early payoff: `itemSwitches`) show only while it is on, and the figures
+  // a switch replaces (a car bought later has no value or balance today, a leased one no value, loan or replacement:
+  // `itemSwitchReplaces`) only while it is off.
   function hiddenReason(typeName, name, item, rules) {
+    const managed = (rules.timelineManaged || {})[typeName] || [];
+    const switches = (rules.itemSwitches || {})[typeName] || {};
+    if (managed.some((toggle) => toggle === name || (switches[toggle] || []).includes(name))) return "set on the timeline";
+    if (typeName === "Car" && name === "lane") return "set by the timeline";
     for (const [toggle, names] of Object.entries((rules.itemSwitches || {})[typeName] || {})) {
       if (names.includes(name) && !item[toggle]) return "shown while its " + toggle + " switch is on";
     }
@@ -201,9 +208,11 @@
     return null;
   }
 
-  // The switches on an item's sheet that show or hide other fields, so changing one redraws the sheet.
+  // The switches on an item's sheet that show or hide other fields, so changing one redraws the sheet (the timeline's
+  // switches are not on the sheet).
   function sheetSwitches(typeName, rules) {
-    return Object.keys((rules.itemSwitches || {})[typeName] || {});
+    const managed = (rules.timelineManaged || {})[typeName] || [];
+    return Object.keys((rules.itemSwitches || {})[typeName] || {}).filter((toggle) => !managed.includes(toggle));
   }
 
   // The fields of one list item's sheet: `shown` ({name, group}) in drawing order, `hidden` (name to reason) and
@@ -473,24 +482,21 @@
     return { rows, total, annual, combined: total + annual.reduce((value, row) => value + row.total, 0) };
   }
 
-  // The one summary at the bottom of the Expenses chip (wmti.dashboard.breakdown.expenseTotals, in whole dollars as the
-  // phone shows them): `entered`, the rows of an `expenseSummary` (each monthly category, then Major Spending and
-  // Charity per year / 12) with their yearly amount; `enteredTotal`; `countedTotal`, the read-only rows other tabs
-  // charge (the settings notes' `alreadyCounted` rows; the note row, with no amount, is left out), or null before the
-  // notes arrive; and `total`, both together (null while `countedTotal` is). Each amount is rounded to the dollar
-  // before it is added, so each total is exactly the sum of the amounts shown above it.
+  // The one summary at the bottom of the Expenses chip, per month (wmti.dashboard.breakdown.expenseTotals, in whole
+  // dollars as the phone shows them): `entered`, the rows of an `expenseSummary` (each monthly category, then Major
+  // Spending and Charity per year / 12); and `total`, the one "Total expenses" row: the entered rows plus the read-only
+  // rows other tabs charge (the settings notes' `alreadyCounted` rows; the note row, with no amount, is left out), or
+  // null before the notes arrive. Each amount is rounded to the dollar before it is added, so the total is exactly the
+  // entered monthly expenses plus the counted ones.
   function expenseTotals(summary, countedRows) {
     const whole = (value) => Math.round(Number(value) || 0);
-    const add = (item, rows) => ({ item, monthly: rows.reduce((sum, row) => sum + row.monthly, 0),
-      yearly: rows.reduce((sum, row) => sum + row.yearly, 0) });
+    const add = (rows) => rows.reduce((sum, row) => sum + row.monthly, 0);
     const entered = [...summary.rows.map((row) => [row.category, row.total]),
       ...summary.annual.map((row) => [row.category + " (per year ÷ 12)", row.total])]
-      .map(([item, monthly]) => ({ item, monthly: whole(monthly), yearly: whole(monthly * 12) }));
-    const enteredTotal = add("Entered here", entered);
-    if (!countedRows) return { entered, enteredTotal, countedTotal: null, total: null };
-    const countedTotal = add("Counted elsewhere", countedRows.filter((row) => row.yearly != null)
-      .map((row) => ({ monthly: whole(row.monthly), yearly: whole(row.yearly) })));
-    return { entered, enteredTotal, countedTotal, total: add("Total", [enteredTotal, countedTotal]) };
+      .map(([item, monthly]) => ({ item, monthly: whole(monthly) }));
+    if (!countedRows) return { entered, total: null };
+    const counted = countedRows.filter((row) => row.monthly != null).map((row) => ({ monthly: whole(row.monthly) }));
+    return { entered, total: { item: "Total expenses", monthly: add(entered) + add(counted) } };
   }
 
   // When a car or home is bought and sold, or a loan starts and is paid off, as your ages: "buys at 55 · sells at 60"
@@ -579,10 +585,39 @@
   }
 
   // Whether a car charges a loan (wmti hasCarLoan): its Loan switch on and a balance above 0 (bought later: the price
-  // less the down payment above 0).
+  // less the down payment above 0); a leased car never does.
   function hasCarLoan(car) {
     const owed = car.buysLater ? car.purchasePrice * (1 - car.downPaymentRate) : car.loanBalance;
-    return Boolean(car.hasLoan) && owed > 0;
+    return !car.leases && Boolean(car.hasLoan) && owed > 0;
+  }
+
+  // The calendar year in which you are `age`, and your age in a calendar year, as wmti.assets.timeline.yearOfAge and
+  // ageOfYear: the law's tax year (appInfo().lawTaxYear) is the year you are `currentAge`.
+  function yearOfAge(age, currentAge, lawYear) {
+    return lawYear + age - currentAge;
+  }
+
+  function ageOfYear(year, currentAge, lawYear) {
+    return currentAge + year - lawYear;
+  }
+
+  // The ownership timeline's bars, one row per lane in lane order: each segment of timelineView (owned, rented, leased
+  // or no car) as its share of the run from `low` to `high` (your ages; an open segment runs to `high`), for CSS widths.
+  // Returns [{lane, bars: [{mode, name, text, position, left, width}]}], left and width in percent.
+  function timelineBars(segments, low, high) {
+    const span = high - low + 1;
+    const lanes = [];
+    for (const segment of segments) {
+      let row = lanes.find((entry) => entry.lane === segment.lane);
+      if (!row) {
+        row = { lane: segment.lane, bars: [] };
+        lanes.push(row);
+      }
+      const end = segment.endAge == null ? high : segment.endAge;
+      row.bars.push({ mode: segment.mode, name: segment.name, text: segment.text, position: segment.position,
+        left: ((segment.startAge - low) / span) * 100, width: ((end - segment.startAge + 1) / span) * 100 });
+    }
+    return lanes.sort((first, second) => first.lane - second.lane);
   }
 
   function filterStartValues(filter) {
@@ -856,6 +891,14 @@
     return !inputs || !inputs.you || !(Number(inputs.you.currentAge) > 0);
   }
 
+  // Other scenarios on Setup: the saved names and the example household (unless it was deleted from the list),
+  // except the open scenario, sorted.
+  function otherScenarioNames(savedNames, openName, exampleName, exampleHidden) {
+    const names = savedNames.slice();
+    if (!exampleHidden && !names.includes(exampleName)) names.push(exampleName);
+    return names.filter((name) => name !== openName).sort((left, right) => left.localeCompare(right));
+  }
+
   // A name not yet taken: `base` itself, else "base 2", "base 3" and so on.
   function freeName(base, taken) {
     const used = new Set(taken.map((name) => name.toLowerCase()));
@@ -878,12 +921,22 @@
     return { stack: history.stack.slice(0, -1), current: history.stack[history.stack.length - 1] };
   }
 
+  // The "I'm retired" button's changes to one person, as wmti.dashboard.editing.markRetired gives them: the earnings
+  // history becomes "lastSalary", pay stops now (the stop age falls to the current age, never rises) and the salary
+  // becomes the last salary when none is entered. The salary and the last paid year are left alone.
+  function retiredChanges(person) {
+    const changes = { earningsHistoryMode: "lastSalary",
+      salaryEndAge: Math.min(Number(person.salaryEndAge), Number(person.currentAge)) };
+    if (!(Number(person.lastSalary) > 0) && Number(person.salary) > 0) changes.lastSalary = Number(person.salary);
+    return changes;
+  }
+
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, freeName, undoRecord, undoStep };
+    blankInputs, needsSetup, otherScenarioNames, freeName, undoRecord, undoStep, retiredChanges };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

@@ -6,10 +6,10 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary,
-    expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
+    expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, freeName, undoRecord, undoStep } = window.WmtiShared;
+    blankInputs, needsSetup, otherScenarioNames, freeName, undoRecord, undoStep, retiredChanges } = window.WmtiShared;
   const charts = window.WmtiCharts;
 
   const BOOT_STEPS = [["script", "Load the Python engine"], ["boot", "Start Python"],
@@ -46,6 +46,7 @@
   const CACHED_RESULTS = 2;  // Monte Carlo and comparison results kept per kind, newest first
   const DEFAULT_RUN_MS = 250;  // a phone's time per run until this device has measured one
   const SAVED_LIMIT = 50;
+  const NO_EARNINGS_HINT = "Enter past earnings on the Income tab to use this.";  // wmti.dashboard.settings.NO_EARNINGS_HINT
   const NULL_LABELS = { owner: "Usual owner", account529: "None (the 529s together)" };  // what a blank select choice means for these fields
   const RUN_DELAY_MS = 400;
   const SETTLE_MS = 400;  // a pause in editing this long makes one undo step (and, with Auto-save on, one save)
@@ -111,10 +112,10 @@
   const state = {
     info: null, schema: null, defaults: null, inputs: null, base: null, scenarioName: EXAMPLE_NAME, seed: 1,
     walkTree: null, result: null, error: null, lastRunMs: null, bootMs: null, pyodideVersion: null,
-    notes: null, surplusLocks: [], benefits: null, deposits: null, planOpen: false,
+    notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, planOpen: false,
     tab: "outputs", view: "summary", scroll: {}, chips: { results: "summary", plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
-    autoSave: false, savedJustNow: false, undo: { stack: [], current: null },
+    autoSave: false, exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null },
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null },
@@ -137,7 +138,7 @@
     const compare = state.compare;
     store(PREFS_KEY, { tab: state.tab, view: state.view, chips: state.chips, plotView: state.plotView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSave: state.autoSave,
-      compare: { seed: compare.seed, pair: compare.pair } });
+      exampleHidden: state.exampleHidden, compare: { seed: compare.seed, pair: compare.pair } });
   }
 
   // ---- Engine (the worker) ----
@@ -149,7 +150,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.f2a8e8754f.js");
+      worker = new Worker("worker.d2ba25cad7.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -257,6 +258,8 @@
       if (Array.isArray(prefs.surplusLocks)) state.surplusLocks = prefs.surplusLocks.filter((name) => typeof name === "string");
       restoreRunPrefs(prefs);
       state.autoSave = prefs.autoSave === true;
+      // The example household left Other scenarios when deleted there; it is back whenever it is the open scenario.
+      state.exampleHidden = prefs.exampleHidden === true && state.scenarioName !== EXAMPLE_NAME;
     }
     const saved = load(SCENARIOS_KEY);
     // A map with no prototype, so a scenario named __proto__ or constructor is an ordinary key.
@@ -417,6 +420,7 @@
     }
     requestNotes();
     requestBenefits();
+    requestEarnings();
     requestDeposits();
     renderPinned();
     renderMcBar();
@@ -457,7 +461,7 @@
     }
     for (const row of document.querySelectorAll(".band .chips")) trackChips(row);
     renderBand();
-    if (state.tab === "inputs") { requestNotes(); requestBenefits(); requestDeposits(); }
+    if (state.tab === "inputs") { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
     if (state.tab === "outputs" && state.view === "summary") requestNotes();
     if (compareShown()) refreshCompare();
   }
@@ -628,10 +632,11 @@
   // the inflation range) ----
   const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 
-  // The saved copy of a scenario: its entry on this device, or the example household for the example's name.
+  // The saved copy of a scenario: its entry on this device, or the example household for the example's name (unless
+  // it was deleted from Other scenarios while another scenario was open).
   function savedCopy(name) {
     if (hasOwn(state.scenarios, name)) return state.scenarios[name];
-    return name === EXAMPLE_NAME ? state.defaults : null;
+    return name === EXAMPLE_NAME && (!state.exampleHidden || name === state.scenarioName) ? state.defaults : null;
   }
 
   // Whether the open scenario differs from its saved copy, or has none yet.
@@ -707,7 +712,7 @@
   }
 
   // The pinned strip: the median final worth of the last Monte Carlo ("Updating" before one, marked when stale) with
-  // its median after terminal tax under it, then the single-run headlines.
+  // its median after terminal tax under it, then the two single-run headlines (net earnings or withdrawal, annual expense).
   function renderPinned() {
     const pinned = $("pinned");
     if (!state.result || needsSetup(state.inputs)) { pinned.replaceChildren(); return; }
@@ -728,15 +733,20 @@
       + escapeText(error) + " The figures below are from the last valid settings.</div>";
   }
 
+  // A value tile: its label (with an "i" beside it when the headline has a note), the value, the range or change
+  // lines, and the note hidden until the "i" is tapped (one click handler in wire()).
   function tileHtml(headline, first, stale) {
+    const helpId = headline.help ? newHelpId() : null;
+    const label = "<span class=\"tile-label\">" + escapeText(headline.label) + "</span>";
     return "<div class=\"tile" + (first ? " tile-first" : "") + (stale ? " stale-results" : "") + "\">"
-      + "<span class=\"tile-label\">" + escapeText(headline.label) + "</span><span class=\"tile-value\">"
+      + (helpId ? "<div class=\"tile-head\">" + label + helpButtonHtml(headline.label, helpId) + "</div>" : label)
+      + "<span class=\"tile-value\">"
       + escapeText(headline.unit === "percent" ? percent(headline.value, 1) : fullMoney(headline.value)) + "</span>"
       + (headline.range ? "<span class=\"tile-change\">Middle half of the runs: " + escapeText(fullMoney(headline.range[0]))
         + " to " + escapeText(fullMoney(headline.range[1])) + "</span>" : "")
       + (headline.change ? "<span class=\"tile-change\">" + escapeText(headline.change) + " from "
         + escapeText(state.scenarioName) + "</span>" : "")
-      + (headline.help ? "<span class=\"tile-help\">" + escapeText(headline.help) + "</span>" : "") + "</div>";
+      + (helpId ? helpTextHtml(helpId, headline.help, "tile-help") : "") + "</div>";
   }
 
   // A read-only table card of the last Monte Carlo, marked when it is stale.
@@ -1476,9 +1486,9 @@
     return [label, input];
   }
 
-  // Every name in use on this device: the saved scenarios, the example household and the open scenario.
+  // Every name in use on this device: the saved scenarios, the example household (while listed) and the open scenario.
   function takenNames() {
-    return savedNames().concat([EXAMPLE_NAME, state.scenarioName]);
+    return savedNames().concat(state.exampleHidden ? [] : [EXAMPLE_NAME], [state.scenarioName]);
   }
 
   // The name typed in the dialog, checked by the scenario name rule and against the names in use (`own` is the name
@@ -1653,6 +1663,22 @@
     showFileMessage("Cleared " + state.scenarioName + ". Undo (top right) brings the settings back.", false);
   }
 
+  // The strip's Duplicate: a saved copy of the open scenario's current settings as "<name> copy" (numbered when that
+  // is taken); the open scenario stays open, and the copy is listed in Other scenarios and Compare.
+  function duplicateOpen() {
+    if (Object.keys(state.scenarios).length >= SAVED_LIMIT) {
+      showFileMessage("This device keeps at most " + SAVED_LIMIT + " scenarios. Delete one first.", true);
+      return;
+    }
+    if (settleTimer) settle();
+    const copy = freeName(state.scenarioName + " copy", takenNames());
+    state.scenarios[copy] = clone(state.inputs);
+    storeScenarios();
+    showFileMessage("Saved a copy of " + state.scenarioName + " as " + copy + ".", false);
+    renderSaved();
+    renderCompare();
+  }
+
   function duplicateScenario(name) {
     if (Object.keys(state.scenarios).length >= SAVED_LIMIT) {
       savedMessage("This device keeps at most " + SAVED_LIMIT + " scenarios. Delete one first.", true);
@@ -1667,16 +1693,25 @@
   }
 
   function deleteDialog(name) {
-    openDialog({ title: "Delete " + name + "?", text: "This removes " + name + " from this device. It cannot be undone.",
+    const text = hasOwn(state.scenarios, name) ? "This removes " + name + " from this device. It cannot be undone."
+      : "This removes " + name + " from this list. Load example household (Start over) brings it back.";
+    openDialog({ title: "Delete " + name + "?", text,
       actions: [CANCEL, ["Delete", "button button-danger-solid", () => { deleteScenario(name); return true; },
         "deleteConfirm"]] });
   }
 
-  // Delete a saved scenario (never the open one): it leaves the list, Compare and every name shown.
+  // Delete a listed scenario (never the open one): it leaves the list, Compare and every name shown. The example
+  // household leaves the list until Load example household brings it back.
   function deleteScenario(name) {
-    if (name === state.scenarioName || !hasOwn(state.scenarios, name)) return;
-    delete state.scenarios[name];
-    storeScenarios();
+    if (name === state.scenarioName || (!hasOwn(state.scenarios, name) && name !== EXAMPLE_NAME)) return;
+    if (hasOwn(state.scenarios, name)) {
+      delete state.scenarios[name];
+      storeScenarios();
+    }
+    if (name === EXAMPLE_NAME) {
+      state.exampleHidden = true;
+      savePrefs();
+    }
     savedMessage("Deleted " + name + ".", false);
     renderOpenCard();
     renderSaved();
@@ -1688,7 +1723,7 @@
     if (inputs) exportScenario(inputs, name);
   }
 
-  // ---- A row's "..." menu: Duplicate, Rename, Export, Delete (the example household: Duplicate and Export) ----
+  // ---- A row's "..." menu: Duplicate, Rename, Export, Delete (the example household: Duplicate, Export, Delete) ----
   const rowMenu = { button: null };
 
   function openRowMenu(button, name) {
@@ -1699,7 +1734,7 @@
     const items = [["Duplicate", () => duplicateScenario(name)]];
     if (saved) items.push(["Rename", () => renameDialog(name)]);
     items.push(["Export", () => exportListed(name)]);
-    if (saved) items.push(["Delete", () => deleteDialog(name)]);
+    items.push(["Delete", () => deleteDialog(name)]);
     menu.setAttribute("aria-label", name);
     menu.replaceChildren(...items.map(([label, onPick]) => {
       const item = document.createElement("button");
@@ -1743,16 +1778,16 @@
     items[moves[event.key]].focus();
   }
 
-  // Other scenarios: the saved ones and the example household, except the open one.
+  // Other scenarios: the saved ones and the example household (unless deleted from the list), except the open one.
   function otherNames() {
-    const names = savedNames();
-    if (!hasOwn(state.scenarios, EXAMPLE_NAME)) names.push(EXAMPLE_NAME);
-    return names.filter((name) => name !== state.scenarioName).sort((left, right) => left.localeCompare(right));
+    return otherScenarioNames(savedNames(), state.scenarioName, EXAMPLE_NAME, state.exampleHidden);
   }
 
   const FILE_ICON = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M7 3h7l4 4v14H7z\"/><path d=\"M14 3v4h4\"/></svg>";
   const MORE_ICON = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"5\" cy=\"12\" r=\"1.6\"/>"
     + "<circle cx=\"12\" cy=\"12\" r=\"1.6\"/><circle cx=\"19\" cy=\"12\" r=\"1.6\"/></svg>";
+  const TRASH_ICON = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13\"/>"
+    + "<path d=\"M10 11v6M14 11v6\"/></svg>";
 
   function renderSaved() {
     const list = $("savedList");
@@ -1768,13 +1803,17 @@
       row.className = "scenario-row";
       row.setAttribute("role", "listitem");
       row.innerHTML = "<button type=\"button\" class=\"scenario-open\">" + FILE_ICON + "<span class=\"saved-name\"></span>"
-        + "</button><button type=\"button\" class=\"scenario-more\" aria-haspopup=\"menu\" aria-expanded=\"false\" "
+        + "</button><button type=\"button\" class=\"scenario-delete\">" + TRASH_ICON + "</button>"
+        + "<button type=\"button\" class=\"scenario-more\" aria-haspopup=\"menu\" aria-expanded=\"false\" "
         + "aria-controls=\"rowMenu\">" + MORE_ICON + "</button>";
       row.querySelector(".saved-name").textContent = name;
-      const [open, more] = row.querySelectorAll("button");
+      const [open, remove, more] = row.querySelectorAll("button");
       open.setAttribute("aria-label", "Open " + name);
+      remove.setAttribute("aria-label", "Delete " + name);
+      remove.title = "Delete " + name;
       more.setAttribute("aria-label", "More for " + name);
       open.addEventListener("click", () => leaveOpen(() => openSaved(name)));
+      remove.addEventListener("click", () => deleteDialog(name));
       more.addEventListener("click", (event) => { event.stopPropagation(); openRowMenu(more, name); });
       return row;
     }));
@@ -1881,9 +1920,9 @@
   }
 
   // Inputs shows every panel but Household & run as a chip; that panel's fields are drawn on Setup.
-  // The one summary at the bottom of the Expenses chip (`expenseTotals`): per month and per year, each monthly category,
-  // Major Spending and Charity paid this year (per year / 12), the total entered here, the costs other tabs already
-  // charge (from the settings notes; "n/a" until they arrive) and the total of all.
+  // The one summary at the bottom of the Expenses chip (`expenseTotals`), per month: each monthly category, Major
+  // Spending and Charity paid this year (per year / 12) and the one total of all, the costs other tabs already charge
+  // included (from the settings notes; "n/a" until they arrive).
   function expenseSummaryCard() {
     const card = document.createElement("div");
     card.className = "card";
@@ -1898,22 +1937,21 @@
       state.inputs.you && state.inputs.you.currentAge), counted ? counted.rows : null);
     const line = (row, strong) => {
       const cell = (value) => "<td>" + (strong ? "<strong>" + fullMoney(value) + "</strong>" : fullMoney(value)) + "</td>";
-      return "<tr><th scope=\"row\">" + escapeText(row.item) + "</th>" + cell(row.monthly) + cell(row.yearly) + "</tr>";
+      return "<tr><th scope=\"row\">" + escapeText(row.item) + "</th>" + cell(row.monthly) + "</tr>";
     };
-    const pending = (item) => ({ item, monthly: null, yearly: null });
     const about = counted ? titleHelp("h2", "Total expenses", counted.totalsHelp)
       : { head: "<h2>Total expenses</h2>", text: "" };
     card.innerHTML = about.head + about.text + "<table class=\"data-table\"><thead><tr><th scope=\"col\">Expenses</th>"
-      + "<th scope=\"col\">Monthly</th><th scope=\"col\">Yearly</th></tr></thead><tbody>"
-      + totals.entered.map((row) => line(row, false)).join("") + line(totals.enteredTotal, true)
-      + line(totals.countedTotal || pending("Counted elsewhere"), true) + line(totals.total || pending("Total"), true)
+      + "<th scope=\"col\">Monthly</th></tr></thead><tbody>"
+      + totals.entered.map((row) => line(row, false)).join("")
+      + line(totals.total || { item: "Total expenses", monthly: null }, true)
       + "</tbody></table><p class=\"field-help\">Major Spending and Charity count the rows paid this year, at your age "
-      + "today; the costs counted elsewhere are the first year of the run.</p>";
+      + "today; the total adds the Bills - Other from the other tabs, the first year of the run.</p>";
   }
 
   // The read-only card at the top of the Expenses chip: the costs other tabs already charge (from the settings notes),
-  // so they are not entered again as expense rows, one table per group (Bills, Family; `alreadyCountedGroups`) and the
-  // note on the taxes under them; it reads "Reading the run" until the notes arrive.
+  // so they are not entered again as expense rows, in one table under their one group (Bills - Other;
+  // `alreadyCountedGroups`) and the note on the taxes under it; it reads "Reading the run" until the notes arrive.
   const COUNTED_COLUMNS = [["item", "Item"], ["where", "Where it is set"], ["monthly", "Monthly"], ["yearly", "Yearly"]];
 
   function alreadyCountedCard() {
@@ -1965,6 +2003,7 @@
     renderDeposits();
     requestNotes();
     requestBenefits();
+    requestEarnings();
     requestDeposits();
     renderRunCard();
     renderBand();
@@ -2041,6 +2080,8 @@
       let field = panelField(state.schema, name);
       if (!field || (panel.id === SETUP_PANEL && INFLATION_CARD_FIELDS.includes(name))) continue;
       if (name.includes(".") && getPath(state.inputs, name.split(".")[0]) == null) continue;
+      if (panel.id === "retirement" && name.endsWith(".socialSecurityByAge")
+        && getPath(state.inputs, name.split(".")[0] + ".socialSecurityBasis") === "earnings") continue;  // Manual entry only
       if (panel.headings && panel.headings[name]) group.append(personHeading(panel.headings[name], group));
       if (panel.labels && panel.labels[name]) field = { ...field, label: panel.labels[name] };
       if (panel.id === "savings" && name === "contributions") {
@@ -2061,6 +2102,8 @@
         element.append(benefitBox(name.split(".")[0]));  // the benefit table and estimate under the claim age
       }
       group.append(element);
+      const timelineKind = ((state.schema.timeline || {}).panels || {})[panel.id];
+      if (timelineKind && field.kind === "list") group.append(timelineBlock(timelineKind));  // under the homes or cars
     }
     const resetRoots = Object.entries(state.schema.resetGroups || {}).filter(([root, reset]) =>
       reset.panel === panel.id && panel.fields.some((name) => name.startsWith(root + "."))).map(([root]) => root);
@@ -2475,16 +2518,19 @@
     }
   }
 
-  // The read-only benefit table (age, entered, used, basis) and, with an earnings history or the earnings basis,
-  // the estimate with its caption and warnings, as the desktop Retirement tab prints them.
+  // The benefit used at the claim age, then, as the desktop Retirement tab prints them: on Manual entry (or an
+  // earnings basis the estimate cannot cover) the read-only benefit table (age, entered, used, basis); on Earnings
+  // history only the estimate with its caption and warnings.
   function benefitHtml(person) {
-    const help = titleHelp("p", "Benefit table", "Read-only: the monthly benefit at each claim age in today's value. "
-      + "Benefit used is what the model pays; the ages from 62 to 70 you did not enter are estimated. Enter amounts in "
-      + "“Social Security benefit by claim age” above.", "field-label");
-    let html = help.head + help.text;
+    let html = person.used ? "<p class=\"field-help benefit-used\">" + escapeText(person.used) + "</p>" : "";
     if (person.basisError) html += "<p class=\"banner banner-error\" role=\"alert\">" + escapeText(person.basisError) + "</p>";
-    html += charts.renderUnitsTable({ columns: ["Claim age", "Benefit you enter", "Benefit used", "Basis"],
-      data: person.table.data }, ["text", "money", "money", "text"], { title: "Benefit table" });
+    if (person.basis !== "earnings" || person.basisError) {
+      const help = titleHelp("p", "Benefit table", "Read-only: the monthly benefit at each claim age in today's value. "
+        + "Benefit used is what the model pays; the ages from 62 to 70 you did not enter are estimated. Enter amounts in "
+        + "“Social Security benefit by claim age” above.", "field-label");
+      return html + help.head + help.text + charts.renderUnitsTable({ columns: ["Claim age", "Benefit you enter",
+        "Benefit used", "Basis"], data: person.table.data }, ["text", "money", "money", "text"], { title: "Benefit table" });
+    }
     const estimate = person.estimate;
     if (!estimate) return html;
     const about = titleHelp("p", "Estimate from earnings", estimate.note, "field-label");  // EARNINGS_NOTE as a tooltip
@@ -2997,7 +3043,47 @@
       wrap.append(note);
       return wrap;
     }
+    if (/^(you|partner)\.socialSecurityBasis$/.test(path)) return basisToggle(field, path, value);
     return null;
+  }
+
+  // The Social Security basis as a two-position toggle (Earnings history, Manual entry), as on the desktop. Without an
+  // earnings history Earnings history is disabled with a hint, so the basis stays on the table the loader accepts.
+  function basisToggle(field, path, value) {
+    const wrap = fieldShell(field.label, field.help, null);
+    const group = document.createElement("div");
+    group.className = "segmented";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", field.label);
+    group.id = fieldId(path);
+    const person = getPath(state.inputs, path.split(".")[0]) || {};
+    const history = person.salaryHistory;
+    const hasHistory = person.earningsHistoryMode === "lastSalary" ? Number(person.lastSalary) > 0
+      : history != null && Object.keys(history).length > 0;
+    const hint = document.createElement("p");
+    hint.className = "field-help basis-hint";
+    hint.id = group.id + "-hint";
+    hint.textContent = NO_EARNINGS_HINT;
+    for (const choice of Object.keys(field.choiceLabels)) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.basis = choice;
+      button.textContent = field.choiceLabels[choice];
+      button.setAttribute("aria-pressed", String(choice === value));
+      if (choice === "earnings" && !hasHistory) {
+        button.setAttribute("aria-describedby", hint.id);
+        button.disabled = value !== "earnings";  // an earnings basis already set stays visible; its error explains it
+      }
+      button.addEventListener("click", () => {
+        if (choice === getPath(state.inputs, path)) return;
+        setValue(path, choice);
+        refreshForm();  // the entered table shows only on Manual entry
+      });
+      group.append(button);
+    }
+    wrap.append(group);
+    if (!hasHistory) wrap.append(hint);
+    return wrap;
   }
 
   // A field whose schema entry has `inflationNote` (its help ends with the note that the mean inflation is subtracted
@@ -3347,22 +3433,124 @@
     return groupedFields(children, path, headings, group);
   }
 
-  // Fields drawn inside a disclosure of their own, closed until opened (the earnings history on Income).
-  const COLLAPSED_FIELDS = new Set(["salaryHistory"]);
+  // The earnings history on Income: one disclosure, closed until opened, drawn where `earningsHistoryMode` comes, with
+  // the Manual entry / Last salary select. Manual entry shows the year-by-year table; Last salary the last salary, its
+  // year, the note on the backtrack and the read-only table filled in from them (earningsPreview). The fields below are
+  // drawn inside it only; the typed table is kept while Last salary is chosen.
+  const EARNINGS_FIELDS = new Set(["lastSalary", "lastSalaryYear", "salaryHistory"]);
 
-  function collapsedField(child, path) {
+  function earningsOpenKey(path) {
+    return path + "|earnings";
+  }
+
+  function earningsHistoryDisclosure(children, path) {
+    const byName = Object.fromEntries(children.map((child) => [child.name, child]));
+    const modeField = byName.earningsHistoryMode;
+    const modePath = path + ".earningsHistoryMode";
+    const mode = getPath(state.inputs, modePath) || "manual";
     const details = document.createElement("details");
-    details.className = "field-collapse";
-    const openKey = path + "|" + child.name;
+    details.className = "field-collapse earnings-history";
+    details.id = "earnings-" + path;
+    const openKey = earningsOpenKey(path);
     details.open = openGroups.has(openKey);  // closed by default; stays open when the form is drawn again
     details.addEventListener("toggle", () => {
       if (details.open) openGroups.add(openKey);
       else openGroups.delete(openKey);
     });
     const summary = document.createElement("summary");
-    summary.textContent = child.label;
-    details.append(summary, fieldElement(child, path + "." + child.name));
+    summary.textContent = modeField.label;
+    details.append(summary);
+    const id = fieldId(modePath);
+    const wrap = fieldShell(modeField.label, modeField.help, id);
+    const select = document.createElement("select");
+    select.className = "input";
+    select.id = id;
+    for (const choice of modeField.choices) {
+      const option = document.createElement("option");
+      option.value = choice;
+      option.textContent = (modeField.choiceLabels || {})[choice] || choice;
+      select.append(option);
+    }
+    select.value = mode;
+    select.addEventListener("change", () => {
+      setValue(modePath, select.value);
+      refreshForm();
+      const redrawn = $(id);
+      if (redrawn) redrawn.focus();
+    });
+    wrap.append(select);
+    details.append(wrap);
+    if (mode !== "lastSalary") {
+      if (byName.salaryHistory) details.append(fieldElement(byName.salaryHistory, path + ".salaryHistory"));
+      return details;
+    }
+    for (const name of ["lastSalary", "lastSalaryYear"]) {
+      if (byName[name]) details.append(fieldElement(byName[name], path + "." + name));
+    }
+    const note = document.createElement("div");
+    const about = titleHelp("p", "Earnings filled in from your last salary", byName.lastSalary.help, "field-label");
+    note.innerHTML = about.head + about.text;
+    const table = document.createElement("div");
+    table.className = "earnings-preview";
+    table.id = "earnings-table-" + path;
+    table.innerHTML = earningsPreviewHtml(path);
+    details.append(note, table);
+    requestEarnings();
     return details;
+  }
+
+  // The "I'm retired" button under a person's salary: pay stops now, the earnings history switches to Last salary
+  // (see retiredChanges) and its disclosure opens and scrolls into view.
+  function retiredButton(path) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button button-quiet retired-button";
+    button.textContent = "I'm retired";
+    button.addEventListener("click", () => {
+      const person = getPath(state.inputs, path);
+      for (const [name, value] of Object.entries(retiredChanges(person))) setPath(state.inputs, path + "." + name, value);
+      inputsChanged();
+      openGroups.add(earningsOpenKey(path));
+      refreshForm();
+      requestAnimationFrame(() => {
+        const box = $("earnings-" + path);
+        if (box) box.scrollIntoView({ block: "start" });
+      });
+    });
+    return button;
+  }
+
+  function earningsWanted() {
+    return state.tab === "inputs" && state.schema != null && document.querySelector(".earnings-preview") != null;
+  }
+
+  async function requestEarnings() {
+    if (!earningsWanted()) return;
+    const inputsText = JSON.stringify(state.inputs);
+    let reply;
+    try {
+      reply = await engine.call("earningsPreview", [inputsText], "earnings");
+    } catch (error) {
+      return;
+    }
+    if (!reply || inputsText !== JSON.stringify(state.inputs)) return;  // a newer edit asks again
+    state.earnings = reply.value;
+    for (const box of document.querySelectorAll(".earnings-preview")) {
+      box.innerHTML = earningsPreviewHtml(box.id.slice("earnings-table-".length));
+    }
+  }
+
+  // The read-only table of the earnings filled in for one person, from the latest earningsPreview reply.
+  function earningsPreviewHtml(role) {
+    const preview = state.earnings;
+    if (!preview) return "<p class=\"note\">Filling in the earnings</p>";
+    if (!preview.ok) return "<p class=\"banner banner-warn\" role=\"note\">" + escapeText(preview.error) + "</p>";
+    const person = preview.people.find((item) => item.role === role);
+    if (!person) return "<p class=\"note\">Filling in the earnings</p>";
+    if (person.error) return "<p class=\"banner banner-warn\" role=\"note\">" + escapeText(person.error) + "</p>";
+    if (!person.rows.length) return "<p class=\"note\">No entries.</p>";
+    return charts.renderUnitsTable({ columns: ["Year", "Earnings"], data: person.rows }, ["text", "money"],
+      { title: "Earnings filled in from your last salary" });
   }
 
   function groupedFields(children, path, headings = null, group = null) {
@@ -3378,10 +3566,15 @@
         }
         elements.push(holder);
       }
-      if (COLLAPSED_FIELDS.has(child.name)) {
-        elements.push(collapsedField(child, path));
+      if (child.name === "earningsHistoryMode") {
+        elements.push(earningsHistoryDisclosure(children, path));
+      } else if (EARNINGS_FIELDS.has(child.name) && children.some((item) => item.name === "earningsHistoryMode")) {
+        continue;  // drawn inside the earnings history disclosure
       } else if (!child.group) {
         elements.push(fieldElement(child, path + "." + child.name));
+        if (child.name === "salary" && children.some((item) => item.name === "earningsHistoryMode")) {
+          elements.push(retiredButton(path));
+        }
       } else if (!drawnGroups.has(child.group)) {
         drawnGroups.add(child.group);
         elements.push(groupDisclosure(child.group, children.filter((item) => item.group === child.group), path));
@@ -3875,12 +4068,431 @@
 
   function closeSheet() {
     if ($("sheet").hidden) return;
+    if (timelineFlow && timelineFlow.notes.length) timelineNotes[timelineFlow.kind] = timelineFlow.notes.slice();
+    timelineFlow = null;
     sheetOpen = null;
     $("sheet").hidden = true;
     $("sheetBackdrop").hidden = true;
     $("app").classList.remove("typing");
     renderSettings();
     if (sheetReturn && document.contains(sheetReturn)) sheetReturn.focus();
+  }
+
+  // ---- Ownership timeline: the Home and Cars panes' Timeline block and its workflow in the bottom sheet ----
+  // The segments and every edit come from wmti.assets.timeline through the worker (timelineView, timelineApply), so the
+  // phone refits and fills exactly as the desktop does. The workflow asks one question per screen with the words of
+  // schema.timeline.flow; each step's edit is applied at once (a later Back never undoes it) and its notes, naming every
+  // neighbour it changed, show on the screen and under the block. While an edit is on its way the buttons are disabled.
+  const timelineNotes = {};  // by kind: the notes of the last edit, shown once under the block
+  let timelineFlow = null;   // the open workflow: {kind, step, position, lane, year, history, notes, error, busy, rentDone}
+
+  function timelineWords(kind) {
+    return state.schema.timeline.flow[kind];
+  }
+
+  function timelineYear(age) {
+    return yearOfAge(age, state.inputs.you.currentAge, state.info.lawTaxYear);
+  }
+
+  function timelineAge(year) {
+    return ageOfYear(year, state.inputs.you.currentAge, state.info.lawTaxYear);
+  }
+
+  function timelineButton(text, action, style) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button " + (style || "button-quiet");
+    button.textContent = text;
+    button.dataset.action = action;
+    return button;
+  }
+
+  function timelineNote(text, error) {
+    const note = document.createElement("p");
+    note.className = "banner" + (error ? " banner-error" : "");
+    note.setAttribute("role", error ? "alert" : "note");
+    note.textContent = text;
+    return note;
+  }
+
+  function timelineBlock(kind) {
+    const block = document.createElement("div");
+    block.className = "timeline pane-section section-break";
+    block.dataset.kind = kind;
+    const id = newHelpId();
+    block.innerHTML = "<h3 class=\"sub-heading legend-help\"><span>Timeline</span>" + helpButtonHtml("Timeline", id)
+      + "</h3>" + helpTextHtml(id, state.schema.timeline.help[kind]);
+    const body = document.createElement("div");
+    body.className = "timeline-body";
+    body.textContent = "Drawing the timeline";
+    block.append(body);
+    fillTimeline(kind, body);
+    return block;
+  }
+
+  async function fillTimeline(kind, body) {
+    const reply = await ask("timelineView", [JSON.stringify(state.inputs), kind]);
+    if (!reply || !document.contains(body)) return;
+    if (!reply.ok) {
+      body.replaceChildren(timelineNote("The timeline shows once the settings are valid: " + reply.error, true));
+      return;
+    }
+    const words = timelineWords(kind);
+    const parts = [];
+    const bars = document.createElement("div");
+    bars.className = "timeline-bars";
+    bars.setAttribute("aria-hidden", "true");
+    for (const row of timelineBars(reply.segments, reply.currentAge, reply.lastAge)) {
+      const lane = document.createElement("div");
+      lane.className = "timeline-lane";
+      for (const bar of row.bars) {
+        const span = document.createElement("span");
+        span.className = "timeline-bar";
+        span.dataset.mode = bar.mode;
+        span.style.left = bar.left + "%";
+        span.style.width = bar.width + "%";
+        span.title = bar.text;
+        lane.append(span);
+      }
+      bars.append(lane);
+    }
+    parts.push(bars);
+    for (const note of timelineNotes[kind] || []) parts.push(timelineNote(note));
+    delete timelineNotes[kind];
+    const list = document.createElement("ul");
+    list.className = "timeline-cards";
+    for (const segment of reply.segments) {
+      const card = document.createElement("li");
+      card.className = "timeline-card";
+      card.dataset.mode = segment.mode;
+      const text = document.createElement("span");
+      text.className = "timeline-text";
+      text.textContent = segment.text;
+      card.append(text);
+      if (segment.position == null) {
+        const hint = document.createElement("span");
+        hint.className = "field-help";
+        hint.textContent = words.rentEdit || words.gapEdit;
+        card.append(hint);
+      } else {
+        const sale = timelineButton(words.start.own, "sale");
+        sale.addEventListener("click", () => openTimeline(kind, "sell", { position: segment.position, lane: segment.lane }));
+        const edit = timelineButton(words.start.edit, "edit");
+        edit.addEventListener("click", () => openTimeline(kind, "edit", { position: segment.position, lane: segment.lane }));
+        const remove = timelineButton(words.start.delete, "delete", "button-danger");
+        remove.addEventListener("click", async () => {
+          if (remove.dataset.armed !== "true") {
+            remove.dataset.armed = "true";
+            remove.textContent = "Tap again to delete";
+            return;
+          }
+          remove.disabled = true;
+          const result = await applyTimeline(kind, { op: "delete", position: segment.position });
+          timelineNotes[kind] = result.ok ? result.notes : [result.error];
+          renderSettings();
+        });
+        const actions = document.createElement("span");
+        actions.className = "timeline-actions";
+        actions.append(sale, edit, remove);
+        card.append(actions);
+      }
+      list.append(card);
+    }
+    parts.push(list);
+    const chain = reply.segments.filter((segment) => segment.lane === 0 && segment.position != null);
+    const starts = document.createElement("div");
+    starts.className = "timeline-actions";
+    if (kind === "Car" || !chain.length) {
+      const add = timelineButton(words.start.empty, "add", "button-primary");
+      add.addEventListener("click", () => openTimeline(kind, "buy", { lane: kind === "Car" ? null : 0 }));
+      starts.append(add);
+    }
+    if (chain.length) {
+      const last = chain.reduce((latest, segment) => (segment.startAge > latest.startAge ? segment : latest));
+      const plan = timelineButton(words.start.last, "plan", "button-primary");
+      plan.addEventListener("click", () => openTimeline(kind, last.endAge == null ? "sell" : "next",
+        { position: last.position, lane: 0, year: last.endAge == null ? null : timelineYear(last.endAge) + 1 }));
+      starts.append(plan);
+    }
+    parts.push(starts);
+    body.replaceChildren(...parts);
+  }
+
+  // Apply one timeline edit through the worker: on success the inputs take the result (and every pane redraws), on
+  // refusal nothing changes. Returns {ok, error, notes, position}.
+  async function applyTimeline(kind, op) {
+    const reply = await ask("timelineApply", [JSON.stringify(state.inputs), kind, JSON.stringify(op)]);
+    if (!reply || !reply.ok) return { ok: false, error: reply ? reply.error : "The step was not applied; try again.", notes: [] };
+    state.inputs = reply.inputs;
+    inputsChanged();
+    return { ok: true, error: null, notes: reply.notes || [], position: reply.position };
+  }
+
+  function openTimeline(kind, step, options) {
+    if (!sheetOpen && $("sheet").hidden) sheetReturn = document.activeElement;
+    sheetOpen = null;
+    timelineFlow = { kind, step, position: null, lane: 0, year: null, history: [], notes: [], error: null, busy: false,
+      rentDone: false, ...(options || {}) };
+    $("sheetTitle").textContent = "Timeline";
+    $("sheet").hidden = false;
+    $("sheetBackdrop").hidden = false;
+    timelineScreen();
+  }
+
+  function timelineGo(step, changes) {
+    timelineFlow.history.push(timelineFlow.step);
+    Object.assign(timelineFlow, { step, error: null }, changes || {});
+    timelineScreen();
+  }
+
+  function timelineClose() {
+    closeSheet();  // keeps the workflow's notes for the block (see closeSheet)
+  }
+
+  // A labelled input on a workflow screen: a number (a year shows your age beside it), text or a tick box.
+  function timelineInput(label, type, value, options) {
+    const wrap = document.createElement("label");
+    wrap.className = "field timeline-field";
+    const caption = document.createElement("span");
+    caption.className = "field-label";
+    caption.textContent = label;
+    const input = document.createElement("input");
+    input.type = type === "check" ? "checkbox" : type === "text" ? "text" : "number";
+    if (type === "check") input.checked = Boolean(value);
+    else if (value != null) input.value = String(value);
+    Object.assign(input, options || {});
+    wrap.append(caption, input);
+    if (type === "year") {
+      const age = document.createElement("span");
+      age.className = "field-help timeline-age";
+      const show = () => { age.textContent = input.value === "" ? "" : "Your age " + timelineAge(Number(input.value)); };
+      input.addEventListener("input", show);
+      show();
+      wrap.append(age);
+    }
+    wrap.input = input;
+    return wrap;
+  }
+
+  function timelineYearInput(label, year, optional) {
+    const first = state.info.lawTaxYear;
+    const last = first + state.inputs.years - 1;
+    const value = year == null ? (optional ? null : first) : Math.min(Math.max(year, first), last);
+    return timelineInput(label, "year", value, { min: first, max: last, step: 1 });
+  }
+
+  function timelineChoice(question, options, chosen) {
+    const group = document.createElement("fieldset");
+    group.className = "group timeline-question";
+    const legend = document.createElement("legend");
+    legend.textContent = question;
+    group.append(legend);
+    for (const [value, text] of options) {
+      const label = document.createElement("label");
+      label.className = "choice";
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "timelineChoice";
+      input.value = value;
+      input.checked = value === chosen;
+      label.append(input, document.createTextNode(" " + text));
+      group.append(label);
+    }
+    group.value = () => (group.querySelector("input:checked") || {}).value;
+    return group;
+  }
+
+  // The figures a purchase screen asks: the buying figures and the financing switch with its figures, from the
+  // schema (shares as percents), at the item type's defaults.
+  function timelineFigures(kind) {
+    const words = timelineWords(kind);
+    const fields = state.schema.types[kind];
+    const blank = Object.fromEntries(fields.map((field) => [field.name, field.default]));
+    const replaced = state.info.sheetRules.itemSwitchReplaces[kind].buysLater || [];
+    const names = words.purchaseFields.filter((name) => name !== "purchaseAge")
+      .concat([words.financingSwitch], words.financingFields.filter((name) => !replaced.includes(name)));
+    const inputs = {};
+    const elements = names.map((name) => {
+      const field = fields.find((item) => item.name === name);
+      const percentUnit = field.unit === "percent";
+      const element = field.kind === "toggle" ? timelineInput(field.label, "check", blank[name])
+        : timelineInput(field.label + (percentUnit ? " (%)" : ""), "number",
+          percentUnit ? blank[name] * 100 : blank[name], { min: 0, step: "any" });
+      inputs[name] = () => (field.kind === "toggle" ? element.input.checked
+        : (percentUnit ? Number(element.input.value) / 100 : Number(element.input.value)));
+      if (field.kind === "integer") inputs[name] = () => Math.round(Number(element.input.value));
+      return element;
+    });
+    return { elements, values: () => Object.fromEntries(Object.entries(inputs).map(([name, read]) => [name, read()])) };
+  }
+
+  function timelineFreeName(kind) {
+    const items = (kind === "Home" ? state.inputs.homes : state.inputs.cars) || [];
+    return freeName(kind === "Home" ? "Home" : "Car", items.map((item) => item.name));
+  }
+
+  function timelineScreen() {
+    const flow = timelineFlow;
+    const kind = flow.kind;
+    const words = timelineWords(kind);
+    const items = (kind === "Home" ? state.inputs.homes : state.inputs.cars) || [];
+    const parts = [];
+    let next = null;  // the screen's Next: an async step that returns once applied
+    if (flow.step === "sell") {
+      const item = items[flow.position];
+      const choice = timelineChoice(words.sellQuestion.replace("{name}", item.name),
+        [["yes", words.sellYes], ["no", words.sellNo]], item.sellsLater ? "yes" : null);
+      const start = item.buysLater ? item.purchaseAge : state.inputs.you.currentAge;
+      const year = timelineYearInput(words.saleYear, timelineYear(item.sellsLater ? item.saleAge : start + 1));
+      year.hidden = choice.value() !== "yes";
+      choice.addEventListener("change", () => { year.hidden = choice.value() !== "yes"; });
+      parts.push(choice, year);
+      next = async () => {
+        if (choice.value() === "yes") {
+          const saleYear = Number(year.input.value);
+          const result = await timelineStep({ op: "sell", position: flow.position, saleAge: timelineAge(saleYear) });
+          if (result) timelineGo("next", { year: saleYear + 1 });
+        } else if (choice.value() === "no") {
+          if (await timelineStep({ op: "keep", position: flow.position })) timelineClose();
+        }
+      };
+    } else if (flow.step === "next") {
+      const options = Object.entries(words.options).filter(([value]) => !(flow.rentDone && value === "rent"));
+      const choice = timelineChoice(words.nextQuestion, options, null);
+      parts.push(choice);
+      next = async () => {
+        const value = choice.value();
+        if (value === "buy") timelineGo("buy");
+        else if (value === "rent" || value === "lease") timelineGo(value);
+        else if (value === "done") timelineClose();
+      };
+    } else if (flow.step === "buy") {
+      const name = timelineInput(state.schema.types[kind].find((field) => field.name === "name").label, "text",
+        timelineFreeName(kind));
+      const year = timelineYearInput(words.purchaseYear, flow.year);
+      const figures = timelineFigures(kind);
+      parts.push(name, year, ...figures.elements);
+      next = async () => {
+        const op = { op: "buy", lane: flow.lane, fields: { name: name.input.value, purchaseAge: timelineAge(Number(year.input.value)),
+          ...figures.values() } };
+        const result = await timelineStep(op);
+        if (result) timelineGo("sell", { position: result.position });
+      };
+    } else if (flow.step === "rent") {
+      const monthly = timelineInput(words.rentQuestion, "number", state.inputs.home.rent, { min: 0, step: "any" });
+      const hint = document.createElement("p");
+      hint.className = "field-help";
+      hint.textContent = words.rentHint;
+      parts.push(monthly, hint);
+      next = async () => {
+        if (await timelineStep({ op: "rent", monthly: Number(monthly.input.value) })) timelineGo("next", { rentDone: true });
+      };
+    } else if (flow.step === "lease") {
+      const name = timelineInput(state.schema.types.Car.find((field) => field.name === "name").label, "text",
+        timelineFreeName(kind));
+      const start = timelineYearInput(words.leaseStart, flow.year);
+      const end = timelineYearInput(words.leaseEnd, null, true);
+      const monthlyField = state.schema.types.Car.find((field) => field.name === "leaseMonthly");
+      const monthly = timelineInput(monthlyField.label, "number", 0, { min: 0, step: "any" });
+      const hint = document.createElement("p");
+      hint.className = "field-help";
+      hint.textContent = words.leaseHint;
+      parts.push(name, start, end, monthly, hint);
+      next = async () => {
+        const endYear = end.input.value === "" ? null : Number(end.input.value);
+        const op = { op: "buy", lane: flow.lane, fields: { name: name.input.value, mode: "lease",
+          purchaseAge: timelineAge(Number(start.input.value)), saleAge: endYear == null ? null : timelineAge(endYear),
+          leaseMonthly: Number(monthly.input.value) } };
+        const result = await timelineStep(op);
+        if (!result) return;
+        if (endYear == null) timelineClose();
+        else timelineGo("next", { position: result.position, year: endYear + 1 });
+      };
+    } else if (flow.step === "edit") {
+      const item = items[flow.position];
+      const leased = kind === "Car" && item.leases;
+      const currentAge = state.inputs.you.currentAge;
+      let ownedNow = null;
+      let kept = null;
+      const startYear = timelineYearInput(leased ? words.leaseStart : words.purchaseYear,
+        timelineYear(item.buysLater ? item.purchaseAge : currentAge + 1));
+      const endYear = timelineYearInput(leased ? words.leaseEnd : words.saleYear,
+        item.sellsLater ? timelineYear(item.saleAge) : (leased ? null : timelineYear(currentAge + 1)), leased);
+      const figure = leased ? timelineInput(state.schema.types.Car.find((field) => field.name === "leaseMonthly").label,
+        "number", item.leaseMonthly, { min: 0, step: "any" })
+        : timelineInput(state.schema.types[kind].find((field) => field.name === "purchasePrice").label, "number",
+          item.purchasePrice, { min: 0, step: "any" });
+      if (!leased) {
+        ownedNow = timelineInput(words.ownedNow, "check", !item.buysLater);
+        kept = timelineInput(words.sellNo, "check", !item.sellsLater);
+        const sync = () => {
+          startYear.hidden = ownedNow.input.checked;
+          figure.hidden = ownedNow.input.checked;
+          endYear.hidden = kept.input.checked;
+        };
+        ownedNow.input.addEventListener("change", sync);
+        kept.input.addEventListener("change", sync);
+        sync();
+        parts.push(ownedNow, startYear, figure, kept, endYear);
+      } else {
+        parts.push(startYear, endYear, figure);
+      }
+      next = async () => {
+        const fields = {};
+        fields.purchaseAge = ownedNow && ownedNow.input.checked ? null : timelineAge(Number(startYear.input.value));
+        fields.saleAge = (kept && kept.input.checked) || endYear.input.value === "" ? null
+          : timelineAge(Number(endYear.input.value));
+        if (leased) fields.leaseMonthly = Number(figure.input.value);
+        else if (fields.purchaseAge != null) fields.purchasePrice = Number(figure.input.value);
+        if (await timelineStep({ op: "edit", position: flow.position, fields })) timelineClose();
+      };
+    }
+    if (flow.error) parts.push(timelineNote(flow.error, true));
+    for (const note of flow.notes) parts.push(timelineNote(note));
+    const actions = document.createElement("div");
+    actions.className = "sheet-actions timeline-nav";
+    const back = timelineButton(words.start.back, "back");
+    back.disabled = !flow.history.length;
+    back.addEventListener("click", () => {
+      Object.assign(flow, { step: flow.history.pop(), error: null });
+      timelineScreen();
+    });
+    const go = timelineButton(flow.step === "edit" ? words.start.done : words.start.next, "next", "button-primary");
+    go.addEventListener("click", async () => {
+      if (flow.busy) return;
+      flow.busy = true;
+      for (const button of actions.querySelectorAll("button")) button.disabled = true;
+      try {
+        await next();
+      } finally {
+        flow.busy = false;
+        if (timelineFlow === flow && !$("sheet").hidden && document.contains(go)) {
+          for (const button of actions.querySelectorAll("button")) button.disabled = false;
+          back.disabled = !flow.history.length;
+        }
+      }
+    });
+    const done = timelineButton(words.start.done, "close");
+    done.addEventListener("click", timelineClose);
+    actions.append(back, go, done);
+    parts.push(actions);
+    $("sheetBody").replaceChildren(...parts);
+    const first = $("sheetBody").querySelector("input");
+    if (first) first.focus({ preventScroll: true });
+  }
+
+  // Apply the screen's edit; on refusal show its sentence on the same screen. Returns the result, or null.
+  async function timelineStep(op) {
+    const flow = timelineFlow;
+    const result = await applyTimeline(flow.kind, op);
+    if (!result.ok) {
+      flow.error = result.error;
+      timelineScreen();
+      return null;
+    }
+    flow.notes = flow.notes.concat(result.notes);
+    renderSettings();
+    return result;
   }
 
   // ---- Setup: scenario files (export, import), reset, about ----
@@ -4037,6 +4649,8 @@
     state.inputs = clone(state.defaults);
     state.base = clone(state.defaults);
     state.scenarioName = EXAMPLE_NAME;
+    state.exampleHidden = false;
+    savePrefs();
     state.seed = state.info.defaultSeed;
     forgetBlankWalk();
     showFileMessage("The example household is loaded.", false);
@@ -5116,6 +5730,7 @@
     $("saveButton").addEventListener("click", saveButtonPressed);
     $("autoSave").addEventListener("click", toggleAutoSave);
     $("renameButton").addEventListener("click", () => renameDialog(state.scenarioName));
+    $("duplicateButton").addEventListener("click", duplicateOpen);
     $("clearButton").addEventListener("click", clearDialog);
     $("exportButton").addEventListener("click", () => exportScenario());
     $("copyExport").addEventListener("click", copyExport);

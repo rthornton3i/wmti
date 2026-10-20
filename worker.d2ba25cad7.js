@@ -18,11 +18,11 @@ self.fetch = (input, init) => {
 
 const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "checkInputs", "applySettings",
   "setPartner", "syncRollover", "importScenario", "exportScenario", "runSingle", "runTables", "runFrames", "rebalanceSurplus",
-  "settingsNotes", "compareVariants", "benefitTables", "depositSliders", "moveDeposit",
-  "matchProblems", "walkthroughTree", "walkthroughPlan", "walkthroughApply"]);
+  "settingsNotes", "compareVariants", "benefitTables", "earningsPreview", "depositSliders", "moveDeposit",
+  "matchProblems", "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare" };
-const MODEL_FILE = "wmti.515e1f7840.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.8d154ba8e8.wasm";  // the build gives it a content-hashed name
 const queue = [];
 let pyodide = null;
 let web = null;

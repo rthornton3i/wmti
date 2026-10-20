@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-qqHteIxkRM9KGn/YIPAdtgYPsUzPIEs9WMrv6MqsJCo=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-8uXSdhYl+zg8BzAc5S73G2YSwkg0InxLNCKEiBf0GpI=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -258,6 +258,17 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .chip[aria-selected="true"] { background: var(--chip-on); color: var(--chip-on-ink); font-weight: 600; }
 .chip .soon { font-size: 11px; opacity: 0.8; margin-left: 6px; }
 .chip[aria-selected="true"] .soon { color: inherit; opacity: 0.7; }
+/* The Outputs sub-tabs (the chips rows under Summary | Plots | Compare): one thin row of underline text tabs on a 1px
+   hairline, scrolling sideways if too narrow; the open one in the band's selected colour. The Inputs chips stay bubbles. */
+.chips-wrap[data-place^="outputs"] .chips { gap: 4px; padding-block: 0;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent); }
+.chips-wrap[data-place^="outputs"] .chip { min-height: 44px; padding: 0 12px; border-radius: 0; background: transparent;
+  color: var(--band-sub); white-space: nowrap; box-shadow: none; }
+.chips-wrap[data-place^="outputs"] .chip-icon { display: none; }
+.chips-wrap[data-place^="outputs"] .chip[aria-selected="true"] { background: transparent; color: var(--chip-on);
+  font-weight: 650; box-shadow: inset 0 -2px 0 var(--chip-on); }
+.chips-wrap[data-place^="outputs"] .chip:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
+.chips-wrap[data-place^="outputs"] .chips-track { display: none; }
 
 .card { background: var(--surface); border: 0; border-radius: 20px; padding: 16px;
   display: grid; gap: 12px; min-width: 0; }
@@ -296,7 +307,12 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .tile-value { font-size: clamp(17px, 6vw, 24px); font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
 .tile-first .tile-value { font-size: clamp(24px, 8vw, 34px); }
 .tile-change { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
-.tile-help { font-size: 12.5px; color: var(--muted); }
+.tile .tile-help { font-size: 12.5px; }
+/* A tile with a note: the label and its "i" (the 44px target overlaps the tile padding, so the row stays one line). */
+.tile-head { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; }
+.tile-head .help-button { margin: -14px -14px -14px 0; }
+.tile-first .help-button { color: var(--hero-sub); }
+.tile-first .help-button[aria-expanded="true"] { color: var(--hero-ink); }
 
 /* Charts */
 .chart-card { gap: 10px; position: relative; }
@@ -550,16 +566,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   cursor: pointer; font-variant-numeric: tabular-nums; }
 .segmented button[aria-pressed="true"], .segmented button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 650;
   box-shadow: 0 0 0 1px var(--line); }
+.segmented button:disabled { opacity: 0.45; cursor: not-allowed; }
 .segmented .view-tab { min-height: 44px; }
-/* The Outputs views in the band: one thin row of underline text tabs on a 1px hairline, scrolling sideways if too narrow. */
-.band .segmented { border: 0; border-radius: 0; padding: 0; background: transparent; gap: 4px; overflow-x: auto;
-  scrollbar-width: none; box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent); }
-.band .segmented::-webkit-scrollbar { display: none; }
-.band .segmented .view-tab { flex: 1 0 auto; padding: 0 12px; border: 0; border-radius: 0; background: transparent;
-  color: var(--band-sub); white-space: nowrap; box-shadow: none; }
-.band .segmented .view-tab[aria-selected="true"] { background: transparent; color: var(--chip-on); font-weight: 650;
-  box-shadow: inset 0 -2px 0 var(--chip-on); }
-.band .segmented .view-tab:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
+.band .segmented { border: 0; background: var(--band-button); border-radius: 12px; padding: 3px; }
+.band .segmented button { color: var(--band-button-ink); border-radius: 10px; }
+.band .segmented button[aria-selected="true"] { background: var(--chip-on); color: var(--chip-on-ink); box-shadow: none; }
 .subpanel { display: grid; gap: 14px; }
 .subpanel > * { min-width: 0; }
 .run-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
@@ -604,9 +615,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   background: var(--surface); }
 .strip-button { flex: 1 1 0; min-width: 0; min-height: 56px; display: grid; justify-items: center; align-content: center;
   gap: 2px; padding: 8px 2px; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent;
-  color: var(--ink); font-size: 12.5px; cursor: pointer; }
+  color: var(--ink); font-size: 12px; cursor: pointer; }
+/* Five buttons share 320 px: smaller labels on a narrow phone, so "Duplicate" fits its fifth. */
+@media (max-width: 380px) { .strip-button { font-size: 10.5px; letter-spacing: -0.01em; } }
 .strip-button:first-child, .strip-button[hidden] + .strip-button { border-left: 0; }
-.strip-button svg, .scenario-open svg, .scenario-more svg, .big-button svg { width: 22px; height: 22px; flex: none;
+.strip-button svg, .scenario-open svg, .scenario-delete svg, .scenario-more svg, .big-button svg { width: 22px; height: 22px; flex: none;
   fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .strip-button svg { color: var(--accent); }
 .strip-danger svg { color: var(--bad); }
@@ -615,14 +628,15 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .other-scenarios { display: grid; gap: 8px; }
 .section-label { font-size: 13px; font-weight: 650; color: var(--ink-2); padding-inline: 4px; }
 .scenario-list { padding-block: 4px; gap: 0; }
-.scenario-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px;
+.scenario-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 0;
   border-top: 1px solid var(--line); }
 .scenario-row:first-child { border-top: 0; }
 .scenario-open { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 4px; border: 0;
   background: transparent; text-align: left; cursor: pointer; min-width: 0; }
 .scenario-open svg, .scenario-more svg { color: var(--muted); }
+.scenario-delete svg { color: var(--bad); }
 .saved-name { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
-.scenario-more { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 10px;
+.scenario-delete, .scenario-more { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 10px;
   background: transparent; cursor: pointer; }
 .scenario-more[aria-expanded="true"] { background: var(--surface-2); }
 .two-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -843,6 +857,25 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .legal-doc p { margin: 0 0 8px; overflow-wrap: anywhere; }
 .legal-docs { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
 
+/* The ownership timeline on the Home and Cars panes: one bar row per lane (owned filled, rented hatched, leased
+   outlined, no car blank), the segment cards with their buttons, and the workflow's fields in the bottom sheet. */
+.timeline-body { display: grid; gap: 10px; }
+.timeline-bars { display: grid; gap: 6px; padding: 6px 0; }
+.timeline-lane { position: relative; height: 22px; border-radius: 6px; background: var(--surface-2); }
+.timeline-bar { position: absolute; top: 0; bottom: 0; border-radius: 6px; box-sizing: border-box; }
+.timeline-bar[data-mode=own] { background: var(--s0); }
+.timeline-bar[data-mode=rent] { background: repeating-linear-gradient(45deg, var(--s1) 0 4px, transparent 4px 8px); }
+.timeline-bar[data-mode=lease] { border: 2px solid var(--s2); }
+.timeline-bar[data-mode=gap] { background: transparent; }
+.timeline-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.timeline-card { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface); }
+.timeline-text { font-weight: 600; }
+.timeline-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.timeline-question { display: grid; gap: 8px; }
+.timeline-field { display: grid; gap: 4px; padding: 6px 0; }
+.timeline-field[hidden] { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   /* The walkthrough still cross-fades (opacity only, no slide). */
@@ -905,7 +938,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
     <section class="panel" id="panel-setup" data-tab="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
       <div class="card open-card" id="savedCard">
         <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
-        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Clear empties every setting (Undo, top right, brings them back) and Export saves it as a file that the desktop dashboard also opens. Other scenarios lists the copies kept here: tap one to open it, or use its ... menu. Your current settings are also kept as you edit.</p>
+        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Duplicate saves a copy of the current settings as another scenario (the open one stays open), Clear empties every setting (Undo, top right, brings them back) and Export saves it as a file that the desktop dashboard also opens. Other scenarios lists the copies kept here: tap one to open it, the bin to delete it, or use its ... menu. Your current settings are also kept as you edit.</p>
         <p class="open-name" id="loadedName"></p>
         <div class="open-status">
           <span class="dirty-dot" id="dirtyDot" aria-hidden="true"></span><span id="saveStatus" role="status"></span>
@@ -916,6 +949,8 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span>Save</span></button>
           <button type="button" class="strip-button" id="renameButton">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg><span>Rename</span></button>
+          <button type="button" class="strip-button" id="duplicateButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8z"/><path d="M16 8V4H4v12h4"/></svg><span>Duplicate</span></button>
           <button type="button" class="strip-button strip-danger" id="clearButton">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11M3 11h9M3 16h6"/><path d="M14 13l7 7M21 13l-7 7"/></svg><span>Clear</span></button>
           <button type="button" class="strip-button" id="exportButton">
@@ -1128,11 +1163,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "9b28d63d3eb2", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "52a51d1161ba", pyodide: "0.29.5" };</script>
 <script src="legal.3250d44a4a.js"></script>
-<script src="shared.f542eba5c8.js"></script>
+<script src="shared.2b7c1f979b.js"></script>
 <script src="charts.ac17e4cbae.js"></script>
-<script src="app.48959f43c5.js"></script>
+<script src="app.830cfc05e2.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
