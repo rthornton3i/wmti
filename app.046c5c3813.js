@@ -9,7 +9,7 @@
     expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, freeName, undoRecord, undoStep } = window.WmtiShared;
+    blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep } = window.WmtiShared;
   const charts = window.WmtiCharts;
 
   const BOOT_STEPS = [["script", "Load the Python engine"], ["boot", "Start Python"],
@@ -150,7 +150,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.8bc7786d3d.js");
+      worker = new Worker("worker.b1910a2b01.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1568,7 +1568,7 @@
   function newDialog() {
     leaveOpen(() => openDialog({ title: "New scenario",
       text: "Starts empty and opens Walk me through it from the first question.",
-      body: nameField(freeName("New plan", takenNames())),
+      body: nameField(numberedName("New plan", takenNames(), true)),
       actions: [CANCEL, ["Create and start", "button", () => {
         const name = dialogName(null);
         if (!name) return false;
@@ -1673,33 +1673,37 @@
     showFileMessage("Cleared " + state.scenarioName + ". Undo (top right) brings the settings back.", false);
   }
 
-  // The strip's Duplicate: a saved copy of the open scenario's current settings as "<name> copy" (numbered when that
-  // is taken); the open scenario stays open, and the copy is listed in Other scenarios and Compare.
+  // The strip's Duplicate: a saved copy of the open scenario's current settings as "<name>_1" (the lowest free number,
+  // see numberedName), listed in Other scenarios and Compare and then opened, as picking it would (unsaved changes of
+  // the scenario left are asked about first; Undo starts afresh on the copy).
   function duplicateOpen() {
     if (Object.keys(state.scenarios).length >= SAVED_LIMIT) {
       showFileMessage("This device keeps at most " + SAVED_LIMIT + " scenarios. Delete one first.", true);
       return;
     }
     if (settleTimer) settle();
-    const copy = freeName(state.scenarioName + " copy", takenNames());
+    const copy = numberedName(state.scenarioName, takenNames(), false);
     state.scenarios[copy] = clone(state.inputs);
     storeScenarios();
     showFileMessage("Saved a copy of " + state.scenarioName + " as " + copy + ".", false);
     renderSaved();
     renderCompare();
+    leaveOpen(() => openSaved(copy));
   }
 
+  // A row's Duplicate: a saved copy of that scenario, opened as the strip's Duplicate opens its copy.
   function duplicateScenario(name) {
     if (Object.keys(state.scenarios).length >= SAVED_LIMIT) {
       savedMessage("This device keeps at most " + SAVED_LIMIT + " scenarios. Delete one first.", true);
       return;
     }
-    const copy = freeName(name + " copy", takenNames());
+    const copy = numberedName(name, takenNames(), false);
     state.scenarios[copy] = clone(savedCopy(name));
     storeScenarios();
     savedMessage("Saved a copy of " + name + " as " + copy + ".", false);
     renderSaved();
     renderCompare();
+    leaveOpen(() => openSaved(copy));
   }
 
   function deleteDialog(name) {
@@ -2038,6 +2042,11 @@
   // with all its fields hidden is not drawn. A section's `subsections` (the HSA in the Medical plan pane) are drawn
   // inside it as smaller titled groups at the place of their first field, each opened by its own switch.
   function panelSections(panel) {
+    // The Home and Cars panels open with their timeline, once, above every section.
+    const timelineKind = ((state.schema.timeline || {}).panels || {})[panel.id];
+    if (timelineKind && !panel.timelineDrawn) {
+      return [timelineBlock(timelineKind), ...panelSections({ ...panel, timelineDrawn: true })];
+    }
     if (panel.sections) {
       return panel.sections.filter((section) => section.fields.some((name) => conditionMet(panel, name)))
         .flatMap((section, index) => panelSections({ ...panel, label: section.label,
@@ -2112,8 +2121,6 @@
         element.append(benefitBox(name.split(".")[0]));  // the benefit table and estimate under the claim age
       }
       group.append(element);
-      const timelineKind = ((state.schema.timeline || {}).panels || {})[panel.id];
-      if (timelineKind && field.kind === "list") group.append(timelineBlock(timelineKind));  // under the homes or cars
     }
     const resetRoots = Object.entries(state.schema.resetGroups || {}).filter(([root, reset]) =>
       reset.panel === panel.id && panel.fields.some((name) => name.startsWith(root + "."))).map(([root]) => root);
@@ -3445,9 +3452,12 @@
 
   // The earnings history on Income: one disclosure, closed until opened, drawn where `earningsHistoryMode` comes, with
   // the Manual entry / Last salary toggle. Manual entry shows the year-by-year table; Last salary the last salary, its
-  // year, the note on the backtrack and the read-only table filled in from them (earningsPreview). The fields below are
-  // drawn inside it only; the typed table is kept while Last salary is chosen.
-  const EARNINGS_FIELDS = new Set(["lastSalary", "lastSalaryYear", "salaryHistory"]);
+  // year, the note on the backtrack and the table filled in from them (earningsPreview): read-only until Edit, which
+  // makes each year's earnings a box; a year changed from the calculated one is typed over it (`salaryOverrides`) and
+  // marked edited, and Revert to calculated clears every typed year. The fields below are drawn inside it only; the
+  // typed table is kept while Last salary is chosen.
+  const EARNINGS_FIELDS = new Set(["lastSalary", "lastSalaryYear", "salaryHistory", "salaryOverrides"]);
+  const earningsEditing = new Set();  // the people (paths) whose Last salary table is open for typing
 
   function earningsOpenKey(path) {
     return path + "|earnings";
@@ -3507,10 +3517,103 @@
     const table = document.createElement("div");
     table.className = "earnings-preview";
     table.id = "earnings-table-" + path;
+    if (earningsEditing.has(path)) table.dataset.editing = "true";
     table.innerHTML = earningsPreviewHtml(path);
-    details.append(note, table);
+    fillEarningsBox(table);
+    details.append(note, table, earningsButtons(path));
     requestEarnings();
     return details;
+  }
+
+  // Edit (or Done editing) and Revert to calculated under a Last salary table.
+  function earningsButtons(path) {
+    const editing = earningsEditing.has(path);
+    const typed = getPath(state.inputs, path + ".salaryOverrides") || {};
+    const actions = document.createElement("div");
+    actions.className = "sheet-actions earnings-actions";
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "button button-quiet";
+    edit.dataset.action = "earnings-edit";
+    edit.textContent = editing ? "Done editing" : "Edit";
+    edit.addEventListener("click", () => {
+      if (editing) earningsEditing.delete(path);
+      else earningsEditing.add(path);
+      refreshForm();
+    });
+    const revert = document.createElement("button");
+    revert.type = "button";
+    revert.className = "button button-quiet";
+    revert.dataset.action = "earnings-revert";
+    revert.textContent = "Revert to calculated";
+    revert.disabled = !Object.keys(typed).length;
+    revert.addEventListener("click", () => {
+      earningsEditing.delete(path);
+      setValue(path + ".salaryOverrides", {});
+      refreshForm();
+    });
+    actions.append(edit, revert);
+    return actions;
+  }
+
+  // Draw one person's Last salary table into its box: the read-only table, or while editing a box per year (drawn
+  // once, so typing is not interrupted by a newer preview).
+  function fillEarningsBox(box) {
+    const role = box.id.slice("earnings-table-".length);
+    if (box.dataset.editing !== "true") {
+      box.innerHTML = earningsPreviewHtml(role);
+      return;
+    }
+    if (box.querySelector("input")) return;
+    const editor = earningsEditor(role);
+    if (editor) box.replaceChildren(editor);
+  }
+
+  function earningsEditor(role) {
+    const preview = state.earnings;
+    const person = preview && preview.ok ? preview.people.find((item) => item.role === role) : null;
+    if (!person || person.error) return null;
+    const calculated = Object.fromEntries(person.calculated);
+    const table = document.createElement("table");
+    table.className = "units-table earnings-editor";
+    table.innerHTML = "<thead><tr><th scope=\"col\">Year</th><th scope=\"col\">Earnings</th>"
+      + "<th scope=\"col\">Edited</th></tr></thead>";
+    const body = document.createElement("tbody");
+    for (const [year, amount] of person.rows) {
+      const row = document.createElement("tr");
+      const head = document.createElement("th");
+      head.scope = "row";
+      head.textContent = String(year);
+      const cell = document.createElement("td");
+      const input = document.createElement("input");
+      input.className = "input";
+      input.type = "number";
+      input.inputMode = "decimal";
+      input.min = "0";
+      input.step = "any";
+      input.id = fieldId(role + ".salaryOverrides." + year);
+      input.setAttribute("aria-label", "Earnings in " + year);
+      input.value = String(amount);
+      cell.append(input);
+      const marker = document.createElement("td");
+      marker.className = "text earnings-edited";
+      marker.textContent = person.edited.includes(year) ? "edited" : "";
+      input.addEventListener("change", () => {
+        const overrides = { ...(getPath(state.inputs, role + ".salaryOverrides") || {}) };
+        const value = Number(input.value);
+        if (input.value === "" || !Number.isFinite(value) || value === calculated[year]) delete overrides[year];
+        else overrides[year] = value;
+        if (input.value === "") input.value = String(calculated[year]);
+        setValue(role + ".salaryOverrides", overrides);
+        marker.textContent = overrides[year] != null ? "edited" : "";
+        const revert = document.querySelector("#earnings-" + role + " [data-action=earnings-revert]");
+        if (revert) revert.disabled = !Object.keys(overrides).length;
+      });
+      row.append(head, cell, marker);
+      body.append(row);
+    }
+    table.append(body);
+    return table;
   }
 
   function earningsWanted() {
@@ -3528,9 +3631,7 @@
     }
     if (!reply || inputsText !== JSON.stringify(state.inputs)) return;  // a newer edit asks again
     state.earnings = reply.value;
-    for (const box of document.querySelectorAll(".earnings-preview")) {
-      box.innerHTML = earningsPreviewHtml(box.id.slice("earnings-table-".length));
-    }
+    for (const box of document.querySelectorAll(".earnings-preview")) fillEarningsBox(box);
   }
 
   // The read-only table of the earnings filled in for one person, from the latest earningsPreview reply.
@@ -3542,7 +3643,8 @@
     if (!person) return "<p class=\"note\">Filling in the earnings</p>";
     if (person.error) return "<p class=\"banner banner-warn\" role=\"note\">" + escapeText(person.error) + "</p>";
     if (!person.rows.length) return "<p class=\"note\">No entries.</p>";
-    return charts.renderUnitsTable({ columns: ["Year", "Earnings"], data: person.rows }, ["text", "money"],
+    const rows = person.rows.map(([year, amount]) => [year, amount, person.edited.includes(year) ? "edited" : ""]);
+    return charts.renderUnitsTable({ columns: ["Year", "Earnings", "Edited"], data: rows }, ["text", "money", "text"],
       { title: "Earnings filled in from your last salary" });
   }
 
@@ -3559,6 +3661,17 @@
         }
         elements.push(holder);
       }
+      if (child.name === "retired") {  // the I'm retired switch: on hides the salary and its stop age (kept)
+        const retiredPath = path + ".retired";
+        elements.push(switchField(child.label, child.help, fieldId(retiredPath), Boolean(getPath(state.inputs, retiredPath)),
+          (on) => {
+            setValue(retiredPath, on);
+            if (on) openGroups.add(earningsOpenKey(path));  // only the earnings history is left to fill in
+            refreshForm();
+          }));
+        continue;
+      }
+      if ((child.name === "salary" || child.name === "salaryEndAge") && getPath(state.inputs, path + ".retired")) continue;
       if (child.name === "earningsHistoryMode") {
         elements.push(earningsHistoryDisclosure(children, path));
       } else if (EARNINGS_FIELDS.has(child.name) && children.some((item) => item.name === "earningsHistoryMode")) {
@@ -3611,6 +3724,11 @@
     }
     if (typeName === "Car") return carSummary(item, state.inputs.you.currentAge);
     if (typeName === "Home") return homeSummary(item, state.inputs.you.currentAge);
+    if (typeName === "RentPeriod") {
+      const from = item.startAge == null ? "today" : String(timelineYear(item.startAge));
+      const to = item.endAge == null ? "open" : String(timelineYear(item.endAge));
+      return { name: item.name, detail: "per month · " + from + "-" + to, value: compactMoney(item.monthlyRent) };
+    }
     if (typeName === "Child") {
       const age = state.inputs.you.currentAge - item.yourAgeAtBirth;
       return { name: item.name, detail: (age < 0 ? "not born yet" : "age " + age + " today") + ", child years to age "
@@ -3805,16 +3923,17 @@
     add.textContent = "Add " + (field.type === "Loan" && filter && filter.kind && filter.kind.length === 1
       && filter.kind[0] === "Mortgage" ? "mortgage loan" : typeWords(field.type));  // the Home chip's other mortgages
     add.addEventListener("click", () => {
+      // A home, car or rent period is added on its timeline: the first question there asks for its years.
+      const timed = { Home: ["Home", "add", 0], Car: ["Car", "add", null], RentPeriod: ["Home", "rent", 0] }[field.type];
+      if (timed) {
+        openTimeline(timed[0], timed[1], { lane: timed[2] });
+        return;
+      }
       const items = getPath(state.inputs, path);
       const item = Object.assign(newItem(field.type), filterStartValues(filter));
       const usual = field.type === "Account" && state.info.usualReturns[item.kind];
       if (usual) [item.meanReturn, item.returnStdDev] = usual;  // a new account starts with its kind's usual returns
       if (field.type === "Child") item.yourAgeAtBirth = state.inputs.you.currentAge;  // a new child is born this year
-      if (field.type === "Home") {  // a first home is the primary residence; each home gets its own name
-        item.primaryResidence = items.length === 0;
-        const names = items.map((home) => home.name);
-        for (let number = 1; names.includes(item.name); number += 1) item.name = "Home " + (number + 1);
-      }
       items.push(item);
       inputsChanged();
       openSheet(field, path, items.length - 1, false, filter);
@@ -4105,13 +4224,14 @@
     return note;
   }
 
+  // The panel's Timeline pane, drawn once at the top of the Home and Cars panels (see panelSections).
   function timelineBlock(kind) {
-    const block = document.createElement("div");
-    block.className = "timeline pane-section section-break";
+    const block = document.createElement("fieldset");
+    block.className = "group pane timeline";
     block.dataset.kind = kind;
     const id = newHelpId();
-    block.innerHTML = "<h3 class=\"sub-heading legend-help\"><span>Timeline</span>" + helpButtonHtml("Timeline", id)
-      + "</h3>" + helpTextHtml(id, state.schema.timeline.help[kind]);
+    block.innerHTML = "<legend class=\"legend-help\"><span class=\"legend-title\"><span>Timeline</span></span>"
+      + helpButtonHtml("Timeline", id) + "</legend>" + helpTextHtml(id, state.schema.timeline.help[kind]);
     const body = document.createElement("div");
     body.className = "timeline-body";
     body.textContent = "Drawing the timeline";
@@ -4162,10 +4282,11 @@
       if (segment.position == null) {
         const hint = document.createElement("span");
         hint.className = "field-help";
-        hint.textContent = words.rentEdit || words.gapEdit;
+        hint.textContent = words.gapEdit;
         card.append(hint);
       } else {
         const sale = timelineButton(words.start.own, "sale");
+        sale.hidden = segment.mode === "rent";  // a rent period ends; it is not sold
         sale.addEventListener("click", () => openTimeline(kind, "sell", { position: segment.position, lane: segment.lane }));
         const edit = timelineButton(words.start.edit, "edit");
         edit.addEventListener("click", () => openTimeline(kind, "edit", { position: segment.position, lane: segment.lane }));
@@ -4192,15 +4313,13 @@
     const chain = reply.segments.filter((segment) => segment.lane === 0 && segment.position != null);
     const starts = document.createElement("div");
     starts.className = "timeline-actions";
-    if (kind === "Car" || !chain.length) {
-      const add = timelineButton(words.start.empty, "add", "button-primary");
-      add.addEventListener("click", () => openTimeline(kind, "buy", { lane: kind === "Car" ? null : 0 }));
-      starts.append(add);
-    }
+    const add = timelineButton(words.start.empty, "add", "button-primary");
+    add.addEventListener("click", () => openTimeline(kind, "add", { lane: kind === "Car" ? null : 0 }));
+    starts.append(add);
     if (chain.length) {
       const last = chain.reduce((latest, segment) => (segment.startAge > latest.startAge ? segment : latest));
       const plan = timelineButton(words.start.last, "plan", "button-primary");
-      plan.addEventListener("click", () => openTimeline(kind, last.endAge == null ? "sell" : "next",
+      plan.addEventListener("click", () => openTimeline(kind, last.endAge == null && last.mode !== "rent" ? "sell" : "next",
         { position: last.position, lane: 0, year: last.endAge == null ? null : timelineYear(last.endAge) + 1 }));
       starts.append(plan);
     }
@@ -4293,14 +4412,17 @@
   }
 
   // The figures a purchase screen asks: the buying figures and the financing switch with its figures, from the
-  // schema (shares as percents), at the item type's defaults.
-  function timelineFigures(kind) {
+  // schema (shares as percents), at the item type's defaults. For an item owned now (`owned`): its value today and the
+  // financing switch with every financing figure, the balance owed among them.
+  function timelineFigures(kind, owned, initial) {
     const words = timelineWords(kind);
     const fields = state.schema.types[kind];
-    const blank = Object.fromEntries(fields.map((field) => [field.name, field.default]));
+    const blank = { ...Object.fromEntries(fields.map((field) => [field.name, field.default])), ...(initial || {}) };
     const replaced = state.info.sheetRules.itemSwitchReplaces[kind].buysLater || [];
-    const names = words.purchaseFields.filter((name) => name !== "purchaseAge")
-      .concat([words.financingSwitch], words.financingFields.filter((name) => !replaced.includes(name)));
+    const own = (owned ? words.ownedFields : words.purchaseFields.filter((name) => name !== "purchaseAge"))
+      .filter((name) => !words.financingFields.includes(name));
+    const names = own.concat([words.financingSwitch],
+      words.financingFields.filter((name) => owned || !replaced.includes(name)));
     const inputs = {};
     const elements = names.map((name) => {
       const field = fields.find((item) => item.name === name);
@@ -4316,19 +4438,62 @@
     return { elements, values: () => Object.fromEntries(Object.entries(inputs).map(([name, read]) => [name, read()])) };
   }
 
-  function timelineFreeName(kind) {
-    const items = (kind === "Home" ? state.inputs.homes : state.inputs.cars) || [];
-    return freeName(kind === "Home" ? "Home" : "Car", items.map((item) => item.name));
+  function timelineFreeName(kind, rent) {
+    const items = (rent ? state.inputs.rents : kind === "Home" ? state.inputs.homes : state.inputs.cars) || [];
+    return freeName(rent ? "Rent" : kind === "Home" ? "Home" : "Car", items.map((item) => item.name));
+  }
+
+  // The items in timeline positions: the homes then the rent periods, or the cars.
+  function timelineItems(kind) {
+    return kind === "Home" ? (state.inputs.homes || []).concat(state.inputs.rents || []) : state.inputs.cars || [];
   }
 
   function timelineScreen() {
     const flow = timelineFlow;
     const kind = flow.kind;
     const words = timelineWords(kind);
-    const items = (kind === "Home" ? state.inputs.homes : state.inputs.cars) || [];
+    const items = timelineItems(kind);
+    const isRent = kind === "Home" && flow.position != null && flow.position >= (state.inputs.homes || []).length;
+    const nameLabel = state.schema.types[kind].find((field) => field.name === "name").label;
     const parts = [];
     let next = null;  // the screen's Next: an async step that returns once applied
-    if (flow.step === "sell") {
+    if (flow.step === "add") {
+      // First whether it is a future purchase or owned now; then that case's fields.
+      const choice = timelineChoice(words.addQuestion, Object.entries(words.addOptions), flow.addChoice || null);
+      const holder = document.createElement("div");
+      holder.className = "timeline-add";
+      let read = null;
+      const draw = () => {
+        const value = choice.value() || null;
+        flow.addChoice = value;
+        if (!value) {
+          holder.replaceChildren();
+          read = null;
+          return;
+        }
+        const owned = value === "owned";
+        const kept = flow.addDraft && flow.addDraft.owned === owned ? flow.addDraft : {};  // after a refusal
+        const name = timelineInput(nameLabel, "text", kept.name || timelineFreeName(kind));
+        const start = owned ? null : timelineYearInput(words.purchaseYear, kept.purchaseAge != null
+          ? timelineYear(kept.purchaseAge) : flow.year || state.info.lawTaxYear + 1);
+        const end = timelineYearInput(words.saleYear + " (optional)", kept.saleAge != null ? timelineYear(kept.saleAge)
+          : null, true);
+        const figures = timelineFigures(kind, owned, kept.figures);
+        holder.replaceChildren(...[name, start, end].filter(Boolean), ...figures.elements);
+        read = () => ({ name: name.input.value, purchaseAge: start ? timelineAge(Number(start.input.value)) : null,
+          saleAge: end.input.value === "" ? null : timelineAge(Number(end.input.value)), ...figures.values() });
+        flow.addRead = () => ({ owned, name: name.input.value, purchaseAge: read().purchaseAge, saleAge: read().saleAge,
+          figures: figures.values() });
+      };
+      choice.addEventListener("change", draw);
+      draw();
+      parts.push(choice, holder);
+      next = async () => {
+        if (!read) return;
+        flow.addDraft = flow.addRead();  // kept for the screen drawn again with a refusal
+        if (await timelineStep({ op: "buy", lane: flow.lane, fields: read() })) timelineClose();
+      };
+    } else if (flow.step === "sell") {
       const item = items[flow.position];
       const choice = timelineChoice(words.sellQuestion.replace("{name}", item.name),
         [["yes", words.sellYes], ["no", words.sellNo]], item.sellsLater ? "yes" : null);
@@ -4369,13 +4534,23 @@
         if (result) timelineGo("sell", { position: result.position });
       };
     } else if (flow.step === "rent") {
-      const monthly = timelineInput(words.rentQuestion, "number", state.inputs.home.rent, { min: 0, step: "any" });
+      const rentFields = state.schema.types.RentPeriod;
+      const name = timelineInput(rentFields.find((field) => field.name === "name").label, "text",
+        timelineFreeName(kind, true));
+      const start = timelineYearInput(words.rentStart, flow.year);
+      const end = timelineYearInput(words.rentEnd, null, true);
+      const monthly = timelineInput(words.rentQuestion, "number", 0, { min: 0, step: "any" });
       const hint = document.createElement("p");
       hint.className = "field-help";
       hint.textContent = words.rentHint;
-      parts.push(monthly, hint);
+      parts.push(name, start, end, monthly, hint);
       next = async () => {
-        if (await timelineStep({ op: "rent", monthly: Number(monthly.input.value) })) timelineGo("next", { rentDone: true });
+        const endYear = end.input.value === "" ? null : Number(end.input.value);
+        const fields = { name: name.input.value, mode: "rent", monthlyRent: Number(monthly.input.value),
+          purchaseAge: timelineAge(Number(start.input.value)), saleAge: endYear == null ? null : timelineAge(endYear) };
+        if (await timelineStep({ op: "buy", lane: 0, fields })) {
+          timelineGo("next", { rentDone: true, year: endYear == null ? null : endYear + 1 });
+        }
       };
     } else if (flow.step === "lease") {
       const name = timelineInput(state.schema.types.Car.find((field) => field.name === "name").label, "text",
@@ -4397,6 +4572,30 @@
         if (!result) return;
         if (endYear == null) timelineClose();
         else timelineGo("next", { position: result.position, year: endYear + 1 });
+      };
+    } else if (flow.step === "edit" && isRent) {
+      const period = items[flow.position];
+      const currentAge = state.inputs.you.currentAge;
+      const today = timelineInput("Renting since before today", "check", period.startAge == null);
+      const startYear = timelineYearInput(words.rentStart, timelineYear(period.startAge == null ? currentAge + 1
+        : period.startAge));
+      const open = timelineInput("Until the end of the run", "check", period.endAge == null);
+      const endYear = timelineYearInput(words.rentEnd.replace(" (optional)", ""), timelineYear(period.endAge == null
+        ? currentAge + 1 : period.endAge));
+      const monthly = timelineInput(words.rentQuestion, "number", period.monthlyRent, { min: 0, step: "any" });
+      const sync = () => {
+        startYear.hidden = today.input.checked;
+        endYear.hidden = open.input.checked;
+      };
+      today.input.addEventListener("change", sync);
+      open.input.addEventListener("change", sync);
+      sync();
+      parts.push(today, startYear, open, endYear, monthly);
+      next = async () => {
+        const fields = { monthlyRent: Number(monthly.input.value),
+          purchaseAge: today.input.checked ? null : timelineAge(Number(startYear.input.value)),
+          saleAge: open.input.checked ? null : timelineAge(Number(endYear.input.value)) };
+        if (await timelineStep({ op: "edit", position: flow.position, fields })) timelineClose();
       };
     } else if (flow.step === "edit") {
       const item = items[flow.position];
@@ -4447,7 +4646,8 @@
       Object.assign(flow, { step: flow.history.pop(), error: null });
       timelineScreen();
     });
-    const go = timelineButton(flow.step === "edit" ? words.start.done : words.start.next, "next", "button-primary");
+    const go = timelineButton(flow.step === "edit" || flow.step === "add" ? words.start.done : words.start.next, "next",
+      "button-primary");
     go.addEventListener("click", async () => {
       if (flow.busy) return;
       flow.busy = true;

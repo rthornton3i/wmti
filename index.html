@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-owrCsN+UjNegcTnBcX4ZC5eANeLChzhCWFSclP8TvAc=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-U04seT3zdN7Dw3zLL+ccbdnYRDbh84NNl1tFBKyyESI=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -863,6 +863,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 /* The ownership timeline on the Home and Cars panes: one bar row per lane (owned filled, rented hatched, leased
    outlined, no car blank), the segment cards with their buttons, and the workflow's fields in the bottom sheet. */
 .timeline-body { display: grid; gap: 10px; }
+.earnings-editor .input { width: 100%; min-width: 6em; }
 .timeline-bars { display: grid; gap: 6px; padding: 6px 0; }
 .timeline-lane { position: relative; height: 22px; border-radius: 6px; background: var(--surface-2); }
 .timeline-bar { position: absolute; top: 0; bottom: 0; border-radius: 6px; box-sizing: border-box; }
@@ -941,7 +942,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
     <section class="panel" id="panel-setup" data-tab="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
       <div class="card open-card" id="savedCard">
         <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
-        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Duplicate saves a copy of the current settings as another scenario (the open one stays open), Clear empties every setting (Undo, top right, brings them back) and Export saves it as a file that the desktop dashboard also opens. Other scenarios lists the copies kept here: tap one to open it, the bin to delete it, or use its ... menu. Your current settings are also kept as you edit.</p>
+        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, Clear empties every setting (Undo, top right, brings them back) and Export saves it as a file that the desktop dashboard also opens. Other scenarios lists the copies kept here: tap one to open it, the bin to delete it, or use its ... menu. Your current settings are also kept as you edit.</p>
         <p class="open-name" id="loadedName"></p>
         <div class="open-status">
           <span class="dirty-dot" id="dirtyDot" aria-hidden="true"></span><span id="saveStatus" role="status"></span>
@@ -1164,11 +1165,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "7b0d044b9df4", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "0fdb84c90959", pyodide: "0.29.5" };</script>
 <script src="legal.3250d44a4a.js"></script>
-<script src="shared.2b7c1f979b.js"></script>
+<script src="shared.75854405f7.js"></script>
 <script src="charts.ac17e4cbae.js"></script>
-<script src="app.2d4d37b149.js"></script>
+<script src="app.046c5c3813.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

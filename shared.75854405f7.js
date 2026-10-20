@@ -908,6 +908,18 @@
     return base + " " + number;
   }
 
+  // A copy's scenario name: `name` with any trailing "_<number>" taken off, then "_1", "_2" and so on, the lowest number
+  // that no name in `taken` uses (letter case ignored). With `bare` true the base itself is used while it is free (a
+  // New scenario); a Duplicate always gets a number.
+  function numberedName(name, taken, bare) {
+    const base = String(name).replace(/_\d+$/, "");
+    const used = new Set(taken.map((item) => item.toLowerCase()));
+    if (bare && !used.has(base.toLowerCase())) return base;
+    let number = 1;
+    while (used.has((base + "_" + number).toLowerCase())) number += 1;
+    return base + "_" + number;
+  }
+
   // The undo history of the open scenario: `current` (the settled settings as JSON text) and `stack` (earlier settled
   // states, oldest first, at most `limit`). Recording the text already current changes nothing.
   function undoRecord(history, text, limit) {
@@ -921,22 +933,12 @@
     return { stack: history.stack.slice(0, -1), current: history.stack[history.stack.length - 1] };
   }
 
-  // The "I'm retired" button's changes to one person, as wmti.dashboard.editing.markRetired gives them: the earnings
-  // history becomes "lastSalary", pay stops now (the stop age falls to the current age, never rises) and the salary
-  // becomes the last salary when none is entered. The salary and the last paid year are left alone.
-  function retiredChanges(person) {
-    const changes = { earningsHistoryMode: "lastSalary",
-      salaryEndAge: Math.min(Number(person.salaryEndAge), Number(person.currentAge)) };
-    if (!(Number(person.lastSalary) > 0) && Number(person.salary) > 0) changes.lastSalary = Number(person.salary);
-    return changes;
-  }
-
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, freeName, undoRecord, undoStep, retiredChanges };
+    blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);
