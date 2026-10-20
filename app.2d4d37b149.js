@@ -9,7 +9,7 @@
     expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, freeName, undoRecord, undoStep, retiredChanges } = window.WmtiShared;
+    blankInputs, needsSetup, otherScenarioNames, freeName, undoRecord, undoStep } = window.WmtiShared;
   const charts = window.WmtiCharts;
 
   const BOOT_STEPS = [["script", "Load the Python engine"], ["boot", "Start Python"],
@@ -150,7 +150,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.9b642e0582.js");
+      worker = new Worker("worker.8bc7786d3d.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -509,6 +509,16 @@
   }
 
   // The on-screen keyboard: hide the bottom bar while a text field outside the sheet has focus.
+  // Enter (a phone keyboard's Enter, Go or Done) on a one-line input ends the edit: the input loses focus, which commits
+  // its value and closes the keyboard. On key up, so a form's Enter (the walkthrough's Next) or an input's own Enter
+  // handler acts first; an input that is no longer focused is left alone. A textarea keeps Enter for new lines.
+  function enterEndsEdit(event) {
+    const target = event.target;
+    if (event.key !== "Enter" || event.isComposing || !target || target.tagName !== "INPUT") return;
+    if (["checkbox", "radio", "button", "submit", "reset", "file", "range"].includes(target.type)) return;
+    if (document.activeElement === target) target.blur();
+  }
+
   function isTyping(element) {
     if (!element || element.closest("#sheet")) return false;
     if (element.tagName === "TEXTAREA") return true;
@@ -3434,7 +3444,7 @@
   }
 
   // The earnings history on Income: one disclosure, closed until opened, drawn where `earningsHistoryMode` comes, with
-  // the Manual entry / Last salary select. Manual entry shows the year-by-year table; Last salary the last salary, its
+  // the Manual entry / Last salary toggle. Manual entry shows the year-by-year table; Last salary the last salary, its
   // year, the note on the backtrack and the read-only table filled in from them (earningsPreview). The fields below are
   // drawn inside it only; the typed table is kept while Last salary is chosen.
   const EARNINGS_FIELDS = new Set(["lastSalary", "lastSalaryYear", "salaryHistory"]);
@@ -3461,24 +3471,28 @@
     summary.textContent = modeField.label;
     details.append(summary);
     const id = fieldId(modePath);
-    const wrap = fieldShell(modeField.label, modeField.help, id);
-    const select = document.createElement("select");
-    select.className = "input";
-    select.id = id;
+    const wrap = fieldShell(modeField.label, modeField.help, null);
+    const group = document.createElement("div");  // a two-position toggle, as the Social Security basis (basisToggle)
+    group.className = "segmented";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", modeField.label);
+    group.id = id;
     for (const choice of modeField.choices) {
-      const option = document.createElement("option");
-      option.value = choice;
-      option.textContent = (modeField.choiceLabels || {})[choice] || choice;
-      select.append(option);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.mode = choice;
+      button.textContent = (modeField.choiceLabels || {})[choice] || choice;
+      button.setAttribute("aria-pressed", String(choice === mode));
+      button.addEventListener("click", () => {
+        if (choice === (getPath(state.inputs, modePath) || "manual")) return;
+        setValue(modePath, choice);
+        refreshForm();
+        const redrawn = document.querySelector("#" + CSS.escape(id) + " [data-mode=\"" + choice + "\"]");
+        if (redrawn) redrawn.focus();
+      });
+      group.append(button);
     }
-    select.value = mode;
-    select.addEventListener("change", () => {
-      setValue(modePath, select.value);
-      refreshForm();
-      const redrawn = $(id);
-      if (redrawn) redrawn.focus();
-    });
-    wrap.append(select);
+    wrap.append(group);
     details.append(wrap);
     if (mode !== "lastSalary") {
       if (byName.salaryHistory) details.append(fieldElement(byName.salaryHistory, path + ".salaryHistory"));
@@ -3497,27 +3511,6 @@
     details.append(note, table);
     requestEarnings();
     return details;
-  }
-
-  // The "I'm retired" button under a person's salary: pay stops now, the earnings history switches to Last salary
-  // (see retiredChanges) and its disclosure opens and scrolls into view.
-  function retiredButton(path) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "button button-quiet retired-button";
-    button.textContent = "I'm retired";
-    button.addEventListener("click", () => {
-      const person = getPath(state.inputs, path);
-      for (const [name, value] of Object.entries(retiredChanges(person))) setPath(state.inputs, path + "." + name, value);
-      inputsChanged();
-      openGroups.add(earningsOpenKey(path));
-      refreshForm();
-      requestAnimationFrame(() => {
-        const box = $("earnings-" + path);
-        if (box) box.scrollIntoView({ block: "start" });
-      });
-    });
-    return button;
   }
 
   function earningsWanted() {
@@ -3572,9 +3565,6 @@
         continue;  // drawn inside the earnings history disclosure
       } else if (!child.group) {
         elements.push(fieldElement(child, path + "." + child.name));
-        if (child.name === "salary" && children.some((item) => item.name === "earningsHistoryMode")) {
-          elements.push(retiredButton(path));
-        }
       } else if (!drawnGroups.has(child.group)) {
         drawnGroups.add(child.group);
         elements.push(groupDisclosure(child.group, children.filter((item) => item.group === child.group), path));
@@ -4499,14 +4489,37 @@
   const downloadsReady = window.claude && window.claude.use ? window.claude.use("downloads").catch(() => null)
     : Promise.resolve(null);
 
+  // The result of an export or import, under the open scenario card, scrolled into view so it is seen also when the
+  // action was taken further down the page (an Other scenarios row's menu).
   function showFileMessage(text, isError) {
     const message = $("fileMessage");
     message.hidden = false;
     message.className = isError ? "banner banner-error" : "banner";
     message.textContent = text;
+    if (typeof message.scrollIntoView === "function") message.scrollIntoView({ block: "nearest" });
   }
 
-  // Export settings as a scenario file named after the scenario: the open one (the card's Export) by default.
+  // Start a real file download of `text` in the browser (a Blob link). False when the page cannot make one.
+  function downloadFile(filename, text) {
+    try {
+      const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.hidden = true;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Export settings as a scenario file named after the scenario: the open one (the card's Export) by default. The file
+  // is saved through the host's downloads when it offers them, else downloaded by the browser; where neither works the
+  // text opens in a dialog to copy. A message under the card always says what happened.
   async function exportScenario(inputs = state.inputs, name = state.scenarioName) {
     const check = checkScenarioName(name, state.info.scenarioName);
     if (!check.ok) { showFileMessage(name + ": " + check.error + " Rename it, then export.", true); return; }
@@ -4522,20 +4535,39 @@
         if (error && error.code === "declined") { showFileMessage("Export cancelled.", false); return; }
       }
     }
-    $("exportFilename").textContent = file.filename;
-    $("exportText").value = file.text;
-    $("exportFallback").hidden = false;
+    if (downloadFile(file.filename, file.text)) {
+      showFileMessage("Downloaded " + file.filename + ".", false);
+      return;
+    }
+    exportDialog(file);
   }
 
-  async function copyExport() {
-    const text = $("exportText");
+  // The copy-text fallback, as a dialog over the page: the file's text and a Copy text button.
+  function exportDialog(file) {
+    const text = document.createElement("textarea");
+    text.className = "input mono";
+    text.id = "exportText";
+    text.rows = 6;
+    text.readOnly = true;
+    text.setAttribute("aria-label", "Scenario file text");
+    text.value = file.text;
+    showFileMessage("Saving files is not available here; copy the text into a file named " + file.filename + ".", false);
+    openDialog({ title: "Export " + file.filename,
+      text: "Saving files is not available here. Copy the text and save it as " + file.filename + ".", body: [text],
+      actions: [["Copy text", "button", () => copyExport(text, file.filename), "copyExport"],
+        ["Close", "button button-quiet", () => true, "exportClose"]], focus: text });
+  }
+
+  async function copyExport(text, filename) {
     try {
       await navigator.clipboard.writeText(text.value);
-      showFileMessage("Copied. Paste it into a file named " + $("exportFilename").textContent + ".", false);
+      showFileMessage("Copied. Paste it into a file named " + filename + ".", false);
+      return true;
     } catch (error) {
       text.focus();
       text.select();
-      showFileMessage("Copy is blocked here; the text is selected so you can copy it yourself.", false);
+      dialogError("Copy is blocked here; the text is selected so you can copy it yourself.");
+      return false;
     }
   }
 
@@ -5690,6 +5722,7 @@
     wireTabKeys($("views-outputs"), ".view-tab", (tab) => selectView(tab.dataset.view));
     document.addEventListener("focusin", (event) => $("app").classList.toggle("typing", isTyping(event.target)));
     document.addEventListener("focusout", () => $("app").classList.remove("typing"));
+    document.addEventListener("keyup", enterEndsEdit);
     document.addEventListener("click", (event) => {
       const button = event.target.closest(".help-button");
       if (button) toggleHelp(button);
@@ -5697,6 +5730,7 @@
     $("settings-body").addEventListener("submit", (event) => event.preventDefault());
     $("household-body").addEventListener("submit", (event) => event.preventDefault());
     $("sheetDone").addEventListener("click", closeSheet);
+    $("sheetSave").addEventListener("click", closeSheet);  // the same as Done, at the bottom of the sheet
     $("sheetBackdrop").addEventListener("click", closeSheet);
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
@@ -5733,7 +5767,6 @@
     $("duplicateButton").addEventListener("click", duplicateOpen);
     $("clearButton").addEventListener("click", clearDialog);
     $("exportButton").addEventListener("click", () => exportScenario());
-    $("copyExport").addEventListener("click", copyExport);
     $("newButton").addEventListener("click", newDialog);
     $("importButton").addEventListener("click", importDialog);
     $("dialog").addEventListener("keydown", (event) => trapFocus(event, $("dialog")));
