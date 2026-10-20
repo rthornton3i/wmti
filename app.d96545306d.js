@@ -790,7 +790,8 @@
     const panel = $("panel-inputs");
     const row = $("chips-settings");
     let busy = false;
-    wireSwipe(panel, {
+    // Listen on the whole sheet, so a swipe in the empty space below a short panel works too; the panel still slides.
+    wireSwipe(document.querySelector("main.panels"), {
       enabled: () => state.tab === "inputs" && state.schema != null && !walk.open && !busy,
       drag: (dx, width) => {
         const target = neighbourChip(dx < 0 ? 1 : -1);
