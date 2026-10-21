@@ -11,7 +11,7 @@
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
-    mergeUndoPop, changedPaths, hasSocialSecurity, spendingStartAge, spendingChangeRows,
+    mergeUndoPop, changedPaths, optimizeStepText, hasSocialSecurity, spendingStartAge, spendingChangeRows,
     spendingChangePreview } = window.WmtiShared;
   const charts = window.WmtiCharts;
 
@@ -70,8 +70,8 @@
   ];
   const LEGAL_SUMMARY_CLOSING = "Please read the full Terms below.";
   const TABS = ["setup", "inputs", "outputs"];  // the bottom bar, left to right
-  const VIEWS = ["summary", "plots", "compare"];  // the switch inside Outputs
-  const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders" };  // its chips' icons
+  const VIEWS = ["summary", "plots", "compare", "optimize"];  // the switch inside Outputs
+  const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders", optimize: "pig" };  // its chips' icons
   // The color scheme, kept per viewer as plain text; index.html applies it before the first paint.
   const THEME_KEY = "wmti.theme.v1";
   // Every key this app keeps in localStorage; Clear all data on this device removes them all.
@@ -88,6 +88,7 @@
     "outputs/summary": ["Outputs", "Summary", "From the last Monte Carlo"],
     "outputs/plots": ["Outputs", "Plots", "Middle half average of the runs"],
     "outputs/compare": ["Outputs", "Compare", "Two configs on the same random draws"],
+    "outputs/optimize": ["Outputs", "Optimize", "The best strategy settings on the same random draws"],
   };
   // Inline SVG icons (24 px grid, stroked): chips and pane titles.
   const ICONS = {
@@ -123,6 +124,8 @@
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null },
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null, diffs: null, diffsPending: null, mergeUndo: [] },
+    optimize: { info: null, job: null, entry: null, message: null,
+      options: { effort: null, preset: null, dimensions: {} } },
   };
   const $ = (id) => document.getElementById(id);
   const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -154,7 +157,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.c89c37597a.js");
+      worker = new Worker("worker.0c4cf3f151.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -184,7 +187,10 @@
 
     function cancel(target) { worker.postMessage({ fn: "cancel", target }); }
 
-    return { start, call, job, cancel, ready };
+    // End a batched strategy search now, keeping the best so far (its result still arrives).
+    function finish(target) { worker.postMessage({ fn: "finish", target }); }
+
+    return { start, call, job, cancel, finish, ready };
   })();
   window.wmtiEngine = engine;  // for the tests and for debugging
 
@@ -399,6 +405,7 @@
     $("app").classList.add("stale");
     singleBusy = true;
     mcKeyChanged();
+    optimizeInputsChanged();
     runTimer = setTimeout(runNow, RUN_DELAY_MS);
   }
 
@@ -460,7 +467,7 @@
       $("sub-" + name).setAttribute("aria-selected", String(name === state.view));
       $("sub-" + name).tabIndex = name === state.view ? 0 : -1;
     }
-    $("mc-bar").hidden = state.view === "compare";
+    $("mc-bar").hidden = state.view === "compare" || state.view === "optimize";
     for (const element of document.querySelectorAll(".band [data-place]")) {
       element.hidden = element.dataset.place !== scrollKey() && element.dataset.place !== state.tab;
     }
@@ -472,6 +479,7 @@
     if (state.tab === "inputs") { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
     if (state.tab === "outputs" && state.view === "summary") requestNotes();
     if (compareShown()) refreshCompare();
+    if (optimizeShown()) renderOptimize();
   }
 
   // Move to a place (tab and view) and back to its saved scroll; a tap on the place already shown scrolls it to the
@@ -723,11 +731,12 @@
     row.scrollTo({ left, behavior: smooth && !reducedMotion() ? "smooth" : "auto" });
   }
 
-  // ---- Swipe: a sideways drag moves to the next or previous Inputs panel, Outputs view, or walkthrough question ----
-  // An enhancement only: the chips, the bottom bar, Continue and Back do the same. A touch or pen drag that starts in
-  // the area (not in a field, slider, drag handle, chart, chips row or sideways-scrolling table) and goes mostly
-  // sideways follows the finger; let go past a third of the width, or flicked, it moves on (finger to the left:
-  // forward), otherwise it springs back. Past an end of Inputs or Outputs it moves on to the next bottom tab.
+  // ---- Swipe: a sideways drag moves to the next or previous Inputs panel, Outputs sub-tab, or walkthrough question ----
+  // An enhancement only: the chips, Continue and Back do the same. A touch or pen drag that starts in the area (not in
+  // a field, slider, drag handle, chart, chips row or sideways-scrolling table) and goes mostly sideways follows the
+  // finger; let go past a third of the width, or flicked, it moves on (finger to the left: forward), otherwise it
+  // springs back. On Outputs it steps through the sub-tabs of each view and on to the next view; it never moves between
+  // the bottom tabs (Setup, Inputs, Outputs): past an end it springs back.
   // The area's touch-action (pan-y, styles.css) leaves vertical scrolling to the browser, which cancels the drag.
   const SWIPE_SLOP = 10;  // px moved before a drag is judged sideways (more across than 1.5 times down) or not
   const SWIPE_FLICK = 0.5;  // px per ms: a quicker release moves on whatever the distance
@@ -801,22 +810,41 @@
     return at < 0 ? null : chips[at + direction] || null;
   }
 
-  // Where a swipe `direction` (1 forward, -1 back) leads from the shown place: the neighbouring Inputs panel or
-  // Outputs view (`chip`, in the bubble's `row`), else past an end the neighbouring bottom tab (Outputs at its first
-  // view after the last Inputs panel, Setup before the first, Inputs at its last panel before the first Outputs view,
-  // Inputs at its first panel after Setup); null where nothing lies that way (back on Setup, on past Compare).
+  // The sub-tabs of each Outputs view, in order; a view without sub-tabs (Compare, Optimize) is one step of its own.
+  const OUTPUT_SUBTABS = { summary: { list: RESULT_VIEWS, chip: "results" }, plots: { list: PLOT_VIEWS, chip: "plots" } };
+
+  // The sub-tab a view shows now: its stored chip when the view still offers it, else its first; null for none.
+  function shownSubtab(view) {
+    const sub = OUTPUT_SUBTABS[view];
+    if (!sub) return null;
+    const stored = state.chips[sub.chip];
+    return sub.list.some((item) => item.id === stored) ? stored : sub.list[0].id;
+  }
+
+  // Every Outputs step in swipe order: each view's sub-tabs, then the next view's.
+  function outputSteps() {
+    return VIEWS.flatMap((view) => (OUTPUT_SUBTABS[view] ? OUTPUT_SUBTABS[view].list.map((item) => ({ view, sub: item.id }))
+      : [{ view, sub: null }]));
+  }
+
+  // Where a swipe `direction` (1 forward, -1 back) leads from the shown place: the neighbouring Inputs panel (`chip`,
+  // in the bubble's `row`), or on Outputs the neighbouring sub-tab (`sub`), past a view's last sub-tab the next view at
+  // its first (before the first, the previous view at its last; `chip` is then the view's chip); null at an end and
+  // on Setup, so a swipe never changes the bottom tab.
   function swipeTarget(direction) {
     if (state.tab === "inputs") {
       const chip = neighbourChip(direction);
-      if (chip) return { tab: "inputs", view: state.view, chip, row: $("chips-settings") };
-      return direction > 0 ? { tab: "outputs", view: VIEWS[0] } : { tab: "setup", view: state.view };
+      return chip ? { tab: "inputs", view: state.view, chip, row: $("chips-settings") } : null;
     }
     if (state.tab === "outputs") {
-      const next = VIEWS[VIEWS.indexOf(state.view) + direction];
-      if (next) return { tab: "outputs", view: next, chip: $("sub-" + next), row: $("views-outputs") };
-      return direction < 0 ? { tab: "inputs", view: state.view, panel: "last" } : null;
+      const steps = outputSteps();
+      const at = steps.findIndex((step) => step.view === state.view && step.sub === shownSubtab(state.view));
+      const next = at < 0 ? null : steps[at + direction];
+      if (!next) return null;
+      return { tab: "outputs", view: next.view, sub: next.sub, row: $("views-outputs"),
+        chip: next.view === state.view ? null : $("sub-" + next.view) };
     }
-    return direction > 0 ? { tab: "inputs", view: state.view, panel: "first" } : null;
+    return null;
   }
 
   // The shown tab's panel, and its chips row that wears a bubble (none on Setup).
@@ -824,26 +852,32 @@
   const bubbleRow = () => (state.tab === "inputs" ? $("chips-settings")
     : state.tab === "outputs" ? $("views-outputs") : null);
 
-  // Open a swipe's target and return what a screen reader hears: the Inputs panel's or Outputs view's name, led by
-  // the bottom tab's name when the tab changed.
+  // Open a swipe's target and return what a screen reader hears: the Inputs panel's name, or the Outputs sub-tab's,
+  // led by the view's name when the view changed.
   function openSwipeTarget(target) {
-    let label = "";
-    if (target.tab === "inputs" && (target.chip || target.panel)) {
+    if (target.tab === "inputs") {
       const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
-      const chosen = target.chip ? panels[[...$("chips-settings").querySelectorAll(".chip")].indexOf(target.chip)]
-        : panels[target.panel === "first" ? 0 : panels.length - 1];
+      const chosen = panels[[...$("chips-settings").querySelectorAll(".chip")].indexOf(target.chip)];
       state.chips.settings = chosen.id;
       savePrefs();
       renderSettings();
-      label = chosen.label;
+      return chosen.label;
     }
-    const tabChanged = target.tab !== state.tab;
-    if (tabChanged || target.view !== state.view) goTo(target.tab, target.view);
-    if (target.tab === "outputs") label = $("sub-" + target.view).textContent.trim();
-    return tabChanged ? [$("tab-" + target.tab).textContent.trim(), label].filter(Boolean).join(", ") : label;
+    const sub = OUTPUT_SUBTABS[target.view];
+    const viewChanged = target.view !== state.view;
+    if (sub) {
+      state.chips[sub.chip] = target.sub;
+      savePrefs();
+      if (target.view === "summary") renderResults();
+      else renderPlots();
+    }
+    if (viewChanged) goTo("outputs", target.view);
+    const subLabel = sub ? sub.list.find((item) => item.id === target.sub).label : "";
+    const viewLabel = $("sub-" + target.view).textContent.trim();
+    return viewChanged ? [viewLabel, subLabel].filter(Boolean).join(", ") : subLabel;
   }
 
-  // One swipe for the sheet: Inputs panels, Outputs views, and on past their ends to the next bottom tab.
+  // One swipe for the sheet: Inputs panels, and Outputs sub-tabs and views; never across the bottom tabs.
   function wirePanelsSwipe() {
     let busy = false;
     // Listen on the whole sheet, so a swipe in the empty space below a short panel works too; the panel still slides.
@@ -1227,7 +1261,7 @@
     mcTimer = null;
     const mc = state.mc;
     if (window.WMTI_NO_AUTO_MC || walk.open || !state.info || singleBusy || state.error || mc.job
-      || state.compare.job || needsSetup(state.inputs)) return;
+      || state.compare.job || state.optimize.job || needsSetup(state.inputs)) return;
     const key = mcKey();
     if (cachedResult(mc.cache, key) || key === mc.skipKey) return;
     runMonteCarlo(true);
@@ -1556,6 +1590,222 @@
     }
     requestAnimationFrame(() => figures.forEach(([figure, spec]) => figure && charts.attachChart(figure, spec)));
     return parts;
+  }
+
+  // ---- Optimize: search the strategy settings for the best score on the same draws, then apply on a tap ----
+  // The search runs in the worker as a batched job ("optimize"); Stop posts a finish (the best so far is kept), Cancel
+  // drops it. A result is kept with the inputs text it ran on: once the settings change it is marked stale and Apply is
+  // off. Apply changes the settings at once (one Undo step); the Python builds every text shown.
+  const OPTIMIZE_HELP = "Searches the settings of your strategies (the Roth conversion, the backdoor, QCDs, the "
+    + "withdrawal order and the Social Security claim ages) for the best score. Every setting tried faces the same "
+    + "random draws (the Seed under Setup, not the Runs setting), and the winner is checked again on fresh draws. "
+    + "Nothing changes until you tap Apply, and Undo takes it back.";
+
+  function optimizeShown() {
+    return state.tab === "outputs" && state.view === "optimize";
+  }
+
+  // The settings changed: a running search is dropped; a finished result stays, marked stale.
+  function optimizeInputsChanged() {
+    const optimize = state.optimize;
+    if (optimize.job && optimize.job.inputsText !== JSON.stringify(state.inputs)) {
+      optimize.job.dropped = true;
+      engine.cancel(optimize.job.id);
+    }
+    if (optimizeShown()) renderOptimize();
+  }
+
+  async function loadOptimizeInfo() {
+    if (state.optimize.info) return;
+    const info = await ask("optimizeInfo", []);
+    if (!info || !info.ok) return;
+    state.optimize.info = info;
+    const options = state.optimize.options;
+    if (!options.effort) options.effort = info.defaultEffort.phone;
+    if (!options.preset) options.preset = info.defaultPreset;
+    if (optimizeShown()) renderOptimize();
+  }
+
+  function renderOptimize() {
+    const body = $("optimize-body");
+    if (!body || !state.info) return;
+    const optimize = state.optimize;
+    const info = optimize.info;
+    if (!info) { body.innerHTML = "<div class=\"card\"><p class=\"muted\">Loading</p></div>"; loadOptimizeInfo(); return; }
+    const card = document.createElement("div");
+    card.className = "card";
+    card.id = "optimizeCard";
+    const about = titleHelp("h2", "Find the best settings", OPTIMIZE_HELP);
+    const options = optimize.options;
+    const presets = info.presets.map((preset) => [preset.id, preset.label]);
+    const efforts = info.efforts.map((effort) => [effort.id, effort.label + " (" + effort.text.phone + ")"]);
+    const presetText = (info.presets.find((preset) => preset.id === options.preset) || {}).text || "";
+    card.innerHTML = (state.error ? errorBanner(state.error) : "") + "<div class=\"card-head\">" + about.head + "</div>"
+      + about.text + "<p class=\"field-help\">" + escapeText(info.notAdvice) + "</p><div id=\"optimizeSwitches\"></div>"
+      + "<div class=\"pair\">" + selectHtml("optimizePreset", "Risk preference", presets, options.preset)
+      + selectHtml("optimizeEffort", "Effort", efforts, options.effort) + "</div>"
+      + "<p class=\"field-help\" id=\"optimizePresetText\">" + escapeText(presetText) + "</p>"
+      + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"optimizeRun\""
+      + (optimize.job || state.error ? " disabled" : "") + ">Find best settings</button></div>"
+      + optimizeProgressHtml(optimize.job) + messageHtml(optimize.message);
+    const switches = card.querySelector("#optimizeSwitches");
+    for (const dimension of info.dimensions) {
+      switches.append(switchField(dimension.label, "Untick to keep its current setting.", "optimizeDim-" + dimension.key,
+        options.dimensions[dimension.key] !== false, (checked) => { options.dimensions[dimension.key] = checked; }));
+    }
+    card.querySelector("#optimizePreset").addEventListener("change", (event) => {
+      options.preset = event.target.value;
+      $("optimizePresetText").textContent = (info.presets.find((preset) => preset.id === options.preset) || {}).text || "";
+    });
+    card.querySelector("#optimizeEffort").addEventListener("change", (event) => { options.effort = event.target.value; });
+    card.querySelector("#optimizeRun").addEventListener("click", runOptimize);
+    const stop = card.querySelector("#optimizeStop");
+    if (stop) stop.addEventListener("click", () => { if (optimize.job) engine.finish(optimize.job.id); });
+    const cancel = card.querySelector("#optimizeCancel");
+    if (cancel) cancel.addEventListener("click", () => { if (optimize.job) engine.cancel(optimize.job.id); });
+    body.replaceChildren(card);
+    showOptimizeProgress();
+    if (optimize.entry) body.append(...optimizeResult(optimize.entry));
+  }
+
+  function optimizeProgressHtml(job) {
+    return "<div class=\"run-progress\" id=\"optimizeProgress\"" + (job ? "" : " hidden") + "><div class=\"progress\" "
+      + "role=\"progressbar\" aria-label=\"Runs done\" aria-valuemin=\"0\" id=\"optimizeBar\"><span></span></div>"
+      + "<p class=\"progress-text\" id=\"optimizeProgressText\">Starting the search</p>"
+      + "<div class=\"run-row\"><button type=\"button\" class=\"button button-quiet\" id=\"optimizeStop\">Stop, show best "
+      + "so far</button><button type=\"button\" class=\"button button-quiet\" id=\"optimizeCancel\">Cancel</button></div>"
+      + "</div>";
+  }
+
+  // Move the search's bar and text in place, so Stop and Cancel keep focus while it runs.
+  function showOptimizeProgress() {
+    const job = state.optimize.job;
+    const bar = $("optimizeBar");
+    if (!bar || !job) return;
+    const detail = job.detail;
+    const planned = detail ? detail.planned : 1;
+    const runs = detail ? detail.runs : 0;
+    bar.querySelector("span").style.width = Math.min(1, runs / planned) * 100 + "%";
+    bar.setAttribute("aria-valuemax", String(planned));
+    bar.setAttribute("aria-valuenow", String(runs));
+    $("optimizeProgressText").textContent = optimizeStepText(detail)
+      + (detail && detail.gain != null ? " Best so far: score " + (detail.gain >= 0 ? "+" : "") + Math.round(detail.gain)
+        .toLocaleString("en-US") + "." : "");
+  }
+
+  async function runOptimize() {
+    const optimize = state.optimize;
+    if (optimize.job || state.error) return;
+    const inputsText = JSON.stringify(state.inputs);
+    const options = { effort: optimize.options.effort, preset: optimize.options.preset,
+      dimensions: { ...optimize.options.dimensions }, surplusLocked: state.surplusLocks.slice() };
+    if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
+    clearTimeout(mcTimer);
+    const job = engine.job("optimize", [inputsText, JSON.stringify(options), state.seed], null, (message) => {
+      if (!optimize.job) return;
+      optimize.job.detail = message.detail;
+      showOptimizeProgress();
+    });
+    optimize.job = { id: job.id, detail: null, inputsText, dropped: false };
+    optimize.message = null;
+    renderOptimize();
+    if ($("optimizeStop")) $("optimizeStop").focus();
+    let reply = null;
+    let failure = null;
+    try {
+      reply = await job.promise;
+    } catch (error) {
+      failure = String(error.message || error);
+    }
+    const { dropped } = optimize.job;
+    optimize.job = null;
+    if (failure) optimize.message = { error: true, text: failure };
+    else if (!reply) optimize.message = dropped ? { text: "The settings changed, so the search was dropped. Run it again." }
+      : { text: "Cancelled. Nothing was kept from the search" + (optimize.entry ? "; the last result stays." : ".") };
+    else if (!reply.value.ok) optimize.message = { error: true, text: reply.value.error };
+    else optimize.entry = { value: reply.value, inputsText, ms: reply.ms, appliedText: null };
+    renderOptimize();
+    scheduleMc();  // an automatic Monte Carlo waits for the search
+  }
+
+  function textTable(title, columns, rows) {
+    return "<div class=\"table-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"" + escapeText(title) + "\">"
+      + "<table class=\"data-table wrap-first\"><thead><tr>" + columns.map((name) => "<th scope=\"col\">"
+        + escapeText(name) + "</th>").join("") + "</tr></thead><tbody>" + rows.map((row) => "<tr>" + row.map((value,
+        position) => (position === 0 ? "<th scope=\"row\">" : "<td class=\"text\">") + escapeText(value)
+        + (position === 0 ? "</th>" : "</td>")).join("") + "</tr>").join("") + "</tbody></table></div>";
+  }
+
+  // Whether the settings now are the ones Apply wrote (so Undo is offered).
+  function optimizeApplied(entry) {
+    return entry.appliedText != null && entry.appliedText === JSON.stringify(state.inputs);
+  }
+
+  // Why Apply is off, or null when it may run.
+  function optimizeApplyProblem(entry) {
+    if (!entry.value.changed) return "Your current settings are already the best found.";
+    if (entry.inputsText !== JSON.stringify(state.inputs)) return "Your settings changed since this ran; run it again.";
+    return null;
+  }
+
+  function optimizeResult(entry) {
+    const result = entry.value;
+    const applied = optimizeApplied(entry);
+    const stale = !applied && entry.inputsText !== JSON.stringify(state.inputs);
+    const card = document.createElement("div");
+    card.className = "card" + (stale ? " stale-results" : "");
+    card.id = "optimizeResult";
+    const held = result.recheck.held;
+    const banner = (text, kind) => "<p class=\"banner" + (kind ? " banner-" + kind : "") + "\" role=\"note\">"
+      + escapeText(text) + "</p>";
+    const problem = optimizeApplyProblem(entry);
+    let html = (stale ? banner("The settings changed since this search. Run it again to update it; Apply is off.", "warn")
+      : "") + "<div class=\"card-head\"><h2>Best settings found</h2><span class=\"chart-note\">" + result.runs
+      + " runs Â· " + secondsText(entry.ms) + "</span></div>"
+      + "<p class=\"field-help\">" + escapeText(result.stopText) + "</p>"
+      + textTable("Best settings", result.columns, result.rows)
+      + "<h3>Score breakdown</h3>" + textTable("Score breakdown", ["Part", "Now", "Best", "Change"], result.breakdown)
+      + "<p class=\"field-help\">" + escapeText(result.footnote) + "</p>"
+      + banner(result.recheck.text, held === false ? "warn" : null)
+      + result.skipped.concat(result.notes).map((note) => "<p class=\"field-help\">" + escapeText(note) + "</p>").join("");
+    if (result.changes.length) {
+      html += "<details class=\"optimize-changes\"><summary>Settings that change (" + result.changes.length
+        + ")</summary><ul>" + result.changes.map((change) => "<li>" + escapeText(change.label) + ": "
+          + escapeText(change.from) + " â†’ " + escapeText(change.to) + "</li>").join("") + "</ul></details>";
+    }
+    if (applied) {
+      html += "<div class=\"run-row\"><span class=\"muted\" id=\"optimizeApplied\">Applied " + result.changes.length
+        + " settings.</span><button type=\"button\" class=\"button button-quiet\" id=\"optimizeUndo\">Undo</button></div>";
+    } else {
+      html += "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"optimizeApply\""
+        + (problem ? " disabled" : "") + ">Apply these settings</button></div>"
+        + (problem ? "<p class=\"field-help\" id=\"optimizeApplyWhy\">" + escapeText(problem) + "</p>"
+          : held === false ? "<p class=\"field-help\">This did not hold up on fresh draws; you can still apply it.</p>" : "");
+    }
+    card.innerHTML = html;
+    const apply = card.querySelector("#optimizeApply");
+    if (apply) apply.addEventListener("click", () => applyOptimum(entry));
+    const undo = card.querySelector("#optimizeUndo");
+    if (undo) undo.addEventListener("click", () => { undoLast(); renderOptimize(); });
+    return [card];
+  }
+
+  async function applyOptimum(entry) {
+    if (optimizeApplyProblem(entry)) return;
+    const inputsText = JSON.stringify(state.inputs);
+    const reply = await ask("applyOptimum", [inputsText, JSON.stringify(entry.value.changes)]);
+    if (!reply || inputsText !== JSON.stringify(state.inputs)) return;
+    if (!reply.ok) {
+      state.optimize.message = { error: true, text: reply.error };
+      renderOptimize();
+      return;
+    }
+    if (settleTimer) settle();  // an edit still settling is a step of its own
+    state.inputs = reply.inputs;
+    entry.appliedText = JSON.stringify(state.inputs);
+    renderSettings();
+    inputsChanged();
+    renderOptimize();
   }
 
   // The inputs a config name stands for, as stored now (no upgrade): the key the differences were found for.
@@ -2741,6 +2991,7 @@
     }
     if (panel.id === "strategies" && panel.fields.includes("strategies.qcd")) {
       group.append(warningsBox("strategy-warnings"));  // once, after the last strategy, as on the desktop
+      group.append(optimizeLink());
     }
     tintSections(group);
     return sections;
@@ -3273,6 +3524,15 @@
     }
     state.notes = reply.value;
     applyNotes();
+  }
+
+  // A quiet button under the strategies that opens Outputs, Optimize.
+  function optimizeLink() {
+    const row = document.createElement("div");
+    row.className = "run-row";
+    row.innerHTML = "<button type=\"button\" class=\"button button-quiet\" id=\"optimizeLink\">Find the best settings</button>";
+    row.querySelector("button").addEventListener("click", () => selectView("optimize"));
+    return row;
   }
 
   function warningsBox(id) {
@@ -6684,6 +6944,138 @@
     $("menuWalk").addEventListener("click", () => { closeMenu(); openWalk(); });
   }
 
+  // ---- The tour of the controls (the ? button in the top bar) ----
+  // One step per control: `place` (a tab and view, or null to stay put) opens where the control shows, `target` finds
+  // it and `when` (optional) says whether the step applies now. A step whose control is not drawn is skipped. Done,
+  // the close button and Escape put back the tab, view and scroll the tour started from.
+  const TOUR_STEPS = [
+    { title: "Setup, Inputs and Outputs", target: () => document.querySelector(".tabbar"),
+      text: "The bar at the bottom moves between the three parts of the app. Setup holds your scenarios and the run, "
+        + "Inputs your settings and Outputs the results." },
+    { title: "Groups of settings", place: ["inputs"], when: () => state.schema != null,
+      target: () => $("chips-settings"),
+      text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more." },
+    { title: "Pin the tabs", place: ["inputs"], when: () => state.schema != null, target: () => $("chipsPin"),
+      text: "The pin keeps the bubbles under the top bar while you scroll. Tap it to let them scroll away with the page." },
+    { title: "Swipe between groups", place: ["inputs"], when: () => state.schema != null,
+      target: () => $("panel-inputs"),
+      text: "Swipe the page sideways for the next or previous group. A swipe stays inside Inputs; "
+        + "use the bar at the bottom to reach Setup or Outputs." },
+    { title: "Outputs views", place: ["outputs"], target: () => $("views-outputs"),
+      text: "Tap a view, or swipe the page sideways: a swipe steps through the tabs under each view, "
+        + "then on to the next view. A swipe never leaves Outputs." },
+    { title: "Undo", target: () => $("undoButton"),
+      text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
+    { title: "Your scenarios", place: ["setup"], target: () => $("savedCard"),
+      text: "Setup shows the scenario you are working on: save, rename, duplicate, clear or export it. Below it you "
+        + "can open another scenario, start a new one or import a file." },
+    { title: "Walk me through it", target: () => $("menuButton"),
+      text: "The menu's Walk me through it asks one question at a time and fills in your settings. Where a topic "
+        + "has more detail, Go deeper adds its extra questions." },
+    { title: "The menu", target: () => $("menuButton"),
+      text: "The menu also holds Appearance (the color schemes), Help and tips, About and Legal." },
+    { title: "This tour", target: () => $("helpButton"),
+      text: "Tap ? any time to see this tour again." },
+  ];
+  const tour = { steps: [], at: 0, from: null };
+
+  function tourShown(element) {
+    return element != null && element.getClientRects().length > 0;
+  }
+
+  function openTour() {
+    if (!$("tour").hidden) return;
+    tour.steps = TOUR_STEPS.filter((step) => !step.when || step.when());
+    tour.from = { tab: state.tab, view: state.view, scroll: window.scrollY };
+    $("tour").hidden = false;
+    $("app").inert = true;
+    $("helpButton").setAttribute("aria-expanded", "true");
+    showTourStep(0, 1);
+    $("tourCard").focus();
+  }
+
+  function closeTour() {
+    if ($("tour").hidden) return;
+    $("tour").hidden = true;
+    $("app").inert = false;
+    $("helpButton").setAttribute("aria-expanded", "false");
+    const from = tour.from;
+    if (from && (from.tab !== state.tab || from.view !== state.view)) goTo(from.tab, from.view);
+    if (from) window.scrollTo(0, from.scroll);
+    $("helpButton").focus();
+  }
+
+  // Show step `at`, or the next one in `direction` (1 or -1) whose control is drawn; past either end the tour closes.
+  function showTourStep(at, direction) {
+    while (at >= 0 && at < tour.steps.length) {
+      const step = tour.steps[at];
+      if (step.place && (step.place[0] !== state.tab || (step.place[1] && step.place[1] !== state.view))) {
+        goTo(step.place[0], step.place[1] || state.view);
+      }
+      if (tourShown(step.target())) break;
+      at += direction;
+    }
+    if (at < 0 && tour.at >= 0 && direction < 0) { showTourStep(tour.at, 1); return; }  // nothing drawn before it
+    if (at < 0 || at >= tour.steps.length) { closeTour(); return; }
+    tour.at = at;
+    const step = tour.steps[at];
+    $("tourCount").textContent = (at + 1) + " of " + tour.steps.length;
+    $("tourTitle").textContent = step.title;
+    $("tourText").textContent = step.text;
+    $("tourBack").disabled = at === 0;
+    $("tourNext").textContent = at === tour.steps.length - 1 ? "Done" : "Next";
+    const target = step.target();
+    const box = target.getBoundingClientRect();
+    if (box.top < 0 || box.bottom > window.innerHeight) {
+      target.scrollIntoView({ block: "center" });
+    }
+    placeTourRing();
+  }
+
+  // The ring over the shown control (kept inside the screen), and the card on the half of the screen it leaves free.
+  function placeTourRing() {
+    if ($("tour").hidden) return;
+    const step = tour.steps[tour.at];
+    const target = step && step.target();
+    if (!tourShown(target)) return;
+    const box = target.getBoundingClientRect();
+    const pad = 6;
+    const top = Math.max(4, box.top - pad);
+    const bottom = Math.min(window.innerHeight - 4, box.bottom + pad);
+    const left = Math.max(4, box.left - pad);
+    const right = Math.min(window.innerWidth - 4, box.right + pad);
+    const ring = $("tourRing");
+    ring.style.top = top + "px";
+    ring.style.left = left + "px";
+    ring.style.width = Math.max(0, right - left) + "px";
+    ring.style.height = Math.max(0, bottom - top) + "px";
+    $("tourCard").dataset.place = (top + bottom) / 2 < window.innerHeight / 2 ? "bottom" : "top";
+  }
+
+  function wireTour() {
+    $("helpButton").setAttribute("aria-expanded", "false");
+    $("helpButton").addEventListener("click", openTour);
+    $("tourClose").addEventListener("click", closeTour);
+    $("tourBack").addEventListener("click", () => showTourStep(tour.at - 1, -1));
+    $("tourNext").addEventListener("click", () => {
+      if (tour.at >= tour.steps.length - 1) closeTour();
+      else showTourStep(tour.at + 1, 1);
+    });
+    // Ahead of the page's own Escape handling (capture), so Escape closes only the tour, wherever the focus is.
+    document.addEventListener("keydown", (event) => {
+      if ($("tour").hidden) return;
+      if (event.key === "Escape") { event.stopPropagation(); closeTour(); return; }
+      if (event.key === "Tab" && !$("tourCard").contains(document.activeElement)) {
+        event.preventDefault();
+        $("tourNext").focus();
+        return;
+      }
+      trapFocus(event, $("tourCard"));
+    }, true);
+    window.addEventListener("resize", placeTourRing);
+    window.addEventListener("scroll", placeTourRing, { passive: true });
+  }
+
   // ---- Wiring ----
   function wire() {
     for (const tab of document.querySelectorAll(".tab")) {
@@ -6741,6 +7133,7 @@
     wireTabsPin();
     wirePanelsSwipe();
     wireWalkSwipe();
+    wireTour();
     const placeBubbles = () => { placeBubble($("chips-settings"), false); placeBubble($("views-outputs"), false); };
     window.addEventListener("resize", placeBubbles);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBubbles);

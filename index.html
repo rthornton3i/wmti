@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-QT0IG4y99F7/71f7LuMUTvLO3z/NKxBRvEgLFLirC/o=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-9DncXVKRU6Jq6ywzf1LSr79AYxfbAJzVDvZ2IYA+4pU=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -221,6 +221,9 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
   animation: spin 0.9s linear infinite; }
 .status[data-state="error"] { background: var(--bad-soft); color: var(--bad); font-weight: 600; }
 .status[data-state="error"] .status-dot { background: var(--bad); }
+/* The pill shows only while a run is going or the settings need a fix: no "Ready" or "Up to date" when idle. */
+.status[data-state="idle"], .status[data-state="ok"] { display: none; }
+.help-glyph { font-size: 20px; font-weight: 700; line-height: 1; }
 .pinned { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding-top: 6px; }
 .pinned:empty { display: none; }
 .pin { min-width: 0; }
@@ -760,6 +763,25 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .menu-help { margin: 0; padding: 4px 6px 12px 38px; display: grid; gap: 6px; font-size: 14px; color: var(--ink-2);
   border-bottom: 1px solid var(--line); }
 
+/* The tour of the controls (the ? button): a clear layer over the page that takes every tap, a ring over the control
+   being shown (the open card's glow, with the rest of the page dimmed around it) and a card at the top or bottom. */
+.tour { position: fixed; inset: 0; z-index: 92; }
+.tour-ring { position: fixed; border-radius: 14px; pointer-events: none;
+  box-shadow: 0 0 0 3px var(--accent), 0 0 18px 4px color-mix(in srgb, var(--accent) 55%, transparent),
+  0 0 0 100vmax rgb(0 0 0 / 0.5); transition: top 200ms ease, left 200ms ease, width 200ms ease, height 200ms ease; }
+.tour-card { position: fixed; left: var(--gutter); right: var(--gutter); max-width: 30rem; margin-inline: auto;
+  display: grid; gap: 8px; padding: 14px 16px; border-radius: var(--radius); background: var(--surface);
+  color: var(--ink); box-shadow: 0 8px 28px var(--edge-shadow); }
+.tour-card[data-place="bottom"] { bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
+.tour-card[data-place="top"] { top: calc(env(safe-area-inset-top, 0px) + 16px); }
+.tour-card:focus { outline: none; }
+.tour-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tour-count { margin: 0; }
+.tour-title { margin: 0; font-size: 18px; }
+.tour-text { margin: 0; color: var(--ink-2); }
+.tour-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.tour-actions .button:disabled { opacity: 0.45; cursor: default; }
+
 /* Walkthrough: a full-screen layer over the page, one question at a time. Colors are the scheme tokens only (a test
    reads this block), so every scheme, Night lagoon included, draws it. Forward: the old screen slides out to the left
    while the new one slides in from the right, both fading (back: the reverse); transform and opacity only. */
@@ -961,10 +983,12 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <div id="app" class="app" hidden>
   <header class="topbar">
     <div class="topbar-row">
-      <span class="band-label" id="bandLabel">Outputs</span>
-      <span class="status" id="status" role="status" data-state="idle"><span class="status-dot"></span><span id="statusText">Ready</span></span>
       <button type="button" class="round-button" id="undoButton" aria-label="Undo" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+      <span class="band-label" id="bandLabel">Outputs</span>
+      <span class="status" id="status" role="status" data-state="idle"><span class="status-dot"></span><span id="statusText">Ready</span></span>
+      <button type="button" class="round-button" id="helpButton" aria-label="How to use this app" aria-haspopup="dialog" aria-controls="tour">
+        <span class="help-glyph" aria-hidden="true">?</span></button>
       <button type="button" class="round-button" id="menuButton" aria-label="Menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="menu">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
@@ -979,6 +1003,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
         <button type="button" role="tab" class="chip view-tab" id="sub-summary" data-view="summary" aria-controls="view-summary">Summary</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-optimize" data-view="optimize" aria-controls="view-optimize">Optimize</button>
       </div>
       <div class="chips-track" aria-hidden="true"><span></span></div>
     </div>
@@ -1003,7 +1028,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
     <section class="panel" id="panel-setup" data-tab="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
       <div class="card open-card" id="savedCard">
         <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
-        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, Clear empties every setting (Undo, top right, brings them back) and Export saves it as a file that the desktop dashboard also opens. Other scenarios lists the copies kept here: tap one to open it, the bin to delete it, or use its ... menu. Your current settings are also kept as you edit.</p>
+        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, Clear empties every setting (Undo, top left, brings them back) and Export saves it as a file that the desktop dashboard also opens. Other scenarios lists the copies kept here: tap one to open it, the bin to delete it, or use its ... menu. Your current settings are also kept as you edit.</p>
         <p class="open-name" id="loadedName"></p>
         <div class="open-status">
           <span class="dirty-dot" id="dirtyDot" aria-hidden="true"></span><span id="saveStatus" role="status"></span>
@@ -1079,6 +1104,9 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
       </div>
       <div class="subpanel" id="view-compare" data-view="compare" role="tabpanel" aria-labelledby="sub-compare" hidden>
         <div id="compare-body"></div>
+      </div>
+      <div class="subpanel" id="view-optimize" data-view="optimize" role="tabpanel" aria-labelledby="sub-optimize" hidden>
+        <div id="optimize-body"></div>
       </div>
     </section>
   </main>
@@ -1165,13 +1193,33 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
     <ul class="menu-help" id="menuHelp" hidden>
       <li>Tap the "i" beside a field or a heading for its help.</li>
       <li>Swipe a row of chips sideways for more groups; the bar under it shows where you are.</li>
-      <li>Swipe the page sideways to move to the next or previous Inputs group or Outputs view; past the last group it goes on to Outputs, before the first back to Setup, and from Setup on to Inputs.</li>
-      <li>Outputs reruns on its own after every change. Setup holds your scenarios (open, saved, new and imported) and the run; Undo (top right) steps back through your last changes.</li>
+      <li>Swipe the page sideways to move to the next or previous Inputs group, or on Outputs through the tabs under Summary and Plots and on to the next view (Compare, Optimize). A swipe never moves between Setup, Inputs and Outputs: use the bar at the bottom.</li>
+      <li>Outputs reruns on its own after every change. Setup holds your scenarios (open, saved, new and imported) and the run; Undo (top left) steps back through your last changes.</li>
+      <li>Tap ? (top right) for a short tour of the controls.</li>
     </ul>
     <button type="button" class="menu-item" id="menuAbout">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h0"/></svg><span>About</span></button>
     <button type="button" class="menu-item" id="menuLegal">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg><span>Legal</span></button>
+  </div>
+</div>
+
+<!-- The tour of the controls (the ? button): a ring over one control at a time and a card that names it, with Back,
+     Next (Done on the last step) and a close button; the page is inert meanwhile. app.js fills it (TOUR_STEPS). -->
+<div class="tour" id="tour" hidden>
+  <div class="tour-ring" id="tourRing" aria-hidden="true"></div>
+  <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText" tabindex="-1">
+    <div class="tour-head">
+      <p class="eyebrow tour-count" id="tourCount"></p>
+      <button type="button" class="walk-icon tour-close" id="tourClose" aria-label="Close the tour">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <h2 class="tour-title" id="tourTitle"></h2>
+    <p class="tour-text" id="tourText" aria-live="polite"></p>
+    <div class="tour-actions">
+      <button type="button" class="button button-quiet" id="tourBack">Back</button>
+      <button type="button" class="button" id="tourNext">Next</button>
+    </div>
   </div>
 </div>
 
@@ -1231,11 +1279,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "a3aa8e5a3adc", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "8bfe4007d618", pyodide: "0.29.5" };</script>
 <script src="legal.3250d44a4a.js"></script>
-<script src="shared.a1ec538126.js"></script>
+<script src="shared.ea62075c95.js"></script>
 <script src="charts.a69151b17d.js"></script>
-<script src="app.b157ed7625.js"></script>
+<script src="app.8fc9e78671.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

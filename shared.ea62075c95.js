@@ -306,6 +306,7 @@
   const ROUTES = {
     setup: ["setup", null], inputs: ["inputs", null], outputs: ["outputs", null],
     summary: ["outputs", "summary"], plots: ["outputs", "plots"], compare: ["outputs", "compare"],
+    optimize: ["outputs", "optimize"],
     results: ["outputs", "summary"], settings: ["setup", null], household: ["setup", null], config: ["inputs", null],
     more: ["setup", null], benefits: ["inputs", null, "savings"], savings: ["inputs", null, "savings"],
     healthcare: ["inputs", null, "healthcare"], retirement: ["inputs", null, "retirement"],
@@ -1047,13 +1048,36 @@
     return { entry: stack[stack.length - 1], stack: stack.slice(0, -1) };
   }
 
+  // The strategy search's progress line (the desktop's wmti.dashboard.optimizing.progressText): the step, the settings
+  // tried, the runs and, once a run has been timed, the seconds left (`optimizeSecondsLeft`).
+  function optimizeStepText(detail) {
+    if (!detail) return "Starting the search";
+    const head = detail.phase === "recheck" ? "Re-checking the best settings on fresh draws"
+      : detail.step ? "Step " + detail.step + " of " + detail.steps + ": " + detail.label : detail.label;
+    const left = optimizeSecondsLeft(detail);
+    return head + ". " + detail.tried + " settings tried, " + detail.runs + " runs"
+      + (left == null ? "" : "; about " + Math.round(left) + " s left") + ".";
+  }
+
+  // An upper bound on the search's seconds left: the measured time per run times the planned runs left, held under the
+  // time cap while it searches; null before the first run.
+  function optimizeSecondsLeft(detail) {
+    if (!detail || !detail.runs) return null;
+    const perRun = detail.elapsed / detail.runs;
+    let left = perRun * Math.max(0, detail.planned - detail.runs);
+    if (detail.timeCap != null && detail.phase === "search") {
+      left = Math.min(left, Math.max(0, detail.timeCap - detail.elapsed) + perRun * (detail.planned - detail.budget));
+    }
+    return isFinite(left) ? left : null;
+  }
+
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
-    changedPaths, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
+    changedPaths, optimizeStepText, optimizeSecondsLeft, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

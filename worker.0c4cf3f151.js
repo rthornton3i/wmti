@@ -5,7 +5,8 @@
 // then {id, kind: "result" | "error" | "progress" | "dropped"}. A Monte Carlo ("monteCarlo") or a comparison
 // ("compare") runs in time-sized batches; the worker yields to its message queue between calls and between batches,
 // so a newer request or a cancel ({fn: "cancel", target}) is seen within one batch. One batched job runs at a time; a
-// new one replaces the old, which is answered "dropped".
+// new one replaces the old, which is answered "dropped". A strategy search ("optimize") is batched too; a finish
+// ({fn: "finish", target}) stops it and keeps the best so far, which the next batch posts as its result.
 "use strict";
 
 // The host refuses .whl and .zip files, so they are published as *_whl.wasm / *_zip.wasm with unchanged bytes.
@@ -20,10 +21,11 @@ const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "ch
   "setPartner", "syncRollover", "importScenario", "exportScenario", "runSingle", "runTables", "runFrames", "rebalanceSurplus",
   "settingsNotes", "compareVariants", "benefitTables", "earningsPreview", "depositSliders", "moveDeposit",
   "matchProblems", "compareDifferences", "mergeCompareDifference",
-  "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply"]);
+  "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply", "optimizeInfo",
+  "applyOptimum"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
-const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare" };
-const MODEL_FILE = "wmti.43023b357e.wasm";  // the build gives it a content-hashed name
+const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
+const MODEL_FILE = "wmti.0f0088ae51.wasm";  // the build gives it a content-hashed name
 const queue = [];
 let pyodide = null;
 let web = null;
@@ -106,7 +108,7 @@ function advanceBatched() {
     pyodide.runPython("import gc\ngc.collect()");
   } else {
     post({ id: job.id, kind: "progress", done: progress.done, total: progress.total, scenario: progress.scenario,
-      ms: Math.round(performance.now() - job.started) });
+      detail: progress.detail, ms: Math.round(performance.now() - job.started) });
   }
 }
 
@@ -140,6 +142,10 @@ self.onmessage = (event) => {
     for (let position = queue.length - 1; position >= 0; position -= 1) {
       if (queue[position].id === job.target) post({ id: queue.splice(position, 1)[0].id, kind: "dropped" });
     }
+    return;
+  }
+  if (job.fn === "finish") {
+    if (batched && batched.id === job.target) batched.batches.stop();
     return;
   }
   if (job.lane) {
