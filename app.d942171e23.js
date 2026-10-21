@@ -160,7 +160,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.43386f27f6.js");
+      worker = new Worker("worker.0ac260533d.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1581,13 +1581,19 @@
   function compareResult(entry, stale) {
     const result = entry.value;
     const top = document.createElement("div");
+    // Why the after-tax column can be above Median final (accounts only), behind the "i" beside the heading.
+    const about = titleHelp("h2", "Comparison", result.afterTaxHelp);
+    // The rate and its source stay on screen; the after-tax caption (how r* is read) is behind its "i".
+    const source = /rate of [\d.]+% \(([^)]*)\)/.exec(result.caption);
+    const rateNote = noteHelp("Terminal tax rate " + percent(result.terminalRate, 1) + (source ? " (" + source[1] + ")"
+      : "") + ".", result.caption, "field-help");
     top.className = "card" + (stale ? " stale-results" : "");
     top.innerHTML = (stale ? "<p class=\"banner banner-warn\" role=\"note\">The settings, selection, runs or seed "
       + "changed since this comparison. Press Run to update it; the figures below are from the earlier run.</p>" : "")
-      + "<div class=\"card-head\"><h2>Comparison</h2><span class=\"chart-note\">" + result.runs + " runs each · seed "
-      + escapeText(result.seed) + " · " + secondsText(entry.ms) + "</span></div>"
+      + "<div class=\"card-head\">" + about.head + "<span class=\"chart-note\">" + result.runs + " runs each · seed "
+      + escapeText(result.seed) + " · " + secondsText(entry.ms) + "</span></div>" + about.text
       + charts.renderUnitsTable(result.table, result.columnUnits, { title: "Comparison", wrapFirst: true })
-      + "<p class=\"field-help\">" + escapeText(result.caption) + "</p>"
+      + rateNote.head + rateNote.text
       + result.warnings.map((warning) => "<p class=\"banner banner-warn\" role=\"note\">" + escapeText(warning)
         + "</p>").join("");
     const parts = [top];
@@ -1617,6 +1623,9 @@
     + "pauses the search, and it carries on when you come back.";
   const OPTIMIZE_PAUSED_TEXT = "Paused while the app was in the background";
   const OPTIMIZE_RESUMED_TEXT = "Resumed";
+  // A checkpoint can be a few hundred KB, so it is written at most this often while the search runs, and at once when
+  // the search pauses (background, run cap) or the page hides.
+  const OPTIMIZE_CHECKPOINT_MS = 5000;
 
   function optimizeShown() {
     return state.tab === "outputs" && state.view === "optimize";
@@ -1635,8 +1644,8 @@
   }
 
   // ---- The search and the screen: a Screen Wake Lock keeps the phone awake while it runs; in the background it
-  // pauses (the worker holds it after its batch) and comes back on its own; after every batch its checkpoint is kept,
-  // so a search the browser closed can be resumed on the same settings after a reload. ----
+  // pauses (the worker holds it after its batch) and comes back on its own; its checkpoint is kept every few seconds
+  // and whenever it pauses, so a search the browser closed can be resumed on the same settings after a reload. ----
 
   // The interrupted search kept for the current inputs and seed, or null; one kept for other settings is cleared.
   function savedOptimizeSearch() {
@@ -1651,6 +1660,14 @@
 
   function clearOptimizeCheckpoint() {
     try { localStorage.removeItem(OPTIMIZE_CHECKPOINT_KEY); } catch (error) { /* storage blocked: nothing kept */ }
+  }
+
+  // Write the search's latest checkpoint, if one is waiting.
+  function writeOptimizeCheckpoint(job) {
+    if (!job || !job.checkpoint || state.clearing) return;
+    store(OPTIMIZE_CHECKPOINT_KEY, job.checkpoint);
+    job.checkpoint = null;
+    job.checkpointAt = Date.now();
   }
 
   async function holdScreenOn() {
@@ -1678,6 +1695,7 @@
     if (document.visibilityState === "hidden") {
       if (job.paused) return;
       job.paused = true;
+      writeOptimizeCheckpoint(job);
       letScreenSleep(job);  // the browser lets a screen lock go with the page anyway
       engine.pause(job.id);
       job.backgroundText = OPTIMIZE_PAUSED_TEXT;
@@ -1691,6 +1709,7 @@
     showOptimizeProgress();
   }
   document.addEventListener("visibilitychange", optimizeVisibilityChanged);
+  window.addEventListener("pagehide", () => writeOptimizeCheckpoint(state.optimize.job));
 
   async function loadOptimizeInfo() {
     if (state.optimize.info) return;
@@ -1717,12 +1736,14 @@
     const presets = info.presets.map((preset) => [preset.id, preset.label]);
     const efforts = info.efforts.map((effort) => [effort.id, effort.label + " (" + effort.text.phone + ")"]);
     const presetText = (info.presets.find((preset) => preset.id === options.preset) || {}).text || "";
+    // What the chosen risk preference weighs, behind an "i" (its text follows the select).
+    const presetHelp = noteHelp("What the risk preference weighs", presetText, "field-help", "optimizePresetText");
     const saved = optimize.job ? null : savedOptimizeSearch();
     card.innerHTML = (state.error ? errorBanner(state.error) : "") + "<div class=\"card-head\">" + about.head + "</div>"
       + about.text + "<p class=\"field-help\">" + escapeText(info.notAdvice) + "</p><div id=\"optimizeSwitches\"></div>"
       + "<div class=\"pair\">" + selectHtml("optimizePreset", "Risk preference", presets, options.preset)
       + selectHtml("optimizeEffort", "Effort", efforts, options.effort) + "</div>"
-      + "<p class=\"field-help\" id=\"optimizePresetText\">" + escapeText(presetText) + "</p>"
+      + presetHelp.head + presetHelp.text
       + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"optimizeRun\""
       + (optimize.job || state.error ? " disabled" : "") + ">Find best settings</button></div>"
       + (saved ? "<div class=\"run-progress\" id=\"optimizeResumeOffer\" role=\"group\" aria-labelledby=\""
@@ -1820,7 +1841,9 @@
       (message) => {
         if (!optimize.job) return;
         if (message.checkpoint && message.checkpoint !== "null" && !state.clearing) {
-          store(OPTIMIZE_CHECKPOINT_KEY, { key, optionsText, checkpoint: message.checkpoint });
+          optimize.job.checkpoint = { key, optionsText, checkpoint: message.checkpoint };
+          if (optimize.job.paused || (message.detail && message.detail.capped)
+            || Date.now() - optimize.job.checkpointAt >= OPTIMIZE_CHECKPOINT_MS) writeOptimizeCheckpoint(optimize.job);
         }
         const wasCapped = Boolean(optimize.job.detail && optimize.job.detail.capped);
         optimize.job.detail = message.detail;
@@ -1830,7 +1853,7 @@
         }
       });
     optimize.job = { id: job.id, detail: null, inputsText, dropped: false, paused: false, backgroundText: null,
-      wakeLock: null };
+      wakeLock: null, checkpoint: null, checkpointAt: 0 };
     optimize.message = null;
     renderOptimize();
     if ($("optimizeStop")) $("optimizeStop").focus();
@@ -2868,12 +2891,12 @@
       const card = chartCard(spec);
       if (id === (view.charts || [view.id])[0]) addChartHelp(card, view.label, view.intro);
       if (spec.type === "histogram") {
-        const note = document.createElement("p");
-        note.className = "muted";
-        note.textContent = "The chart leaves out the lowest and highest " + spec.trimmed.percent + "% of runs (below "
-          + fullMoney(spec.trimmed.low) + " or above " + fullMoney(spec.trimmed.high) + ") so a few extreme outcomes do "
-          + "not stretch the axis; the percentile table under Summary counts every run.";
-        card.append(note);
+        // The trim and its bounds stay on screen; why, behind the "i".
+        const note = noteHelp("Leaves out the lowest and highest " + spec.trimmed.percent + "% of runs (below "
+          + fullMoney(spec.trimmed.low) + " or above " + fullMoney(spec.trimmed.high) + ").", "The chart leaves out "
+          + "the extreme runs so a few outcomes do not stretch the axis; the percentile table under Summary counts every "
+          + "run.", "muted");
+        card.insertAdjacentHTML("beforeend", note.head + note.text);
       }
       if (stale) card.classList.add("stale-results");
       figures.push([card.querySelector("figure"), spec]);
@@ -2896,8 +2919,16 @@
       + "IRMAA is not in the tax figure.");
     card.innerHTML = "<div class=\"card-head\">" + about.head + "<span class=\"chart-note\">"
       + escapeText(dollarsText(tables.dollars)) + "</span></div>" + about.text
-      + charts.renderFrame(tables.rmdSchedule, { title: "RMD schedule" }) + listHtml(tables.rmdNotes);
+      + charts.renderFrame(tables.rmdSchedule, { title: "RMD schedule" }) + rmdNotesHtml(tables.rmdNotes);
     return card;
+  }
+
+  // The RMD rules notes as a list behind an "i" beside a short Notes line (the desktop's Notes tooltip).
+  function rmdNotesHtml(notes) {
+    if (!notes || !notes.length) return "";
+    const id = newHelpId();
+    return "<div class=\"title-help note-help\"><p class=\"field-label\">Notes</p>" + helpButtonHtml("the RMD notes", id)
+      + "</div>" + listHtml(notes).replace("<ul class=\"notes\">", "<ul class=\"notes\" id=\"" + id + "\" hidden>");
   }
 
   // ---- Settings ----
@@ -2928,16 +2959,19 @@
       const cell = (value) => "<td>" + (strong ? "<strong>" + fullMoney(value) + "</strong>" : fullMoney(value)) + "</td>";
       return "<tr><th scope=\"row\">" + escapeText(row.item) + "</th>" + cell(row.monthly) + "</tr>";
     };
-    const about = counted ? titleHelp("h2", "Total expenses", counted.totalsHelp)
-      : { head: "<h2>Total expenses</h2>", text: "" };
+    // What the rows count, behind the heading's "i" rather than on screen.
+    const about = titleHelp("h2", "Total expenses", counted ? counted.totalsHelp + " " + EXPENSE_COUNTED_NOTE
+      : EXPENSE_ROWS_NOTE + " " + EXPENSE_COUNTED_NOTE);
     card.innerHTML = about.head + about.text + "<table class=\"data-table\"><thead><tr><th scope=\"col\">Expenses</th>"
       + "<th scope=\"col\">Monthly</th></tr></thead><tbody>"
       + totals.entered.map((row) => line(row, false)).join("")
       + (totals.counted ? line(totals.counted, false) : "")
       + line(totals.total || { item: "Total expenses", monthly: null }, true)
-      + "</tbody></table><p class=\"field-help\">Major Spending and Charity count the rows paid this year, at your age "
-      + "today; Bills - Other is what the other tabs charge in the first year of the run.</p>";
+      + "</tbody></table>";
   }
+
+  const EXPENSE_ROWS_NOTE = "Major Spending and Charity count the rows paid this year, at your age today.";
+  const EXPENSE_COUNTED_NOTE = "Bills - Other is what the other tabs charge in the first year of the run.";
 
   // The read-only card at the top of the Expenses chip: the costs other tabs already charge (from the settings notes),
   // so they are not entered again as expense rows, in one table under their one group (Bills - Other;
@@ -3308,10 +3342,11 @@
     plan.className = "plan-details";
     plan.open = state.planOpen;
     plan.addEventListener("toggle", () => { state.planOpen = plan.open; });
-    plan.innerHTML = "<summary>Household plan (used until you set account amounts)</summary><p class=\"info-box\">"
-      + "Each person's Traditional deposit and employer match go into the first Traditional account they own (a 401k "
-      + "before an IRA), else the first Traditional account; the Roth deposit goes into the first Roth account. The "
-      + "yearly limits come from the law data.</p>";
+    const where = noteHelp("Which account each deposit goes into", "Each person's Traditional deposit and employer "
+      + "match go into the first Traditional account they own (a 401k before an IRA), else the first Traditional "
+      + "account; the Roth deposit goes into the first Roth account. The yearly limits come from the law data.",
+      "field-label", null, "info-box");
+    plan.innerHTML = "<summary>Household plan (used until you set account amounts)</summary>" + where.head + where.text;
     for (const child of children) plan.append(fieldElement(child, path + "." + child.name));
     return [plan];
   }
@@ -3320,7 +3355,9 @@
     const part = document.createElement("div");
     part.className = "surplus deposits";
     part.id = "deposits";
-    part.innerHTML = "<p class=\"field-label deposit-title\">Deposit per account</p><div class=\"surplus-body\" "
+    // The deposits explanation (`depositSliders` caption) sits behind the title's "i" (depositRows fills it).
+    part.innerHTML = "<div class=\"title-help\"><p class=\"field-label deposit-title\">Deposit per account</p>"
+      + helpButtonHtml("Deposit per account", "deposit-caption") + "</div><div class=\"surplus-body\" "
       + "id=\"depositBody\"><p class=\"note\">Reading the limits</p></div>";
     return part;
   }
@@ -3378,8 +3415,11 @@
 
   function depositRows(deposits) {
     const caption = document.createElement("p");
-    caption.className = "info-box";  // the deposit-per-account explanation
+    caption.className = "field-help info-box";  // the deposit-per-account explanation, behind the title's "i"
+    caption.id = "deposit-caption";
     caption.textContent = deposits.caption;
+    const button = document.querySelector("[aria-controls=\"deposit-caption\"]");
+    caption.hidden = !button || button.getAttribute("aria-expanded") !== "true";  // a rebuild keeps it open or shut
     const parts = [caption];
     deposits.owners.forEach((heading, owner) => {
       const owned = deposits.accounts.map((item, position) => [item, position]).filter(([item]) => item.owner === owner);
@@ -3858,7 +3898,7 @@
     + "final net worth after terminal tax on this tab; saved with a config, it is how strategies are compared after "
     + "tax (the after-tax columns of Compare). Leave it blank to use the model's estimate shown in the box; type a rate "
     + "to use your own.";
-  const AFTER_TAX_LABEL = "Final net worth after terminal tax";
+  const AFTER_TAX_LABEL = "Final net worth after terminal tax, incl. home and cars";
 
   function renderTerminalRate(shown) {
     const holder = $("terminal-card");
@@ -3889,10 +3929,12 @@
       updateTerminalRate();
     });
     row.append(reset);
-    const caption = document.createElement("p");
-    caption.className = "field-help";
-    caption.id = "terminal-caption";
-    wrap.append(row, caption);
+    // The estimate stays on screen; how it was found sits behind the "i" beside it (updateTerminalRate fills both).
+    const note = document.createElement("div");
+    note.className = "title-help note-help";
+    note.innerHTML = "<p class=\"field-help\" id=\"terminal-caption\"></p>" + helpButtonHtml("the model's estimate",
+      "terminal-basis") + helpTextHtml("terminal-basis", "");
+    wrap.append(row, note, note.querySelector("#terminal-basis"));  // the hidden text moves below the line
     return [wrap];
   }
 
@@ -3906,8 +3948,11 @@
     $("terminal-reset").disabled = value == null;
     const advice = state.notes ? state.notes.terminalRate : null;
     input.placeholder = advice ? (advice.recommended * 100).toFixed(1) + " (model's estimate)" : "Model's estimate";
-    $("terminal-caption").textContent = advice ? advice.caption + (value == null ? "."
+    // "Model's estimate 20%" on screen, the rest of the caption (how it was found) behind the "i".
+    const figure = advice ? advice.caption.split(": ")[0] : "";
+    $("terminal-caption").textContent = advice ? figure + (value == null ? "."
       : "; the rate typed here is used instead.") : "";
+    $("terminal-basis").textContent = advice ? advice.caption + "." : "";
   }
 
   // ---- Help: an "i" button that shows or hides an explanation in place; one click handler in wire() ----
@@ -3933,6 +3978,15 @@
     const id = newHelpId();
     return { head: "<div class=\"title-help\"><" + tag + (className ? " class=\"" + className + "\"" : "") + ">"
       + escapeText(label) + "</" + tag + ">" + helpButtonHtml(label, id) + "</div>", text: helpTextHtml(id, help) };
+  }
+
+  // A short line kept on screen with an "i" beside it: the longer explanation (`help`) is hidden until tapped, so no
+  // large block of text shows. `textId` names the hidden text when the caller updates it later; `textClass` adds a
+  // class to it (such as "info-box").
+  function noteHelp(short, help, className, textId, textClass) {
+    const id = textId || newHelpId();
+    return { head: "<div class=\"title-help note-help\"><p class=\"" + className + "\">" + escapeText(short) + "</p>"
+      + helpButtonHtml(short, id) + "</div>", text: helpTextHtml(id, help, textClass) };
   }
 
   // Put an "i" button beside a chart's title and its explanation under the title.
