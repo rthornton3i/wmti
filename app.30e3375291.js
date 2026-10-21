@@ -154,7 +154,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.1223fcfab8.js");
+      worker = new Worker("worker.a3f61cbc88.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -3732,18 +3732,8 @@
     inputsChanged();
   }
 
-  // Fields with their own control: the surplus share (moved by the sliders under Accounts) and the account owner (its
-  // choices depend on the household).
+  // Fields with their own control: the Social Security basis.
   function specialField(field, path, value) {
-    if (/^accounts\.\d+\.surplusShare$/.test(path)) {
-      const wrap = fieldShell(field.label, field.help, null);
-      const note = document.createElement("p");
-      note.className = "info-box";
-      note.textContent = percent(value, 1) + ". Set it under “Where surplus cash goes” on the Accounts page; the shares "
-        + "are scaled to total 100% and only cash and Investments accounts receive surplus.";
-      wrap.append(note);
-      return wrap;
-    }
     if (/^(you|partner)\.socialSecurityBasis$/.test(path)) return basisToggle(field, path, value);
     if (/^(you|partner)\.employerMatch\.percent$/.test(path)) return matchPercentField(field, path);
     return null;
@@ -5035,7 +5025,7 @@
       const last = chain.reduce((latest, segment) => (segment.startAge > latest.startAge ? segment : latest));
       const plan = timelineButton(words.start.last, "plan", "button-primary");
       plan.addEventListener("click", () => openTimeline(kind, last.endAge == null && last.mode !== "rent" ? "sell" : "next",
-        { position: last.position, lane: 0, year: last.endAge == null ? null : timelineYear(last.endAge) + 1 }));
+        { position: last.position, lane: 0, year: last.endAge == null ? null : timelineYear(last.endAge) }));
       starts.append(plan);
     }
     parts.push(starts);
@@ -5221,7 +5211,7 @@
         if (choice.value() === "yes") {
           const saleYear = Number(year.input.value);
           const result = await timelineStep({ op: "sell", position: flow.position, saleAge: timelineAge(saleYear) });
-          if (result) timelineGo("next", { year: saleYear + 1 });
+          if (result) timelineGo("next", { year: saleYear });  // the next one starts in the sale year
         } else if (choice.value() === "no") {
           if (await timelineStep({ op: "keep", position: flow.position })) timelineClose();
         }
@@ -5264,7 +5254,7 @@
         const fields = { name: name.input.value, mode: "rent", monthlyRent: Number(monthly.input.value),
           purchaseAge: timelineAge(Number(start.input.value)), saleAge: endYear == null ? null : timelineAge(endYear) };
         if (await timelineStep({ op: "buy", lane: 0, fields })) {
-          timelineGo("next", { rentDone: true, year: endYear == null ? null : endYear + 1 });
+          timelineGo("next", { rentDone: true, year: endYear == null ? null : endYear });
         }
       };
     } else if (flow.step === "lease") {
@@ -5286,7 +5276,7 @@
         const result = await timelineStep(op);
         if (!result) return;
         if (endYear == null) timelineClose();
-        else timelineGo("next", { position: result.position, year: endYear + 1 });
+        else timelineGo("next", { position: result.position, year: endYear });
       };
     } else if (flow.step === "edit" && isRent) {
       const period = items[flow.position];

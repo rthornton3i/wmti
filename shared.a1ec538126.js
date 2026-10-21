@@ -130,8 +130,7 @@
   // not name follow in schema order, so a new input is never dropped from its sheet.
   const SHEET_LAYOUTS = {
     Account: {
-      order: ["name", "kind", "owner", "startingValue", "meanReturn", "returnStdDev", "costBasis", "iraBasis",
-        "surplusShare"],
+      order: ["name", "kind", "owner", "startingValue", "meanReturn", "returnStdDev", "costBasis", "iraBasis"],
       groups: { meanReturn: "returns", returnStdDev: "returns", costBasis: "returns", iraBasis: "returns" },
     },
     // Drawn in titled sections by each field's schema group (Value, Loan, Commute, Running costs, Replacement, Lease);
@@ -178,6 +177,7 @@
     }
     if (typeName === "Account") {
       if (name === "deposit") return "set per account on the Benefits page";
+      if (name === "surplusShare") return "set under Where surplus cash goes on the Accounts page";
       if (name === "autoCreated") return "set by the Roth conversion switch";
       if (name === "costBasis" && item.kind !== rules.costBasisKind) return rules.costBasisKind + " accounts only";
       if (name === "iraBasis" && item.kind !== rules.iraBasisKind) return rules.iraBasisKind + " accounts only";
@@ -607,7 +607,7 @@
 
   // The ages a home is held, from its purchase age (or always) to its sale age (or always), as
   // wmti.homes.homes.primaryPeriods; and whether two such periods share a year other than a move year (one's sale age
-  // is the other's purchase age), as periodsOverlap.
+  // is the other's purchase age: the new home counts for that year), as periodsOverlap.
   function primaryPeriod(home) {
     return [home.buysLater && home.purchaseAge != null ? home.purchaseAge : -Infinity,
       home.sellsLater && home.saleAge != null ? home.saleAge : Infinity];
@@ -682,7 +682,8 @@
         row = { lane: segment.lane, bars: [] };
         lanes.push(row);
       }
-      const end = segment.endAge == null ? high : segment.endAge;
+      // A segment that hands its end year to the next one is drawn up to the year before; the next one fills it.
+      const end = segment.endAge == null ? high : segment.endAge - (segment.handsOver ? 1 : 0);
       row.bars.push({ mode: segment.mode, name: segment.name, text: segment.text, position: segment.position,
         left: ((segment.startAge - low) / span) * 100, width: ((end - segment.startAge + 1) / span) * 100 });
     }
