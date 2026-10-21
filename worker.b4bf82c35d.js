@@ -26,10 +26,10 @@ const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "ch
   "settingsNotes", "compareVariants", "benefitTables", "earningsPreview", "depositSliders", "moveDeposit",
   "matchProblems", "compareDifferences", "mergeCompareDifference",
   "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply", "optimizeInfo",
-  "applyOptimum"]);
+  "optimizeAvailability", "applyOptimum"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
-const MODEL_FILE = "wmti.8a8e7cc63d.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.bd31fad7af.wasm";  // the build gives it a content-hashed name
 const queue = [];
 let pyodide = null;
 let web = null;

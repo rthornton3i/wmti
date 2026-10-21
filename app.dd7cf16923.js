@@ -127,7 +127,7 @@
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null },
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null, diffs: null, diffsPending: null, mergeUndo: [] },
-    optimize: { info: null, job: null, entry: null, message: null,
+    optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
       options: { effort: null, preset: null, dimensions: {} } },
   };
   const $ = (id) => document.getElementById(id);
@@ -160,7 +160,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.0ac260533d.js");
+      worker = new Worker("worker.b4bf82c35d.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1711,6 +1711,27 @@
   document.addEventListener("visibilitychange", optimizeVisibilityChanged);
   window.addEventListener("pagehide", () => writeOptimizeCheckpoint(state.optimize.job));
 
+  // Which search options can be used for the settings now (`optimizeAvailability`), asked once per settings and seed;
+  // an option that cannot be used is greyed out with its reason and left out of the search.
+  async function loadOptimizeAvailability() {
+    const optimize = state.optimize;
+    const key = JSON.stringify([state.inputs, state.seed]);
+    if ((optimize.availability && optimize.availability.key === key) || optimize.availabilityPending === key) return;
+    optimize.availabilityPending = key;
+    const reply = await ask("optimizeAvailability", [JSON.stringify(state.inputs), state.seed]);
+    if (optimize.availabilityPending === key) optimize.availabilityPending = null;
+    if (!reply || !reply.ok || key !== JSON.stringify([state.inputs, state.seed])) return;
+    optimize.availability = { key, options: reply.options };
+    if (optimizeShown() && !optimize.job) renderOptimize();
+  }
+
+  // The search option as the settings now allow it: {available, reason}; available until the answer comes.
+  function optimizeOption(key) {
+    const availability = state.optimize.availability;
+    const current = availability && availability.key === JSON.stringify([state.inputs, state.seed]);
+    return (current && availability.options[key]) || { available: true, reason: null };
+  }
+
   async function loadOptimizeInfo() {
     if (state.optimize.info) return;
     const info = await ask("optimizeInfo", []);
@@ -1754,10 +1775,18 @@
         + "button-quiet\" id=\"optimizeDiscard\">Discard</button></div></div>" : "")
       + optimizeProgressHtml(optimize.job) + messageHtml(optimize.message);
     const switches = card.querySelector("#optimizeSwitches");
+    const availability = optimize.availability;
+    // Whether the switches show the answer for the settings now (tests wait for it).
+    switches.dataset.ready = String(Boolean(availability
+      && availability.key === JSON.stringify([state.inputs, state.seed])));
     for (const dimension of info.dimensions) {
-      switches.append(switchField(dimension.label, "Untick to keep its current setting.", "optimizeDim-" + dimension.key,
-        options.dimensions[dimension.key] !== false, (checked) => { options.dimensions[dimension.key] = checked; }));
+      const option = optimizeOption(dimension.key);
+      switches.append(switchField(dimension.label, dimension.help + " Untick to keep its current setting.",
+        "optimizeDim-" + dimension.key, option.available && options.dimensions[dimension.key] !== false,
+        (checked) => { options.dimensions[dimension.key] = checked; }, !option.available,
+        option.available ? null : "Not available: " + option.reason + "."));
     }
+    loadOptimizeAvailability();
     card.querySelector("#optimizePreset").addEventListener("change", (event) => {
       options.preset = event.target.value;
       $("optimizePresetText").textContent = (info.presets.find((preset) => preset.id === options.preset) || {}).text || "";
@@ -1825,14 +1854,22 @@
     $("optimizeStop").focus();
   }
 
+  // The options' switches as the search takes them: an option that cannot be used is off.
+  function optimizeDimensions() {
+    const dimensions = { ...state.optimize.options.dimensions };
+    for (const dimension of state.optimize.info.dimensions) {
+      if (!optimizeOption(dimension.key).available) dimensions[dimension.key] = false;
+    }
+    return dimensions;
+  }
+
   // Start a search on the current settings, or resume `saved` (`savedOptimizeSearch`) with its own options.
   async function runOptimize(saved = null) {
     const optimize = state.optimize;
     if (optimize.job || state.error) return;
     const inputsText = JSON.stringify(state.inputs);
     const optionsText = saved ? saved.optionsText : JSON.stringify({ effort: optimize.options.effort,
-      preset: optimize.options.preset, dimensions: { ...optimize.options.dimensions },
-      surplusLocked: state.surplusLocks.slice() });
+      preset: optimize.options.preset, dimensions: optimizeDimensions(), surplusLocked: state.surplusLocks.slice() });
     const seed = state.seed;
     const key = optimizeCheckpointKey(inputsText, optionsText, seed);
     if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
@@ -1925,8 +1962,8 @@
           + escapeText(change.from) + " â†’ " + escapeText(change.to) + "</li>").join("") + "</ul></details>";
     }
     if (applied) {
-      html += "<div class=\"run-row\"><span class=\"muted\" id=\"optimizeApplied\">Applied " + result.changes.length
-        + " settings.</span><button type=\"button\" class=\"button button-quiet\" id=\"optimizeUndo\">Undo</button></div>";
+      html += "<div class=\"run-row\"><span class=\"muted\" id=\"optimizeApplied\">Applied "
+        + escapeText(result.applyText) + ".</span><button type=\"button\" class=\"button button-quiet\" id=\"optimizeUndo\">Undo</button></div>";
     } else {
       html += "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"optimizeApply\""
         + (problem ? " disabled" : "") + ">Apply these settings</button></div>"
@@ -4058,7 +4095,8 @@
     return wrap;
   }
 
-  function switchField(label, help, id, checked, onChange) {
+  // A labelled switch; `disabled` greys it out with `note` (why) shown under it.
+  function switchField(label, help, id, checked, onChange, disabled = false, note = null) {
     const wrap = fieldShell(label, help, null);
     const head = wrap.querySelector(".field-head");
     head.classList.add("switch-row");
@@ -4073,6 +4111,18 @@
     const help_ = head.querySelector(".help-button");
     head.insertBefore(holder, help_ || null);
     head.querySelector(".field-label").style.flex = "1";
+    if (disabled) {
+      input.disabled = true;
+      wrap.classList.add("field-disabled");
+    }
+    if (note) {
+      const why = document.createElement("p");
+      why.className = "field-help switch-note";
+      why.id = id + "-note";
+      why.textContent = note;
+      input.setAttribute("aria-describedby", why.id);
+      wrap.append(why);
+    }
     return wrap;
   }
 

@@ -6,12 +6,12 @@
 // this worker to take over (message {type: "skipWaiting"}); on activate the older builds' caches are deleted.
 "use strict";
 
-const BUILD_ID = "c65c1c40320c";
+const BUILD_ID = "f5f40c308423";
 const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
 const FILES = [
  "./",
- "app.d942171e23.js",
+ "app.dd7cf16923.js",
  "charts.a69151b17d.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
@@ -37,8 +37,8 @@ const FILES = [
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
  "shared.a43b149cb5.js",
- "wmti.8a8e7cc63d.wasm",
- "worker.0ac260533d.js"
+ "wmti.bd31fad7af.wasm",
+ "worker.b4bf82c35d.js"
 ];
 
 self.addEventListener("install", (event) => {
