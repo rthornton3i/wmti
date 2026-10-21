@@ -9,8 +9,9 @@
 // ({fn: "finish", target}) stops it and keeps the best so far, which the next batch posts as its result. A search
 // paused at its run budget (its progress `capped`) waits for {fn: "answerCap", target, more}: true continues with
 // another budget of runs, false ends it with the best so far. A search's progress carries its `checkpoint` (JSON text
-// that a new search started with it resumes from); {fn: "pause", target} holds it after its batch (the page went to
-// the background; the paused time is not counted) until {fn: "resume", target}.
+// that a new search started with it resumes from) at most every CHECKPOINT_MS, at its run budget and when it pauses,
+// since the page stores no more often; {fn: "pause", target} holds it after its batch (the page went to the
+// background; the paused time is not counted) until {fn: "resume", target}.
 "use strict";
 
 // The host refuses .whl and .zip files, so they are published as *_whl.wasm / *_zip.wasm with unchanged bytes.
@@ -29,7 +30,8 @@ const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "ch
   "optimizeAvailability", "applyOptimum"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
-const MODEL_FILE = "wmti.bd31fad7af.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.ea4d9fefa0.wasm";  // the build gives it a content-hashed name
+const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;
 let web = null;
@@ -112,10 +114,20 @@ function advanceBatched() {
     pyodide.runPython("import gc\ngc.collect()");
   } else {
     job.waiting = Boolean(progress.capped);
-    post({ id: job.id, kind: "progress", done: progress.done, total: progress.total, scenario: progress.scenario,
-      detail: progress.detail, ms: Math.round(performance.now() - job.started),
-      checkpoint: job.fn === "optimize" ? job.batches.checkpoint() : undefined });
+    job.progress = progress;
+    const due = job.fn === "optimize"
+      && (progress.capped || performance.now() - (job.checkpointAt || 0) >= CHECKPOINT_MS);
+    postProgress(job, due);
   }
+}
+
+// Post a batched job's latest progress; with `withCheckpoint`, a search's checkpoint too.
+function postProgress(job, withCheckpoint) {
+  const progress = job.progress;
+  if (withCheckpoint) job.checkpointAt = performance.now();
+  post({ id: job.id, kind: "progress", done: progress.done, total: progress.total, scenario: progress.scenario,
+    detail: progress.detail, ms: Math.round(performance.now() - job.started),
+    checkpoint: withCheckpoint ? job.batches.checkpoint() : undefined });
 }
 
 async function pump() {
@@ -161,8 +173,12 @@ self.onmessage = (event) => {
   if (job.fn === "pause" || job.fn === "resume") {
     if (!batched || batched.id !== job.target || batched.fn !== "optimize") return;
     batched.paused = job.fn === "pause";
-    if (batched.paused) batched.batches.pause();
-    else batched.batches.resume();
+    if (batched.paused) {
+      batched.batches.pause();
+      if (batched.progress) postProgress(batched, true);  // the page keeps the search as it pauses
+    } else {
+      batched.batches.resume();
+    }
     pump();
     return;
   }

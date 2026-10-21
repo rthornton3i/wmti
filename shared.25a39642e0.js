@@ -1074,9 +1074,10 @@
   }
 
   // The key an interrupted strategy search is kept under: an FNV-1a hash (8 hex digits) of the inputs text, the
-  // options text and the seed, so a reload offers to resume it only for the same settings.
-  function optimizeCheckpointKey(inputsText, optionsText, seed) {
-    const text = JSON.stringify([inputsText, optionsText, seed]);
+  // options text, the seed and the build id, so a reload offers to resume it only for the same settings on the same
+  // build (an app update starts afresh).
+  function optimizeCheckpointKey(inputsText, optionsText, seed, buildId) {
+    const text = JSON.stringify([inputsText, optionsText, seed, buildId]);
     let hash = 0x811c9dc5;
     for (let position = 0; position < text.length; position += 1) {
       hash ^= text.charCodeAt(position);

@@ -78,7 +78,9 @@
   // Every key this app keeps in localStorage; Clear all data on this device removes them all.
   // An interrupted strategy search: {key (optimizeCheckpointKey), inputsText, optionsText, checkpoint}.
   const OPTIMIZE_CHECKPOINT_KEY = "wmti.optimizeCheckpoint.v1";
-  const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TERMS_KEY, THEME_KEY, OPTIMIZE_CHECKPOINT_KEY];
+  const TABS_PIN_KEY = "wmti.tabsPin.v1";  // whether Inputs' tabs stay pinned under the top bar: "on" or "off"
+  const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
+    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY];
   // Keys kept before the rename (fpt.*) move to these once, before anything reads them.
   try {
     migrateLegacyStorage(localStorage, TERMS_KEY, (window.WMTI_LEGAL || {}).textHash || "");
@@ -160,7 +162,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.b4bf82c35d.js");
+      worker = new Worker("worker.0e4e481734.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -970,7 +972,6 @@
   // ---- Inputs' pinned tabs: the settings-group chips stay under the top bar while the page scrolls ----
   // Pinned (the default), the band sticks with only its chips row showing below the top bar; unpinned, it scrolls
   // away as on Outputs. The pin button at the row's right end switches it; the choice is kept on this device.
-  const TABS_PIN_KEY = "wmti.tabsPin.v1";
   const tabsPin = { on: true };
 
   function wireTabsPin() {
@@ -1616,11 +1617,11 @@
   // drops it. At its run budget the search pauses and the progress asks whether to continue with another budget of
   // runs (no run is done twice) or stop and keep the best so far. A result is kept with the inputs text it ran on: once the settings change it is marked stale and Apply is
   // off. Apply changes the settings at once (one Undo step); the Python builds every text shown.
-  const OPTIMIZE_HELP = "Searches the settings of your strategies (the Roth conversion, the backdoor, QCDs, the "
-    + "withdrawal order and the Social Security claim ages) for the best score. Every setting tried faces the same "
-    + "random draws (the Seed under Setup, not the Runs setting), and the winner is checked again on fresh draws. "
-    + "Nothing changes until you tap Apply, and Undo takes it back. Keep the app open while it searches: leaving it "
-    + "pauses the search, and it carries on when you come back.";
+  const OPTIMIZE_HELP = "Searches your strategy settings for the best score: the Roth conversion, the backdoor, QCDs, "
+    + "the withdrawal order, the Social Security claim ages, raising 401k deposits, the split of surplus cash and "
+    + "adding accounts (each option's i says more). Every setting tried faces the same random draws (the Seed under "
+    + "Setup), and the winner is checked again on fresh draws. Nothing changes until you tap Apply, and Undo takes it "
+    + "back. Keep the app open while it searches: leaving it pauses the search until you come back.";
   const OPTIMIZE_PAUSED_TEXT = "Paused while the app was in the background";
   const OPTIMIZE_RESUMED_TEXT = "Resumed";
   // A checkpoint can be a few hundred KB, so it is written at most this often while the search runs, and at once when
@@ -1645,7 +1646,7 @@
 
   // ---- The search and the screen: a Screen Wake Lock keeps the phone awake while it runs; in the background it
   // pauses (the worker holds it after its batch) and comes back on its own; its checkpoint is kept every few seconds
-  // and whenever it pauses, so a search the browser closed can be resumed on the same settings after a reload. ----
+  // and whenever it pauses, so a search the browser closed can be resumed on the same settings and build after a reload. ----
 
   // The interrupted search kept for the current inputs and seed, or null; one kept for other settings is cleared.
   function savedOptimizeSearch() {
@@ -1653,7 +1654,8 @@
     const saved = load(OPTIMIZE_CHECKPOINT_KEY);
     if (!saved) return null;
     const usable = typeof saved.checkpoint === "string" && typeof saved.optionsText === "string"
-      && saved.key === optimizeCheckpointKey(JSON.stringify(state.inputs), saved.optionsText, state.seed);
+      && saved.key === optimizeCheckpointKey(JSON.stringify(state.inputs), saved.optionsText, state.seed,
+        window.WMTI_BUILD.id);
     if (!usable) clearOptimizeCheckpoint();
     return usable ? saved : null;
   }
@@ -1871,7 +1873,7 @@
     const optionsText = saved ? saved.optionsText : JSON.stringify({ effort: optimize.options.effort,
       preset: optimize.options.preset, dimensions: optimizeDimensions(), surplusLocked: state.surplusLocks.slice() });
     const seed = state.seed;
-    const key = optimizeCheckpointKey(inputsText, optionsText, seed);
+    const key = optimizeCheckpointKey(inputsText, optionsText, seed, window.WMTI_BUILD.id);
     if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
     clearTimeout(mcTimer);
     const job = engine.job("optimize", [inputsText, optionsText, seed, true, saved ? saved.checkpoint : null], null,
@@ -1949,7 +1951,7 @@
     const problem = optimizeApplyProblem(entry);
     let html = (stale ? banner("The settings changed since this search. Run it again to update it; Apply is off.", "warn")
       : "") + "<div class=\"card-head\"><h2>Best settings found</h2><span class=\"chart-note\">" + result.runs
-      + " runs Â· " + secondsText(entry.ms) + "</span></div>"
+      + " runs · " + secondsText(entry.ms) + "</span></div>"
       + "<p class=\"field-help\">" + escapeText(result.stopText) + "</p>"
       + textTable("Best settings", result.columns, result.rows)
       + "<h3>Score breakdown</h3>" + textTable("Score breakdown", ["Part", "Now", "Best", "Change"], result.breakdown)
@@ -1959,7 +1961,7 @@
     if (result.changes.length) {
       html += "<details class=\"optimize-changes\"><summary>Settings that change (" + result.changes.length
         + ")</summary><ul>" + result.changes.map((change) => "<li>" + escapeText(change.label) + ": "
-          + escapeText(change.from) + " â†’ " + escapeText(change.to) + "</li>").join("") + "</ul></details>";
+          + escapeText(change.from) + " → " + escapeText(change.to) + "</li>").join("") + "</ul></details>";
     }
     if (applied) {
       html += "<div class=\"run-row\"><span class=\"muted\" id=\"optimizeApplied\">Applied "
