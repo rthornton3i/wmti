@@ -6,12 +6,12 @@
 // this worker to take over (message {type: "skipWaiting"}); on activate the older builds' caches are deleted.
 "use strict";
 
-const BUILD_ID = "04f35f508fa2";
+const BUILD_ID = "b1021fc4e428";
 const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
 const FILES = [
  "./",
- "app.1e9e04349e.js",
+ "app.00f1ddbe5e.js",
  "charts.a69151b17d.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",

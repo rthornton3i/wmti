@@ -483,6 +483,7 @@
     renderBand();
     placeBand();
     if (state.tab === "inputs") { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
+    renderEarningsReturn();  // the Back to Social Security button goes when Inputs is left
     if (state.tab === "outputs" && state.view === "summary") requestNotes();
     if (compareShown()) refreshCompare();
     if (optimizeShown()) renderOptimize();
@@ -2898,6 +2899,7 @@
     requestDeposits();
     renderRunCard();
     renderBand();
+    renderEarningsReturn();
   }
 
   // The Household & run panel on Setup: the partner switch and the panel's fields (the seed, runs and the
@@ -3021,7 +3023,10 @@
     }
     if (panel.id === "strategies" && panel.fields.includes("strategies.qcd")) {
       group.append(warningsBox("strategy-warnings"));  // once, after the last strategy, as on the desktop
-      group.append(optimizeLink());
+      const link = optimizeLink();  // at the top, in a section of its own before the toggles
+      link.classList.add("pane-section");
+      group.prepend(link);
+      if (link.nextElementSibling) link.nextElementSibling.classList.add("section-break");
     }
     tintSections(group);
     return sections;
@@ -3556,11 +3561,11 @@
     applyNotes();
   }
 
-  // A quiet button under the strategies that opens Outputs, Optimize.
+  // A quiet button at the top of the strategies that opens Outputs, Optimize.
   function optimizeLink() {
     const row = document.createElement("div");
     row.className = "run-row";
-    row.innerHTML = "<button type=\"button\" class=\"button button-quiet\" id=\"optimizeLink\">Find the best settings</button>";
+    row.innerHTML = "<button type=\"button\" class=\"button button-quiet\" id=\"optimizeLink\">Find the best settings in the optimizer</button>";
     row.querySelector("button").addEventListener("click", () => selectView("optimize"));
     return row;
   }
@@ -4083,13 +4088,80 @@
       button.addEventListener("click", () => {
         if (choice === getPath(state.inputs, path)) return;
         setValue(path, choice);
-        refreshForm();  // the entered table shows only on Manual entry
+        if (choice === "earnings") goToEarnings(path.split(".")[0]);  // the earnings history it reads, on Income
+        else refreshForm();  // the entered table shows only on Manual entry
       });
       group.append(button);
     }
     wrap.append(group);
     if (!hasHistory) wrap.append(hint);
     return wrap;
+  }
+
+  // Earnings history chosen on Retirement leads to that person's earnings history on Income (opened and scrolled to),
+  // with a floating Back to Social Security button and a dismiss (X). Shown only after that choice; gone when Inputs
+  // or the Income chip is left.
+  let earningsReturn = null;  // the person ("you", "partner") whose Social Security Back returns to
+
+  function goToEarnings(role) {
+    earningsReturn = role;
+    openGroups.add(earningsOpenKey(role));
+    state.chips.settings = "income";
+    savePrefs();
+    renderSettings();
+    const summary = document.querySelector("#" + CSS.escape("earnings-" + role) + " > summary");
+    if (summary) summary.scrollIntoView({ block: "center" });
+    const back = document.querySelector("#earningsReturn [data-action=earnings-return]");
+    if (back) back.focus({ preventScroll: true });
+  }
+
+  function renderEarningsReturn() {
+    let bar = $("earningsReturn");
+    if (earningsReturn == null || state.tab !== "inputs" || state.chips.settings !== "income") {
+      earningsReturn = null;
+      if (bar) bar.remove();
+      return;
+    }
+    if (bar) return;
+    bar = document.createElement("div");
+    bar.id = "earningsReturn";
+    bar.className = "earnings-return";
+    bar.setAttribute("role", "group");
+    bar.setAttribute("aria-label", "Social Security");
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "earnings-return-back";
+    back.dataset.action = "earnings-return";
+    back.textContent = "Back to Social Security";
+    back.addEventListener("click", backToSocialSecurity);
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "earnings-return-close";
+    close.dataset.action = "earnings-return-dismiss";
+    close.setAttribute("aria-label", "Dismiss Back to Social Security");
+    close.textContent = "\u00d7";
+    close.addEventListener("click", () => {
+      const role = earningsReturn;
+      earningsReturn = null;
+      renderEarningsReturn();
+      const summary = document.querySelector("#" + CSS.escape("earnings-" + role) + " > summary");
+      if (summary) summary.focus({ preventScroll: true });
+    });
+    bar.append(back, close);
+    $("app").append(bar);
+  }
+
+  function backToSocialSecurity() {
+    const role = earningsReturn;
+    earningsReturn = null;
+    state.chips.settings = "retirement";
+    savePrefs();
+    renderSettings();
+    const group = $(fieldId(role + ".socialSecurityBasis"));
+    if (!group) return;
+    group.scrollIntoView({ block: "center" });
+    const pressed = group.querySelector("[aria-pressed=\"true\"]");
+    if (pressed) pressed.focus({ preventScroll: true });
   }
 
   // A field whose schema entry has `inflationNote` (its help ends with the note that the mean inflation is subtracted
@@ -4551,24 +4623,49 @@
     return actions;
   }
 
-  // Draw one person's Last salary table into its box: the read-only table, or while editing a box per year (drawn
-  // once, so typing is not interrupted by a newer preview).
+  // Draw one person's Last salary table into its box: the read-only table, or while editing a box per year. A newer
+  // preview (a raise, promotion or last salary edit) updates the boxes in place, so the calculated years follow it and
+  // a typed year keeps its typed amount; the box being typed in is left alone.
   function fillEarningsBox(box) {
     const role = box.id.slice("earnings-table-".length);
     if (box.dataset.editing !== "true") {
       box.innerHTML = earningsPreviewHtml(role);
       return;
     }
-    if (box.querySelector("input")) return;
+    if (box.querySelector("input") && refreshEarningsEditor(box, role)) return;
     const editor = earningsEditor(role);
     if (editor) box.replaceChildren(editor);
   }
 
-  function earningsEditor(role) {
+  function earningsPerson(role) {
     const preview = state.earnings;
     const person = preview && preview.ok ? preview.people.find((item) => item.role === role) : null;
-    if (!person || person.error) return null;
-    const calculated = Object.fromEntries(person.calculated);
+    return person && !person.error ? person : null;
+  }
+
+  // Put the latest preview into an open editor's boxes; false when its years changed and the editor is to be drawn
+  // again (kept while one of its boxes has the focus).
+  function refreshEarningsEditor(box, role) {
+    const person = earningsPerson(role);
+    if (!person) return true;
+    const rows = [...box.querySelectorAll("tbody tr")];
+    if (rows.length !== person.rows.length
+        || rows.some((row, index) => row.querySelector("th").textContent !== String(person.rows[index][0]))) {
+      return box.contains(document.activeElement);
+    }
+    person.rows.forEach(([year, amount], index) => {
+      const input = rows[index].querySelector("input");
+      if (input !== document.activeElement) input.value = String(amount);
+      rows[index].querySelector(".earnings-edited").textContent = person.edited.includes(year) ? "edited" : "";
+    });
+    return true;
+  }
+
+  function earningsEditor(role) {
+    const person = earningsPerson(role);
+    if (!person) return null;
+    // The calculated years of the latest preview, read when a box changes, so a newer preview is compared against.
+    const calculated = () => Object.fromEntries((earningsPerson(role) || person).calculated);
     const table = document.createElement("table");
     table.className = "units-table earnings-editor";
     table.innerHTML = "<thead><tr><th scope=\"col\">Year</th><th scope=\"col\">Earnings</th>"
@@ -4596,9 +4693,10 @@
       input.addEventListener("change", () => {
         const overrides = { ...(getPath(state.inputs, role + ".salaryOverrides") || {}) };
         const value = Number(input.value);
-        if (input.value === "" || !Number.isFinite(value) || value === calculated[year]) delete overrides[year];
+        const calculatedYear = calculated()[year];
+        if (input.value === "" || !Number.isFinite(value) || value === calculatedYear) delete overrides[year];
         else overrides[year] = value;
-        if (input.value === "") input.value = String(calculated[year]);
+        if (input.value === "") input.value = String(calculatedYear);
         setValue(role + ".salaryOverrides", overrides);
         marker.textContent = overrides[year] != null ? "edited" : "";
         const revert = document.querySelector("#earnings-" + role + " [data-action=earnings-revert]");
