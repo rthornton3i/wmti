@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-x5NL5UfKdI7s5lGjzkSAuyQKK1Gv8YA21itghszT8yo=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-SM8GbrOKk/0WSDRC3aRJX55I2f0iIlT1qpoUy4O+JAo=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -965,6 +965,42 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .timeline-field { display: grid; gap: 4px; padding: 6px 0; }
 .timeline-field[hidden] { display: none; }
 
+/* Wide layout (app.js wireWide: html.wide on a window 1100 px or wider, such as a PC monitor): the top bar is one banner
+   across the top (Undo, the pinned headline figures, the status, ? and the menu), then Setup, Inputs and Outputs side by
+   side (1:2:2 of the width) down to the bottom of the window, each scrolling on its own under its chips rows, which
+   stay put; no bottom bar, no band title or subtitle and no pin button. A narrower window keeps the phone layout. */
+:root.wide { --tabbar: 0px; --wide-pad: 16px; --wide-gap: 12px; }
+.wide .app { display: grid; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; column-gap: var(--wide-gap);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 2fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr); padding-inline: var(--wide-pad); }
+.wide .topbar { grid-column: 1 / -1; grid-row: 1; position: static; display: flex; align-items: center; gap: 12px;
+  padding-inline: 0; }
+.wide .topbar-row { display: contents; }
+.wide .band-label { display: none; }
+.wide .topbar > .pinned { order: 1; flex: 1; min-width: 0; max-width: none; margin: 0; padding: 0 12px; column-gap: 16px; }
+.wide .pin-value { font-size: 18px; }
+.wide #status, .wide #helpButton, .wide #menuButton { order: 2; }
+.wide .band, .wide .panels { display: contents; }
+.wide .band-title, .wide .band-sub, .wide .chips-pin { display: none; }
+.wide .band > .chips-wrap { align-self: start; padding: 2px var(--gutter) 10px; }
+.wide .chips-wrap[data-place="inputs"] { grid-column: 2; grid-row: 2 / 4; }
+.wide .chips-wrap[data-place="outputs"] { grid-column: 3; grid-row: 2; }
+.wide .chips-wrap[data-place^="outputs/"] { grid-column: 3; grid-row: 3; }
+.wide #panel-setup { grid-column: 1; grid-row: 2 / 5; }
+.wide #panel-inputs { grid-column: 2; grid-row: 4; }
+.wide #panel-outputs { grid-column: 3; grid-row: 4; }
+.wide .panel { min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; background: var(--bg);
+  border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge); padding: 16px var(--gutter) 24px;
+  scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+.wide .tabbar { display: none; }
+/* Setup's narrow column: the open scenario's five buttons in rows of three, so every label fits. */
+.wide #panel-setup .action-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.wide #panel-setup .strip-button:nth-child(n+4) { border-top: 1px solid var(--line); }
+.wide #panel-setup .strip-button:nth-child(4) { border-left: 0; }
+.wide .menu { right: 12px; }
+/* Back to Social Security floats over the middle of the Inputs column. */
+.wide .earnings-return { left: calc(var(--wide-pad) + var(--wide-gap) + 2 * (100% - 2 * var(--wide-pad) - 2 * var(--wide-gap)) / 5); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   .undo-flash, .field.undo-flash, .tint-alt .field.undo-flash { animation: none;
@@ -1293,11 +1329,11 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "2d43f9d9d7bf", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "3ca00c969d87", pyodide: "0.29.5" };</script>
 <script src="legal.3250d44a4a.js"></script>
 <script src="shared.25a39642e0.js"></script>
 <script src="charts.a69151b17d.js"></script>
-<script src="app.bafef00e27.js"></script>
+<script src="app.3d37f34ff2.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

@@ -459,9 +459,42 @@
     scheduleMc();
   }
 
+  // ---- Wide layout: on a wide window (a PC monitor) the three tabs show side by side ----
+  // At WIDE_QUERY the page puts Setup, Inputs and Outputs in three columns (1:2:2) under the top bar, each scrolling on
+  // its own; the bottom bar and the sideways swipe between panels go. `state.tab` still names the place last opened
+  // (the phone layout comes back to it). A narrower window is the phone layout; a resize or rotation switches live.
+  const WIDE_QUERY = "(min-width: 1100px)";
+  const wide = { on: false };
+  const wideScroll = {};  // the Outputs column's scroll position per view, in the wide layout
+
+  // Whether a tab's panel is on screen: always in the wide layout, else when it is the selected tab.
+  function tabShown(tab) {
+    return wide.on || state.tab === tab;
+  }
+
+  function wireWide() {
+    const query = window.matchMedia ? window.matchMedia(WIDE_QUERY) : null;
+    if (!query) return;
+    const apply = () => {
+      wide.on = query.matches;
+      document.documentElement.classList.toggle("wide", wide.on);
+    };
+    apply();
+    query.addEventListener("change", () => {
+      apply();
+      if (state.schema != null) showPlace();
+    });
+  }
+
+  // Scroll a place to its top: its own column in the wide layout, else the page.
+  function scrollPlaceTop(tab) {
+    if (wide.on) $("panel-" + tab).scrollTop = 0;
+    else window.scrollTo(0, 0);
+  }
+
   // ---- Tabs, the Outputs switch and chips ----
   function compareShown() {
-    return state.tab === "outputs" && state.view === "compare";
+    return tabShown("outputs") && state.view === "compare";
   }
 
   // The key a scroll position is kept under: the tab, and for Outputs its view too.
@@ -472,7 +505,7 @@
   // Show the current tab and view: panels and sub-panels hidden or shown, tab roles and roving tabindex set.
   function showPlace() {
     for (const name of TABS) {
-      $("panel-" + name).hidden = name !== state.tab;
+      $("panel-" + name).hidden = !tabShown(name);
       $("tab-" + name).setAttribute("aria-selected", String(name === state.tab));
       $("tab-" + name).tabIndex = name === state.tab ? 0 : -1;
     }
@@ -482,17 +515,20 @@
       $("sub-" + name).tabIndex = name === state.view ? 0 : -1;
     }
     $("mc-bar").hidden = state.view === "compare" || state.view === "optimize";
+    // Wide: Inputs' chips, the Outputs view row and the open view's sub-tabs all show, each over its column.
+    const widePlaces = ["inputs", "outputs", "outputs/" + state.view];
     for (const element of document.querySelectorAll(".band [data-place]")) {
-      element.hidden = element.dataset.place !== scrollKey() && element.dataset.place !== state.tab;
+      element.hidden = wide.on ? !widePlaces.includes(element.dataset.place)
+        : element.dataset.place !== scrollKey() && element.dataset.place !== state.tab;
     }
     for (const row of document.querySelectorAll(".band .chips")) trackChips(row);
-    if (state.tab === "inputs") { placeBubble($("chips-settings"), false); centerChip($("chips-settings"), false); }
+    if (tabShown("inputs")) { placeBubble($("chips-settings"), false); centerChip($("chips-settings"), false); }
     placeViewBubble();
     renderBand();
     placeBand();
-    if (state.tab === "inputs") { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
+    if (tabShown("inputs")) { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
     renderEarningsReturn();  // the Back to Social Security button goes when Inputs is left
-    if (state.tab === "outputs" && state.view === "summary") requestNotes();
+    if (!tabShown("inputs") && tabShown("outputs") && state.view === "summary") requestNotes();  // asked once above
     if (compareShown()) refreshCompare();
     if (optimizeShown()) renderOptimize();
   }
@@ -504,6 +540,19 @@
       state.tab = tab;
       state.view = view;
       showPlace();
+      return;
+    }
+    if (wide.on) {
+      // Wide: every column shows and keeps its own scroll; only the Outputs column swaps views (each its own scroll).
+      if (tab === state.tab && view === state.view) { scrollPlaceTop(tab); return; }
+      const outputs = $("panel-outputs");
+      wideScroll[state.view] = outputs.scrollTop;
+      const viewChanged = view !== state.view;
+      state.tab = tab;
+      state.view = view;
+      showPlace();
+      savePrefs();
+      if (viewChanged) outputs.scrollTop = wideScroll[view] || 0;
       return;
     }
     if (tab === state.tab && view === state.view) { window.scrollTo(0, 0); return; }
@@ -518,10 +567,11 @@
   // The Outputs view row's bubble: over the selected view, gliding there when the view changed while Outputs showed.
   function placeViewBubble() {
     const row = $("views-outputs");
+    const shown = tabShown("outputs");
     const moved = row.dataset.tab === "outputs" && row.dataset.selected !== state.view;
-    row.dataset.tab = state.tab;
+    row.dataset.tab = shown ? "outputs" : state.tab;
     row.dataset.selected = state.view;
-    if (state.tab === "outputs") placeBubble(row, moved);
+    if (shown) placeBubble(row, moved);
   }
 
   function selectTab(tab, remember) {
@@ -867,6 +917,11 @@
   const bubbleRow = () => (state.tab === "inputs" ? $("chips-settings")
     : state.tab === "outputs" ? $("views-outputs") : null);
 
+  // After a swipe, scroll every chips row in view so the tab or sub-tab swiped to sits in the middle of the screen.
+  function centerSwipedChips() {
+    for (const row of document.querySelectorAll(".band .chips")) centerChip(row, true);
+  }
+
   // Open a swipe's target and return what a screen reader hears: the Inputs panel's name, or the Outputs sub-tab's,
   // led by the view's name when the view changed.
   function openSwipeTarget(target) {
@@ -876,6 +931,7 @@
       state.chips.settings = chosen.id;
       savePrefs();
       renderSettings();
+      centerSwipedChips();
       return chosen.label;
     }
     const sub = OUTPUT_SUBTABS[target.view];
@@ -887,6 +943,7 @@
       else renderPlots();
     }
     if (viewChanged) goTo("outputs", target.view);
+    centerSwipedChips();
     const subLabel = sub ? sub.list.find((item) => item.id === target.sub).label : "";
     const viewLabel = $("sub-" + target.view).textContent.trim();
     return viewChanged ? [viewLabel, subLabel].filter(Boolean).join(", ") : subLabel;
@@ -897,7 +954,7 @@
     let busy = false;
     // Listen on the whole sheet, so a swipe in the empty space below a short panel works too; the panel still slides.
     wireSwipe(document.querySelector("main.panels"), {
-      enabled: () => state.schema != null && !walk.open && !busy,
+      enabled: () => state.schema != null && !walk.open && !busy && !wide.on,  // wide: no panel swipe
       drag: (dx, width) => {
         const target = swipeTarget(dx < 0 ? 1 : -1);
         if (reducedMotion()) return;
@@ -1001,7 +1058,7 @@
   // Stick the band on Inputs while pinned: its top sits above the top bar's bottom by the height of everything over
   // the chips row (title and subtitle), less a small margin, so only the chips show once the page scrolls.
   function placeBand() {
-    const on = state.tab === "inputs" && tabsPin.on;
+    const on = !wide.on && state.tab === "inputs" && tabsPin.on;  // wide: the chips sit over their own column
     $("app").classList.toggle("inputs-pinned", on);
     if (!on) return;
     const band = document.querySelector(".band");
@@ -1629,7 +1686,7 @@
   const OPTIMIZE_CHECKPOINT_MS = 5000;
 
   function optimizeShown() {
-    return state.tab === "outputs" && state.view === "optimize";
+    return tabShown("outputs") && state.view === "optimize";
   }
 
   // The settings changed: a running search is dropped; a finished result stays, marked stale; an interrupted search
@@ -3402,7 +3459,7 @@
   }
 
   function depositsWanted() {
-    return state.tab === "inputs" && state.chips.settings === "savings" && state.schema != null;
+    return tabShown("inputs") && state.chips.settings === "savings" && state.schema != null;
   }
 
   async function requestDeposits() {
@@ -3634,7 +3691,7 @@
   }
 
   function benefitsWanted() {
-    return state.tab === "inputs" && state.chips.settings === "retirement" && state.schema != null;
+    return tabShown("inputs") && state.chips.settings === "retirement" && state.schema != null;
   }
 
   async function requestBenefits() {
@@ -3715,8 +3772,8 @@
 
   // ---- Settings notes: surplus split, owner choices, warnings, the model's terminal rate estimate on Summary (settingsNotes) ----
   function notesWanted() {
-    return state.schema != null && ((state.tab === "inputs" && NOTES_PANELS.has(state.chips.settings))
-      || (state.tab === "outputs" && state.view === "summary"));  // Summary shows the model's estimate of the terminal rate
+    return state.schema != null && ((tabShown("inputs") && NOTES_PANELS.has(state.chips.settings))
+      || (tabShown("outputs") && state.view === "summary"));  // Summary shows the model's estimate of the terminal rate
   }
 
   async function requestNotes() {
@@ -4321,7 +4378,7 @@
 
   function renderEarningsReturn() {
     let bar = $("earningsReturn");
-    if (earningsReturn == null || state.tab !== "inputs" || state.chips.settings !== "income") {
+    if (earningsReturn == null || !tabShown("inputs") || state.chips.settings !== "income") {
       earningsReturn = null;
       if (bar) bar.remove();
       return;
@@ -4914,7 +4971,7 @@
   }
 
   function earningsWanted() {
-    return state.tab === "inputs" && state.schema != null && document.querySelector(".earnings-preview") != null;
+    return tabShown("inputs") && state.schema != null && document.querySelector(".earnings-preview") != null;
   }
 
   async function requestEarnings() {
@@ -7118,7 +7175,7 @@
     state.chips.settings = panel;
     renderSettings();
     goTo("inputs", state.view);
-    window.scrollTo(0, 0);
+    scrollPlaceTop("inputs");
     $("walkResume").hidden = false;
   }
 
@@ -7288,14 +7345,14 @@
   // it and `when` (optional) says whether the step applies now. A step whose control is not drawn is skipped. Done,
   // the close button and Escape put back the tab, view and scroll the tour started from.
   const TOUR_STEPS = [
-    { title: "Setup, Inputs and Outputs", target: () => document.querySelector(".tabbar"),
+    { title: "Setup, Inputs and Outputs", when: () => !wide.on, target: () => document.querySelector(".tabbar"),
       text: "The bar at the bottom moves between the three parts of the app. Setup holds your scenarios and the run, "
         + "Inputs your settings and Outputs the results." },
     { title: "Groups of settings", place: ["inputs"], when: () => state.schema != null,
       target: () => $("chips-settings"),
       text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more. "
         + "Swipe sideways to move between tabs." },
-    { title: "Pin the tabs", place: ["inputs"], when: () => state.schema != null, target: () => $("chipsPin"),
+    { title: "Pin the tabs", place: ["inputs"], when: () => state.schema != null && !wide.on, target: () => $("chipsPin"),
       text: "The pin keeps the bubbles under the top bar while you scroll. Tap it to let them scroll away with the page." },
     { title: "Outputs views", place: ["outputs"], target: () => $("views-outputs"),
       text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
@@ -7420,6 +7477,7 @@
     }, true);
     window.addEventListener("resize", placeTourRing);
     window.addEventListener("scroll", placeTourRing, { passive: true });
+    document.addEventListener("scroll", placeTourRing, { passive: true, capture: true });  // a wide layout column
   }
 
   // ---- Wiring ----
@@ -7476,6 +7534,7 @@
     wireInstall();
     wireWalk();
     markScheme();
+    wireWide();
     wireTabsPin();
     wirePanelsSwipe();
     wireWalkSwipe();
