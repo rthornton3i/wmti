@@ -60,6 +60,7 @@
   const SCENARIOS_KEY = "wmti.scenarios.v1";
   const PREFS_KEY = "wmti.prefs.v1";
   const WALK_KEY = "wmti.walk.v1";  // the walkthrough's progress
+  const TOUR_KEY = "wmti.tour.v1";  // "seen" once the tour has opened by itself after the first walkthrough
   const TERMS_KEY = "wmti.terms.v1";  // the Terms acceptance: {version, textHash, buildId, acceptedAt}
   // The key points at the top of the Terms step and of the Legal window, one line each, then a pointer to the full Terms.
   const LEGAL_SUMMARY = [
@@ -157,7 +158,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.0c4cf3f151.js");
+      worker = new Worker("worker.676846d408.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -190,7 +191,11 @@
     // End a batched strategy search now, keeping the best so far (its result still arrives).
     function finish(target) { worker.postMessage({ fn: "finish", target }); }
 
-    return { start, call, job, cancel, finish, ready };
+    // Answer a strategy search paused at its run budget: true continues with another budget of runs, false keeps the
+    // best so far (its result still arrives).
+    function answerCap(target, more) { worker.postMessage({ fn: "answerCap", target, more }); }
+
+    return { start, call, job, cancel, finish, answerCap, ready };
   })();
   window.wmtiEngine = engine;  // for the tests and for debugging
 
@@ -293,6 +298,7 @@
     runNow();
     loadWalk();
     await termsAgreed;  // the Terms step comes first; the walkthrough only after it
+    if (firstVisit) walk.tourAfter = !tourSeen();  // the first walkthrough ends with the tour, once per device
     if (firstVisit || location.hash === "#walkthrough" || (walk.saved && walk.saved.status === "active")) openWalk();
   }
 
@@ -1594,7 +1600,8 @@
 
   // ---- Optimize: search the strategy settings for the best score on the same draws, then apply on a tap ----
   // The search runs in the worker as a batched job ("optimize"); Stop posts a finish (the best so far is kept), Cancel
-  // drops it. A result is kept with the inputs text it ran on: once the settings change it is marked stale and Apply is
+  // drops it. At its run budget the search pauses and the progress asks whether to continue with another budget of
+  // runs (no run is done twice) or stop and keep the best so far. A result is kept with the inputs text it ran on: once the settings change it is marked stale and Apply is
   // off. Apply changes the settings at once (one Undo step); the Python builds every text shown.
   const OPTIMIZE_HELP = "Searches the settings of your strategies (the Roth conversion, the backdoor, QCDs, the "
     + "withdrawal order and the Social Security claim ages) for the best score. Every setting tried faces the same "
@@ -1663,6 +1670,8 @@
     if (stop) stop.addEventListener("click", () => { if (optimize.job) engine.finish(optimize.job.id); });
     const cancel = card.querySelector("#optimizeCancel");
     if (cancel) cancel.addEventListener("click", () => { if (optimize.job) engine.cancel(optimize.job.id); });
+    card.querySelector("#optimizeCapContinue").addEventListener("click", () => answerOptimizeCap(true));
+    card.querySelector("#optimizeCapKeep").addEventListener("click", () => answerOptimizeCap(false));
     body.replaceChildren(card);
     showOptimizeProgress();
     if (optimize.entry) body.append(...optimizeResult(optimize.entry));
@@ -1672,6 +1681,10 @@
     return "<div class=\"run-progress\" id=\"optimizeProgress\"" + (job ? "" : " hidden") + "><div class=\"progress\" "
       + "role=\"progressbar\" aria-label=\"Runs done\" aria-valuemin=\"0\" id=\"optimizeBar\"><span></span></div>"
       + "<p class=\"progress-text\" id=\"optimizeProgressText\">Starting the search</p>"
+      + "<div id=\"optimizeCap\" role=\"group\" aria-labelledby=\"optimizeCapText\" hidden>"
+      + "<p class=\"progress-text\" id=\"optimizeCapText\"></p><div class=\"run-row\"><button type=\"button\" "
+      + "class=\"button\" id=\"optimizeCapContinue\">Continue</button><button type=\"button\" class=\"button "
+      + "button-quiet\" id=\"optimizeCapKeep\">Stop and keep best so far</button></div></div>"
       + "<div class=\"run-row\"><button type=\"button\" class=\"button button-quiet\" id=\"optimizeStop\">Stop, show best "
       + "so far</button><button type=\"button\" class=\"button button-quiet\" id=\"optimizeCancel\">Cancel</button></div>"
       + "</div>";
@@ -1691,6 +1704,20 @@
     $("optimizeProgressText").textContent = optimizeStepText(detail)
       + (detail && detail.gain != null ? " Best so far: score " + (detail.gain >= 0 ? "+" : "") + Math.round(detail.gain)
         .toLocaleString("en-US") + "." : "");
+    const capped = Boolean(detail && detail.capped);
+    $("optimizeCap").hidden = !capped;
+    $("optimizeCapText").textContent = capped ? detail.capText : "";
+    $("optimizeStop").hidden = capped;
+  }
+
+  // Answer the search paused at its run budget: continue with another budget of runs, or keep the best so far.
+  function answerOptimizeCap(more) {
+    const job = state.optimize.job;
+    if (!job || !job.detail || !job.detail.capped) return;
+    job.detail = { ...job.detail, capped: false, capText: null };
+    engine.answerCap(job.id, more);
+    showOptimizeProgress();
+    $("optimizeStop").focus();
   }
 
   async function runOptimize() {
@@ -1701,10 +1728,12 @@
       dimensions: { ...optimize.options.dimensions }, surplusLocked: state.surplusLocks.slice() };
     if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
     clearTimeout(mcTimer);
-    const job = engine.job("optimize", [inputsText, JSON.stringify(options), state.seed], null, (message) => {
+    const job = engine.job("optimize", [inputsText, JSON.stringify(options), state.seed, true], null, (message) => {
       if (!optimize.job) return;
+      const wasCapped = Boolean(optimize.job.detail && optimize.job.detail.capped);
       optimize.job.detail = message.detail;
       showOptimizeProgress();
+      if (message.detail && message.detail.capped && !wasCapped && $("optimizeCapContinue")) $("optimizeCapContinue").focus();
     });
     optimize.job = { id: job.id, detail: null, inputsText, dropped: false };
     optimize.message = null;
@@ -2782,8 +2811,8 @@
 
   // Inputs shows every panel but Household & run as a chip; that panel's fields are drawn on Setup.
   // The one summary at the bottom of the Expenses chip (`expenseTotals`), per month: each monthly category, Major
-  // Spending and Charity paid this year (per year / 12) and the one total of all, the costs other tabs already charge
-  // included (from the settings notes; "n/a" until they arrive).
+  // Spending and Charity paid this year (per year / 12), one Bills - Other row for the costs other tabs already charge
+  // (from the settings notes, when there are any) and the one total of all ("n/a" until the notes arrive).
   function expenseSummaryCard() {
     const card = document.createElement("div");
     card.className = "card";
@@ -2805,9 +2834,10 @@
     card.innerHTML = about.head + about.text + "<table class=\"data-table\"><thead><tr><th scope=\"col\">Expenses</th>"
       + "<th scope=\"col\">Monthly</th></tr></thead><tbody>"
       + totals.entered.map((row) => line(row, false)).join("")
+      + (totals.counted ? line(totals.counted, false) : "")
       + line(totals.total || { item: "Total expenses", monthly: null }, true)
       + "</tbody></table><p class=\"field-help\">Major Spending and Charity count the rows paid this year, at your age "
-      + "today; the total adds the Bills - Other from the other tabs, the first year of the run.</p>";
+      + "today; Bills - Other is what the other tabs charge in the first year of the run.</p>";
   }
 
   // The read-only card at the top of the Expenses chip: the costs other tabs already charge (from the settings notes),
@@ -6211,7 +6241,9 @@
     showWalkScreen(target, "forward", false);
   }
 
-  function closeWalk(status) {
+  // Close the walkthrough with `status`. `ended` is false for a hand-off to an Inputs page (the walkthrough goes on
+  // from its pill); when the first walkthrough ends, the tour opens once the caller has settled the page.
+  function closeWalk(status, ended = true) {
     if (!walk.open) return;
     walk.open = false;
     walk.importing = false;
@@ -6224,6 +6256,10 @@
     $("walkActions").replaceChildren();
     $("app").inert = false;
     scheduleMc();
+    if (ended && walk.tourAfter) {
+      walk.tourAfter = false;
+      setTimeout(() => { if (!walk.open) openFirstTour(); }, 0);
+    }
   }
 
   function walkToast(text) {
@@ -6394,6 +6430,7 @@
   // finished on the Summary; the menu reopens it on the review.
   async function walkImported() {
     walk.importing = false;
+    walk.tourAfter = false;  // an imported scenario is not a first look at the controls
     await walkReplan();
     for (const row of walkRows()) walk.saved.answers[row.id] = { status: "answered", values: null };
     walk.saved.before = clone(state.inputs);
@@ -6775,7 +6812,7 @@
 
   // A hand-off: leave for an Inputs page, with a pill to come back to the same question.
   function walkHandoff(panel) {
-    closeWalk("paused");
+    closeWalk("paused", false);
     state.chips.settings = panel;
     renderSettings();
     goTo("inputs", state.view);
@@ -6954,16 +6991,12 @@
         + "Inputs your settings and Outputs the results." },
     { title: "Groups of settings", place: ["inputs"], when: () => state.schema != null,
       target: () => $("chips-settings"),
-      text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more." },
+      text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more. "
+        + "Swipe sideways to move between tabs." },
     { title: "Pin the tabs", place: ["inputs"], when: () => state.schema != null, target: () => $("chipsPin"),
       text: "The pin keeps the bubbles under the top bar while you scroll. Tap it to let them scroll away with the page." },
-    { title: "Swipe between groups", place: ["inputs"], when: () => state.schema != null,
-      target: () => $("panel-inputs"),
-      text: "Swipe the page sideways for the next or previous group. A swipe stays inside Inputs; "
-        + "use the bar at the bottom to reach Setup or Outputs." },
     { title: "Outputs views", place: ["outputs"], target: () => $("views-outputs"),
-      text: "Tap a view, or swipe the page sideways: a swipe steps through the tabs under each view, "
-        + "then on to the next view. A swipe never leaves Outputs." },
+      text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
     { title: "Undo", target: () => $("undoButton"),
       text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
     { title: "Your scenarios", place: ["setup"], target: () => $("savedCard"),
@@ -6992,6 +7025,17 @@
     $("helpButton").setAttribute("aria-expanded", "true");
     showTourStep(0, 1);
     $("tourCard").focus();
+  }
+
+  // Whether the tour has opened by itself on this device; blocked storage reads as not yet.
+  function tourSeen() {
+    try { return localStorage.getItem(TOUR_KEY) === "seen"; } catch (error) { return false; }
+  }
+
+  // The tour after the first walkthrough: once per device (without storage it may show again on a later first visit).
+  function openFirstTour() {
+    try { localStorage.setItem(TOUR_KEY, "seen"); } catch (error) { /* storage blocked */ }
+    openTour();
   }
 
   function closeTour() {

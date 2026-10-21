@@ -554,19 +554,21 @@
 
   // The one summary at the bottom of the Expenses chip, per month (wmti.dashboard.breakdown.expenseTotals, in whole
   // dollars as the phone shows them): `entered`, the rows of an `expenseSummary` (each monthly category, then Major
-  // Spending and Charity per year / 12); and `total`, the one "Total expenses" row: the entered rows plus the read-only
-  // rows other tabs charge (the settings notes' `alreadyCounted` rows; the note row, with no amount, is left out), or
-  // null before the notes arrive. Each amount is rounded to the dollar before it is added, so the total is exactly the
-  // entered monthly expenses plus the counted ones.
+  // Spending and Charity per year / 12); `counted`, the one "Bills - Other" row: the sum of the read-only rows other
+  // tabs charge (the settings notes' `alreadyCounted` rows; the note row, with no amount, is left out), or null when
+  // there are none or before the notes arrive; and `total`, the one "Total expenses" row: the entered rows plus the
+  // counted ones, or null before the notes arrive. Each amount is rounded to the dollar before it is added, so the total
+  // is exactly the entered rows plus the Bills - Other row.
   function expenseTotals(summary, countedRows) {
     const whole = (value) => Math.round(Number(value) || 0);
     const add = (rows) => rows.reduce((sum, row) => sum + row.monthly, 0);
     const entered = [...summary.rows.map((row) => [row.category, row.total]),
       ...summary.annual.map((row) => [row.category + " (per year ÷ 12)", row.total])]
       .map(([item, monthly]) => ({ item, monthly: whole(monthly) }));
-    if (!countedRows) return { entered, total: null };
+    if (!countedRows) return { entered, counted: null, total: null };
     const counted = countedRows.filter((row) => row.monthly != null).map((row) => ({ monthly: whole(row.monthly) }));
-    return { entered, total: { item: "Total expenses", monthly: add(entered) + add(counted) } };
+    return { entered, counted: counted.length ? { item: "Bills - Other", monthly: add(counted) } : null,
+      total: { item: "Total expenses", monthly: add(entered) + add(counted) } };
   }
 
   // When a car or home is bought and sold, or a loan starts and is paid off, as your ages: "buys at 55 · sells at 60"
