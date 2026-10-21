@@ -8,7 +8,9 @@
 // new one replaces the old, which is answered "dropped". A strategy search ("optimize") is batched too; a finish
 // ({fn: "finish", target}) stops it and keeps the best so far, which the next batch posts as its result. A search
 // paused at its run budget (its progress `capped`) waits for {fn: "answerCap", target, more}: true continues with
-// another budget of runs, false ends it with the best so far.
+// another budget of runs, false ends it with the best so far. A search's progress carries its `checkpoint` (JSON text
+// that a new search started with it resumes from); {fn: "pause", target} holds it after its batch (the page went to
+// the background; the paused time is not counted) until {fn: "resume", target}.
 "use strict";
 
 // The host refuses .whl and .zip files, so they are published as *_whl.wasm / *_zip.wasm with unchanged bytes.
@@ -27,7 +29,7 @@ const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "ch
   "applyOptimum"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
-const MODEL_FILE = "wmti.99b6aebab9.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.5e46b56e3d.wasm";  // the build gives it a content-hashed name
 const queue = [];
 let pyodide = null;
 let web = null;
@@ -87,7 +89,7 @@ function callWeb(job) {
 }
 
 function startBatched(job) {
-  batched = { id: job.id, batches: web[BATCHED[job.fn]](...job.args), started: performance.now() };
+  batched = { id: job.id, fn: job.fn, batches: web[BATCHED[job.fn]](...job.args), started: performance.now() };
 }
 
 function stopBatched(reply) {
@@ -111,14 +113,15 @@ function advanceBatched() {
   } else {
     job.waiting = Boolean(progress.capped);
     post({ id: job.id, kind: "progress", done: progress.done, total: progress.total, scenario: progress.scenario,
-      detail: progress.detail, ms: Math.round(performance.now() - job.started) });
+      detail: progress.detail, ms: Math.round(performance.now() - job.started),
+      checkpoint: job.fn === "optimize" ? job.batches.checkpoint() : undefined });
   }
 }
 
 async function pump() {
   if (pumping || !web) return;
   pumping = true;
-  while (queue.length || (batched && !batched.waiting)) {
+  while (queue.length || (batched && !batched.waiting && !batched.paused)) {
     let currentId = batched && batched.id;
     try {
       if (queue.length) {
@@ -152,6 +155,14 @@ self.onmessage = (event) => {
     if (job.fn === "finish") batched.batches.stop();
     else batched.batches.answerCap(Boolean(job.more));
     batched.waiting = false;
+    pump();
+    return;
+  }
+  if (job.fn === "pause" || job.fn === "resume") {
+    if (!batched || batched.id !== job.target || batched.fn !== "optimize") return;
+    batched.paused = job.fn === "pause";
+    if (batched.paused) batched.batches.pause();
+    else batched.batches.resume();
     pump();
     return;
   }

@@ -11,7 +11,7 @@
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
-    mergeUndoPop, changedPaths, optimizeStepText, hasSocialSecurity, spendingStartAge, spendingChangeRows,
+    mergeUndoPop, changedPaths, optimizeStepText, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
     spendingChangePreview } = window.WmtiShared;
   const charts = window.WmtiCharts;
 
@@ -76,7 +76,9 @@
   // The color scheme, kept per viewer as plain text; index.html applies it before the first paint.
   const THEME_KEY = "wmti.theme.v1";
   // Every key this app keeps in localStorage; Clear all data on this device removes them all.
-  const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TERMS_KEY, THEME_KEY];
+  // An interrupted strategy search: {key (optimizeCheckpointKey), inputsText, optionsText, checkpoint}.
+  const OPTIMIZE_CHECKPOINT_KEY = "wmti.optimizeCheckpoint.v1";
+  const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TERMS_KEY, THEME_KEY, OPTIMIZE_CHECKPOINT_KEY];
   // Keys kept before the rename (fpt.*) move to these once, before anything reads them.
   try {
     migrateLegacyStorage(localStorage, TERMS_KEY, (window.WMTI_LEGAL || {}).textHash || "");
@@ -158,7 +160,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.676846d408.js");
+      worker = new Worker("worker.43386f27f6.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -195,7 +197,11 @@
     // best so far (its result still arrives).
     function answerCap(target, more) { worker.postMessage({ fn: "answerCap", target, more }); }
 
-    return { start, call, job, cancel, finish, answerCap, ready };
+    // Hold a strategy search after its batch (the page went to the background), then run it on again.
+    function pause(target) { worker.postMessage({ fn: "pause", target }); }
+    function resume(target) { worker.postMessage({ fn: "resume", target }); }
+
+    return { start, call, job, cancel, finish, answerCap, pause, resume, ready };
   })();
   window.wmtiEngine = engine;  // for the tests and for debugging
 
@@ -1607,21 +1613,84 @@
   const OPTIMIZE_HELP = "Searches the settings of your strategies (the Roth conversion, the backdoor, QCDs, the "
     + "withdrawal order and the Social Security claim ages) for the best score. Every setting tried faces the same "
     + "random draws (the Seed under Setup, not the Runs setting), and the winner is checked again on fresh draws. "
-    + "Nothing changes until you tap Apply, and Undo takes it back.";
+    + "Nothing changes until you tap Apply, and Undo takes it back. Keep the app open while it searches: leaving it "
+    + "pauses the search, and it carries on when you come back.";
+  const OPTIMIZE_PAUSED_TEXT = "Paused while the app was in the background";
+  const OPTIMIZE_RESUMED_TEXT = "Resumed";
 
   function optimizeShown() {
     return state.tab === "outputs" && state.view === "optimize";
   }
 
-  // The settings changed: a running search is dropped; a finished result stays, marked stale.
+  // The settings changed: a running search is dropped; a finished result stays, marked stale; an interrupted search
+  // kept for other settings is cleared.
   function optimizeInputsChanged() {
     const optimize = state.optimize;
     if (optimize.job && optimize.job.inputsText !== JSON.stringify(state.inputs)) {
       optimize.job.dropped = true;
       engine.cancel(optimize.job.id);
     }
+    savedOptimizeSearch();
     if (optimizeShown()) renderOptimize();
   }
+
+  // ---- The search and the screen: a Screen Wake Lock keeps the phone awake while it runs; in the background it
+  // pauses (the worker holds it after its batch) and comes back on its own; after every batch its checkpoint is kept,
+  // so a search the browser closed can be resumed on the same settings after a reload. ----
+
+  // The interrupted search kept for the current inputs and seed, or null; one kept for other settings is cleared.
+  function savedOptimizeSearch() {
+    if (!state.inputs) return null;
+    const saved = load(OPTIMIZE_CHECKPOINT_KEY);
+    if (!saved) return null;
+    const usable = typeof saved.checkpoint === "string" && typeof saved.optionsText === "string"
+      && saved.key === optimizeCheckpointKey(JSON.stringify(state.inputs), saved.optionsText, state.seed);
+    if (!usable) clearOptimizeCheckpoint();
+    return usable ? saved : null;
+  }
+
+  function clearOptimizeCheckpoint() {
+    try { localStorage.removeItem(OPTIMIZE_CHECKPOINT_KEY); } catch (error) { /* storage blocked: nothing kept */ }
+  }
+
+  async function holdScreenOn() {
+    const job = state.optimize.job;
+    if (!job || job.wakeLock || document.visibilityState !== "visible") return;
+    try {
+      if (!navigator.wakeLock || !navigator.wakeLock.request) return;
+      const lock = await navigator.wakeLock.request("screen");
+      if (state.optimize.job === job && !job.wakeLock) job.wakeLock = lock;
+      else lock.release().catch(() => {});
+    } catch (error) { /* no Screen Wake Lock here, or refused: the search runs without it */ }
+  }
+
+  function letScreenSleep(job) {
+    const lock = job && job.wakeLock;
+    if (!lock) return;
+    job.wakeLock = null;
+    try { Promise.resolve(lock.release()).catch(() => {}); } catch (error) { /* already let go */ }
+  }
+
+  // Leaving the app holds the search after its batch (the time away is not counted); coming back runs it on.
+  function optimizeVisibilityChanged() {
+    const job = state.optimize.job;
+    if (!job) return;
+    if (document.visibilityState === "hidden") {
+      if (job.paused) return;
+      job.paused = true;
+      letScreenSleep(job);  // the browser lets a screen lock go with the page anyway
+      engine.pause(job.id);
+      job.backgroundText = OPTIMIZE_PAUSED_TEXT;
+    } else if (document.visibilityState === "visible") {
+      if (!job.paused) return;
+      job.paused = false;
+      engine.resume(job.id);
+      job.backgroundText = OPTIMIZE_RESUMED_TEXT;
+      holdScreenOn();
+    }
+    showOptimizeProgress();
+  }
+  document.addEventListener("visibilitychange", optimizeVisibilityChanged);
 
   async function loadOptimizeInfo() {
     if (state.optimize.info) return;
@@ -1648,6 +1717,7 @@
     const presets = info.presets.map((preset) => [preset.id, preset.label]);
     const efforts = info.efforts.map((effort) => [effort.id, effort.label + " (" + effort.text.phone + ")"]);
     const presetText = (info.presets.find((preset) => preset.id === options.preset) || {}).text || "";
+    const saved = optimize.job ? null : savedOptimizeSearch();
     card.innerHTML = (state.error ? errorBanner(state.error) : "") + "<div class=\"card-head\">" + about.head + "</div>"
       + about.text + "<p class=\"field-help\">" + escapeText(info.notAdvice) + "</p><div id=\"optimizeSwitches\"></div>"
       + "<div class=\"pair\">" + selectHtml("optimizePreset", "Risk preference", presets, options.preset)
@@ -1655,6 +1725,12 @@
       + "<p class=\"field-help\" id=\"optimizePresetText\">" + escapeText(presetText) + "</p>"
       + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"optimizeRun\""
       + (optimize.job || state.error ? " disabled" : "") + ">Find best settings</button></div>"
+      + (saved ? "<div class=\"run-progress\" id=\"optimizeResumeOffer\" role=\"group\" aria-labelledby=\""
+        + "optimizeResumeText\"><p class=\"progress-text\" id=\"optimizeResumeText\">A search on these settings was "
+        + "interrupted before it finished (the app was closed). Resume it where it stopped, or discard it.</p>"
+        + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"optimizeResume\""
+        + (state.error ? " disabled" : "") + ">Resume the search</button><button type=\"button\" class=\"button "
+        + "button-quiet\" id=\"optimizeDiscard\">Discard</button></div></div>" : "")
       + optimizeProgressHtml(optimize.job) + messageHtml(optimize.message);
     const switches = card.querySelector("#optimizeSwitches");
     for (const dimension of info.dimensions) {
@@ -1666,7 +1742,11 @@
       $("optimizePresetText").textContent = (info.presets.find((preset) => preset.id === options.preset) || {}).text || "";
     });
     card.querySelector("#optimizeEffort").addEventListener("change", (event) => { options.effort = event.target.value; });
-    card.querySelector("#optimizeRun").addEventListener("click", runOptimize);
+    card.querySelector("#optimizeRun").addEventListener("click", () => runOptimize());
+    const resume = card.querySelector("#optimizeResume");
+    if (resume) resume.addEventListener("click", () => runOptimize(savedOptimizeSearch()));
+    const discard = card.querySelector("#optimizeDiscard");
+    if (discard) discard.addEventListener("click", () => { clearOptimizeCheckpoint(); renderOptimize(); });
     const stop = card.querySelector("#optimizeStop");
     if (stop) stop.addEventListener("click", () => { if (optimize.job) engine.finish(optimize.job.id); });
     const cancel = card.querySelector("#optimizeCancel");
@@ -1682,6 +1762,7 @@
     return "<div class=\"run-progress\" id=\"optimizeProgress\"" + (job ? "" : " hidden") + "><div class=\"progress\" "
       + "role=\"progressbar\" aria-label=\"Runs done\" aria-valuemin=\"0\" id=\"optimizeBar\"><span></span></div>"
       + "<p class=\"progress-text\" id=\"optimizeProgressText\">Starting the search</p>"
+      + "<p class=\"progress-text\" id=\"optimizeBackground\" aria-live=\"polite\"></p>"
       + "<div id=\"optimizeCap\" role=\"group\" aria-labelledby=\"optimizeCapText\" hidden>"
       + "<p class=\"progress-text\" id=\"optimizeCapText\"></p><div class=\"run-row\"><button type=\"button\" "
       + "class=\"button\" id=\"optimizeCapContinue\">Continue</button><button type=\"button\" class=\"button "
@@ -1709,6 +1790,8 @@
     $("optimizeCap").hidden = !capped;
     $("optimizeCapText").textContent = capped ? detail.capText : "";
     $("optimizeStop").hidden = capped;
+    $("optimizeBackground").textContent = job.backgroundText || "";
+    $("optimizeBackground").hidden = !job.backgroundText;
   }
 
   // Answer the search paused at its run budget: continue with another budget of runs, or keep the best so far.
@@ -1721,25 +1804,38 @@
     $("optimizeStop").focus();
   }
 
-  async function runOptimize() {
+  // Start a search on the current settings, or resume `saved` (`savedOptimizeSearch`) with its own options.
+  async function runOptimize(saved = null) {
     const optimize = state.optimize;
     if (optimize.job || state.error) return;
     const inputsText = JSON.stringify(state.inputs);
-    const options = { effort: optimize.options.effort, preset: optimize.options.preset,
-      dimensions: { ...optimize.options.dimensions }, surplusLocked: state.surplusLocks.slice() };
+    const optionsText = saved ? saved.optionsText : JSON.stringify({ effort: optimize.options.effort,
+      preset: optimize.options.preset, dimensions: { ...optimize.options.dimensions },
+      surplusLocked: state.surplusLocks.slice() });
+    const seed = state.seed;
+    const key = optimizeCheckpointKey(inputsText, optionsText, seed);
     if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
     clearTimeout(mcTimer);
-    const job = engine.job("optimize", [inputsText, JSON.stringify(options), state.seed, true], null, (message) => {
-      if (!optimize.job) return;
-      const wasCapped = Boolean(optimize.job.detail && optimize.job.detail.capped);
-      optimize.job.detail = message.detail;
-      showOptimizeProgress();
-      if (message.detail && message.detail.capped && !wasCapped && $("optimizeCapContinue")) $("optimizeCapContinue").focus();
-    });
-    optimize.job = { id: job.id, detail: null, inputsText, dropped: false };
+    const job = engine.job("optimize", [inputsText, optionsText, seed, true, saved ? saved.checkpoint : null], null,
+      (message) => {
+        if (!optimize.job) return;
+        if (message.checkpoint && message.checkpoint !== "null" && !state.clearing) {
+          store(OPTIMIZE_CHECKPOINT_KEY, { key, optionsText, checkpoint: message.checkpoint });
+        }
+        const wasCapped = Boolean(optimize.job.detail && optimize.job.detail.capped);
+        optimize.job.detail = message.detail;
+        showOptimizeProgress();
+        if (message.detail && message.detail.capped && !wasCapped && $("optimizeCapContinue")) {
+          $("optimizeCapContinue").focus();
+        }
+      });
+    optimize.job = { id: job.id, detail: null, inputsText, dropped: false, paused: false, backgroundText: null,
+      wakeLock: null };
     optimize.message = null;
     renderOptimize();
     if ($("optimizeStop")) $("optimizeStop").focus();
+    holdScreenOn();
+    if (document.visibilityState === "hidden") optimizeVisibilityChanged();
     let reply = null;
     let failure = null;
     try {
@@ -1748,6 +1844,8 @@
       failure = String(error.message || error);
     }
     const { dropped } = optimize.job;
+    letScreenSleep(optimize.job);
+    clearOptimizeCheckpoint();
     optimize.job = null;
     if (failure) optimize.message = { error: true, text: failure };
     else if (!reply) optimize.message = dropped ? { text: "The settings changed, so the search was dropped. Run it again." }
