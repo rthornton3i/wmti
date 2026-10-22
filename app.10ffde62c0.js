@@ -14,6 +14,7 @@
     mergeUndoPop, changedPaths, optimizeStepText, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
     spendingChangePreview } = window.WmtiShared;
   const charts = window.WmtiCharts;
+  const report = window.WmtiReport;
 
   const BOOT_STEPS = [["script", "Loading the calculator"], ["boot", "Starting up"],
     ["packages", "Installing libraries"], ["imports", "Importing libraries"],
@@ -1332,7 +1333,7 @@
     mcTimer = null;
     const mc = state.mc;
     if (window.WMTI_NO_AUTO_MC || walk.open || !state.info || singleBusy || state.error || mc.job
-      || state.compare.job || state.optimize.job || needsSetup(state.inputs)) return;
+      || state.compare.job || state.optimize.job || reportRun.busy || needsSetup(state.inputs)) return;
     const key = mcKey();
     if (cachedResult(mc.cache, key) || key === mc.skipKey) return;
     runMonteCarlo(true);
@@ -5549,6 +5550,7 @@
   // schema.timeline.flow, with one Save (applies the edit and closes) and one Cancel (closes, applies nothing); its
   // notes, naming every neighbour it changed, show under the block. While an edit is on its way the buttons are disabled.
   const timelineNotes = {};  // by kind: the notes of the last edit, shown once under the block
+  const timelineSegmentsShown = {};  // by kind: the segments last drawn, for the Add screen's "Replaces" choice
   let timelineFlow = null;   // the open workflow: {kind, step, position, lane, year, history, notes, error, busy, addChoice}
 
   function timelineWords(kind) {
@@ -5604,6 +5606,7 @@
       return;
     }
     const words = timelineWords(kind);
+    timelineSegmentsShown[kind] = reply.segments;
     const parts = [];
     const bars = document.createElement("div");
     bars.className = "timeline-bars";
@@ -5664,12 +5667,7 @@
       list.append(card);
     }
     parts.push(list);
-    const starts = document.createElement("div");
-    starts.className = "timeline-actions";
-    const add = timelineButton(words.start.empty, "add", "button-primary");
-    add.addEventListener("click", () => openTimeline(kind, "add", { lane: kind === "Car" ? null : 0 }));
-    starts.append(add);
-    parts.push(starts);
+    // Adding is the item list's one Add button (it opens this timeline's Add screen): no second one here.
     body.replaceChildren(...parts);
   }
 
@@ -5751,6 +5749,52 @@
     }
     group.value = () => (group.querySelector("input:checked") || {}).value;
     return group;
+  }
+
+  // The Add screen's optional "Replaces" select for a future purchase (or a lease): "Nothing, a separate item" or an
+  // owned item of the kind (homes: on the first lane, as a new home goes there; no rent periods). Choosing one puts the
+  // new item in that item's lane and sets the start year (`start`) to its sale year when it has one; the backend's
+  // `buy` refits the replaced item to end then. `lane()` is the chosen lane, or `fallback` for a separate item.
+  function timelineReplaces(kind, start, chosen, fallback) {
+    const segments = (timelineSegmentsShown[kind] || []).filter((segment) => segment.position != null
+      && segment.mode === "own" && (kind === "Car" || segment.lane === 0));
+    const wrap = document.createElement("label");
+    wrap.className = "field timeline-field";
+    const caption = document.createElement("span");
+    caption.className = "field-label";
+    caption.textContent = "Replaces";
+    const select = document.createElement("select");
+    select.className = "input";
+    const none = document.createElement("option");
+    none.value = "";
+    none.textContent = "Nothing, a separate item";
+    select.append(none);
+    for (const segment of segments) {
+      const option = document.createElement("option");
+      option.value = String(segment.position);
+      option.textContent = segment.name;
+      select.append(option);
+    }
+    const help = document.createElement("span");
+    help.className = "field-help";
+    help.textContent = "The new one starts when this one is sold.";
+    const picked = () => segments.find((segment) => String(segment.position) === select.value) || null;
+    if (chosen != null && segments.some((segment) => segment.position === chosen)) select.value = String(chosen);
+    const sync = () => { help.hidden = !picked(); };
+    select.addEventListener("change", () => {
+      const segment = picked();
+      if (segment && segment.endYear != null) {
+        start.input.value = String(segment.endYear);
+        start.input.dispatchEvent(new Event("input"));  // the age beside the year follows
+      }
+      sync();
+    });
+    sync();
+    wrap.append(caption, select, help);
+    wrap.hidden = !segments.length;
+    wrap.lane = () => (picked() ? picked().lane : fallback);
+    wrap.position = () => (picked() ? picked().position : null);
+    return wrap;
   }
 
   // The figures a purchase screen asks: the buying figures and the financing switch with its figures, from the
@@ -5837,15 +5881,16 @@
           const hint = document.createElement("p");
           hint.className = "field-help";
           hint.textContent = rent ? words.rentHint : words.leaseHint;
-          holder.replaceChildren(name, start, end, monthly, hint);
+          const replaces = rent ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);  // a lease may replace a car
+          holder.replaceChildren(...[name, replaces, start, end, monthly, hint].filter(Boolean));
           read = () => {
             const endYear = end.input.value === "" ? null : Number(end.input.value);
             const fields = { name: name.input.value, mode: value, purchaseAge: timelineAge(Number(start.input.value)),
               saleAge: endYear == null ? null : timelineAge(endYear) };
             fields[rent ? "monthlyRent" : "leaseMonthly"] = Number(monthly.input.value);
             flow.addDraft = { choice: value, name: fields.name, purchaseAge: fields.purchaseAge, saleAge: fields.saleAge,
-              monthly: Number(monthly.input.value) };
-            return { op: "buy", lane: rent ? 0 : flow.lane, fields };
+              monthly: Number(monthly.input.value), replaces: replaces ? replaces.position() : null };
+            return { op: "buy", lane: rent ? 0 : replaces.lane(), fields };
           };
           return;
         }
@@ -5855,13 +5900,14 @@
           ? timelineYear(kept.purchaseAge) : flow.year || state.info.lawTaxYear + 1);
         const end = timelineYearInput(words.saleYear + " (optional)", yearOf(kept.saleAge), true);
         const figures = timelineFigures(kind, owned, kept.figures);
-        holder.replaceChildren(...[name, start, end].filter(Boolean), ...figures.elements);
+        const replaces = owned ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);
+        holder.replaceChildren(...[name, replaces, start, end].filter(Boolean), ...figures.elements);
         read = () => {
           const fields = { name: name.input.value, purchaseAge: start ? timelineAge(Number(start.input.value)) : null,
             saleAge: end.input.value === "" ? null : timelineAge(Number(end.input.value)), ...figures.values() };
           flow.addDraft = { choice: value, name: fields.name, purchaseAge: fields.purchaseAge, saleAge: fields.saleAge,
-            figures: figures.values() };  // kept for the screen drawn again with a refusal
-          return { op: "buy", lane: flow.lane, fields };
+            figures: figures.values(), replaces: replaces ? replaces.position() : null };  // kept for a refusal's redraw
+          return { op: "buy", lane: replaces ? replaces.lane() : flow.lane, fields };
         };
       };
       choice.addEventListener("change", draw);
@@ -5984,6 +6030,162 @@
     return result;
   }
 
+  // ---- Final report (PDF): pick saved scenarios to compare, run what is missing, draw the PDF and download it ----
+  // The current settings are always the base. Each picked saved scenario runs one Monte Carlo with the same runs and
+  // seed; the current settings run only when their Monte Carlo is missing or stale (the result is kept as the
+  // Outputs' own). Progress and the outcome show in the dialog; report.js builds and draws the report.
+  const reportRun = { busy: false, job: null, cancelled: false };
+
+  function reportNote(text) {
+    const note = document.createElement("p");
+    note.className = "field-help";
+    note.textContent = text;
+    return note;
+  }
+
+  function reportClosing(text, isError) {
+    openDialog({ title: "Final report (PDF)", text: isError ? "" : text,
+      actions: [["Close", "button", () => true, "reportClose"]] });
+    if (isError) dialogError(text);
+  }
+
+  function openReportPicker() {
+    if (reportRun.busy) return;
+    if (needsSetup(state.inputs) || state.error) {
+      reportClosing(state.error ? "Fix the settings first: " + state.error
+        : "Finish setup first: fill in your age and the rest under Inputs.", Boolean(state.error));
+      return;
+    }
+    if (state.compare.job || state.optimize.job) {
+      reportClosing("Wait for the running comparison or search to finish, then try again.", false);
+      return;
+    }
+    const names = savedNames().filter((name) => name !== state.scenarioName);
+    const body = [];
+    if (names.length) {
+      const list = document.createElement("fieldset");
+      list.className = "report-picks";
+      list.innerHTML = "<legend class=\"field-help\">Compare with saved scenarios (up to " + report.MAX_SAVED
+        + ", one run each)</legend>";
+      for (const name of names) {
+        const row = document.createElement("label");
+        row.className = "report-pick";
+        row.innerHTML = "<input type=\"checkbox\"><span></span>";
+        row.querySelector("input").value = name;
+        row.querySelector("span").textContent = name;
+        list.append(row);
+      }
+      const boxes = [...list.querySelectorAll("input")];
+      list.addEventListener("change", () => {
+        const full = boxes.filter((box) => box.checked).length >= report.MAX_SAVED;
+        boxes.forEach((box) => { box.disabled = full && !box.checked; });
+      });
+      body.push(list);
+    } else {
+      body.push(reportNote("No other saved scenarios: the report covers the current settings."));
+    }
+    openDialog({ title: "Final report (PDF)", text: "Covers " + state.scenarioName + " as set now.", body,
+      actions: [CANCEL, ["Create report", "button", () => {
+        const picked = [...$("dialogBody").querySelectorAll(".report-pick input:checked")].map((box) => box.value);
+        createReport(report.capSelection(picked));
+        return false;
+      }, "reportCreate"]] });
+  }
+
+  // One Monte Carlo for the report: `inputs` with the current runs and seed; the dialog's progress shows `label`.
+  async function reportMonteCarlo(inputs, label) {
+    const job = engine.job("monteCarlo", [JSON.stringify(inputs), state.mc.runs, state.seed], null, (message) => {
+      Object.assign(reportRun.job, { done: message.done, total: message.total, ms: message.ms });
+      showProgress("report", reportRun.job);
+    });
+    reportRun.job = { id: job.id, done: 0, total: state.mc.runs, ms: 0, scenario: label };
+    showProgress("report", reportRun.job);
+    const reply = await job.promise;
+    reportRun.job = null;
+    if (!reply) throw new Error(reportRun.cancelled ? "cancelled" : "The run was stopped; try again.");
+    if (!reply.value.ok) throw new Error(label + ": " + reply.value.error);
+    return reply;
+  }
+
+  // A chart as a PNG for the PDF: the SVG drawn on the report's size in the light colors, rasterized at 2x.
+  async function reportChartImage(spec) {
+    const size = report.IMAGE_SIZE;
+    const svg = report.standaloneSvg(charts.renderChart(spec, size));
+    if (!svg) return null;
+    const image = new Image();
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = () => reject(new Error("could not draw the chart " + spec.title));
+      image.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = size.width * 2;
+    canvas.height = size.height * 2;
+    const context = canvas.getContext("2d");
+    context.scale(2, 2);
+    context.drawImage(image, 0, 0, size.width, size.height);
+    return { dataUrl: canvas.toDataURL("image/png"), width: size.width, height: size.height };
+  }
+
+  async function createReport(picked) {
+    reportRun.busy = true;
+    reportRun.cancelled = false;
+    $("dialogText").textContent = "Running and drawing the report. Keep the app open.";
+    $("dialogText").hidden = false;
+    $("dialogBody").innerHTML = progressHtml("report", { done: 0, total: state.mc.runs });
+    $("dialogActions").replaceChildren();
+    $("reportCancel").addEventListener("click", () => {
+      reportRun.cancelled = true;
+      if (reportRun.job) engine.cancel(reportRun.job.id);
+    });
+    $("reportCancel").focus();
+    let outcome;
+    try {
+      const key = mcKey();
+      let current = cachedResult(state.mc.cache, key);
+      if (!current) {
+        if (state.mc.job) state.mc.job.silent = true;  // one batched job at a time: the report's run replaces it
+        clearTimeout(mcTimer);
+        const reply = await reportMonteCarlo(state.inputs, state.scenarioName);
+        current = { key, value: reply.value, ms: reply.ms };
+        state.mc.cache = rememberResult(state.mc.cache, current);
+        state.mc.message = null;
+        renderPinned();
+        renderMcBar();
+        renderResults();
+        renderPlots();
+      }
+      const configs = [];
+      for (const name of picked) {
+        if (!state.scenarios[name]) continue;
+        const reply = await reportMonteCarlo(state.scenarios[name], name);
+        configs.push({ name, result: reply.value });
+      }
+      if ($("reportProgressText")) $("reportProgressText").textContent = "Drawing the PDF";
+      const data = report.buildReport({ scenarioName: state.scenarioName, date: new Date(), inputs: state.inputs,
+        monteCarlo: current.value, single: state.result, configs });
+      const images = {};
+      for (const spec of data.plots.map((plot) => plot.spec).concat(data.comparison ? [data.comparison.spec] : [])) {
+        const image = await reportChartImage(spec);
+        if (image) images[spec.id] = image;
+      }
+      const doc = new window.jspdf.jsPDF({ unit: "pt", format: "letter", orientation: "portrait", compress: true });
+      report.drawReport(doc, data, images);
+      const blob = doc.output("blob");
+      outcome = downloadFile(data.filename, blob) ? ["Downloaded " + data.filename + ".", false]
+        : ["This browser cannot save files from this page. Open the app in a browser tab and try again.", true];
+    } catch (error) {
+      const text = String((error && error.message) || error);
+      outcome = text === "cancelled" ? ["Report cancelled. Nothing was saved.", false] : ["Report not made: " + text, true];
+    } finally {
+      reportRun.busy = false;
+      reportRun.job = null;
+    }
+    reportClosing(outcome[0], outcome[1]);
+    renderAbout();
+    scheduleMc();
+  }
+
   // ---- Setup: scenario files (export, import), reset, about ----
   const downloadsReady = window.claude && window.claude.use ? window.claude.use("downloads").catch(() => null)
     : Promise.resolve(null);
@@ -5998,10 +6200,10 @@
     if (typeof message.scrollIntoView === "function") message.scrollIntoView({ block: "nearest" });
   }
 
-  // Start a real file download of `text` in the browser (a Blob link). False when the page cannot make one.
+  // Start a real file download of `text` (or a Blob) in the browser (a Blob link). False when the page cannot make one.
   function downloadFile(filename, text) {
     try {
-      const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+      const url = URL.createObjectURL(text instanceof Blob ? text : new Blob([text], { type: "application/json" }));
       const link = document.createElement("a");
       link.href = url;
       link.download = filename;
@@ -7475,6 +7677,7 @@
     $("menuBackdrop").addEventListener("click", closeMenu);
     $("undoButton").addEventListener("click", undoLast);
     $("menuAbout").addEventListener("click", openAbout);
+    $("menuReport").addEventListener("click", () => { closeMenu(); openReportPicker(); });
     $("aboutCheck").addEventListener("click", checkForUpdates);
     $("aboutDone").addEventListener("click", closeAbout);
     $("aboutBackdrop").addEventListener("click", closeAbout);

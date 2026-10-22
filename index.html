@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-PBMpUq8AhXI5F6HiANHp5X9eE/P47BLB+KGPuiOjG3w=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-ywp20FvMd+5UQTWcogs0vtX8GDN9KW+WgXky/tdwC7Q=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -707,6 +707,10 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .dialog h2 { overflow-wrap: anywhere; }
 .dialog-body { display: grid; gap: 8px; }
 .dialog-body:empty { display: none; }
+/* The final report picker: one row per saved scenario, a tick box and its name */
+.report-picks { border: 0; margin: 0; padding: 0; display: grid; gap: 4px; }
+.report-pick { display: flex; align-items: center; gap: 10px; min-height: 40px; overflow-wrap: anywhere; }
+.report-pick input { width: 20px; height: 20px; flex: none; }
 .dialog-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; padding-top: 4px; }
 .dialog-actions .button { padding-inline: 8px; justify-self: stretch; }
 .dialog-wide { width: 100%; }
@@ -1244,6 +1248,8 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
       <li>Outputs reruns on its own after every change. Setup holds your scenarios (open, saved, new and imported) and the run; Undo (top left) steps back through your last changes.</li>
       <li>Tap ? (top right) for a short tour of the controls.</li>
     </ul>
+    <button type="button" class="menu-item" id="menuReport">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 17v-3M12 17v-6M15 17v-4"/></svg><span>Final report (PDF)</span></button>
     <button type="button" class="menu-item" id="menuAbout">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h0"/></svg><span>About</span></button>
     <button type="button" class="menu-item" id="menuLegal">
@@ -1326,11 +1332,13 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "fa62b7447f50", pyodide: "0.29.5" };</script>
-<script src="legal.3250d44a4a.js"></script>
+<script>window.WMTI_BUILD = { id: "22d77dc32128", pyodide: "0.29.5" };</script>
+<script src="legal.de2ca1afc7.js"></script>
 <script src="shared.25a39642e0.js"></script>
 <script src="charts.a69151b17d.js"></script>
-<script src="app.76a626d2d5.js"></script>
+<script src="report.3dc261a16e.js"></script>
+<script src="jspdf.822d41ab6f.js"></script>
+<script src="app.10ffde62c0.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

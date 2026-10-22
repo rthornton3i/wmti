@@ -15,6 +15,11 @@ not the PolyForm Noncommercial License, govern them. The full license texts, wit
 | six | 1.17.0 | MIT | https://github.com/benjaminp/six |
 | Public Sans font | 5.2.7 (Fontsource) | SIL Open Font License 1.1 | https://github.com/uswds/public-sans |
 | IBM Plex Mono font | 5.2.7 (Fontsource) | SIL Open Font License 1.1 | https://github.com/IBM/plex |
+| jsPDF (the final report PDF) | 4.2.1 | MIT | https://github.com/parallax/jsPDF |
+| fflate (bundled in jsPDF) | as bundled in jsPDF 4.2.1 | MIT | https://github.com/101arrowz/fflate |
+| fast-png (bundled in jsPDF) | as bundled in jsPDF 4.2.1 | MIT | https://github.com/image-js/fast-png |
+| iobuffer (bundled in jsPDF) | as bundled in jsPDF 4.2.1 | MIT | https://github.com/image-js/iobuffer |
+| pako (bundled in jsPDF) | 2.1.0 | MIT and Zlib | https://github.com/nodeca/pako |
 
 Pyodide's runtime bundles CPython and the libraries listed in Pyodide's and CPython's own license files, which
 `legal/third-party/` reproduces. The Pyodide source is available from its project page above. The fonts are shipped
