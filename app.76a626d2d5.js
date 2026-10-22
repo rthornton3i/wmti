@@ -162,7 +162,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.6733b76dd5.js");
+      worker = new Worker("worker.c0f81e4291.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -5278,9 +5278,9 @@
       && filter.kind[0] === "Mortgage" ? "mortgage loan" : typeWords(field.type));  // the Home chip's other mortgages
     add.addEventListener("click", () => {
       // A home, car or rent period is added on its timeline: the first question there asks for its years.
-      const timed = { Home: ["Home", "add", 0], Car: ["Car", "add", null], RentPeriod: ["Home", "rent", 0] }[field.type];
+      const timed = { Home: ["Home", null, 0], Car: ["Car", null, null], RentPeriod: ["Home", "rent", 0] }[field.type];
       if (timed) {
-        openTimeline(timed[0], timed[1], { lane: timed[2] });
+        openTimeline(timed[0], "add", { lane: timed[2], addChoice: timed[1] });
         return;
       }
       const items = getPath(state.inputs, path);
@@ -5510,6 +5510,7 @@
     });
     actions.append(move(-1, "Move up"), move(1, "Move down"), remove);
     body.append(actions);
+    $("sheet").classList.remove("timeline-sheet");  // an item sheet keeps its header Done
     $("sheet").hidden = false;
     $("sheetBackdrop").hidden = false;
     $("app").classList.remove("typing");
@@ -5535,6 +5536,7 @@
     timelineFlow = null;
     sheetOpen = null;
     $("sheet").hidden = true;
+    $("sheet").classList.remove("timeline-sheet");
     $("sheetBackdrop").hidden = true;
     $("app").classList.remove("typing");
     renderSettings();
@@ -5543,11 +5545,11 @@
 
   // ---- Ownership timeline: the Home and Cars panes' Timeline block and its workflow in the bottom sheet ----
   // The segments and every edit come from wmti.assets.timeline through the worker (timelineView, timelineApply), so the
-  // phone refits and fills exactly as the desktop does. The workflow asks one question per screen with the words of
-  // schema.timeline.flow; each step's edit is applied at once (a later Back never undoes it) and its notes, naming every
-  // neighbour it changed, show on the screen and under the block. While an edit is on its way the buttons are disabled.
+  // phone refits and fills exactly as the desktop does. Each add or edit is one screen in the words of
+  // schema.timeline.flow, with one Save (applies the edit and closes) and one Cancel (closes, applies nothing); its
+  // notes, naming every neighbour it changed, show under the block. While an edit is on its way the buttons are disabled.
   const timelineNotes = {};  // by kind: the notes of the last edit, shown once under the block
-  let timelineFlow = null;   // the open workflow: {kind, step, position, lane, year, history, notes, error, busy, rentDone}
+  let timelineFlow = null;   // the open workflow: {kind, step, position, lane, year, history, notes, error, busy, addChoice}
 
   function timelineWords(kind) {
     return state.schema.timeline.flow[kind];
@@ -5639,9 +5641,7 @@
         hint.textContent = words.gapEdit;
         card.append(hint);
       } else {
-        const sale = timelineButton(words.start.own, "sale");
-        sale.hidden = segment.mode === "rent";  // a rent period ends; it is not sold
-        sale.addEventListener("click", () => openTimeline(kind, "sell", { position: segment.position, lane: segment.lane }));
+        // Edit and Delete only: a sale is planned, or a car kept, on the Edit screen.
         const edit = timelineButton(words.start.edit, "edit");
         edit.addEventListener("click", () => openTimeline(kind, "edit", { position: segment.position, lane: segment.lane }));
         const remove = timelineButton(words.start.delete, "delete", "button-danger");
@@ -5658,25 +5658,17 @@
         });
         const actions = document.createElement("span");
         actions.className = "timeline-actions";
-        actions.append(sale, edit, remove);
+        actions.append(edit, remove);
         card.append(actions);
       }
       list.append(card);
     }
     parts.push(list);
-    const chain = reply.segments.filter((segment) => segment.lane === 0 && segment.position != null);
     const starts = document.createElement("div");
     starts.className = "timeline-actions";
     const add = timelineButton(words.start.empty, "add", "button-primary");
     add.addEventListener("click", () => openTimeline(kind, "add", { lane: kind === "Car" ? null : 0 }));
     starts.append(add);
-    if (chain.length) {
-      const last = chain.reduce((latest, segment) => (segment.startAge > latest.startAge ? segment : latest));
-      const plan = timelineButton(words.start.last, "plan", "button-primary");
-      plan.addEventListener("click", () => openTimeline(kind, last.endAge == null && last.mode !== "rent" ? "sell" : "next",
-        { position: last.position, lane: 0, year: last.endAge == null ? null : timelineYear(last.endAge) }));
-      starts.append(plan);
-    }
     parts.push(starts);
     body.replaceChildren(...parts);
   }
@@ -5695,16 +5687,11 @@
     if (!sheetOpen && $("sheet").hidden) sheetReturn = document.activeElement;
     sheetOpen = null;
     timelineFlow = { kind, step, position: null, lane: 0, year: null, history: [], notes: [], error: null, busy: false,
-      rentDone: false, ...(options || {}) };
+      addChoice: null, ...(options || {}) };
     $("sheetTitle").textContent = "Timeline";
+    $("sheet").classList.add("timeline-sheet");  // hides the header Done: the screen has Save and Cancel
     $("sheet").hidden = false;
     $("sheetBackdrop").hidden = false;
-    timelineScreen();
-  }
-
-  function timelineGo(step, changes) {
-    timelineFlow.history.push(timelineFlow.step);
-    Object.assign(timelineFlow, { step, error: null }, changes || {});
     timelineScreen();
   }
 
@@ -5721,6 +5708,7 @@
     caption.textContent = label;
     const input = document.createElement("input");
     input.type = type === "check" ? "checkbox" : type === "text" ? "text" : "number";
+    if (type !== "check") input.className = "input";  // the app's themed field, not the browser's dark default
     if (type === "check") input.checked = Boolean(value);
     else if (value != null) input.value = String(value);
     Object.assign(input, options || {});
@@ -5789,6 +5777,12 @@
       if (field.kind === "integer") inputs[name] = () => Math.round(Number(element.input.value));
       return element;
     });
+    // The financing figures show only while its switch (the mortgage or the loan) is ticked.
+    const switchElement = elements[names.indexOf(words.financingSwitch)];
+    const financing = names.map((name, at) => (words.financingFields.includes(name) ? elements[at] : null)).filter(Boolean);
+    const syncFinancing = () => { for (const element of financing) element.hidden = !switchElement.input.checked; };
+    switchElement.input.addEventListener("change", syncFinancing);
+    syncFinancing();
     return { elements, values: () => Object.fromEntries(Object.entries(inputs).map(([name, read]) => [name, read()])) };
   }
 
@@ -5810,13 +5804,17 @@
     const isRent = kind === "Home" && flow.position != null && flow.position >= (state.inputs.homes || []).length;
     const nameLabel = state.schema.types[kind].find((field) => field.name === "name").label;
     const parts = [];
-    let next = null;  // the screen's Next: an async step that returns once applied
+    let save = null;  // the screen's Save: an async step that applies the edit and closes the sheet once applied
     if (flow.step === "add") {
-      // First whether it is a future purchase or owned now; then that case's fields.
-      const choice = timelineChoice(words.addQuestion, Object.entries(words.addOptions), flow.addChoice || null);
+      // One screen: first what is added (owned now, a future purchase, or a rent period or lease); then that case's
+      // fields below it. Save applies one buy and closes; nothing chains to a second screen.
+      const other = kind === "Home" ? "rent" : "lease";
+      const options = [["owned", words.addOptions.owned], ["future", words.addOptions.future],
+        [other, kind === "Home" ? "Rent" : "Lease"]];
+      const choice = timelineChoice("What are you adding?", options, flow.addChoice || null);
       const holder = document.createElement("div");
       holder.className = "timeline-add";
-      let read = null;
+      let read = null;  // the buy op of the drawn case
       const draw = () => {
         const value = choice.value() || null;
         flow.addChoice = value;
@@ -5825,107 +5823,53 @@
           read = null;
           return;
         }
+        const kept = flow.addDraft && flow.addDraft.choice === value ? flow.addDraft : {};  // after a refusal
+        const yearOf = (age) => (age != null ? timelineYear(age) : null);
+        if (value === other) {
+          const rent = value === "rent";
+          const name = timelineInput(rent ? state.schema.types.RentPeriod.find((field) => field.name === "name").label
+            : nameLabel, "text", kept.name || timelineFreeName(kind, rent));
+          const start = timelineYearInput(rent ? words.rentStart : words.leaseStart, yearOf(kept.purchaseAge) || flow.year);
+          const end = timelineYearInput(rent ? words.rentEnd : words.leaseEnd, yearOf(kept.saleAge), true);
+          const monthly = timelineInput(rent ? words.rentQuestion
+            : state.schema.types.Car.find((field) => field.name === "leaseMonthly").label, "number",
+            kept.monthly != null ? kept.monthly : 0, { min: 0, step: "any" });
+          const hint = document.createElement("p");
+          hint.className = "field-help";
+          hint.textContent = rent ? words.rentHint : words.leaseHint;
+          holder.replaceChildren(name, start, end, monthly, hint);
+          read = () => {
+            const endYear = end.input.value === "" ? null : Number(end.input.value);
+            const fields = { name: name.input.value, mode: value, purchaseAge: timelineAge(Number(start.input.value)),
+              saleAge: endYear == null ? null : timelineAge(endYear) };
+            fields[rent ? "monthlyRent" : "leaseMonthly"] = Number(monthly.input.value);
+            flow.addDraft = { choice: value, name: fields.name, purchaseAge: fields.purchaseAge, saleAge: fields.saleAge,
+              monthly: Number(monthly.input.value) };
+            return { op: "buy", lane: rent ? 0 : flow.lane, fields };
+          };
+          return;
+        }
         const owned = value === "owned";
-        const kept = flow.addDraft && flow.addDraft.owned === owned ? flow.addDraft : {};  // after a refusal
         const name = timelineInput(nameLabel, "text", kept.name || timelineFreeName(kind));
         const start = owned ? null : timelineYearInput(words.purchaseYear, kept.purchaseAge != null
           ? timelineYear(kept.purchaseAge) : flow.year || state.info.lawTaxYear + 1);
-        const end = timelineYearInput(words.saleYear + " (optional)", kept.saleAge != null ? timelineYear(kept.saleAge)
-          : null, true);
+        const end = timelineYearInput(words.saleYear + " (optional)", yearOf(kept.saleAge), true);
         const figures = timelineFigures(kind, owned, kept.figures);
         holder.replaceChildren(...[name, start, end].filter(Boolean), ...figures.elements);
-        read = () => ({ name: name.input.value, purchaseAge: start ? timelineAge(Number(start.input.value)) : null,
-          saleAge: end.input.value === "" ? null : timelineAge(Number(end.input.value)), ...figures.values() });
-        flow.addRead = () => ({ owned, name: name.input.value, purchaseAge: read().purchaseAge, saleAge: read().saleAge,
-          figures: figures.values() });
+        read = () => {
+          const fields = { name: name.input.value, purchaseAge: start ? timelineAge(Number(start.input.value)) : null,
+            saleAge: end.input.value === "" ? null : timelineAge(Number(end.input.value)), ...figures.values() };
+          flow.addDraft = { choice: value, name: fields.name, purchaseAge: fields.purchaseAge, saleAge: fields.saleAge,
+            figures: figures.values() };  // kept for the screen drawn again with a refusal
+          return { op: "buy", lane: flow.lane, fields };
+        };
       };
       choice.addEventListener("change", draw);
       draw();
       parts.push(choice, holder);
-      next = async () => {
+      save = async () => {
         if (!read) return;
-        flow.addDraft = flow.addRead();  // kept for the screen drawn again with a refusal
-        if (await timelineStep({ op: "buy", lane: flow.lane, fields: read() })) timelineClose();
-      };
-    } else if (flow.step === "sell") {
-      const item = items[flow.position];
-      const choice = timelineChoice(words.sellQuestion.replace("{name}", item.name),
-        [["yes", words.sellYes], ["no", words.sellNo]], item.sellsLater ? "yes" : null);
-      const start = item.buysLater ? item.purchaseAge : state.inputs.you.currentAge;
-      const year = timelineYearInput(words.saleYear, timelineYear(item.sellsLater ? item.saleAge : start + 1));
-      year.hidden = choice.value() !== "yes";
-      choice.addEventListener("change", () => { year.hidden = choice.value() !== "yes"; });
-      parts.push(choice, year);
-      next = async () => {
-        if (choice.value() === "yes") {
-          const saleYear = Number(year.input.value);
-          const result = await timelineStep({ op: "sell", position: flow.position, saleAge: timelineAge(saleYear) });
-          if (result) timelineGo("next", { year: saleYear });  // the next one starts in the sale year
-        } else if (choice.value() === "no") {
-          if (await timelineStep({ op: "keep", position: flow.position })) timelineClose();
-        }
-      };
-    } else if (flow.step === "next") {
-      const options = Object.entries(words.options).filter(([value]) => !(flow.rentDone && value === "rent"));
-      const choice = timelineChoice(words.nextQuestion, options, null);
-      parts.push(choice);
-      next = async () => {
-        const value = choice.value();
-        if (value === "buy") timelineGo("buy");
-        else if (value === "rent" || value === "lease") timelineGo(value);
-        else if (value === "done") timelineClose();
-      };
-    } else if (flow.step === "buy") {
-      const name = timelineInput(state.schema.types[kind].find((field) => field.name === "name").label, "text",
-        timelineFreeName(kind));
-      const year = timelineYearInput(words.purchaseYear, flow.year);
-      const figures = timelineFigures(kind);
-      parts.push(name, year, ...figures.elements);
-      next = async () => {
-        const op = { op: "buy", lane: flow.lane, fields: { name: name.input.value, purchaseAge: timelineAge(Number(year.input.value)),
-          ...figures.values() } };
-        const result = await timelineStep(op);
-        if (result) timelineGo("sell", { position: result.position });
-      };
-    } else if (flow.step === "rent") {
-      const rentFields = state.schema.types.RentPeriod;
-      const name = timelineInput(rentFields.find((field) => field.name === "name").label, "text",
-        timelineFreeName(kind, true));
-      const start = timelineYearInput(words.rentStart, flow.year);
-      const end = timelineYearInput(words.rentEnd, null, true);
-      const monthly = timelineInput(words.rentQuestion, "number", 0, { min: 0, step: "any" });
-      const hint = document.createElement("p");
-      hint.className = "field-help";
-      hint.textContent = words.rentHint;
-      parts.push(name, start, end, monthly, hint);
-      next = async () => {
-        const endYear = end.input.value === "" ? null : Number(end.input.value);
-        const fields = { name: name.input.value, mode: "rent", monthlyRent: Number(monthly.input.value),
-          purchaseAge: timelineAge(Number(start.input.value)), saleAge: endYear == null ? null : timelineAge(endYear) };
-        if (await timelineStep({ op: "buy", lane: 0, fields })) {
-          timelineGo("next", { rentDone: true, year: endYear == null ? null : endYear });
-        }
-      };
-    } else if (flow.step === "lease") {
-      const name = timelineInput(state.schema.types.Car.find((field) => field.name === "name").label, "text",
-        timelineFreeName(kind));
-      const start = timelineYearInput(words.leaseStart, flow.year);
-      const end = timelineYearInput(words.leaseEnd, null, true);
-      const monthlyField = state.schema.types.Car.find((field) => field.name === "leaseMonthly");
-      const monthly = timelineInput(monthlyField.label, "number", 0, { min: 0, step: "any" });
-      const hint = document.createElement("p");
-      hint.className = "field-help";
-      hint.textContent = words.leaseHint;
-      parts.push(name, start, end, monthly, hint);
-      next = async () => {
-        const endYear = end.input.value === "" ? null : Number(end.input.value);
-        const op = { op: "buy", lane: flow.lane, fields: { name: name.input.value, mode: "lease",
-          purchaseAge: timelineAge(Number(start.input.value)), saleAge: endYear == null ? null : timelineAge(endYear),
-          leaseMonthly: Number(monthly.input.value) } };
-        const result = await timelineStep(op);
-        if (!result) return;
-        if (endYear == null) timelineClose();
-        else timelineGo("next", { position: result.position, year: endYear });
+        if (await timelineStep(read())) timelineClose();
       };
     } else if (flow.step === "edit" && isRent) {
       const period = items[flow.position];
@@ -5945,7 +5889,7 @@
       open.input.addEventListener("change", sync);
       sync();
       parts.push(today, startYear, open, endYear, monthly);
-      next = async () => {
+      save = async () => {
         const fields = { monthlyRent: Number(monthly.input.value),
           purchaseAge: today.input.checked ? null : timelineAge(Number(startYear.input.value)),
           saleAge: open.input.checked ? null : timelineAge(Number(endYear.input.value)) };
@@ -5956,7 +5900,7 @@
       const leased = kind === "Car" && item.leases;
       const currentAge = state.inputs.you.currentAge;
       let ownedNow = null;
-      let kept = null;
+      let selling = null;
       const startYear = timelineYearInput(leased ? words.leaseStart : words.purchaseYear,
         timelineYear(item.buysLater ? item.purchaseAge : currentAge + 1));
       const endYear = timelineYearInput(leased ? words.leaseEnd : words.saleYear,
@@ -5967,23 +5911,23 @@
           item.purchasePrice, { min: 0, step: "any" });
       if (!leased) {
         ownedNow = timelineInput(words.ownedNow, "check", !item.buysLater);
-        kept = timelineInput("Keep it, no planned sale", "check", !item.sellsLater);  // a tick box, so not the "No, keep it" answer
+        selling = timelineInput("Plan to sell it", "check", item.sellsLater);  // ticked: the sale year shows; unticked: kept
         const sync = () => {
           startYear.hidden = ownedNow.input.checked;
           figure.hidden = ownedNow.input.checked;
-          endYear.hidden = kept.input.checked;
+          endYear.hidden = !selling.input.checked;
         };
         ownedNow.input.addEventListener("change", sync);
-        kept.input.addEventListener("change", sync);
+        selling.input.addEventListener("change", sync);
         sync();
-        parts.push(ownedNow, startYear, figure, kept, endYear);
+        parts.push(ownedNow, startYear, figure, selling, endYear);
       } else {
         parts.push(startYear, endYear, figure);
       }
-      next = async () => {
+      save = async () => {
         const fields = {};
         fields.purchaseAge = ownedNow && ownedNow.input.checked ? null : timelineAge(Number(startYear.input.value));
-        fields.saleAge = (kept && kept.input.checked) || endYear.input.value === "" ? null
+        fields.saleAge = (selling && !selling.input.checked) || endYear.input.value === "" ? null
           : timelineAge(Number(endYear.input.value));
         if (leased) fields.leaseMonthly = Number(figure.input.value);
         else if (fields.purchaseAge != null) fields.purchasePrice = Number(figure.input.value);
@@ -5996,19 +5940,18 @@
     actions.className = "sheet-actions timeline-nav";
     const back = timelineButton(words.start.back, "back");
     back.disabled = !flow.history.length;
-    back.hidden = !flow.history.length;  // a screen opened directly (Edit, Plan a sale) has nothing to go back to
+    back.hidden = !flow.history.length;  // every add and edit is one screen, so Back shows only after a step back is possible
     back.addEventListener("click", () => {
       Object.assign(flow, { step: flow.history.pop(), error: null });
       timelineScreen();
     });
-    const go = timelineButton(flow.step === "edit" || flow.step === "add" ? words.start.done : words.start.next, "next",
-      "button-primary");
+    const go = timelineButton("Save", "save", "button-primary");
     go.addEventListener("click", async () => {
       if (flow.busy) return;
       flow.busy = true;
       for (const button of actions.querySelectorAll("button")) button.disabled = true;
       try {
-        await next();
+        await save();
       } finally {
         flow.busy = false;
         if (timelineFlow === flow && !$("sheet").hidden && document.contains(go)) {
@@ -6017,11 +5960,10 @@
         }
       }
     });
-    // On a save screen the primary button is Done (saves); the other one only closes, so it says Cancel, not a second Done.
-    const saves = flow.step === "edit" || flow.step === "add";
-    const done = timelineButton(saves ? "Cancel" : words.start.done, "close");
-    done.addEventListener("click", timelineClose);
-    actions.append(back, go, done);
+    // Two ways out, both here: Save applies the edit and closes; Cancel closes with nothing applied.
+    const cancel = timelineButton("Cancel", "cancel");
+    cancel.addEventListener("click", timelineClose);
+    actions.append(back, go, cancel);
     parts.push(actions);
     $("sheetBody").replaceChildren(...parts);
     const first = $("sheetBody").querySelector("input");
@@ -7364,10 +7306,10 @@
     { title: "Your scenarios", place: ["setup"], target: () => $("savedCard"),
       text: "Setup shows the scenario you are working on: save, rename, duplicate, clear or export it. Below it you "
         + "can open another scenario, start a new one or import a file." },
-    { title: "Walk me through it", target: () => $("menuButton"),
+    { title: "Walk me through it", menu: true, target: () => $("menuWalk"),
       text: "The menu's Walk me through it asks one question at a time and fills in your settings. Where a topic "
         + "has more detail, Go deeper adds its extra questions." },
-    { title: "The menu", target: () => $("menuButton"),
+    { title: "The menu", menu: true, target: () => $("menu"),
       text: "The menu also holds Appearance (the color schemes), Help and tips, About and Legal." },
     { title: "This tour", target: () => $("helpButton"),
       text: "Tap ? any time to see this tour again." },
@@ -7400,8 +7342,18 @@
     openTour();
   }
 
+  // The menu, shown or hidden for the tour's steps that point into it (no focus change; the tour card keeps focus).
+  function tourMenu(open) {
+    if (!open && $("menu").hidden) return;
+    if (open) markScheme();
+    $("menu").hidden = !open;
+    $("menuBackdrop").hidden = !open;
+    $("menuButton").setAttribute("aria-expanded", String(open));
+  }
+
   function closeTour() {
     if ($("tour").hidden) return;
+    tourMenu(false);
     $("tour").hidden = true;
     $("app").inert = false;
     $("helpButton").setAttribute("aria-expanded", "false");
@@ -7418,6 +7370,7 @@
       if (step.place && (step.place[0] !== state.tab || (step.place[1] && step.place[1] !== state.view))) {
         goTo(step.place[0], step.place[1] || state.view);
       }
+      tourMenu(Boolean(step.menu));
       if (tourShown(step.target())) break;
       at += direction;
     }
@@ -7506,7 +7459,6 @@
     $("settings-body").addEventListener("submit", (event) => event.preventDefault());
     $("household-body").addEventListener("submit", (event) => event.preventDefault());
     $("sheetDone").addEventListener("click", closeSheet);
-    $("sheetSave").addEventListener("click", closeSheet);  // the same as Done, at the bottom of the sheet
     $("sheetBackdrop").addEventListener("click", closeSheet);
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
