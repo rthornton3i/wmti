@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-The Walk Me Through It (WMTI) phone app ships these third-party components, each under its own license. Their licenses,
+The Walk Me Through It (WMTI) app ships these third-party components, each under its own license. Their licenses,
 not the PolyForm Noncommercial License, govern them. The full license texts, with their copyright notices, are in
 `legal/third-party/` and in the Legal window under Third-party licenses.
 
@@ -24,6 +24,3 @@ not the PolyForm Noncommercial License, govern them. The full license texts, wit
 Pyodide's runtime bundles CPython and the libraries listed in Pyodide's and CPython's own license files, which
 `legal/third-party/` reproduces. The Pyodide source is available from its project page above. The fonts are shipped
 unmodified under their own names, as the Open Font License requires.
-
-The desktop dashboard does not ship third-party code: you install its dependencies (such as Streamlit, plotly,
-matplotlib, numpy, pandas and openpyxl) yourself with pip, each under its own license.

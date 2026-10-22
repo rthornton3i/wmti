@@ -1,20 +1,19 @@
 # Privacy Notice
 
-Version: 2026-10-19
+Version: 2026-10-22
 
-This notice covers Walk Me Through It (WMTI), including the phone app and the desktop dashboard, offered by
+This notice covers the Walk Me Through It (WMTI) app, offered by
 [BRAND NAME], which decides how the software handles data. Contact: [CONTACT EMAIL].
 
 ## The app runs on your device
 
-The Walk Me Through It phone app runs entirely in your browser. The retirement model runs on your device; no server
+The Walk Me Through It app runs entirely in your browser. The retirement model runs on your device; no server
 computes your results.
 
 ## What is stored, and where
 
 Your inputs, saved scenarios, settings, walkthrough progress and your agreement to the Terms are stored only in this
-browser's local storage on this device. The desktop dashboard keeps its saved configs and progress as files on your
-computer. Nothing you enter is sent to us, and we cannot see it.
+browser's local storage on this device. Nothing you enter is sent to us, and we cannot see it.
 
 Because your data lives only on your device, it can be lost (for example when the browser's data is cleared) and we
 cannot restore it. Export a scenario file to keep a backup.
@@ -40,11 +39,6 @@ privacy policy (https://www.anthropic.com/legal/privacy). We do not receive, req
 The app sets no cookies and uses no analytics, advertising or tracking. Its fonts and every other file come from the
 same host as the page, so the page makes no requests to third parties.
 
-## The desktop dashboard
-
-The desktop dashboard is a local web server: it listens on this computer only (127.0.0.1), so other devices on your
-network cannot open it, and its usage statistics are turned off. Keep it on this computer.
-
 ## Children
 
 The software is only for people of legal age (see the Terms). We do not knowingly collect anything from
@@ -59,8 +53,7 @@ your device.
 
 Use Setup, Clear all data on this device, or delete your saved scenarios under Setup, Saved scenarios, or clear this
 site's data in your browser's settings (often under Privacy, Site data). Removing the installed app from your home
-screen and clearing the site's data removes everything the app stored. On the desktop, delete the files in your
-scenario folder.
+screen and clearing the site's data removes everything the app stored.
 
 ## Changes and contact
 

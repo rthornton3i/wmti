@@ -44,7 +44,7 @@
   const RESULT_VIEWS = [{ id: "summary", label: "Summary" }, { id: "accounts", label: "Accounts" },
     { id: "deductions", label: "Deductions" }];
   // What Compare does, behind the "i" beside the Compare card's heading.
-  const COMPARE_HELP = "Pick two configs to compare, as on the desktop. Both run on the same random draws (same seed), "
+  const COMPARE_HELP = "Pick two configs to compare. Both run on the same random draws (same seed), "
     + "so the differences come from the settings, not from luck. Save scenarios under Setup to compare them "
     + "here.";
   const CACHED_RESULTS = 2;  // Monte Carlo and comparison results kept per kind, newest first
@@ -163,7 +163,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.c0f81e4291.js");
+      worker = new Worker("worker.f674c06e27.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1254,7 +1254,7 @@
       state.chips.results = id; savePrefs(); renderResults();
     });
     renderTerminalRate(chip === "summary");
-    $("summary-warnings").hidden = chip !== "summary";  // the Medicare warning, as on the desktop Summary
+    $("summary-warnings").hidden = chip !== "summary";  // the Medicare warning
     const body = $("results-body");
     if (needsSetup(state.inputs)) { body.innerHTML = FINISH_SETUP_HTML; return; }
     let html = state.error ? errorBanner(state.error) : "";
@@ -2230,7 +2230,7 @@
   const MATCH_LABELS = ["Make B match A", "Make A match B"];  // the accessible names
   const MATCH_ARROWS = ["A → B", "A ← B"];  // the button text: the arrow points the copy direction
 
-  // The make-match buttons: off with the desktop's reason, and a first tap that asks for a second.
+  // The make-match buttons: off with matchProblem's reason, and a first tap that asks for a second.
   function matchButtons(names, problems) {
     const [nameA, nameB] = names;
     return "<div class=\"match\">" + MATCH_LABELS.map((label, position) => {
@@ -2707,7 +2707,7 @@
         dialogError("This browser did not open a file picker. Paste the scenario text into the box instead.");
         text.focus();
       }));
-      openDialog({ title: "Import", text: "Pick a scenario file saved from Walk Me Through It or the desktop dashboard.",
+      openDialog({ title: "Import", text: "Pick a scenario file saved from Walk Me Through It.",
         body: [choose, or, text], focus: choose,
         actions: [CANCEL, ["Open", "button", async () => {
           if (!text.value.trim()) { dialogError("Choose a file or paste the scenario text."); return false; }
@@ -3020,7 +3020,7 @@
     return card;
   }
 
-  // The RMD rules notes as a list behind an "i" beside a short Notes line (the desktop's Notes tooltip).
+  // The RMD rules notes as a list behind an "i" beside a short Notes line.
   function rmdNotesHtml(notes) {
     if (!notes || !notes.length) return "";
     const id = newHelpId();
@@ -3248,10 +3248,10 @@
       group.append(depositSection());  // in the Retirement plan pane, one panel with the plan
     }
     if (panel.id === "retirement" && panel.fields.includes("premiums.medicareAge")) {
-      group.append(warningsBox("medicare-warnings"));  // the early IRMAA tier is estimated, as on the desktop
+      group.append(warningsBox("medicare-warnings"));  // the early IRMAA tier is estimated
     }
     if (panel.id === "strategies" && panel.fields.includes("strategies.qcd")) {
-      group.append(warningsBox("strategy-warnings"));  // once, after the last strategy, as on the desktop
+      group.append(warningsBox("strategy-warnings"));  // once, after the last strategy
       const link = optimizeLink();  // at the top, in a section of its own before the toggles
       link.classList.add("pane-section");
       group.prepend(link);
@@ -3273,7 +3273,7 @@
     }
   }
 
-  // The Expenses chip's two lists, as the desktop's two tables: the monthly categories, then Major Spending and Charity
+  // The Expenses chip's two lists: the monthly categories, then Major Spending and Charity
   // (amounts per year), each a filtered view of the one saved expenses list whose sheet offers only its categories.
   const MAJOR_EXPENSES_HELP = "Major Spending and Charity rows: the amount is per year, from the From age to the To age.";
   function expenseLists(field, path) {
@@ -3605,7 +3605,7 @@
     if (next) moveDeposit(next.name, next.amount);
   }
 
-  // Blank every 401k and IRA deposit, so the household plan applies again (the desktop's button).
+  // Blank every 401k and IRA deposit, so the household plan applies again.
   function useHouseholdPlan() {
     const kinds = state.info.sheetRules.depositKinds;
     for (const account of state.inputs.accounts) if (kinds.includes(account.kind)) account.deposit = null;
@@ -3725,7 +3725,7 @@
     }
   }
 
-  // The benefit used at the claim age, then, as the desktop Retirement tab prints them: on Manual entry (or an
+  // The benefit used at the claim age, then: on Manual entry (or an
   // earnings basis the estimate cannot cover) the read-only benefit table (age, entered, used, basis); on Earnings
   // history only the estimate with its caption and warnings.
   function benefitHtml(person) {
@@ -3952,7 +3952,7 @@
   }
 
   // Send a slider move to wmti (rebalanceSurplus). One move is in flight at a time; while it runs only the newest
-  // position is kept, so the shares always follow the desktop rule step by step.
+  // position is kept, so the shares always follow the rebalanceSurplus rule step by step.
   async function moveSurplus(name, share) {
     if (surplusMove.busy) {
       surplusMove.pending = { name, share };
@@ -4320,7 +4320,7 @@
     return wrap;
   }
 
-  // The Social Security basis as a two-position toggle (Earnings history, Manual entry), as on the desktop. Without an
+  // The Social Security basis as a two-position toggle (Earnings history, Manual entry). Without an
   // earnings history Earnings history is disabled with a hint, so the basis stays on the table the loader accepts.
   function basisToggle(field, path, value) {
     const wrap = fieldShell(field.label, field.help, null);
@@ -4531,7 +4531,7 @@
   }
 
   // A select whose choices are the keys of a sibling map. The claim age offers every age of the person's benefit
-  // table (entered and estimated, from benefitTables) once it has arrived, as the desktop does.
+  // table (entered and estimated, from benefitTables) once it has arrived.
   function choicesFrom(field, path) {
     const parent = path.split(".").slice(0, -1).join(".");
     const card = field.name === "socialSecurityAge" && state.benefits && state.benefits.ok
@@ -5546,7 +5546,7 @@
 
   // ---- Ownership timeline: the Home and Cars panes' Timeline block and its workflow in the bottom sheet ----
   // The segments and every edit come from wmti.assets.timeline through the worker (timelineView, timelineApply), so the
-  // phone refits and fills exactly as the desktop does. Each add or edit is one screen in the words of
+  // phone refits and fills exactly as wmti does. Each add or edit is one screen in the words of
   // schema.timeline.flow, with one Save (applies the edit and closes) and one Cancel (closes, applies nothing); its
   // notes, naming every neighbour it changed, show under the block. While an edit is on its way the buttons are disabled.
   const timelineNotes = {};  // by kind: the notes of the last edit, shown once under the block

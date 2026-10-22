@@ -6,12 +6,12 @@
 // this worker to take over (message {type: "skipWaiting"}); on activate the older builds' caches are deleted.
 "use strict";
 
-const BUILD_ID = "22d77dc32128";
+const BUILD_ID = "d3713c925391";
 const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
 const FILES = [
  "./",
- "app.10ffde62c0.js",
+ "app.30cae805f1.js",
  "charts.a69151b17d.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
@@ -25,7 +25,7 @@ const FILES = [
  "icons/icon-maskable-512.png",
  "index.html",
  "jspdf.822d41ab6f.js",
- "legal.de2ca1afc7.js",
+ "legal.b869c64e72.js",
  "manifest.webmanifest",
  "pyodide/numpy-2.2.5-cp313-cp313-pyemscripten_2025_0_wasm32_whl.wasm",
  "pyodide/pandas-2.3.3-cp313-cp313-pyemscripten_2025_0_wasm32_whl.wasm",
@@ -38,9 +38,9 @@ const FILES = [
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
  "report.3dc261a16e.js",
- "shared.25a39642e0.js",
- "wmti.b8ca18eea8.wasm",
- "worker.c0f81e4291.js"
+ "shared.627fcc7578.js",
+ "wmti.ab29198d50.wasm",
+ "worker.f674c06e27.js"
 ];
 
 self.addEventListener("install", (event) => {

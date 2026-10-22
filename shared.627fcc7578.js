@@ -272,7 +272,7 @@
     return filled;
   }
 
-  // The collapsed returns header of an account sheet, as the desktop's: "Return 6.0% · std dev 12.0%".
+  // The collapsed returns header of an account sheet: "Return 6.0% · std dev 12.0%".
   function returnsSummary(meanReturn, returnStdDev) {
     return "Return " + (meanReturn * 100).toFixed(1) + "% · std dev " + (returnStdDev * 100).toFixed(1) + "%";
   }
@@ -361,8 +361,8 @@
     return values;
   }
 
-  // Turn off each group's on-defaults switch once one of its figures differs from the shipped value, as the desktop
-  // does; the switch comes back on only through Reset to defaults. Returns whether a switch changed.
+  // Turn off each group's on-defaults switch once one of its figures differs from the shipped value;
+  // the switch comes back on only through Reset to defaults. Returns whether a switch changed.
   function syncResetFlags(schema, inputs) {
     let changed = false;
     for (const root of Object.keys(schema.resetGroups || {})) {
@@ -456,7 +456,7 @@
     return marked.map((item) => items.indexOf(item)).filter((position) => position >= 0).sort((a, b) => a - b);
   }
 
-  // The monthly totals under the expense lists, as the desktop shows them: `rows`, one per monthly category, and
+  // The monthly totals under the expense lists: `rows`, one per monthly category, and
   // `total`, their sum per month; `annual`, Major Spending and Charity as monthly equivalents (the yearly amounts of
   // the rows paid in the year you are `age`, the first year of the plan, divided by 12); and `combined`, the total per
   // month of both. The input is the saved expense rows; with no age every annual row counts.
@@ -553,7 +553,7 @@
   }
 
   // The one summary at the bottom of the Expenses chip, per month (wmti.dashboard.breakdown.expenseTotals, in whole
-  // dollars as the phone shows them): `entered`, the rows of an `expenseSummary` (each monthly category, then Major
+  // dollars as the app shows them): `entered`, the rows of an `expenseSummary` (each monthly category, then Major
   // Spending and Charity per year / 12); `counted`, the one "Bills - Other" row: the sum of the read-only rows other
   // tabs charge (the settings notes' `alreadyCounted` rows; the note row, with no amount, is left out), or null when
   // there are none or before the notes arrive; and `total`, the one "Total expenses" row: the entered rows plus the
@@ -1039,7 +1039,7 @@
     return keys.flatMap((key) => changedPaths(before[key], after[key], prefix ? prefix + "." + key : key));
   }
 
-  // The phone's Compare merge undo: entries oldest first, at most `limit`. Push returns a new stack.
+  // The app's Compare merge undo: entries oldest first, at most `limit`. Push returns a new stack.
   function mergeUndoPush(stack, entry, limit) {
     return stack.concat([entry]).slice(-limit);
   }
@@ -1050,7 +1050,7 @@
     return { entry: stack[stack.length - 1], stack: stack.slice(0, -1) };
   }
 
-  // The strategy search's progress line (the desktop's wmti.dashboard.optimizing.progressText): the step, the settings
+  // The strategy search's progress line (as wmti.dashboard.optimizing.progressText): the step, the settings
   // tried, the runs and, once a run has been timed, the seconds left (`optimizeSecondsLeft`).
   function optimizeStepText(detail) {
     if (!detail) return "Starting the search";
