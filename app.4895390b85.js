@@ -5967,7 +5967,7 @@
           item.purchasePrice, { min: 0, step: "any" });
       if (!leased) {
         ownedNow = timelineInput(words.ownedNow, "check", !item.buysLater);
-        kept = timelineInput(words.sellNo, "check", !item.sellsLater);
+        kept = timelineInput("Keep it, no planned sale", "check", !item.sellsLater);  // a tick box, so not the "No, keep it" answer
         const sync = () => {
           startYear.hidden = ownedNow.input.checked;
           figure.hidden = ownedNow.input.checked;
@@ -5996,6 +5996,7 @@
     actions.className = "sheet-actions timeline-nav";
     const back = timelineButton(words.start.back, "back");
     back.disabled = !flow.history.length;
+    back.hidden = !flow.history.length;  // a screen opened directly (Edit, Plan a sale) has nothing to go back to
     back.addEventListener("click", () => {
       Object.assign(flow, { step: flow.history.pop(), error: null });
       timelineScreen();
@@ -6016,7 +6017,9 @@
         }
       }
     });
-    const done = timelineButton(words.start.done, "close");
+    // On a save screen the primary button is Done (saves); the other one only closes, so it says Cancel, not a second Done.
+    const saves = flow.step === "edit" || flow.step === "add";
+    const done = timelineButton(saves ? "Cancel" : words.start.done, "close");
     done.addEventListener("click", timelineClose);
     actions.append(back, go, done);
     parts.push(actions);
