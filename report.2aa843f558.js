@@ -20,7 +20,8 @@
     { id: "histogram", caption: "How the runs' final values spread; the extreme runs are left out." },
     { id: "balances", caption: "Each account's balance by year; middle half average of the runs." },
     { id: "cashFlow", caption: "Cash in above zero, cash out below; middle half average of the runs." },
-    { id: "taxes", caption: "Taxes by kind and year; middle half average of the runs." },
+    { id: "taxes", caption: "Taxes by kind and year; middle half average of the runs. Hatched: sales tax, already in "
+      + "expenses, shown for records." },
     { id: "expenses", caption: "Spending by category and year; middle half average of the runs." },
   ];
   const COMPARE_CAPTION = "Median (line) and 10th to 90th percentile (shaded) per configuration; same runs and seed.";
@@ -59,6 +60,8 @@
     ["Expenses", /(Bills|Spending|College|Healthcare|Supplement|Premium|IRMAA|Car |Charitable|Asset Purchases|Selling Costs|Tagged)/],
     ["Other", /./],
   ];
+  // Yearly table columns shown for records only, with the heading that says so: already counted elsewhere.
+  const RECORDS_HEADINGS = { "Sales Tax (records)": "Sales tax (already in expenses, shown for records)" };
   const PLAIN_COLUMN = /^(Age|Year|Divisor|Dependents|Deduction type|Percentile)/;
 
   // ---- report data ----
@@ -334,7 +337,8 @@
     });
     return groups.filter((group) => group.columns.length).map((group) => {
       const positions = (ageColumn >= 0 ? [ageColumn] : []).concat(group.columns);
-      const columns = positions.map((position) => summary.columns[position]);
+      const names = positions.map((position) => summary.columns[position]);
+      const columns = names.map((name) => RECORDS_HEADINGS[name] || name);
       return { title: "Yearly: " + group.title, columns, numeric: columns.map((name) => name !== "Deduction type"),
         rows: summary.data.map((row) => positions.map((position) => columnText(summary.columns[position], row[position]))) };
     });
@@ -427,10 +431,12 @@
 
   const argMax = (values) => values.reduce((best, value, position) => (Number(value) > Number(values[best]) ? position
     : best), 0);
-  const totals = (series) => (series.length ? series[0].values.map((unused, position) => series.reduce((sum, item) =>
+  // A series shown for records only (`counted: false`, the sales tax already in the expenses) is never in a total.
+  const counted = (series) => series.filter((item) => item.counted !== false);
+  const totals = (series) => (series.length ? series[0].values.map((unused, position) => counted(series).reduce((sum, item) =>
     sum + (Number(item.values[position]) || 0), 0)) : []);
   const seriesNamed = (spec, name) => (spec.series.find((item) => item.name === name) || { values: [] }).values;
-  const largestSeries = (series) => series.reduce((best, item) => {
+  const largestSeries = (series) => counted(series).reduce((best, item) => {
     const sum = item.values.reduce((total, value) => total + Math.abs(Number(value) || 0), 0);
     return sum > best.sum ? { name: item.name, sum } : best;
   }, { name: null, sum: 0 }).name;
@@ -681,7 +687,7 @@
     + ".box{fill-opacity:.28;stroke-width:2}.median{stroke:" + LIGHT.ink + ";stroke-width:2.5}"
     + ".box-label{fill:" + LIGHT.ink2 + ";font-size:11px;font-weight:600}";
 
-  // The chart markup's SVG as a standalone image: the light colors written in (series tokens to their light value,
+  // The chart markup's SVG as a standalone image: the light colors written in (series and hatch tokens to their light value,
   // the page's chart rules as an inline style), a white background, and no readout crosshair or hit area.
   function standaloneSvg(markup, size = IMAGE_SIZE) {
     const found = /<svg[\s\S]*<\/svg>/.exec(markup);
@@ -689,14 +695,14 @@
     const body = found[0]
       .replace(/<line class="crosshair"[^>]*><\/line>/g, "")
       .replace(/<rect class="hit"[^>]*><\/rect>/g, "")
-      .replace(/var\(--s\d+, ([^)]+)\)/g, "$1")
+      .replace(/var\(--[\w-]+, ([^)]+)\)/g, "$1")
       .replace(/^<svg class="chart-svg"([^>]*?) role="img" tabindex="0" aria-label="[^"]*"/, "<svg class=\"chart-svg\"$1");
     return body.replace(/^<svg /, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" + size.width + "\" height=\""
       + size.height + "\" ").replace(/^(<svg[^>]*>)/, "$1<style>" + CHART_STYLE + "</style><rect width=\"100%\" "
       + "height=\"100%\" fill=\"" + LIGHT.surface + "\"></rect>");
   }
 
-  // The legend items of a chart spec: [{name, color, key}] with key "line", "band" or "box".
+  // The legend items of a chart spec: [{name, color, key}] with key "line", "band", "box" or "hatch" (a records series).
   function legendItems(spec) {
     if (spec.type === "bands") {
       const series = spec.series[0];
@@ -706,7 +712,7 @@
     }
     if (spec.type === "histogram") return [];
     return spec.series.map((series) => ({ name: series.name, color: series.color,
-      key: series.mark === "line" || spec.type === "compareBands" ? "line" : "box" }));
+      key: series.mark === "line" || spec.type === "compareBands" ? "line" : series.hatched ? "hatch" : "box" }));
   }
 
   // ---- drawing ----
@@ -836,7 +842,16 @@
         if (item.key === "line") doc.rect(left, top + 3, 9, 2, "F");
         else if (item.key === "band") { doc.setFillColor(red + (255 - red) * 0.75, green + (255 - green) * 0.75,
           blue + (255 - blue) * 0.75); doc.rect(left, top + 1, 9, 6, "F"); }
-        else doc.rect(left, top + 1, 6, 6, "F");
+        else if (item.key === "hatch") {  // a records series: outlined, with diagonal lines
+          const keptWidth = doc.getLineWidth();
+          doc.setDrawColor(red, green, blue);
+          doc.setLineWidth(0.6);
+          doc.rect(left, top + 1, 6, 6, "S");
+          doc.line(left, top + 4, left + 3, top + 1);
+          doc.line(left, top + 7, left + 6, top + 1);
+          doc.line(left + 3, top + 7, left + 6, top + 4);
+          doc.setLineWidth(keptWidth);
+        } else doc.rect(left, top + 1, 6, 6, "F");
         doc.text(plain(item.name), left + 12, top + 7);
         x += itemWidth;
       }

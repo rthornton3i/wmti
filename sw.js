@@ -6,13 +6,13 @@
 // this worker to take over (message {type: "skipWaiting"}); on activate the older builds' caches are deleted.
 "use strict";
 
-const BUILD_ID = "afef69d3fba8";
+const BUILD_ID = "3791f42d88d2";
 const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
 const FILES = [
  "./",
- "app.50fc24e0c9.js",
- "charts.a69151b17d.js",
+ "app.f5a14d363f.js",
+ "charts.54d59a7eb6.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
  "fonts/public-sans-latin-400-normal.woff2",
@@ -24,9 +24,9 @@ const FILES = [
  "icons/icon-512.png",
  "icons/icon-maskable-512.png",
  "index.html",
- "insights.ab1b981d52.js",
+ "insights.ee50546e73.js",
  "jspdf.822d41ab6f.js",
- "legal.b869c64e72.js",
+ "legal.5beed0797f.js",
  "manifest.webmanifest",
  "pyodide/numpy-2.2.5-cp313-cp313-pyemscripten_2025_0_wasm32_whl.wasm",
  "pyodide/pandas-2.3.3-cp313-cp313-pyemscripten_2025_0_wasm32_whl.wasm",
@@ -38,10 +38,10 @@ const FILES = [
  "pyodide/python_stdlib_zip.wasm",
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
- "report.533ad4cd3e.js",
- "shared.b2c7c4aa2f.js",
- "wmti.7a14bd9c78.wasm",
- "worker.c3ed2730e5.js"
+ "report.2aa843f558.js",
+ "shared.dcddc0ddea.js",
+ "wmti.dcbeb4bdff.wasm",
+ "worker.403a191c6b.js"
 ];
 
 self.addEventListener("install", (event) => {

@@ -1,6 +1,6 @@
 # Terms of Use
 
-Version: 2026-10-19
+Version: 2026-10-22
 
 ## 1. Agreement and definitions
 
@@ -29,9 +29,10 @@ We are not your fiduciary and owe you no fiduciary duty. Your use of the Softwar
 fiduciary, client or other professional relationship between you and us. We are not registered investment advisers,
 broker-dealers, accountants or attorneys.
 
-The Software models United States federal income tax and the income taxes of New Jersey, New York, Pennsylvania and
-Florida only. It uses tax tables for a single stated tax year, shown under About, and some figures in those tables
-are marked unconfirmed. The Software is not designed for other countries or states. It is not a tax return preparer
+The Software models United States federal income tax and the income taxes of the 50 states and the District of
+Columbia only, with local income taxes as one average rate per state. It uses tax tables for a single stated tax
+year, shown under About, and some figures in those tables are marked unconfirmed or approximated. The Software is not
+designed for other countries or for US territories. It is not a tax return preparer
 and does not file anything.
 
 ## 4. Results are hypothetical

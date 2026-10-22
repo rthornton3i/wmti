@@ -268,6 +268,44 @@
     return sheetDefault(typeName, name, item) !== null;
   }
 
+  // The blank panel figures that show the value the model uses until edited, by path: the move age of
+  // Strategies > Relocation is the age your pay stops (today's age when retired), as wmti moveYear reads it.
+  const PANEL_DEFAULTS = {
+    "strategies.relocation.moveAge": (inputs) => {
+      const you = inputs && inputs.you;
+      if (!you) return null;
+      return you.retired ? you.currentAge : you.salaryEndAge;
+    },
+  };
+
+  // What a panel field shows while it is blank: {value, blank: null}, or null when it has no default rule or holds a
+  // value of its own.
+  function panelDefault(path, inputs) {
+    const rule = PANEL_DEFAULTS[path];
+    if (!rule || getPath(inputs, path) != null) return null;
+    const value = rule(inputs);
+    return value == null ? null : { value, blank: null };
+  }
+
+  // The text a select shows for a choice: its label from the schema's `choiceLabels` (a state shows "NJ - New
+  // Jersey"), else `nullLabel` (or "None") for a blank, else the choice itself.
+  function choiceLabel(field, choice, nullLabel) {
+    const labels = (field && field.choiceLabels) || {};
+    if (labels[String(choice)] != null) return labels[String(choice)];
+    return choice == null ? nullLabel || "None" : String(choice);
+  }
+
+  // The choices of a long select that match what is typed in its search box: each word must start a word of the
+  // choice's label, ignoring case ("new j" and "nj" find "NJ - New Jersey"); a blank search keeps every choice.
+  function filterChoices(field, choices, query) {
+    const words = String(query || "").toLowerCase().split(/[\s-]+/).filter(Boolean);
+    if (!words.length) return choices.slice();
+    return choices.filter((choice) => {
+      const parts = choiceLabel(field, choice).toLowerCase().split(/[\s-]+/).filter(Boolean);
+      return words.every((word) => parts.some((part) => part.startsWith(word)));
+    });
+  }
+
   // The fields of an item type whose change redraws an open sheet: the sources of the blank figures and the
   // replacement rules, which decide what the sheet shows.
   function sheetSources(typeName) {
@@ -1168,6 +1206,28 @@
     return isFinite(left) ? left : null;
   }
 
+  // How long a search with `count` picked states may take on a device (as wmti.dashboard.optimizing.statesEstimateText):
+  // the effort's budget plus each state's runs, and their seconds, said as "about 2,500 runs, about 8 minutes" with
+  // "; may stop at the N minute cap" when they pass the time cap raised for the states. `effort` is an
+  // `optimizeInfo` effort.
+  function optimizeStatesEstimate(effort, count, device) {
+    const costs = effort.stateCosts;
+    const runs = effort.budget + count * costs.runs;
+    const seconds = effort.seconds[device] + count * costs.seconds[device];
+    const timeCap = effort.timeCap == null ? null : effort.timeCap + count * costs.timeCap;
+    let text = seconds < 90 ? "about " + roundHalfEven(seconds) + " s"
+      : "about " + roundHalfEven(seconds / 60) + " minutes";
+    if (timeCap != null && seconds > timeCap) text += "; may stop at the " + roundHalfEven(timeCap / 60) + " minute cap";
+    return "about " + runs.toLocaleString("en-US") + " runs, " + text;
+  }
+
+  // Round as Python's round does: a half goes to the even neighbour (2.5 to 2, 3.5 to 4).
+  function roundHalfEven(value) {
+    const floor = Math.floor(value);
+    if (value - floor !== 0.5) return Math.round(value);
+    return floor % 2 === 0 ? floor : floor + 1;
+  }
+
   // The key an interrupted strategy search is kept under: an FNV-1a hash (8 hex digits) of the inputs text, the
   // options text, the seed and the build id, so a reload offers to resume it only for the same settings on the same
   // build (an app update starts afresh).
@@ -1182,12 +1242,12 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, sheetDefault, showsDefault, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, sheetDefault, showsDefault, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
-    changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
+    changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

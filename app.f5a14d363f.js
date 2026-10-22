@@ -6,12 +6,12 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetSources,
-    expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
+    panelDefault, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
-    mergeUndoPop, changedPaths, optimizeStepText, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
+    mergeUndoPop, changedPaths, optimizeStepText, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
     spendingChangePreview } = window.WmtiShared;
   const charts = window.WmtiCharts;
   const report = window.WmtiReport;
@@ -38,7 +38,8 @@
       + "are above zero, withdrawals below it (negative). Traditional includes RMD and QCD; dotted line: the required "
       + "minimum. Social Security, pay and the Roth conversion are not bars." },
     { id: "taxes", label: "Taxes", intro: "The taxes charged each year, by kind; the middle half average of the runs. The "
-      + "deductions are under Outputs, Summary." },
+      + "hatched bar is the sales tax inside your spending: already in expenses, shown for records, never added to the "
+      + "taxes. The deductions are under Outputs, Summary." },
     { id: "expenses", label: "Expenses", intro: "What the household spends each year, by category; the middle half "
       + "average of the runs. Categories never charged are left out; taxes are in Taxes." },
   ];
@@ -53,6 +54,7 @@
   const SAVED_LIMIT = 50;
   const NO_EARNINGS_HINT = "Enter past earnings on the Income tab to use this.";  // wmti.dashboard.settings.NO_EARNINGS_HINT
   const NULL_LABELS = { owner: "Usual owner", account529: "None (the 529s together)" };  // what a blank select choice means for these fields
+  const LONG_SELECT_CHOICES = 12;  // a select with more choices than this (the states) gets a search box on the phone
   const RUN_DELAY_MS = 400;
   const SETTLE_MS = 400;  // a pause in editing this long makes one undo step (and, with Auto-save on, one save)
   const UNDO_LIMIT = 10;  // input states of the open scenario that Undo can step back through
@@ -132,7 +134,7 @@
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null, diffs: null, diffsPending: null, mergeUndo: [] },
     optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
-      options: { effort: null, preset: null, dimensions: {} } },
+      options: { effort: null, preset: null, dimensions: {}, states: [] } },
   };
   const $ = (id) => document.getElementById(id);
   const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -164,7 +166,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.c3ed2730e5.js");
+      worker = new Worker("worker.403a191c6b.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1725,7 +1727,7 @@
   // off. Apply changes the settings at once (one Undo step); the Python builds every text shown.
   const OPTIMIZE_HELP = "Searches your strategy settings for the best score: the Roth conversion, the backdoor, QCDs, "
     + "the withdrawal order, the Social Security claim ages, raising 401k deposits, the split of surplus cash, "
-    + "adding accounts and the heirs' payout (each option's i says more). Every setting tried faces the same random draws (the Seed under "
+    + "adding accounts, the heirs' payout and, for the states you tick, where to retire (each option's i says more). Every setting tried faces the same random draws (the Seed under "
     + "Setup), and the winner is checked again on fresh draws. Nothing changes until you tap Apply, and Undo takes it "
     + "back. Keep the app open while it searches: leaving it pauses the search until you come back.";
   const OPTIMIZE_PAUSED_TEXT = "Paused while the app was in the background";
@@ -1889,6 +1891,10 @@
       && availability.key === JSON.stringify([state.inputs, state.seed])));
     for (const dimension of info.dimensions) {
       const option = optimizeOption(dimension.key);
+      if (dimension.key === "states") {
+        switches.append(optimizeStatesField(dimension, option, info));
+        continue;
+      }
       switches.append(switchField(dimension.label, dimension.help + " Untick to keep its current setting.",
         "optimizeDim-" + dimension.key, option.available && options.dimensions[dimension.key] !== false,
         (checked) => { options.dimensions[dimension.key] = checked; }, !option.available,
@@ -1899,7 +1905,10 @@
       options.preset = event.target.value;
       $("optimizePresetText").textContent = (info.presets.find((preset) => preset.id === options.preset) || {}).text || "";
     });
-    card.querySelector("#optimizeEffort").addEventListener("change", (event) => { options.effort = event.target.value; });
+    card.querySelector("#optimizeEffort").addEventListener("change", (event) => {
+      options.effort = event.target.value;
+      showOptimizeStatesEstimate();
+    });
     card.querySelector("#optimizeRun").addEventListener("click", () => runOptimize());
     const resume = card.querySelector("#optimizeResume");
     if (resume) resume.addEventListener("click", () => runOptimize(savedOptimizeSearch()));
@@ -1912,8 +1921,106 @@
     card.querySelector("#optimizeCapContinue").addEventListener("click", () => answerOptimizeCap(true));
     card.querySelector("#optimizeCapKeep").addEventListener("click", () => answerOptimizeCap(false));
     body.replaceChildren(card);
+    showOptimizeStatesEstimate();
     showOptimizeProgress();
     if (optimize.entry) body.append(...optimizeResult(optimize.entry));
+  }
+
+  // The States option: a list of the states to tick (a search box above it on the phone), at most `info.maxStates`;
+  // once that many are ticked the rest are off with a short note. The estimate under it counts the ticked states.
+  function optimizeStatesField(dimension, option, info) {
+    const options = state.optimize.options;
+    const wrap = fieldShell(dimension.label, dimension.help, null);
+    wrap.id = "optimizeStates";
+    const search = document.createElement("input");
+    search.className = "input select-search";
+    search.type = "search";
+    search.autocomplete = "off";
+    search.placeholder = "Search";
+    search.setAttribute("aria-label", "Search states");
+    search.setAttribute("aria-controls", "optimizeStateList");
+    const list = document.createElement("div");
+    list.className = "state-picks";
+    list.id = "optimizeStateList";
+    list.setAttribute("role", "group");
+    list.setAttribute("aria-label", "States to compare");
+    const choices = state.info.states || [];
+    const labelled = { choiceLabels: Object.fromEntries(choices.map((item) => [item.code, item.code + " - " + item.name])) };
+    const boxes = choices.map((item) => {
+      const label = document.createElement("label");
+      label.className = "state-pick";
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.value = item.code;
+      box.id = "optimizeState-" + item.code;
+      box.checked = options.states.includes(item.code);
+      box.addEventListener("change", () => {
+        options.states = box.checked ? options.states.concat([item.code])
+          : options.states.filter((code) => code !== item.code);
+        syncPicks();
+        showOptimizeStatesEstimate();
+      });
+      label.append(box, document.createTextNode(" " + labelled.choiceLabels[item.code]));
+      list.append(label);
+      return box;
+    });
+    const row = document.createElement("div");
+    row.className = "run-row";
+    const none = document.createElement("button");
+    none.type = "button";
+    none.className = "button button-quiet";
+    none.id = "optimizeStatesNone";
+    none.textContent = "None";
+    none.addEventListener("click", () => {
+      options.states = [];
+      for (const box of boxes) box.checked = false;
+      syncPicks();
+      showOptimizeStatesEstimate();
+    });
+    row.append(none);
+    const limit = document.createElement("p");
+    limit.className = "field-help";
+    limit.id = "optimizeStatesFull";
+    limit.textContent = "Up to " + info.maxStates + " states per search.";
+    const estimate = document.createElement("p");
+    estimate.className = "field-help";
+    estimate.id = "optimizeStatesEstimate";
+    estimate.setAttribute("aria-live", "polite");
+    function syncPicks() {
+      const full = options.states.length >= info.maxStates;
+      for (const box of boxes) box.disabled = !option.available || (full && !box.checked);
+      none.disabled = !option.available || !options.states.length;
+      limit.hidden = !full;
+    }
+    search.addEventListener("input", () => {
+      const matches = filterChoices(labelled, choices.map((item) => item.code), search.value);
+      for (const box of boxes) box.parentElement.hidden = !matches.includes(box.value) && !box.checked;
+    });
+    search.disabled = !option.available;
+    wrap.append(search, list, row, limit, estimate);
+    if (!option.available) {
+      wrap.classList.add("field-disabled");
+      const why = document.createElement("p");
+      why.className = "field-help switch-note";
+      why.id = "optimizeStates-note";
+      why.textContent = "Not available: " + option.reason + ".";
+      wrap.append(why);
+    }
+    syncPicks();
+    return wrap;
+  }
+
+  // The States option's estimate for the ticked states and the chosen effort.
+  function showOptimizeStatesEstimate() {
+    const line = $("optimizeStatesEstimate");
+    const info = state.optimize.info;
+    if (!line || !info) return;
+    const options = state.optimize.options;
+    const effort = info.efforts.find((item) => item.id === options.effort);
+    const count = options.states.length;
+    line.textContent = !count ? "Tick the states you would consider; staying where you are is always compared."
+      : count + (count === 1 ? " state" : " states") + " and staying put: "
+        + (effort ? optimizeStatesEstimate(effort, count, "phone") : "") + " on a phone.";
   }
 
   function optimizeProgressHtml(job) {
@@ -1971,13 +2078,19 @@
     return dimensions;
   }
 
+  // The ticked states the search takes: none while the States option cannot be used.
+  function optimizeStates() {
+    return optimizeOption("states").available ? state.optimize.options.states.slice() : [];
+  }
+
   // Start a search on the current settings, or resume `saved` (`savedOptimizeSearch`) with its own options.
   async function runOptimize(saved = null) {
     const optimize = state.optimize;
     if (optimize.job || state.error) return;
     const inputsText = JSON.stringify(state.inputs);
     const optionsText = saved ? saved.optionsText : JSON.stringify({ effort: optimize.options.effort,
-      preset: optimize.options.preset, dimensions: optimizeDimensions(), surplusLocked: state.surplusLocks.slice() });
+      preset: optimize.options.preset, dimensions: optimizeDimensions(), surplusLocked: state.surplusLocks.slice(),
+      ...(optimizeStates().length ? { states: optimizeStates() } : {}) });
     const seed = state.seed;
     const key = optimizeCheckpointKey(inputsText, optionsText, seed, window.WMTI_BUILD.id);
     if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
@@ -3785,7 +3898,8 @@
     if (person.basisError) html += "<p class=\"banner banner-error\" role=\"alert\">" + escapeText(person.basisError) + "</p>";
     if (person.basis !== "earnings" || person.basisError) {
       const help = titleHelp("p", "Benefit table", "Read-only: the monthly benefit at each claim age in today's value. "
-        + "Benefit used is what the model pays; the ages from 62 to 70 you did not enter are estimated. Enter amounts in "
+        + "Benefit used is what the model pays; the ages from " + state.info.claimAgeRange[0] + " to "
+        + state.info.claimAgeRange[1] + " you did not enter are estimated. Enter amounts in "
         + "“Social Security benefit by claim age” above.", "field-label");
       return html + help.head + help.text + charts.renderUnitsTable({ columns: ["Claim age", "Benefit you enter",
         "Benefit used", "Basis"], data: person.table.data }, ["text", "money", "money", "text"], { title: "Benefit table" });
@@ -4500,16 +4614,18 @@
     return item ? { item, name: path.slice(prefix.length), type: sheetOpen.field.type } : null;
   }
 
-  // A blank sheet figure that shows its source's value (sheetDefault): the value shown, its stored blank and the
-  // `.is-default` styling, refreshed after each edit (showsDefault).
+  // A blank sheet figure that shows its source's value (sheetDefault), or a blank panel figure that shows the value
+  // the model uses (panelDefault): the value shown, its stored blank and the `.is-default` styling, refreshed after
+  // each edit (showsDefault).
   function sheetDefaultOf(path) {
     const at = sheetItemOf(path);
-    return at ? sheetDefault(at.type, at.name, at.item) : null;
+    return at ? sheetDefault(at.type, at.name, at.item) : panelDefault(path, state.inputs);
   }
 
   function markDefault(element, path) {
     const at = sheetItemOf(path);
-    element.classList.toggle("is-default", Boolean(at) && showsDefault(at.type, at.name, at.item));
+    element.classList.toggle("is-default", at ? showsDefault(at.type, at.name, at.item)
+      : panelDefault(path, state.inputs) !== null);
   }
 
   // `filter` (a panel's list filter, see filteredPositions) limits which items of a list field are shown.
@@ -4552,14 +4668,37 @@
         // A blank that shows its source's choice offers only real choices; picking one stores it.
         const offered = fallback ? choices.filter((choice) => choice !== fallback.blank) : choices;
         const options = (field.nullable ? [null] : []).concat(offered);
-        for (const choice of options) {
-          const option = document.createElement("option");
-          option.value = choice == null ? "" : String(choice);
-          option.textContent = (choiceLabels && choiceLabels[String(choice)])
-            || (choice == null ? NULL_LABELS[field.name] || "None" : String(choice));
-          select.append(option);
-        }
+        const labelled = { choiceLabels };
+        const fill = (shownChoices) => {
+          select.replaceChildren(...shownChoices.map((choice) => {
+            const option = document.createElement("option");
+            option.value = choice == null ? "" : String(choice);
+            option.textContent = choiceLabel(labelled, choice, NULL_LABELS[field.name]);
+            return option;
+          }));
+        };
+        fill(options);
         select.value = value == null ? "" : String(value);
+        // A long list (the 51 states) gets a search box above it, shown on the phone layout only (styles.css): the
+        // list keeps the choices that match and the chosen one, so typing never changes the value.
+        if (offered.length > LONG_SELECT_CHOICES) {
+          const search = document.createElement("input");
+          search.className = "input select-search";
+          search.type = "search";
+          search.autocomplete = "off";
+          search.placeholder = "Search";
+          search.setAttribute("aria-label", "Search " + field.label);
+          search.setAttribute("aria-controls", id);
+          search.addEventListener("input", () => {
+            const current = select.value;
+            const matches = filterChoices(labelled, offered, search.value);
+            const kept = options.filter((choice) => matches.includes(choice)
+              || (choice == null ? "" : String(choice)) === current || (choice == null && !search.value.trim()));
+            fill(kept);
+            select.value = current;
+          });
+          wrap.append(search);
+        }
         select.addEventListener("change", () => {
           const raw = select.value;
           let choice = options.find((item) => (item == null ? "" : String(item)) === raw);
@@ -7107,7 +7246,7 @@
   }
 
   function choiceText(field, choice) {
-    return (field.choiceLabels && field.choiceLabels[String(choice)]) || (choice == null ? "None" : String(choice));
+    return choiceLabel(field, choice);
   }
 
   // Big option buttons (a radio group) for a toggle, the partner question and a short list of choices.

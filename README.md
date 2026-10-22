@@ -6,7 +6,7 @@ on your phone; it works offline once loaded.
 
 This planner gives estimates for education only; it is not financial, tax, investment or legal advice. Its results
 are hypothetical and may not come true; it comes with no warranty, and you use it at your own risk. It models United
-States federal tax and the New Jersey, New York, Pennsylvania and Florida income taxes only. See the Terms of use
+States federal tax and the income taxes of the 50 states and the District of Columbia only. See the Terms of use
 (`legal/TERMS.md`) and the Privacy notice (`legal/PRIVACY.md`).
 
 Walk Me Through It (WMTI), copyright (c) 2026 [BRAND NAME]. Licensed under the PolyForm Noncommercial License 1.0.0 (see `LICENSE`):
@@ -15,4 +15,4 @@ non-commercial use only.
 Report security problems as `SECURITY.md` describes.
 
 This repository holds only the built site, published by `frontend/publish_pages.py` of Walk Me Through It.
-Build `afef69d3fba8` (shown in the app under Menu, About).
+Build `3791f42d88d2` (shown in the app under Menu, About).

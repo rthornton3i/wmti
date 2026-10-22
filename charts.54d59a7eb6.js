@@ -68,6 +68,23 @@
     return spec.series.filter((series) => !mark || series.mark === mark);
   }
 
+  // A series shown for records only (`counted: false`, such as the sales tax already in the expenses): drawn hatched
+  // above its stack, never added to a stack's height or a total.
+  const counted = (series) => series.counted !== false;
+  const RECORDS_HELP = "Already in expenses, shown for records; not added to any total.";
+
+  // The hatch fill of a records series: a pattern in the series color on the page's hatch background.
+  function hatchId(spec, series) {
+    return "hatch-" + String(spec.id).replace(/[^A-Za-z0-9_-]/g, "") + "-" + series.slot;
+  }
+
+  function hatchPattern(spec, series) {
+    return "<pattern id=\"" + hatchId(spec, series) + "\" patternUnits=\"userSpaceOnUse\" width=\"6\" height=\"6\" "
+      + "patternTransform=\"rotate(45)\"><rect class=\"hatch-bg\" width=\"6\" height=\"6\" fill=\"var(--hatch-bg, #ffffff)\">"
+      + "</rect><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"6\" stroke=\"" + color(series) + "\" stroke-width=\"3\"></line>"
+      + "</pattern>";
+  }
+
   function hasData(spec) {
     if (spec.type === "histogram") return (spec.bins || []).some((bin) => bin.count > 0);
     if (spec.type === "boxes") return spec.series.some((series) => number(series.low) !== 0 || number(series.high) !== 0);
@@ -183,11 +200,17 @@
     },
     barsAndLine(spec) {
       const values = spec.x.values;
-      const bars = seriesOf(spec, "bar");
+      const bars = seriesOf(spec, "bar").filter(counted);
+      const records = seriesOf(spec, "bar").filter((series) => !counted(series));
       const lines = seriesOf(spec, "line");
       const { layers, max, min } = stack(bars, values.length);
+      // A records bar sits on top of the counted stack (from its positive top), so the axis makes room for it.
+      const tops = values.map((unused, position) => layers.reduce((most, layer) =>
+        Math.max(most, layer[position].high), 0));
+      const recordTops = values.map((unused, position) => tops[position] + records.reduce((sum, series) =>
+        sum + Math.max(0, number(series.values[position])), 0));
       const lineValues = lines.flatMap((series) => series.values.map(number));
-      const ticks = niceTicks(Math.min(min, ...lineValues, 0), Math.max(max, ...lineValues, 0), 4);
+      const ticks = niceTicks(Math.min(min, ...lineValues, 0), Math.max(max, ...recordTops, ...lineValues, 0), 4);
       const scaleY = linear(ticks[0], ticks[ticks.length - 1], HEIGHT - MARGIN.bottom, MARGIN.top);
       const band = PLOT_WIDTH / Math.max(values.length, 1);
       const barWidth = Math.max(1, Math.min(MAX_BAR, band - BAR_GAP));
@@ -206,6 +229,21 @@
             : "M" + round(x) + "," + round(top) + "h" + round(barWidth) + "v" + round(Math.max(height - gap, 0.5))
               + "h" + round(-barWidth) + "z";
           marks += "<path class=\"bar\" fill=\"" + color(bars[index]) + "\" d=\"" + path + "\"></path>";
+        });
+      });
+      if (records.length) marks += "<defs>" + records.map((series) => hatchPattern(spec, series)).join("") + "</defs>";
+      const recordLows = tops.slice();
+      records.forEach((series) => {
+        series.values.forEach((raw, position) => {
+          const value = Math.max(0, number(raw));
+          if (!value) return;
+          const top = scaleY(recordLows[position] + value);
+          const height = Math.max(scaleY(recordLows[position]) - top - (recordLows[position] > 0 ? BAR_GAP : 0), 0.5);
+          recordLows[position] += value;
+          const x = positionOf(position) - barWidth / 2;
+          marks += "<path class=\"bar bar-records\" fill=\"url(#" + hatchId(spec, series) + ")\" stroke=\"" + color(series)
+            + "\" d=\"M" + round(x) + "," + round(top) + "h" + round(barWidth) + "v" + round(height) + "h" + round(-barWidth)
+            + "z\"></path>";
         });
       });
       marks += lines.map((series) => {
@@ -343,7 +381,7 @@
     for (const series of spec.series) {
       if (series.group && series.group !== group) items.push({ name: series.group, heading: true });
       group = series.group || null;
-      items.push({ name: series.name, series, key: series.mark === "line" ? "line" : "box" });
+      items.push({ name: series.name, series, key: series.mark === "line" ? "line" : series.hatched ? "hatch" : "box" });
     }
     return items;
   }
@@ -438,7 +476,11 @@
 
   function renderTable(spec) {
     const units = columnUnits(spec);
-    const head = spec.table.columns.map((name) => "<th scope=\"col\">" + escapeText(name) + "</th>").join("");
+    const records = new Set((spec.series || []).filter((series) => !counted(series)).map((series) => series.name));
+    // A records column (last) gets a greyed header with a tooltip: it is already counted elsewhere.
+    const head = spec.table.columns.map((name, position) => (position > 0 && records.has(name)
+      ? "<th scope=\"col\" class=\"records\" title=\"" + escapeText(RECORDS_HELP) + "\">" : "<th scope=\"col\">")
+      + escapeText(name) + "</th>").join("");
     const rows = spec.table.rows.map((row) => "<tr>" + row.map((value, position) => {
       const text = units[position] === "label" || units[position] === "count" ? String(value)
         : formatValue(value, units[position]);
@@ -554,7 +596,7 @@
     }
     const rows = spec.series.map((series) => [series.name, formatValue(series.values[position], unit), series]);
     if (spec.type !== "lines") {
-      const total = seriesOf(spec, spec.type === "stackedArea" ? "area" : "bar")
+      const total = seriesOf(spec, spec.type === "stackedArea" ? "area" : "bar").filter(counted)
         .reduce((sum, series) => sum + number(series.values[position]), 0);
       rows.push(["Total", formatValue(total, unit), null]);
     }
@@ -775,7 +817,7 @@
   }
 
   const api = { TYPES, renderChart, renderTable, renderFrame, renderUnitsTable, unitCell, attachChart, chartSummary,
-    niceTicks, fullScreenSize, attachFullScreen, BASE_SIZE };
+    niceTicks, fullScreenSize, attachFullScreen, readoutRows, BASE_SIZE };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiCharts = api;
 })(typeof self !== "undefined" ? self : this);

@@ -48,8 +48,9 @@
   const chartOf = (monteCarlo, id) => ((monteCarlo && monteCarlo.charts) || []).find((spec) => spec.id === id) || null;
   const agesOf = (spec) => (spec && spec.x && spec.x.values) || [];
   const seriesNamed = (spec, name) => ((spec && spec.series) || []).find((item) => item.name === name) || null;
-  const totals = (spec) => agesOf(spec).map((unused, position) => ((spec && spec.series) || []).reduce((sum, item) =>
-    sum + number(item.values[position]), 0));
+  // A series shown for records only (`counted: false`, the sales tax already in the expenses) is never in a total.
+  const totals = (spec) => agesOf(spec).map((unused, position) => ((spec && spec.series) || [])
+    .filter((item) => item.counted !== false).reduce((sum, item) => sum + number(item.values[position]), 0));
 
   // A column of the yearly table (the summary frame) lined up with `ages` (your age); zeros when it is missing.
   function yearlyColumn(monteCarlo, name, ages) {

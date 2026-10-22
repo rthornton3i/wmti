@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-VevtCWh1rHTVJ5Yvg8fntWHUkHW25agi2LW+WR0z8Fs=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-cHYSbs4lE8ElJVh6suqEXkjNCRwWrDDBU0zT//d66JA=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -49,6 +49,8 @@ if (window.top !== window.self) {
 @font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
   src: url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
 :root {
+  /* Behind the hatch lines of a records series (charts.js); follows each scheme's surface, light and dark. */
+  --hatch-bg: var(--surface);
   --band: #0B4F6C; --band-ink: #ffffff; --band-sub: #9FD6DE; --band-button: #14627F; --band-button-ink: #D4EEF2;
   --band-track: #14627F; --band-thumb: #9FD6DE;
   --chip-on: #19B5C4; --chip-on-ink: #03343B; --chip-off: #14627F; --chip-off-ink: #D4EEF2;
@@ -376,6 +378,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .key-box { width: 10px; height: 10px; border-radius: 2px; background: var(--key); }
 .key-line { width: 14px; height: 3px; border-radius: 2px; background: var(--key); }
 .key-band { width: 14px; height: 10px; border-radius: 2px; background: var(--key); opacity: 0.25; }
+.key-hatch { width: 10px; height: 10px; border-radius: 2px; box-sizing: border-box; border: 1px solid var(--key);
+  background: repeating-linear-gradient(45deg, var(--key) 0 2px, var(--hatch-bg) 2px 4px); }
 .key-none { width: 14px; }
 .chart-plot { position: relative; }
 .chart-svg { display: block; width: 100%; height: auto; touch-action: pan-y; font-family: var(--font-body); }
@@ -416,6 +420,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .data-table { border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; width: max-content; min-width: 100%; }
 .data-table th, .data-table td { padding: 6px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
 .data-table thead th { background: var(--surface-2); font-weight: 600; color: var(--ink-2); }
+.data-table thead th.records { color: var(--muted); font-weight: 500; font-style: italic; cursor: help; }
 .data-table thead th:first-child { position: sticky; left: 0; z-index: 1; }
 .data-table tbody th { text-align: left; font-weight: 500; position: sticky; left: 0; background: var(--surface);
   box-shadow: 1px 0 0 var(--line); }
@@ -475,8 +480,15 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
   font-variant-numeric: tabular-nums; }
 .input:focus { border-color: var(--accent); }
 .input[aria-invalid="true"] { border-color: var(--bad); }
-/* A blank sheet figure showing its source's value until edited (sheetDefault in shared.js). */
+/* A blank sheet or panel figure showing its source's value until edited (sheetDefault, panelDefault in shared.js). */
 .input.is-default { color: var(--muted); }
+/* The search box above a long select (the states): on the phone layout only; wide screens type to jump. */
+.select-search { margin-bottom: 6px; }
+@media (min-width: 1100px) { .select-search { display: none; } }
+/* The optimizer's States list: the states to tick, in a short scrolling box. */
+.state-picks { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+.state-pick { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+.state-pick[hidden] { display: none; }
 textarea.input { resize: vertical; }
 .affix { position: relative; display: flex; align-items: center; }
 .affix .input { padding-left: 26px; }
@@ -1201,7 +1213,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
     </div>
     <div class="sheet-body">
       <p class="field-help">Walk Me Through It (WMTI), a retirement income planner. Everything runs on this device. Nothing you enter is sent anywhere; your settings stay in this browser.</p>
-      <p class="field-help">This planner gives estimates for education only; it is not financial, tax or legal advice. It models United States federal tax and the New Jersey, New York, Pennsylvania and Florida income taxes for the tax year shown below (Law data) only. The example household's figures are fictional.</p>
+      <p class="field-help">This planner gives estimates for education only; it is not financial, tax or legal advice. It models United States federal tax and the income taxes of the 50 states and the District of Columbia for the tax year shown below (Law data) only. The example household's figures are fictional.</p>
       <p class="field-help" id="aboutBuild"></p>
       <div class="about-update">
         <p class="field-help" id="aboutVersion"></p>
@@ -1342,14 +1354,14 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "afef69d3fba8", pyodide: "0.29.5" };</script>
-<script src="legal.b869c64e72.js"></script>
-<script src="shared.b2c7c4aa2f.js"></script>
-<script src="charts.a69151b17d.js"></script>
-<script src="insights.ab1b981d52.js"></script>
-<script src="report.533ad4cd3e.js"></script>
+<script>window.WMTI_BUILD = { id: "3791f42d88d2", pyodide: "0.29.5" };</script>
+<script src="legal.5beed0797f.js"></script>
+<script src="shared.dcddc0ddea.js"></script>
+<script src="charts.54d59a7eb6.js"></script>
+<script src="insights.ee50546e73.js"></script>
+<script src="report.2aa843f558.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.50fc24e0c9.js"></script>
+<script src="app.f5a14d363f.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
