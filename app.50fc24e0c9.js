@@ -15,6 +15,7 @@
     spendingChangePreview } = window.WmtiShared;
   const charts = window.WmtiCharts;
   const report = window.WmtiReport;
+  const insightRules = window.WmtiInsights;
 
   const BOOT_STEPS = [["script", "Loading the calculator"], ["boot", "Starting up"],
     ["packages", "Installing libraries"], ["imports", "Importing libraries"],
@@ -416,7 +417,6 @@
     if (summaryCard) fillExpenseSummary(summaryCard);
     refreshSpending();  // the Spending in retirement amounts follow every edit (a percent, the start or stop age)
     updateTerminalRate();  // the heirs' caption follows the payout
-    fillHeirsNote();
     clearTimeout(runTimer);
     setStatus("busy", "Updating");
     $("app").classList.add("stale");
@@ -1050,20 +1050,22 @@
     $("bandSub").textContent = sub;
   }
 
-  // ---- Inputs' pinned tabs: the settings-group chips stay under the top bar while the page scrolls ----
+  // ---- Pinned tabs: Inputs' group chips, or Outputs' view chips with their sub-tabs, stay under the top bar ----
   // Pinned (the default), the band sticks with only its chips row showing below the top bar; unpinned, it scrolls
-  // away as on Outputs. The pin button at the row's right end switches it; the choice is kept on this device.
+  // away. A pin button at each row's right end switches both; the choice is kept on this device.
   const tabsPin = { on: true };
 
   function wireTabsPin() {
     try { tabsPin.on = localStorage.getItem(TABS_PIN_KEY) !== "off"; } catch (error) { /* storage blocked: pinned */ }
     markTabsPin();
-    $("chipsPin").addEventListener("click", () => {
-      tabsPin.on = !tabsPin.on;
-      try { localStorage.setItem(TABS_PIN_KEY, tabsPin.on ? "on" : "off"); } catch (error) { /* storage blocked */ }
-      markTabsPin();
-      placeBand();
-    });
+    for (const button of document.querySelectorAll(".chips-pin")) {
+      button.addEventListener("click", () => {
+        tabsPin.on = !tabsPin.on;
+        try { localStorage.setItem(TABS_PIN_KEY, tabsPin.on ? "on" : "off"); } catch (error) { /* storage blocked */ }
+        markTabsPin();
+        placeBand();
+      });
+    }
     const band = document.querySelector(".band");
     if (window.ResizeObserver) {
       const watch = new ResizeObserver(() => placeBand());
@@ -1074,19 +1076,22 @@
   }
 
   function markTabsPin() {
-    const button = $("chipsPin");
-    button.setAttribute("aria-pressed", String(tabsPin.on));
-    button.setAttribute("aria-label", tabsPin.on ? "Unpin tabs" : "Pin tabs");
+    for (const button of document.querySelectorAll(".chips-pin")) {
+      button.setAttribute("aria-pressed", String(tabsPin.on));
+      button.setAttribute("aria-label", tabsPin.on ? "Unpin tabs" : "Pin tabs");
+    }
   }
 
-  // Stick the band on Inputs while pinned: its top sits above the top bar's bottom by the height of everything over
+  // Stick the band on Inputs or Outputs while pinned: its top sits above the top bar's bottom by the height of everything over
   // the chips row (title and subtitle), less a small margin, so only the chips show once the page scrolls.
   function placeBand() {
-    const on = !wide.on && state.tab === "inputs" && tabsPin.on;  // wide: the chips sit over their own column
-    $("app").classList.toggle("inputs-pinned", on);
+    const place = state.tab === "inputs" || state.tab === "outputs" ? state.tab : null;
+    const on = !wide.on && place != null && tabsPin.on;  // wide: the chips sit over their own column
+    $("app").classList.toggle("inputs-pinned", on && place === "inputs");
+    $("app").classList.toggle("outputs-pinned", on && place === "outputs");
     if (!on) return;
     const band = document.querySelector(".band");
-    const wrap = band.querySelector(".chips-wrap[data-place=\"inputs\"]");
+    const wrap = band.querySelector(`.chips-wrap[data-place="${place}"]`);
     const above = Math.max(0, wrap.getBoundingClientRect().top - band.getBoundingClientRect().top - 8);
     band.style.setProperty("--band-stick", (document.querySelector(".topbar").offsetHeight - above) + "px");
   }
@@ -1269,14 +1274,13 @@
       + about.text + charts.renderFrame(frame, Object.assign({ title }, options)) + "</div>";
   }
 
-  // Summary: Summary (tiles, percentiles, the middle half average summary table), Accounts and Deductions, all from the last
-  // Monte Carlo; the single-run headline tiles follow the Monte Carlo ones.
+  // Summary: Summary (tiles, insights, percentiles, the middle half average summary table), Accounts and Deductions, all
+  // from the last Monte Carlo; the single-run headline tiles follow the Monte Carlo ones.
   function renderResults() {
     const chip = RESULT_VIEWS.some((view) => view.id === state.chips.results) ? state.chips.results : "summary";
     renderChips("chips-results", RESULT_VIEWS, chip, (id) => {
       state.chips.results = id; savePrefs(); renderResults();
     });
-    renderTerminalRate(chip === "summary");
     $("summary-warnings").hidden = chip !== "summary";  // the Medicare warning
     const body = $("results-body");
     if (needsSetup(state.inputs)) { body.innerHTML = FINISH_SETUP_HTML; return; }
@@ -1294,6 +1298,7 @@
         + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale)).join("")
         + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false)).join("") : "")
         + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "");
+      html += renderInsights(result, entry, stale);
       html += "<div class=\"card" + (stale ? " stale-results" : "") + "\"><div class=\"card-head\"><h2>Final worth by "
         + "percentile</h2><span class=\"chart-note\">" + escapeText(dollarsText(result.dollars)) + "</span></div>"
         + charts.renderUnitsTable(result.percentiles, ["ordinal", "money"], { title: "Final worth by percentile" })
@@ -1306,6 +1311,23 @@
       html += tableCard("Deductions by year", DEDUCTIONS_HELP, tables.deductions, { indexLabel: "Your age" }, stale, tables.dollars);
     }
     body.innerHTML = html;
+  }
+
+  // The Insights card (insights.js) of a Monte Carlo cache entry, on the inputs it ran on: a list per kind that has
+  // items and the note; "" when neither has any.
+  function renderInsights(result, entry, stale) {
+    let inputs = state.inputs;
+    if (stale) {
+      try { inputs = JSON.parse(entry.key)[0]; } catch (error) { inputs = state.inputs; }
+    }
+    const found = insightRules.insights(inputs, result);
+    const groups = [["Warnings", found.warnings, "insights-warnings"], ["Opportunities", found.opportunities,
+      "insights-opportunities"]].filter(([, items]) => items.length);
+    if (!groups.length) return "";
+    return "<div class=\"card insights-card" + (stale ? " stale-results" : "") + "\" id=\"insights\"><div class=\"card-head\">"
+      + "<h2>Insights</h2></div>" + groups.map(([title, items, kind]) => "<h3 class=\"insights-title\">" + title
+      + "</h3><ul class=\"notes " + kind + "\">" + items.map((item) => "<li>" + escapeText(item.text) + "</li>").join("")
+      + "</ul>").join("") + "<p class=\"note insights-note\">" + escapeText(found.note) + "</p></div>";
   }
 
   // What Summary and Plots show while a new scenario has no age yet (needsSetup): no result, nothing alarming.
@@ -4021,7 +4043,7 @@
   // ---- Heirs' tax rate in Strategies, Heirs: blank taxes the heirs' payout (over 10 years or all at once, the payout
   // field above it) at their brackets; a typed rate is charged flat instead, whichever the payout; Use the heirs'
   // drawdown clears it. The model's flat estimate is shown as a guide. An edit reruns the outputs like any other
-  // setting. Outputs, Summary shows the rate used in one read-only line with a link here ----
+  // setting ----
   const TERMINAL_PATH = "strategies.terminalTaxRate";
   const PAYOUT_PATH = "strategies.heirs.payout";
   const TERMINAL_HELP = "Leave blank to tax what heirs withdraw at their federal and state brackets, by the payout "
@@ -4031,46 +4053,6 @@
     + "state estate taxes and the inheritance tax) and, saved with a config, how strategies are compared after tax in "
     + "Compare.";
   const AFTER_TAX_LABEL = "Final net worth after terminal tax, incl. home and cars";
-
-  // The heirs' tax in words: the flat rate set, or the payout taxed at the heirs' brackets.
-  function heirsTaxText() {
-    const value = getPath(state.inputs, TERMINAL_PATH);
-    if (value != null) return percent(value, 1) + " flat";
-    return getPath(state.inputs, PAYOUT_PATH) === "lump" ? "their brackets, all at once"
-      : "their brackets, over 10 years";
-  }
-
-  function renderTerminalRate(shown) {
-    const holder = $("terminal-card");
-    holder.hidden = !shown || !state.schema;
-    if (holder.hidden) return;
-    if (!holder.firstChild) {
-      const line = document.createElement("p");
-      line.className = "field-help terminal-note";
-      line.innerHTML = "<span id=\"terminal-note\"></span> <button type=\"button\" class=\"button button-quiet "
-        + "text-button\" id=\"terminal-change\">(change in Strategies)</button>";
-      line.querySelector("button").addEventListener("click", goToHeirs);
-      holder.append(line);
-    }
-    fillHeirsNote();
-  }
-
-  function fillHeirsNote() {
-    const note = $("terminal-note");
-    if (note) note.textContent = "Heirs' tax: " + heirsTaxText();
-  }
-
-  // Open Strategies at its Heirs section, where the heirs' tax rate is set.
-  function goToHeirs() {
-    state.chips.settings = "strategies";
-    goTo("inputs", state.view);
-    renderSettings();
-    const box = $("f-terminal-rate");
-    if (box) {
-      box.closest(".field").scrollIntoView({ block: "center" });
-      box.focus({ preventScroll: true });
-    }
-  }
 
   function terminalRateCard() {
     const field = state.schema.types.StrategyPlan.find((item) => item.name === "terminalTaxRate");
@@ -6319,7 +6301,7 @@
       }
       if ($("reportProgressText")) $("reportProgressText").textContent = "Drawing the PDF";
       const data = report.buildReport({ scenarioName: state.scenarioName, date: new Date(), inputs: state.inputs,
-        monteCarlo: current.value, single: state.result, configs });
+        monteCarlo: current.value, single: state.result, configs, schema: state.schema, rules: state.info.sheetRules });
       const images = {};
       for (const spec of data.plots.map((plot) => plot.spec).concat(data.comparison ? [data.comparison.spec] : [])) {
         const image = await reportChartImage(spec);

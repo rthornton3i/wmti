@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-cVLQ8gy4PnRbYzbSPDD4amWI4qWoVaX4QriX8vIsb+U=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-VevtCWh1rHTVJ5Yvg8fntWHUkHW25agi2LW+WR0z8Fs=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -242,17 +242,19 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .chips-track { height: 4px; border-radius: 2px; background: var(--band-track); overflow: hidden; }
 .chips-track span { display: block; height: 100%; width: 100%; border-radius: 2px; background: var(--band-thumb); }
 .chips-track-off { display: none; }
-/* Inputs' pin button sits at the chips row's right end; pinned (app.js placeBand), the band sticks under the top bar
+/* Inputs' and Outputs' pin buttons (one shared choice) sit at the chips row's right end; pinned (app.js placeBand), the band sticks under the top bar
    with only the chips row in view, above the sheet and below the top bar, the sheets and the bottom bar. */
-.chips-wrap[data-place="inputs"] { grid-template-columns: minmax(0, 1fr) auto; column-gap: 6px; align-items: center; }
-.chips-wrap[data-place="inputs"] .chips { margin-inline-end: 0; padding-inline-end: 0; }
+.chips-wrap:is([data-place="inputs"], [data-place="outputs"]) { grid-template-columns: minmax(0, 1fr) auto; column-gap: 6px;
+  align-items: center; }
+.chips-wrap:is([data-place="inputs"], [data-place="outputs"]) .chips { margin-inline-end: 0; padding-inline-end: 0; }
+.chips-wrap[data-place="outputs"] .chips-track { grid-column: 1 / -1; }
 .chips-pin { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--band-button);
   color: var(--band-button-ink); display: grid; place-items: center; cursor: pointer; }
 .chips-pin svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   stroke-linejoin: round; }
 .chips-pin[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
 .chips-pin[aria-pressed="true"] svg path:first-child { fill: currentColor; }
-.app.inputs-pinned .band { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--band-stick, 0px)); z-index: 15; }
+.app:is(.inputs-pinned, .outputs-pinned) .band { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--band-stick, 0px)); z-index: 15; }
 /* The sheet under the band: light, with a rounded top; it holds the pane cards. */
 .panels { background: var(--bg); border-radius: 30px 30px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
   padding-inline: var(--gutter); padding-top: 16px; min-height: 100vh;
@@ -325,6 +327,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .disclosure[open] { padding-bottom: 16px; }
 .disclosure[open] > summary { margin-bottom: 8px; }
 .notes { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; color: var(--ink-2); }
+.insights-title { font-size: 14px; margin: 10px 0 6px; }  /* Warnings and Opportunities in the Summary Insights card */
 .view-intro { display: grid; gap: 10px; }
 .empty-state { color: var(--ink-2); background: var(--surface-2); border: 1px dashed var(--line); }
 
@@ -614,6 +617,9 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .segmented button:disabled { opacity: 0.45; cursor: not-allowed; }
 .subpanel { display: grid; gap: 14px; }
 .subpanel > * { min-width: 0; }
+/* Summary's body stacks its meta line, tiles and cards with the same gap as the subpanel. */
+#results-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+#results-body > * { min-width: 0; }
 .run-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .run-progress { display: grid; gap: 8px; }
 .run-progress .progress span { transition: width 0.2s linear; }
@@ -1062,6 +1068,8 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
         <button type="button" role="tab" class="chip view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-optimize" data-view="optimize" aria-controls="view-optimize">Optimize</button>
       </div>
+      <button type="button" class="chips-pin" id="chipsPinOut" aria-pressed="true" aria-label="Unpin tabs">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
       <div class="chips-track" aria-hidden="true"><span></span></div>
     </div>
     <div class="chips-wrap" data-place="inputs">
@@ -1152,7 +1160,6 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
       </div>
       <p class="banner" id="exampleBanner" role="status" hidden></p>
       <div class="subpanel" id="view-summary" data-view="summary" role="tabpanel" aria-labelledby="sub-summary">
-        <div class="card" id="terminal-card" hidden></div>
         <div class="warnings" id="summary-warnings"></div>
         <div id="results-body"></div>
       </div>
@@ -1335,13 +1342,14 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "40dc365acf42", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "afef69d3fba8", pyodide: "0.29.5" };</script>
 <script src="legal.b869c64e72.js"></script>
-<script src="shared.ef6764ee82.js"></script>
+<script src="shared.b2c7c4aa2f.js"></script>
 <script src="charts.a69151b17d.js"></script>
-<script src="report.b37ec550b6.js"></script>
+<script src="insights.ab1b981d52.js"></script>
+<script src="report.533ad4cd3e.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.27fad4c4d5.js"></script>
+<script src="app.50fc24e0c9.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

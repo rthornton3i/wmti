@@ -6,12 +6,12 @@
 // this worker to take over (message {type: "skipWaiting"}); on activate the older builds' caches are deleted.
 "use strict";
 
-const BUILD_ID = "40dc365acf42";
+const BUILD_ID = "afef69d3fba8";
 const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
 const FILES = [
  "./",
- "app.27fad4c4d5.js",
+ "app.50fc24e0c9.js",
  "charts.a69151b17d.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
@@ -24,6 +24,7 @@ const FILES = [
  "icons/icon-512.png",
  "icons/icon-maskable-512.png",
  "index.html",
+ "insights.ab1b981d52.js",
  "jspdf.822d41ab6f.js",
  "legal.b869c64e72.js",
  "manifest.webmanifest",
@@ -37,8 +38,8 @@ const FILES = [
  "pyodide/python_stdlib_zip.wasm",
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
- "report.b37ec550b6.js",
- "shared.ef6764ee82.js",
+ "report.533ad4cd3e.js",
+ "shared.b2c7c4aa2f.js",
  "wmti.7a14bd9c78.wasm",
  "worker.c3ed2730e5.js"
 ];
