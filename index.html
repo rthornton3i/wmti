@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-vSxrxihS3IwW2AkJ4vK4zej30xVhW15vCifUtCGQNPc=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-cVLQ8gy4PnRbYzbSPDD4amWI4qWoVaX4QriX8vIsb+U=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -472,6 +472,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
   font-variant-numeric: tabular-nums; }
 .input:focus { border-color: var(--accent); }
 .input[aria-invalid="true"] { border-color: var(--bad); }
+/* A blank sheet figure showing its source's value until edited (sheetDefault in shared.js). */
+.input.is-default { color: var(--muted); }
 textarea.input { resize: vertical; }
 .affix { position: relative; display: flex; align-items: center; }
 .affix .input { padding-left: 26px; }
@@ -597,7 +599,8 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .group .pane-section > legend, .sheet-body .pane-section > legend, .pane-section .sub-heading { font-size: 20px;
   font-weight: 700; color: var(--accent); }
 .sheet-intro { padding-top: 8px; }
-#terminal-card .field { border-top: 0; }
+.terminal-note { margin: 0; }
+.text-button { padding: 0 4px; border: 0; text-decoration: underline; }
 .terminal-rate .row-buttons { padding-top: 6px; }
 
 /* Monte Carlo and Compare: run controls, progress and cancel, stale results */
@@ -1332,13 +1335,13 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "29943a8262f5", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "40dc365acf42", pyodide: "0.29.5" };</script>
 <script src="legal.b869c64e72.js"></script>
-<script src="shared.627fcc7578.js"></script>
+<script src="shared.ef6764ee82.js"></script>
 <script src="charts.a69151b17d.js"></script>
 <script src="report.b37ec550b6.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.63fee89c8e.js"></script>
+<script src="app.27fad4c4d5.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

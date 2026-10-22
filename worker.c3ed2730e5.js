@@ -30,7 +30,7 @@ const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "ch
   "optimizeAvailability", "applyOptimum"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
-const MODEL_FILE = "wmti.25156dd5c5.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.7a14bd9c78.wasm";  // the build gives it a content-hashed name
 const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;

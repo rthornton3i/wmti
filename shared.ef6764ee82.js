@@ -137,10 +137,13 @@
     // the miles per year close the Commute section, after the commute figures its switch shows. The purchase and sale
     // are set on the timeline (`timelineManaged`), so their sections are not drawn.
     Car: {
-      order: ["name", "driver", "valueToday", "depreciationRate", "hasLoan", "loanBalance", "loanRate", "loanMonthsLeft",
-        "loanExtraMonthly", "commutes", "commuteMilesOneWay", "commuteDaysPerYear", "commuteTollsPerDay",
+      order: ["name", "driver", "valueToday", "depreciationRate", "payMethod", "hasLoan", "loanBalance", "loanRate",
+        "loanMonthsLeft", "loanExtraMonthly", "commutes", "commuteMilesOneWay", "commuteDaysPerYear", "commuteTollsPerDay",
         "otherMilesPerYear", "milesPerGallon", "insurancePerYear", "registrationPerYear", "maintenancePerYear",
-        "replaceEveryYears", "replaceInYears", "replacementPrice", "leases", "leaseMonthly", "buysLater", "purchaseAge", "purchasePrice",
+        "replaceEveryYears", "replaceInYears", "replaceEveryMiles", "odometerToday", "replacementPrice",
+        "replacementPayMethod", "replacementLoanRate", "replacementLoanMonths", "replacementDownPaymentRate",
+        "replacementLeaseMonthly", "replacementLeaseMonths", "replacementLeaseFee", "leases", "leaseMonthly", "buysLater",
+        "purchaseAge", "purchasePrice",
         "downPaymentRate", "salesTaxRate", "purchaseFees", "sellsLater", "saleAge", "salePrice", "sellingCostRate",
         "sellingFees", "prepayPenaltyRate"],
       groups: {},
@@ -165,6 +168,10 @@
   // a switch replaces (a car bought later has no value or balance today, a leased one no value, loan or replacement:
   // `itemSwitchReplaces`) only while it is off.
   function hiddenReason(typeName, name, item, rules) {
+    if (typeName === "Car") {
+      const reason = carHiddenReason(name, item, rules);
+      if (reason !== undefined) return reason;
+    }
     const managed = (rules.timelineManaged || {})[typeName] || [];
     const switches = (rules.itemSwitches || {})[typeName] || {};
     if (managed.some((toggle) => toggle === name || (switches[toggle] || []).includes(name))) return "set on the timeline";
@@ -198,11 +205,84 @@
     return null;
   }
 
+  // Why a car's pay figure is left off its sheet: null when shown, undefined when the general rules decide. A car owned
+  // today shows its purchase price (the Price paid, which a blank replacement price follows) and its replacement pay
+  // figures only while a replacement rule is on and it is not leased; the loan figures of a replacement only while
+  // the replacements are financed, the lease figures only while they are leased (`carReplacementPayFields`).
+  function carHiddenReason(name, item, rules) {
+    const ruleOn = item.replaceEveryYears > 0 || item.replaceEveryMiles > 0;
+    if (name === "purchasePrice" && !item.buysLater) {
+      return ruleOn && !item.leases ? null : "shown for a car owned today while a replacement rule is on";
+    }
+    const payFields = rules.carReplacementPayFields || {};
+    const methodFields = Object.values(payFields).flat();
+    if (name !== "replacementPayMethod" && !methodFields.includes(name)) return undefined;
+    if (item.leases) return undefined;
+    if (!ruleOn) return "shown while a replacement rule is on";
+    for (const [method, names] of Object.entries(payFields)) {
+      if (names.includes(name) && carReplacementMethodOf(item) !== method) {
+        return "shown while replacements are paid by " + method;
+      }
+    }
+    return undefined;
+  }
+
+  // How a car is paid and how its replacements are (wmti payMethodOf and replacementMethodOf): a blank pay method
+  // follows the Lease and Loan switches; a blank replacement pay method follows the car's.
+  function carPayMethodOf(car) {
+    if (car.leases) return "lease";
+    if (car.payMethod) return car.payMethod;
+    return car.hasLoan ? "finance" : "cash";
+  }
+
+  function carReplacementMethodOf(car) {
+    return car.replacementPayMethod || carPayMethodOf(car);
+  }
+
+  // The blank sheet figures that show another figure's value until edited, by item type: each field's source and the
+  // value it holds while blank (wmti.cars.cars falls back the same way, so what is shown is what the model uses).
+  const SHEET_DEFAULTS = {
+    Car: {
+      replacementPrice: { blank: 0, shown: (car) => (car.purchasePrice > 0 ? car.purchasePrice : null) },
+      payMethod: { blank: "", shown: (car) => (car.hasLoan ? "finance" : "cash") },
+      replacementPayMethod: { blank: "", shown: (car) => carPayMethodOf(car) },
+      replacementLoanRate: { blank: null, shown: (car) => car.loanRate },
+      replacementLoanMonths: { blank: null, shown: (car) => car.loanMonthsLeft },
+      replacementDownPaymentRate: { blank: null, shown: (car) => car.downPaymentRate },
+    },
+  };
+
+  // What a sheet field shows while it is blank: {value, blank} with the source's value and the stored blank value, or
+  // null when the field has no source or holds a value of its own (an edit sticks; clearing it shows the source again).
+  function sheetDefault(typeName, name, item) {
+    const rule = (SHEET_DEFAULTS[typeName] || {})[name];
+    if (!rule || !item) return null;
+    const stored = item[name];
+    if (!(stored === rule.blank || stored == null)) return null;
+    const value = rule.shown(item);
+    return value == null ? null : { value, blank: rule.blank };
+  }
+
+  // Whether a sheet field shows its source's value (styled as a default, `.is-default`) rather than one entered.
+  function showsDefault(typeName, name, item) {
+    return sheetDefault(typeName, name, item) !== null;
+  }
+
+  // The fields of an item type whose change redraws an open sheet: the sources of the blank figures and the
+  // replacement rules, which decide what the sheet shows.
+  function sheetSources(typeName) {
+    return typeName === "Car" ? ["purchasePrice", "loanRate", "loanMonthsLeft", "downPaymentRate", "replaceEveryYears",
+      "replaceEveryMiles"] : [];
+  }
+
   // The label a field takes on an item's sheet instead of its schema label, or null: a commuting car's miles per year
-  // are the extra miles beyond the commute, and a figure takes its `switchLabels` label while that switch is on (a car
-  // bought later shows its loan term).
+  // are the extra miles beyond the commute, a car owned today's purchase price is the price paid, and a figure takes
+  // its `switchLabels` label while that switch is on (a car bought later shows its loan term).
   function sheetLabel(typeName, name, item, rules) {
     if (typeName === "Car" && name === "otherMilesPerYear" && item && item.commutes) return rules.carExtraMilesLabel;
+    if (typeName === "Car" && name === "purchasePrice" && item && !item.buysLater && rules.carPricePaidLabel) {
+      return rules.carPricePaidLabel;
+    }
     for (const [toggle, labels] of Object.entries((rules.switchLabels || {})[typeName] || {})) {
       if (item && item[toggle] && labels[name]) return labels[name];
     }
@@ -213,7 +293,8 @@
   // switches are not on the sheet).
   function sheetSwitches(typeName, rules) {
     const managed = (rules.timelineManaged || {})[typeName] || [];
-    return Object.keys((rules.itemSwitches || {})[typeName] || {}).filter((toggle) => !managed.includes(toggle));
+    const switches = Object.keys((rules.itemSwitches || {})[typeName] || {}).filter((toggle) => !managed.includes(toggle));
+    return typeName === "Car" ? switches.concat(["payMethod", "replacementPayMethod"]) : switches;
   }
 
   // The fields of one list item's sheet: `shown` ({name, group}) in drawing order, `hidden` (name to reason) and
@@ -252,6 +333,13 @@
       if (item.kind !== rules.iraBasisKind && item.iraBasis != null) cleared.iraBasis = null;
       if (!rules.depositKinds.includes(item.kind) && item.deposit != null) cleared.deposit = null;
     }
+    // A car's pay method and its Loan switch say the same thing: choosing cash or finance sets the switch, and
+    // turning the switch blanks the pay method so it follows the switch again.
+    if (typeName === "Car" && field === "payMethod" && item.payMethod) {
+      const financed = item.payMethod === "finance";
+      if (Boolean(item.hasLoan) !== financed) cleared.hasLoan = financed;
+    }
+    if (typeName === "Car" && field === "hasLoan" && item.payMethod) cleared.payMethod = "";
     return cleared;
   }
 
@@ -587,13 +675,19 @@
   }
 
   // A car's card on the Cars chip: its name, the driver, "loan" while it charges one, the replacement cycle when one is
-  // on (a cycle and a price above 0), when it is bought and sold (`spanText`), and its value today (its price when
-  // bought later).
+  // on (every so many years or miles, and a price above 0: the purchase price of a car bought later when blank), when
+  // it is bought and sold (`spanText`), and its value today (its price when bought later).
   function carSummary(car, currentAge) {
-    const replaced = car.replaceEveryYears > 0 && car.replacementPrice > 0;
+    const price = car.replacementPrice > 0 ? car.replacementPrice : (car.purchasePrice || 0);
+    const method = carReplacementMethodOf(car);
+    const rules = [];
+    if (car.replaceEveryYears > 0) rules.push(car.replaceEveryYears + " years");
+    if (car.replaceEveryMiles > 0) rules.push(Number(car.replaceEveryMiles).toLocaleString("en-US") + " miles");
+    const replaced = !car.leases && (price > 0 || method === "lease") && rules.length > 0;
+    const how = { finance: ", financed", lease: ", leased" }[method] || "";
     const span = spanText(car, currentAge);
     return { name: car.name, detail: car.driver + (hasCarLoan(car) ? " · loan" : "")
-      + (replaced ? " · replaced every " + car.replaceEveryYears + " years" : "") + (span ? " · " + span : ""),
+      + (replaced ? " · replaced every " + rules.join(" or ") + how : "") + (span ? " · " + span : ""),
     value: compactMoney(car.buysLater ? car.purchasePrice : car.valueToday) };
   }
 
@@ -656,11 +750,12 @@
     return homes;
   }
 
-  // Whether a car charges a loan (wmti hasCarLoan): its Loan switch on and a balance above 0 (bought later: the price
-  // less the down payment above 0); a leased car never does.
+  // Whether a car charges its own loan (wmti hasCarLoan): owned today, its Loan switch on and a balance above 0;
+  // bought later, financed (carPayMethodOf) with the price less the down payment above 0; a leased car never does.
   function hasCarLoan(car) {
-    const owed = car.buysLater ? car.purchasePrice * (1 - car.downPaymentRate) : car.loanBalance;
-    return !car.leases && Boolean(car.hasLoan) && owed > 0;
+    if (car.leases) return false;
+    if (car.buysLater) return carPayMethodOf(car) === "finance" && car.purchasePrice * (1 - car.downPaymentRate) > 0;
+    return Boolean(car.hasLoan) && car.loanBalance > 0;
   }
 
   // The calendar year in which you are `age`, and your age in a calendar year, as wmti.assets.timeline.yearOfAge and
@@ -1087,7 +1182,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, sheetDefault, showsDefault, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,

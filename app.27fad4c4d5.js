@@ -5,7 +5,7 @@
   "use strict";
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
-    sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary,
+    sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetSources,
     expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
@@ -163,7 +163,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.e60ef8f26b.js");
+      worker = new Worker("worker.c3ed2730e5.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -415,6 +415,8 @@
     const summaryCard = $("expenseSummary");
     if (summaryCard) fillExpenseSummary(summaryCard);
     refreshSpending();  // the Spending in retirement amounts follow every edit (a percent, the start or stop age)
+    updateTerminalRate();  // the heirs' caption follows the payout
+    fillHeirsNote();
     clearTimeout(runTimer);
     setStatus("busy", "Updating");
     $("app").classList.add("stale");
@@ -577,6 +579,27 @@
 
   function selectTab(tab, remember) {
     goTo(tab, state.view, remember);
+  }
+
+  // A tap (or arrow key) on a bottom tab other than the shown one opens that tab at its first sub-tab, at the top: the
+  // first Inputs panel, or the first Outputs view with its first sub-tabs. A swipe never changes the bottom tab.
+  function selectTabFresh(tab) {
+    if (tab === state.tab || state.schema == null) { selectTab(tab); return; }
+    let view = state.view;
+    if (tab === "inputs") {
+      const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
+      if (panels.length) state.chips.settings = panels[0].id;
+    } else if (tab === "outputs") {
+      view = VIEWS[0];
+      state.chips.results = RESULT_VIEWS[0].id;
+      state.chips.plots = PLOT_VIEWS[0].id;
+    }
+    goTo(tab, view);
+    if (tab === "inputs") renderSettings();
+    else if (tab === "outputs") { renderResults(); renderPlots(); }
+    state.scroll[scrollKey()] = 0;
+    window.scrollTo(0, 0);
+    centerSwipedChips();
   }
 
   function selectView(view, remember) {
@@ -1644,8 +1667,10 @@
     const about = titleHelp("h2", "Comparison", result.afterTaxHelp);
     // The rate and its source stay on screen; the after-tax caption (how r* is read) is behind its "i".
     const source = /rate of [\d.]+% \(([^)]*)\)/.exec(result.caption);
-    const rateNote = noteHelp((result.terminalRate == null ? "Heirs' 10-year drawdown at their brackets"
-      : "Terminal tax rate " + percent(result.terminalRate, 1) + (source ? " (" + source[1] + ")" : "")) + ".",
+    const rateNote = noteHelp((result.terminalRate == null
+      ? "Heirs' tax at their brackets, by each row's payout (set in Strategies, Heirs)"
+      : "Heirs' tax rate " + percent(result.terminalRate, 1) + " (" + (source ? source[1] + "; " : "")
+        + "set in Strategies, Heirs)") + ".",
     result.caption, "field-help");
     top.className = "card" + (stale ? " stale-results" : "");
     top.innerHTML = (stale ? "<p class=\"banner banner-warn\" role=\"note\">The settings, selection, runs or seed "
@@ -1677,8 +1702,8 @@
   // runs (no run is done twice) or stop and keep the best so far. A result is kept with the inputs text it ran on: once the settings change it is marked stale and Apply is
   // off. Apply changes the settings at once (one Undo step); the Python builds every text shown.
   const OPTIMIZE_HELP = "Searches your strategy settings for the best score: the Roth conversion, the backdoor, QCDs, "
-    + "the withdrawal order, the Social Security claim ages, raising 401k deposits, the split of surplus cash and "
-    + "adding accounts (each option's i says more). Every setting tried faces the same random draws (the Seed under "
+    + "the withdrawal order, the Social Security claim ages, raising 401k deposits, the split of surplus cash, "
+    + "adding accounts and the heirs' payout (each option's i says more). Every setting tried faces the same random draws (the Seed under "
     + "Setup), and the winner is checked again on fresh draws. Nothing changes until you tap Apply, and Undo takes it "
     + "back. Keep the app open while it searches: leaving it pauses the search until you come back.";
   const OPTIMIZE_PAUSED_TEXT = "Paused while the app was in the background";
@@ -3205,6 +3230,10 @@
         }
         continue;
       }
+      if (name === TERMINAL_PATH) {  // the heirs' tax rate box with its estimate, in the Heirs section
+        group.append(...terminalRateCard());
+        continue;
+      }
       let field = panelField(state.schema, name);
       if (!field || (panel.id === SETUP_PANEL && INFLATION_CARD_FIELDS.includes(name))) continue;
       if (name.includes(".") && getPath(state.inputs, name.split(".")[0]) == null) continue;
@@ -3772,10 +3801,10 @@
     select.value = value == null ? "" : String(value);
   }
 
-  // ---- Settings notes: surplus split, owner choices, warnings, the model's terminal rate estimate on Summary (settingsNotes) ----
+  // ---- Settings notes: surplus split, owner choices, warnings, the model's terminal rate estimate (settingsNotes) ----
   function notesWanted() {
     return state.schema != null && ((tabShown("inputs") && NOTES_PANELS.has(state.chips.settings))
-      || (tabShown("outputs") && state.view === "summary"));  // Summary shows the model's estimate of the terminal rate
+      || (tabShown("outputs") && state.view === "summary"));  // Summary shows the Medicare warning
   }
 
   async function requestNotes() {
@@ -3989,23 +4018,58 @@
     if (next) moveSurplus(next.name, next.share);
   }
 
-  // ---- Terminal tax rate on Outputs, Summary: blank taxes the heirs' 10-year drawdown at their brackets (the Heirs
-  // section on Strategies); a typed rate is charged flat instead; Use the heirs' drawdown clears it. The model's flat
-  // estimate is shown as a guide. An edit reruns the outputs like any other setting ----
+  // ---- Heirs' tax rate in Strategies, Heirs: blank taxes the heirs' payout (over 10 years or all at once, the payout
+  // field above it) at their brackets; a typed rate is charged flat instead, whichever the payout; Use the heirs'
+  // drawdown clears it. The model's flat estimate is shown as a guide. An edit reruns the outputs like any other
+  // setting. Outputs, Summary shows the rate used in one read-only line with a link here ----
   const TERMINAL_PATH = "strategies.terminalTaxRate";
-  const TERMINAL_HELP = "Leave blank to tax what heirs withdraw: they empty inherited Traditional accounts over 10 "
-    + "years, taxed at their federal and state brackets (set the heirs on Strategies, Heirs). Type a rate to charge "
-    + "that flat rate on Traditional money left instead. It sets the final net worth after terminal tax on this tab "
-    + "(what heirs keep: no gains tax, since their basis steps up; home selling costs, the federal and state estate "
-    + "taxes and the inheritance tax) and, saved with a config, how strategies are compared after tax in Compare.";
+  const PAYOUT_PATH = "strategies.heirs.payout";
+  const TERMINAL_HELP = "Leave blank to tax what heirs withdraw at their federal and state brackets, by the payout "
+    + "above: over 10 years or all at once in the year after the death. Type a rate to charge that flat rate on "
+    + "Traditional money left instead, whichever the payout. It sets the final net worth after terminal tax on "
+    + "Outputs, Summary (what heirs keep: no gains tax, since their basis steps up; home selling costs, the federal and "
+    + "state estate taxes and the inheritance tax) and, saved with a config, how strategies are compared after tax in "
+    + "Compare.";
   const AFTER_TAX_LABEL = "Final net worth after terminal tax, incl. home and cars";
+
+  // The heirs' tax in words: the flat rate set, or the payout taxed at the heirs' brackets.
+  function heirsTaxText() {
+    const value = getPath(state.inputs, TERMINAL_PATH);
+    if (value != null) return percent(value, 1) + " flat";
+    return getPath(state.inputs, PAYOUT_PATH) === "lump" ? "their brackets, all at once"
+      : "their brackets, over 10 years";
+  }
 
   function renderTerminalRate(shown) {
     const holder = $("terminal-card");
     holder.hidden = !shown || !state.schema;
     if (holder.hidden) return;
-    if (!holder.firstChild) holder.append(...terminalRateCard());
-    updateTerminalRate();
+    if (!holder.firstChild) {
+      const line = document.createElement("p");
+      line.className = "field-help terminal-note";
+      line.innerHTML = "<span id=\"terminal-note\"></span> <button type=\"button\" class=\"button button-quiet "
+        + "text-button\" id=\"terminal-change\">(change in Strategies)</button>";
+      line.querySelector("button").addEventListener("click", goToHeirs);
+      holder.append(line);
+    }
+    fillHeirsNote();
+  }
+
+  function fillHeirsNote() {
+    const note = $("terminal-note");
+    if (note) note.textContent = "Heirs' tax: " + heirsTaxText();
+  }
+
+  // Open Strategies at its Heirs section, where the heirs' tax rate is set.
+  function goToHeirs() {
+    state.chips.settings = "strategies";
+    goTo("inputs", state.view);
+    renderSettings();
+    const box = $("f-terminal-rate");
+    if (box) {
+      box.closest(".field").scrollIntoView({ block: "center" });
+      box.focus({ preventScroll: true });
+    }
   }
 
   function terminalRateCard() {
@@ -4035,25 +4099,30 @@
     note.innerHTML = "<p class=\"field-help\" id=\"terminal-caption\"></p>" + helpButtonHtml("the model's flat estimate",
       "terminal-basis") + helpTextHtml("terminal-basis", "");
     wrap.append(row, note, note.querySelector("#terminal-basis"));  // the hidden text moves below the line
+    updateTerminalRate(wrap);
     return [wrap];
   }
 
-  // Say the drawdown is used while the box is blank, show the model's flat estimate as a guide in the caption, and the
-  // stored rate in the box unless it is being typed in.
-  function updateTerminalRate() {
-    const input = $("f-terminal-rate");
+  // Say the payout is taxed while the box is blank, show the model's flat estimate as a guide in the caption, and the
+  // stored rate in the box unless it is being typed in. `root` holds the box (the page, or the card being built).
+  function updateTerminalRate(root) {
+    const scope = root || document;
+    const input = scope.querySelector("#f-terminal-rate");
     if (!input) return;
     const value = getPath(state.inputs, TERMINAL_PATH);
     if (document.activeElement !== input) input.value = value == null ? "" : String(Number((value * 100).toFixed(8)));
-    $("terminal-reset").disabled = value == null;
+    scope.querySelector("#terminal-reset").disabled = value == null;
     const advice = state.notes ? state.notes.terminalRate : null;
     input.placeholder = "Blank: heirs' drawdown";
     // "Model's estimate 20%" on screen as a guide for a flat rate, how it was found behind the "i".
     const figure = advice ? advice.caption.split(": ")[0] : "";
-    $("terminal-caption").textContent = (value == null ? "Heirs' 10-year drawdown taxed at their brackets."
-      : "The flat rate typed here is used instead of the heirs' drawdown.")
+    const payout = getPath(state.inputs, PAYOUT_PATH) === "lump"
+      ? "Heirs' one-year withdrawal of everything taxed at their brackets."
+      : "Heirs' 10-year drawdown taxed at their brackets.";
+    scope.querySelector("#terminal-caption").textContent = (value == null ? payout
+      : "The flat rate typed here is used instead of the heirs' payout.")
       + (advice ? " A flat rate to compare: " + figure + "." : "");
-    $("terminal-basis").textContent = advice ? advice.caption + "." : "";
+    scope.querySelector("#terminal-basis").textContent = advice ? advice.caption + "." : "";
   }
 
   // ---- Help: an "i" button that shows or hides an explanation in place; one click handler in wire() ----
@@ -4200,7 +4269,7 @@
 
   // A number box for a field (money gets a $ prefix, percent a % suffix and is shown times 100). Blank means
   // null for a nullable field; text that is not a number marks the box invalid and changes nothing.
-  function numberInput(id, field, value, commit) {
+  function numberInput(id, field, value, commit, blankValue) {
     const scale = scaleOf(field);
     const input = document.createElement("input");
     input.className = "input";
@@ -4218,7 +4287,8 @@
       let next;
       let error = null;
       if (text === "") {
-        if (field.nullable) next = null;
+        if (blankValue !== undefined) next = blankValue;
+        else if (field.nullable) next = null;
         else error = "Enter a number.";
       } else if (!/^-?(\d+\.?\d*|\.\d+)$/.test(text)) {
         error = "Enter a number, such as 1500 or 2.5.";
@@ -4439,9 +4509,31 @@
     return element;
   }
 
+  // The open sheet's item and the field name a path points at, or null when the path is not a field of that item.
+  function sheetItemOf(path) {
+    if (!sheetOpen) return null;
+    const prefix = sheetOpen.path + "." + sheetOpen.position + ".";
+    if (!path.startsWith(prefix) || path.slice(prefix.length).includes(".")) return null;
+    const item = (getPath(state.inputs, sheetOpen.path) || [])[sheetOpen.position];
+    return item ? { item, name: path.slice(prefix.length), type: sheetOpen.field.type } : null;
+  }
+
+  // A blank sheet figure that shows its source's value (sheetDefault): the value shown, its stored blank and the
+  // `.is-default` styling, refreshed after each edit (showsDefault).
+  function sheetDefaultOf(path) {
+    const at = sheetItemOf(path);
+    return at ? sheetDefault(at.type, at.name, at.item) : null;
+  }
+
+  function markDefault(element, path) {
+    const at = sheetItemOf(path);
+    element.classList.toggle("is-default", Boolean(at) && showsDefault(at.type, at.name, at.item));
+  }
+
   // `filter` (a panel's list filter, see filteredPositions) limits which items of a list field are shown.
   function fieldControl(field, path, filter) {
-    const value = getPath(state.inputs, path);
+    const fallback = sheetDefaultOf(path);
+    const value = fallback ? fallback.value : getPath(state.inputs, path);
     const id = fieldId(path);
     const special = specialField(field, path, value);
     if (special) return special;
@@ -4475,7 +4567,9 @@
           const names = state.inputs.accounts.filter((account) => account.kind === "529").map((account) => account.name);
           choices = names.concat(value != null && !names.includes(value) ? [value] : []);
         }
-        const options = (field.nullable ? [null] : []).concat(choices);
+        // A blank that shows its source's choice offers only real choices; picking one stores it.
+        const offered = fallback ? choices.filter((choice) => choice !== fallback.blank) : choices;
+        const options = (field.nullable ? [null] : []).concat(offered);
         for (const choice of options) {
           const option = document.createElement("option");
           option.value = choice == null ? "" : String(choice);
@@ -4490,9 +4584,11 @@
           // The claim ages are put in place when the benefit tables arrive, so an age may not be in `options`.
           if (choice === undefined && field.choicesFrom && raw !== "") choice = Number(raw);
           setValue(path, choice === undefined ? null : choice);
+          markDefault(select, path);
           afterSheetEdit(path);
           if (isConditionPath(path)) refreshForm();
         });
+        markDefault(select, path);
         wrap.append(select);
         return wrap;
       }
@@ -4510,7 +4606,22 @@
       case "integer":
       case "number": {
         const wrap = fieldShell(field.label, field.help, id);
-        wrap.append(numberInput(id, field, value, (next) => setValue(path, next)));
+        // A blank that shows its source's value: clearing it stores the blank again (the source shows on redraw).
+        const box = numberInput(id, field, value, (next) => {
+          setValue(path, next);
+          markDefault(input, path);
+        }, fallback ? fallback.blank : undefined);
+        const input = box.querySelector("input") || box;
+        markDefault(input, path);
+        const at = sheetItemOf(path);
+        if (at && sheetSources(at.type).includes(at.name)) {  // the figures that follow it, or show with it, redraw
+          input.addEventListener("change", () => {
+            refreshForm();
+            const redrawn = $(fieldId(path));
+            if (redrawn) redrawn.focus();
+          });
+        }
+        wrap.append(box);
         return wrap;
       }
       case "triangular":
@@ -5803,8 +5914,10 @@
 
   // The figures a purchase screen asks: the buying figures and the financing switch with its figures, from the
   // schema (shares as percents), at the item type's defaults. For an item owned now (`owned`): its value today and the
-  // financing switch with every financing figure, the balance owed among them.
-  function timelineFigures(kind, owned, initial) {
+  // financing switch with every financing figure, the balance owed among them. A car bought later asks its Pay method
+  // instead of the switch: cash, finance (the loan figures show) or lease, which calls `onLease` (the Add screen's
+  // lease case, the same data as adding a lease).
+  function timelineFigures(kind, owned, initial, onLease) {
     const words = timelineWords(kind);
     const fields = state.schema.types[kind];
     const blank = { ...Object.fromEntries(fields.map((field) => [field.name, field.default])), ...(initial || {}) };
@@ -5814,7 +5927,9 @@
     const names = own.concat([words.financingSwitch],
       words.financingFields.filter((name) => owned || !replaced.includes(name)));
     const inputs = {};
+    const payChoice = kind === "Car" && !owned;
     const elements = names.map((name) => {
+      if (payChoice && name === words.financingSwitch) return timelinePayMethod(blank, inputs);
       const field = fields.find((item) => item.name === name);
       const percentUnit = field.unit === "percent";
       const element = field.kind === "toggle" ? timelineInput(field.label, "check", blank[name])
@@ -5825,13 +5940,46 @@
       if (field.kind === "integer") inputs[name] = () => Math.round(Number(element.input.value));
       return element;
     });
-    // The financing figures show only while its switch (the mortgage or the loan) is ticked.
+    // The financing figures show only while its switch (the mortgage or the loan) is ticked, or the pay method is
+    // finance.
     const switchElement = elements[names.indexOf(words.financingSwitch)];
     const financing = names.map((name, at) => (words.financingFields.includes(name) ? elements[at] : null)).filter(Boolean);
-    const syncFinancing = () => { for (const element of financing) element.hidden = !switchElement.input.checked; };
+    const syncFinancing = () => {
+      if (payChoice && switchElement.input.value === "lease" && onLease) {
+        onLease();
+        return;
+      }
+      const financed = payChoice ? switchElement.input.value === "finance" : switchElement.input.checked;
+      for (const element of financing) element.hidden = !financed;
+    };
     switchElement.input.addEventListener("change", syncFinancing);
     syncFinancing();
     return { elements, values: () => Object.fromEntries(Object.entries(inputs).map(([name, read]) => [name, read()])) };
+  }
+
+  // A car purchase's Pay method on the Add screen: cash, finance or lease (schema labels), at the draft's choice or the
+  // Loan switch's; it sets both the pay method and the Loan switch (`inputs`), so the two agree.
+  function timelinePayMethod(blank, inputs) {
+    const field = state.schema.types.Car.find((item) => item.name === "payMethod");
+    const wrap = document.createElement("label");
+    wrap.className = "field timeline-field";
+    const caption = document.createElement("span");
+    caption.className = "field-label";
+    caption.textContent = field.label;
+    const select = document.createElement("select");
+    select.className = "input";
+    for (const choice of ["cash", "finance", "lease"]) {
+      const option = document.createElement("option");
+      option.value = choice;
+      option.textContent = (field.choiceLabels || {})[choice] || choice[0].toUpperCase() + choice.slice(1);
+      select.append(option);
+    }
+    select.value = blank.payMethod || (blank.hasLoan ? "finance" : "cash");
+    wrap.append(caption, select);
+    wrap.input = select;
+    inputs.payMethod = () => select.value;
+    inputs.hasLoan = () => select.value === "finance";
+    return wrap;
   }
 
   function timelineFreeName(kind, rent) {
@@ -5903,7 +6051,11 @@
         const start = owned ? null : timelineYearInput(words.purchaseYear, kept.purchaseAge != null
           ? timelineYear(kept.purchaseAge) : flow.year || state.info.lawTaxYear + 1);
         const end = timelineYearInput(words.saleYear + " (optional)", yearOf(kept.saleAge), true);
-        const figures = timelineFigures(kind, owned, kept.figures);
+        const figures = timelineFigures(kind, owned, kept.figures, () => {  // a lease is the Add screen's lease case
+          const lease = choice.querySelector("input[value=\"" + other + "\"]");
+          if (lease) lease.checked = true;
+          draw();
+        });
         const replaces = owned ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);
         holder.replaceChildren(...[name, replaces, start, end].filter(Boolean), ...figures.elements);
         read = () => {
@@ -7645,7 +7797,7 @@
   // ---- Wiring ----
   function wire() {
     for (const tab of document.querySelectorAll(".tab")) {
-      tab.addEventListener("click", () => selectTab(tab.dataset.tab));
+      tab.addEventListener("click", () => selectTabFresh(tab.dataset.tab));
     }
     for (const tab of document.querySelectorAll(".view-tab")) {
       tab.insertAdjacentHTML("afterbegin", iconSvg(VIEW_ICONS[tab.dataset.view], "chip-icon"));
@@ -7653,7 +7805,7 @@
     }
     $("views-outputs").chipBubble = makeBubble("viewBubbleFill");
     $("views-outputs").append($("views-outputs").chipBubble);
-    wireTabKeys(document.querySelector(".tabbar"), ".tab", (tab) => selectTab(tab.dataset.tab));
+    wireTabKeys(document.querySelector(".tabbar"), ".tab", (tab) => selectTabFresh(tab.dataset.tab));
     wireTabKeys($("views-outputs"), ".view-tab", (tab) => selectView(tab.dataset.view));
     document.addEventListener("focusin", (event) => $("app").classList.toggle("typing", isTyping(event.target)));
     document.addEventListener("focusout", () => $("app").classList.remove("typing"));
