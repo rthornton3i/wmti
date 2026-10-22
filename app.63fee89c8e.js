@@ -163,7 +163,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.f674c06e27.js");
+      worker = new Worker("worker.e60ef8f26b.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1644,8 +1644,9 @@
     const about = titleHelp("h2", "Comparison", result.afterTaxHelp);
     // The rate and its source stay on screen; the after-tax caption (how r* is read) is behind its "i".
     const source = /rate of [\d.]+% \(([^)]*)\)/.exec(result.caption);
-    const rateNote = noteHelp("Terminal tax rate " + percent(result.terminalRate, 1) + (source ? " (" + source[1] + ")"
-      : "") + ".", result.caption, "field-help");
+    const rateNote = noteHelp((result.terminalRate == null ? "Heirs' 10-year drawdown at their brackets"
+      : "Terminal tax rate " + percent(result.terminalRate, 1) + (source ? " (" + source[1] + ")" : "")) + ".",
+    result.caption, "field-help");
     top.className = "card" + (stale ? " stale-results" : "");
     top.innerHTML = (stale ? "<p class=\"banner banner-warn\" role=\"note\">The settings, selection, runs or seed "
       + "changed since this comparison. Press Run to update it; the figures below are from the earlier run.</p>" : "")
@@ -3988,13 +3989,15 @@
     if (next) moveSurplus(next.name, next.share);
   }
 
-  // ---- Terminal tax rate on Outputs, Summary: blank uses the model's estimate (shown as the placeholder), a typed
-  // rate is used instead; Use the model's estimate clears it. An edit reruns the outputs like any other setting ----
+  // ---- Terminal tax rate on Outputs, Summary: blank taxes the heirs' 10-year drawdown at their brackets (the Heirs
+  // section on Strategies); a typed rate is charged flat instead; Use the heirs' drawdown clears it. The model's flat
+  // estimate is shown as a guide. An edit reruns the outputs like any other setting ----
   const TERMINAL_PATH = "strategies.terminalTaxRate";
-  const TERMINAL_HELP = "Combined federal and state rate charged on Traditional money left at the end. It sets the "
-    + "final net worth after terminal tax on this tab; saved with a config, it is how strategies are compared after "
-    + "tax (the after-tax columns of Compare). Leave it blank to use the model's estimate shown in the box; type a rate "
-    + "to use your own.";
+  const TERMINAL_HELP = "Leave blank to tax what heirs withdraw: they empty inherited Traditional accounts over 10 "
+    + "years, taxed at their federal and state brackets (set the heirs on Strategies, Heirs). Type a rate to charge "
+    + "that flat rate on Traditional money left instead. It sets the final net worth after terminal tax on this tab "
+    + "(what heirs keep: no gains tax, since their basis steps up; home selling costs, the federal and state estate "
+    + "taxes and the inheritance tax) and, saved with a config, how strategies are compared after tax in Compare.";
   const AFTER_TAX_LABEL = "Final net worth after terminal tax, incl. home and cars";
 
   function renderTerminalRate(shown) {
@@ -4019,7 +4022,7 @@
     reset.type = "button";
     reset.className = "button button-quiet";
     reset.id = "terminal-reset";
-    reset.textContent = "Use the model's estimate";
+    reset.textContent = "Use the heirs' drawdown";
     reset.addEventListener("click", () => {
       $("f-terminal-rate").value = "";
       setValue(TERMINAL_PATH, null);
@@ -4029,14 +4032,14 @@
     // The estimate stays on screen; how it was found sits behind the "i" beside it (updateTerminalRate fills both).
     const note = document.createElement("div");
     note.className = "title-help note-help";
-    note.innerHTML = "<p class=\"field-help\" id=\"terminal-caption\"></p>" + helpButtonHtml("the model's estimate",
+    note.innerHTML = "<p class=\"field-help\" id=\"terminal-caption\"></p>" + helpButtonHtml("the model's flat estimate",
       "terminal-basis") + helpTextHtml("terminal-basis", "");
     wrap.append(row, note, note.querySelector("#terminal-basis"));  // the hidden text moves below the line
     return [wrap];
   }
 
-  // Show the model's estimate as the placeholder and in the caption, and the stored rate in the box unless it is being
-  // typed in.
+  // Say the drawdown is used while the box is blank, show the model's flat estimate as a guide in the caption, and the
+  // stored rate in the box unless it is being typed in.
   function updateTerminalRate() {
     const input = $("f-terminal-rate");
     if (!input) return;
@@ -4044,11 +4047,12 @@
     if (document.activeElement !== input) input.value = value == null ? "" : String(Number((value * 100).toFixed(8)));
     $("terminal-reset").disabled = value == null;
     const advice = state.notes ? state.notes.terminalRate : null;
-    input.placeholder = advice ? (advice.recommended * 100).toFixed(1) + " (model's estimate)" : "Model's estimate";
-    // "Model's estimate 20%" on screen, the rest of the caption (how it was found) behind the "i".
+    input.placeholder = "Blank: heirs' drawdown";
+    // "Model's estimate 20%" on screen as a guide for a flat rate, how it was found behind the "i".
     const figure = advice ? advice.caption.split(": ")[0] : "";
-    $("terminal-caption").textContent = advice ? figure + (value == null ? "."
-      : "; the rate typed here is used instead.") : "";
+    $("terminal-caption").textContent = (value == null ? "Heirs' 10-year drawdown taxed at their brackets."
+      : "The flat rate typed here is used instead of the heirs' drawdown.")
+      + (advice ? " A flat rate to compare: " + figure + "." : "");
     $("terminal-basis").textContent = advice ? advice.caption + "." : "";
   }
 

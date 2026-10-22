@@ -242,7 +242,7 @@
     const columns = (hasIndex ? [indexLabel] : []).concat(frame.columns);
     const rows = frame.data.map((row, position) => (hasIndex ? [frame.index[position]] : []).concat(row)
       .map((value, column) => columnText(columns[column], value)));
-    return { title, columns, rows, numeric: columns.map((name) => name !== "Deduction type") };
+    return { title, columns, rows, numeric: columns.map((name) => name !== "Deduction type" && name !== "Item") };
   }
 
   // The yearly table (Outputs, Summary table) split into its column groups, each led by your age.
@@ -304,6 +304,7 @@
     if (monteCarlo.percentiles) {
       results.push(frameTable("Final worth by percentile", monteCarlo.percentiles, null));
     }
+    if (tables.inheritance) results.push(frameTable("Inheritance (median of runs)", tables.inheritance, null));
     const sections = [
       { heading: "Settings", tables: inputTables(data.inputs) },
       { heading: "Yearly results (middle half average of the runs)", tables: results },
