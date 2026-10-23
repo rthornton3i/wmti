@@ -11,7 +11,7 @@
 
   const shared = typeof module !== "undefined" && module.exports ? require("./shared.js") : root.WmtiShared;
   const insightRules = typeof module !== "undefined" && module.exports ? require("./insights.js") : root.WmtiInsights;
-  const { fullMoney, percent, formatValue, getPath, hiddenReason } = shared;
+  const { fullMoney, percent, formatValue, getPath, hiddenReason, unfilledSuggestion } = shared;
 
   const MAX_SAVED = 4;  // saved scenarios the report can compare with the current settings
   // The body's charts, in order, by the Monte Carlo result's chart ids; one-line captions.
@@ -245,7 +245,8 @@
   }
 
   // The inputs as addendum tables: one "Key inputs" table (group, setting, value) for every single setting, and one
-  // table per list of items (expenses, accounts, loans and so on); a list with no items gives no table. With the
+  // table per list of items (expenses, accounts, loans and so on); a list with no items gives no table, and the
+  // suggested expense rows not filled in yet (`unfilledSuggestion`) are left out of the expenses. With the
   // settings `schema` and the sheet `rules`, a field the app hides now (a car's loan figures without a loan, the
   // commute figures with the commute off, a section whose switch is off) is left out the same way for every type.
   function inputTables(inputs, schema, rules) {
@@ -254,7 +255,11 @@
     const isHidden = panelHidden(inputs, schema);
     const walk = (value, group, label, key, listTitle, path, typeName) => {
       if (isHidden(path)) return;
-      if (isRecordList(value)) { lists.push(recordTable(listTitle, value, typeName, rules)); return; }
+      if (isRecordList(value)) {
+        const items = path === "expenses" ? value.filter((item) => !unfilledSuggestion(item)) : value;
+        if (items.length) lists.push(recordTable(listTitle, items, typeName, rules));
+        return;
+      }
       if (value && typeof value === "object" && !Array.isArray(value)) {
         for (const [inner, item] of Object.entries(value)) {
           if (typeName && objectFieldHidden(typeName, inner, value)) continue;

@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetSources,
-    panelDefault, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues,
+    panelDefault, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
@@ -166,7 +166,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.403a191c6b.js");
+      worker = new Worker("worker.6656aa84ac.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -418,7 +418,7 @@
     const summaryCard = $("expenseSummary");
     if (summaryCard) fillExpenseSummary(summaryCard);
     refreshSpending();  // the Spending in retirement amounts follow every edit (a percent, the start or stop age)
-    updateTerminalRate();  // the heirs' caption follows the payout
+    updateTerminalRate();  // the beneficiaries' caption follows their payouts
     clearTimeout(runTimer);
     setStatus("busy", "Updating");
     $("app").classList.add("stale");
@@ -1692,9 +1692,9 @@
     // The rate and its source stay on screen; the after-tax caption (how r* is read) is behind its "i".
     const source = /rate of [\d.]+% \(([^)]*)\)/.exec(result.caption);
     const rateNote = noteHelp((result.terminalRate == null
-      ? "Heirs' tax at their brackets, by each row's payout (set in Strategies, Heirs)"
-      : "Heirs' tax rate " + percent(result.terminalRate, 1) + " (" + (source ? source[1] + "; " : "")
-        + "set in Strategies, Heirs)") + ".",
+      ? "Beneficiaries' tax at their brackets, by each row's payout (set in Benefits, Beneficiaries)"
+      : "Beneficiaries' tax rate " + percent(result.terminalRate, 1) + " (" + (source ? source[1] + "; " : "")
+        + "set in Benefits, Beneficiaries)") + ".",
     result.caption, "field-help");
     top.className = "card" + (stale ? " stale-results" : "");
     top.innerHTML = (stale ? "<p class=\"banner banner-warn\" role=\"note\">The settings, selection, runs or seed "
@@ -1727,7 +1727,7 @@
   // off. Apply changes the settings at once (one Undo step); the Python builds every text shown.
   const OPTIMIZE_HELP = "Searches your strategy settings for the best score: the Roth conversion, the backdoor, QCDs, "
     + "the withdrawal order, the Social Security claim ages, raising 401k deposits, the split of surplus cash, "
-    + "adding accounts, the heirs' payout and, for the states you tick, where to retire (each option's i says more). Every setting tried faces the same random draws (the Seed under "
+    + "adding accounts, the beneficiary payout and, for the states you tick, where to retire (each option's i says more). Every setting tried faces the same random draws (the Seed under "
     + "Setup), and the winner is checked again on fresh draws. Nothing changes until you tap Apply, and Undo takes it "
     + "back. Keep the app open while it searches: leaving it pauses the search until you come back.";
   const OPTIMIZE_PAUSED_TEXT = "Paused while the app was in the background";
@@ -3365,8 +3365,12 @@
         }
         continue;
       }
-      if (name === TERMINAL_PATH) {  // the heirs' tax rate box with its estimate, in the Heirs section
+      if (name === TERMINAL_PATH) {  // the beneficiaries' tax rate box with its estimate, in Beneficiaries
         group.append(...terminalRateCard());
+        continue;
+      }
+      if (name === HEIRS_PATH) {  // one card per beneficiary, in Beneficiaries
+        group.append(beneficiaryCards());
         continue;
       }
       let field = panelField(state.schema, name);
@@ -4154,18 +4158,17 @@
     if (next) moveSurplus(next.name, next.share);
   }
 
-  // ---- Heirs' tax rate in Strategies, Heirs: blank taxes the heirs' payout (over 10 years or all at once, the payout
-  // field above it) at their brackets; a typed rate is charged flat instead, whichever the payout; Use the heirs'
-  // drawdown clears it. The model's flat estimate is shown as a guide. An edit reruns the outputs like any other
-  // setting ----
+  // ---- Beneficiaries' tax rate in Benefits, Beneficiaries: blank taxes each beneficiary's payout (over 10 years or
+  // all at once, set on their card above) at their brackets; a typed rate is charged flat instead, whichever the
+  // payouts; Use the beneficiaries' payout clears it. The model's flat estimate is shown as a guide. An edit reruns
+  // the outputs like any other setting ----
   const TERMINAL_PATH = "strategies.terminalTaxRate";
-  const PAYOUT_PATH = "strategies.heirs.payout";
-  const TERMINAL_HELP = "Leave blank to tax what heirs withdraw at their federal and state brackets, by the payout "
-    + "above: over 10 years or all at once in the year after the death. Type a rate to charge that flat rate on "
-    + "Traditional money left instead, whichever the payout. It sets the final net worth after terminal tax on "
-    + "Outputs, Summary (what heirs keep: no gains tax, since their basis steps up; home selling costs, the federal and "
-    + "state estate taxes and the inheritance tax) and, saved with a config, how strategies are compared after tax in "
-    + "Compare.";
+  const TERMINAL_HELP = "Leave blank to tax what beneficiaries withdraw at their federal and state brackets, by each "
+    + "one's payout above: over 10 years or all at once in the year after the death. Type a rate to charge that flat "
+    + "rate on Traditional money left instead, whichever the payouts. It sets the final net worth after terminal tax "
+    + "on Outputs, Summary (what beneficiaries keep: no gains tax, since their basis steps up; home selling costs, the "
+    + "federal and state estate taxes and the inheritance tax) and, saved with a config, how strategies are compared "
+    + "after tax in Compare.";
   const AFTER_TAX_LABEL = "Final net worth after terminal tax, incl. home and cars";
 
   function terminalRateCard() {
@@ -4182,7 +4185,7 @@
     reset.type = "button";
     reset.className = "button button-quiet";
     reset.id = "terminal-reset";
-    reset.textContent = "Use the heirs' drawdown";
+    reset.textContent = "Use the beneficiaries' payout";
     reset.addEventListener("click", () => {
       $("f-terminal-rate").value = "";
       setValue(TERMINAL_PATH, null);
@@ -4209,16 +4212,137 @@
     if (document.activeElement !== input) input.value = value == null ? "" : String(Number((value * 100).toFixed(8)));
     scope.querySelector("#terminal-reset").disabled = value == null;
     const advice = state.notes ? state.notes.terminalRate : null;
-    input.placeholder = "Blank: heirs' drawdown";
+    input.placeholder = "Blank: beneficiaries' payout";
     // "Model's estimate 20%" on screen as a guide for a flat rate, how it was found behind the "i".
     const figure = advice ? advice.caption.split(": ")[0] : "";
-    const payout = getPath(state.inputs, PAYOUT_PATH) === "lump"
-      ? "Heirs' one-year withdrawal of everything taxed at their brackets."
-      : "Heirs' 10-year drawdown taxed at their brackets.";
-    scope.querySelector("#terminal-caption").textContent = (value == null ? payout
-      : "The flat rate typed here is used instead of the heirs' payout.")
+    scope.querySelector("#terminal-caption").textContent = (value == null ? beneficiaryPayoutText(state.inputs)
+      : "The flat rate typed here is used instead of the beneficiaries' payout.")
       + (advice ? " A flat rate to compare: " + figure + "." : "");
     scope.querySelector("#terminal-basis").textContent = advice ? advice.caption + "." : "";
+  }
+
+  // ---- Beneficiaries in Benefits, Beneficiaries (stored as `strategies.heirs`): one card per beneficiary with their
+  // name, share, other income, filing status, state (a plain list of the 51 states, blank is Same as household) and
+  // payout; Add and Remove split the shares equally again. A field still at the value it started with is grey
+  // (`.is-default`) until edited. The shares must total 100%: an inline error says so while they do not ----
+  const HEIRS_PATH = "strategies.heirs";
+  const SAME_STATE_LABEL = "Same as household";
+
+  function heirFieldsSchema() {
+    return state.schema.types.Heir || [];
+  }
+
+  function beneficiaryCards() {
+    const listField = state.schema.types.StrategyPlan.find((item) => item.name === "heirs");
+    const wrap = fieldShell(listField.label, listField.help, null);
+    wrap.classList.add("heir-list");
+    const heirs = getPath(state.inputs, HEIRS_PATH) || [];
+    const cards = document.createElement("div");
+    cards.className = "heir-cards";
+    heirs.forEach((heir, position) => cards.append(beneficiaryCard(heirs, position)));
+    const error = document.createElement("p");
+    error.className = "field-error";
+    error.id = "heirs-share-error";
+    error.setAttribute("role", "alert");
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "button button-quiet";
+    add.id = "heirs-add";
+    add.textContent = "Add beneficiary";
+    add.disabled = listField.maximum != null && heirs.length >= listField.maximum;
+    add.addEventListener("click", () => {
+      state.inputs.strategies.heirs = rebalanceHeirs(getPath(state.inputs, HEIRS_PATH), heirFieldsSchema());
+      inputsChanged();
+      renderSettings();
+    });
+    wrap.append(cards, error, add);
+    updateHeirShareError(wrap);
+    return wrap;
+  }
+
+  // Show or hide the shares' inline error. `root` holds it (the page, or the list being built).
+  function updateHeirShareError(root) {
+    const error = (root || document).querySelector("#heirs-share-error");
+    if (!error) return;
+    const { total, ok } = heirShareTotal(getPath(state.inputs, HEIRS_PATH));
+    error.hidden = ok;
+    error.textContent = ok ? "" : "The shares total " + percent(total, 2) + "; change them to total 100%.";
+  }
+
+  function beneficiaryCard(heirs, position) {
+    const card = document.createElement("div");
+    card.className = "heir-card";
+    card.dataset.position = String(position);
+    const fields = Object.fromEntries(heirFieldsSchema().map((field) => [field.name, field]));
+    const pathOf = (name) => HEIRS_PATH + "." + position + "." + name;
+    const mark = (control, name) => control.classList.toggle("is-default",
+      heirFieldIsDefault(heirFieldsSchema(), getPath(state.inputs, HEIRS_PATH), position, name));
+    const commit = (name, value, control) => {
+      setValue(pathOf(name), value);
+      mark(control, name);
+      if (name === "share") updateHeirShareError();
+    };
+    const head = document.createElement("div");
+    head.className = "heir-card-head";
+    const title = document.createElement("span");
+    title.className = "field-label";
+    title.textContent = "Beneficiary " + (position + 1);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "button button-quiet";
+    remove.textContent = "Remove";
+    remove.setAttribute("aria-label", "Remove beneficiary " + (position + 1));
+    remove.disabled = heirs.length <= 1;
+    remove.addEventListener("click", () => {
+      state.inputs.strategies.heirs = rebalanceHeirs(getPath(state.inputs, HEIRS_PATH), heirFieldsSchema(), position);
+      inputsChanged();
+      renderSettings();
+    });
+    head.append(title, remove);
+    card.append(head);
+    for (const name of ["name", "share", "otherIncome"]) {
+      const field = fields[name];
+      const id = fieldId(pathOf(name));
+      const shell = fieldShell(field.label, field.help, id);
+      if (name === "name") {
+        const input = document.createElement("input");
+        input.className = "input";
+        input.id = id;
+        input.type = "text";
+        input.value = heirs[position].name;
+        input.addEventListener("input", () => commit(name, input.value, input));
+        mark(input, name);
+        shell.append(input);
+      } else {
+        const box = numberInput(id, field, heirs[position][name], (value) => commit(name, value, input));
+        const input = box.querySelector("input");
+        mark(input, name);
+        shell.append(box);
+      }
+      card.append(shell);
+    }
+    for (const name of ["filingStatus", "state", "payout"]) {
+      const field = fields[name];
+      const id = fieldId(pathOf(name));
+      const shell = fieldShell(field.label, field.help, id);
+      const select = document.createElement("select");
+      select.className = "input";
+      select.id = id;
+      const choices = (field.nullable ? [null] : []).concat(field.choices);
+      for (const choice of choices) {
+        const option = document.createElement("option");
+        option.value = choice == null ? "" : String(choice);
+        option.textContent = choiceLabel(field, choice, SAME_STATE_LABEL);
+        select.append(option);
+      }
+      const value = heirs[position][name];
+      select.value = value == null ? "" : String(value);
+      select.addEventListener("change", () => commit(name, select.value === "" ? null : select.value, select));
+      mark(select, name);
+      shell.append(select);
+      card.append(shell);
+    }
+    return card;
   }
 
   // ---- Help: an "i" button that shows or hides an explanation in place; one click handler in wire() ----
@@ -5304,7 +5428,8 @@
       const ages = charity ? "" : expenseAgesText(item, rules);
       return { name: item.name, detail: item.category + (deduction ? " · " + deduction : "")
         + (major || charity ? " · per year" : " · per month") + (ages ? " · " + ages : "")
-        + (item.child && !charity ? " · not scaled by children" : ""), value: compactMoney(item.amount) };
+        + (item.child && !charity ? " · not scaled by children" : ""), value: compactMoney(item.amount),
+        isDefault: unfilledSuggestion(item) };
     }
     if (typeName === "Loan") {
       const span = spanText(item, state.inputs.you.currentAge);
@@ -5496,6 +5621,8 @@
       button.querySelector(".item-name").textContent = name;
       button.querySelector(".item-detail").textContent = summary.detail;
       button.querySelector(".item-value").textContent = summary.value;
+      // A suggested expense row not filled in yet shows its $0 as a default (`.is-default`), like a blank figure.
+      button.querySelector(".item-value").classList.toggle("is-default", Boolean(summary.isDefault));
       button.setAttribute("aria-label", "Edit " + (summary.name || "item") + ", position " + (index + 1));
       button.dataset.position = String(position);
       button.addEventListener("click", () => openSheet(field, path, position, false, filter));

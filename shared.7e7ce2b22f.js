@@ -198,6 +198,7 @@
         return "entered on the Children and Benefits pages";
       }
       if (name === "retirementChange") return "set on the Retirement page";  // Spending in retirement, Per expense
+      if (name === "priceType") return "set on the suggested rows";
       if (name === "deduction" && item.category === rules.charityCategory) {
         return "always " + rules.charityCategory + " for " + rules.charityCategory + " rows";
       }
@@ -250,7 +251,17 @@
       replacementLoanMonths: { blank: null, shown: (car) => car.loanMonthsLeft },
       replacementDownPaymentRate: { blank: null, shown: (car) => car.downPaymentRate },
     },
+    // A suggested row not filled in yet shows its amount 0 as a default until a figure is typed.
+    ExpenseItem: {
+      amount: { blank: 0, shown: (item) => (unfilledSuggestion(item) ? 0 : null) },
+    },
   };
+
+  // Whether an expense row is a suggested category not filled in yet: it has a price type (custom rows have none)
+  // and no amount. Such a row counts for nothing and is left out of the report.
+  function unfilledSuggestion(item) {
+    return Boolean(item && item.priceType != null && !(Number(item.amount) > 0));
+  }
 
   // What a sheet field shows while it is blank: {value, blank} with the source's value and the stored blank value, or
   // null when the field has no source or holds a value of its own (an edit sticks; clearing it shows the source again).
@@ -269,12 +280,13 @@
   }
 
   // The blank panel figures that show the value the model uses until edited, by path: the move age of
-  // Strategies > Relocation is the age your pay stops (today's age when retired), as wmti moveYear reads it.
+  // Strategies > Relocation is your Social Security claim age, else with no benefit the age your pay stops (today's
+  // age when retired), as wmti moveYear reads it (defaultSpendingStartAge).
   const PANEL_DEFAULTS = {
     "strategies.relocation.moveAge": (inputs) => {
       const you = inputs && inputs.you;
       if (!you) return null;
-      return you.retired ? you.currentAge : you.salaryEndAge;
+      return defaultSpendingStartAge(you);
     },
   };
 
@@ -285,6 +297,52 @@
     if (!rule || getPath(inputs, path) != null) return null;
     const value = rule(inputs);
     return value == null ? null : { value, blank: null };
+  }
+
+  // ---- Beneficiaries (Benefits > Beneficiaries; stored as `strategies.heirs`, a list whose shares total 1) ----
+  const SHARE_TOLERANCE = 1e-6;  // as wmti.strategies.plans.HEIR_SHARE_TOLERANCE
+
+  // The sum of the beneficiaries' shares, and whether it is 100% (within the model's tolerance).
+  function heirShareTotal(heirs) {
+    const total = (heirs || []).reduce((sum, heir) => sum + (Number(heir.share) || 0), 0);
+    return { total, ok: Math.abs(total - 1) <= SHARE_TOLERANCE };
+  }
+
+  // The values a beneficiary at `position` of `count` starts with: the schema's Heir defaults, named "Beneficiary
+  // <n>", with an equal share. A field still at this value is shown as a default (`.is-default`).
+  function heirDefaults(heirFields, position, count) {
+    const item = {};
+    for (const field of heirFields || []) item[field.name] = field.default === undefined ? null : field.default;
+    item.name = "Beneficiary " + (position + 1);
+    item.share = 1 / count;
+    return item;
+  }
+
+  // Whether a beneficiary's field still holds the value it started with (a share within the tolerance).
+  function heirFieldIsDefault(heirFields, heirs, position, name) {
+    const start = heirDefaults(heirFields, position, heirs.length)[name];
+    const value = heirs[position][name];
+    if (name === "share") return Math.abs(Number(value) - start) <= SHARE_TOLERANCE;
+    return value === start;
+  }
+
+  // The beneficiaries with one added (or the one at `removeAt` taken out), the shares split equally again so they
+  // total 100%; a new beneficiary takes the schema defaults.
+  function rebalanceHeirs(heirs, heirFields, removeAt) {
+    const kept = removeAt == null ? heirs.concat([heirDefaults(heirFields, heirs.length, heirs.length + 1)])
+      : heirs.filter((_, position) => position !== removeAt);
+    return kept.map((heir) => ({ ...heir, share: 1 / kept.length }));
+  }
+
+  // What the after-tax caption says the beneficiaries' payout is while no flat rate is set.
+  function beneficiaryPayoutText(inputs) {
+    const heirs = (inputs && inputs.strategies && inputs.strategies.heirs) || [];
+    const payouts = new Set(heirs.map((heir) => heir.payout));
+    if (payouts.size === 1 && payouts.has("lump")) {
+      return "Beneficiaries' one-year withdrawal of everything taxed at their brackets.";
+    }
+    if (payouts.size > 1) return "Each beneficiary's payout taxed at their brackets.";
+    return "Beneficiaries' 10-year drawdown taxed at their brackets.";
   }
 
   // The text a select shows for a choice: its label from the schema's `choiceLabels` (a state shows "NJ - New
@@ -1078,8 +1136,9 @@
   // A brand-new scenario's settings: nothing filled in, not the example household, yet valid so the model runs and the
   // walkthrough can write each answer. Built from the settings schema: lists and maps empty, switches off, numbers
   // zero (or their schema minimum when that is above zero), a select's first choice and optional parts left out.
-  // The input checker then needs four things a blank cannot give: filing SINGLE (there is no partner), one account
-  // (a blank one), and a Social Security claim age that is in its (zero) benefit table.
+  // The input checker then needs five things a blank cannot give: filing SINGLE (there is no partner), one account
+  // (a blank one), a Social Security claim age that is in its (zero) benefit table, and one beneficiary with the whole
+  // estate (the schema's defaults).
   const BLANK_ACCOUNT_NAME = "Account";
   const BLANK_CLAIM_AGE = "67";  // the full retirement age for anyone born in 1960 or later
 
@@ -1108,6 +1167,9 @@
     inputs.accounts = [{ ...blankObject(schema, "Account"), name: BLANK_ACCOUNT_NAME }];
     inputs.you.socialSecurityByAge = { [BLANK_CLAIM_AGE]: 0 };
     inputs.you.socialSecurityAge = Number(BLANK_CLAIM_AGE);
+    // The suggested category rows (settings schema `suggestedExpenses`, from .config/expenseCategories.json), blank.
+    inputs.expenses = (schema.suggestedExpenses || []).map((row) => ({ ...blankObject(schema, "ExpenseItem"), ...row }));
+    inputs.strategies.heirs = [heirDefaults(schema.types.Heir, 0, 1)];
     return inputs;
   }
 
@@ -1242,7 +1304,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, sheetDefault, showsDefault, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, sheetDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
