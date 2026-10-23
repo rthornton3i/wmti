@@ -9,7 +9,8 @@
     panelDefault, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
-    WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
+    WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
+    exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
     mergeUndoPop, changedPaths, optimizeStepText, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
     spendingChangePreview } = window.WmtiShared;
@@ -166,7 +167,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.6656aa84ac.js");
+      worker = new Worker("worker.34d33a0374.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -682,6 +683,7 @@
       chip.className = "chip";
       chip.setAttribute("role", "tab");
       chip.setAttribute("aria-selected", String(item.id === selected));
+      chip.dataset.id = item.id;
       chip.innerHTML = iconSvg(iconFor(item.id, item.label), "chip-icon");
       chip.append(item.label);
       if (item.soon) {
@@ -1727,7 +1729,7 @@
   // off. Apply changes the settings at once (one Undo step); the Python builds every text shown.
   const OPTIMIZE_HELP = "Searches your strategy settings for the best score: the Roth conversion, the backdoor, QCDs, "
     + "the withdrawal order, the Social Security claim ages, raising 401k deposits, the split of surplus cash, "
-    + "adding accounts, the beneficiary payout and, for the states you tick, where to retire (each option's i says more). Every setting tried faces the same random draws (the Seed under "
+    + "adding accounts and, for the states you tick, where to retire (each option's i says more). Every setting tried faces the same random draws (the Seed under "
     + "Setup), and the winner is checked again on fresh draws. Nothing changes until you tap Apply, and Undo takes it "
     + "back. Keep the app open while it searches: leaving it pauses the search until you come back.";
   const OPTIMIZE_PAUSED_TEXT = "Paused while the app was in the background";
@@ -7279,16 +7281,17 @@
     bar.innerHTML = progress.segments.map((segment) => "<span data-state=\"" + segment.state + "\"></span>").join("");
     const opening = id === "start" || id === "welcome";
     const where = opening ? "Welcome" : id === "review" ? "Review"
+      : progress.extra ? "Extra question, " + (progress.topic || "")
       : "Question " + progress.number + " of " + progress.total + ", " + (progress.topic || "");
     bar.setAttribute("aria-valuemax", String(progress.total));
-    bar.setAttribute("aria-valuenow", String(id === "review" ? progress.total : progress.number));
+    bar.setAttribute("aria-valuenow", String(id === "review" || progress.extra ? progress.total : progress.number));
     bar.setAttribute("aria-valuetext", where);
     $("walkTopic").textContent = opening ? "Walk me through it" : id === "review" ? "Your plan"
       : progress.topic || "";
     $("walkBack").disabled = opening;
     $("walkMapButton").hidden = opening;
     $("walkLive").textContent = where;
-    $("walkCount").hidden = opening || id === "review";
+    $("walkCount").hidden = opening || id === "review" || progress.extra;
     $("walkCountNumber").textContent = String(progress.number);
     $("walkCountTotal").textContent = String(progress.total);
     if (walk.lastTotal != null && progress.total !== walk.lastTotal) flashWalkTotal();
@@ -7352,7 +7355,7 @@
   function welcomeScreen() {
     const element = document.createElement("div");
     element.className = "walk-screen";
-    element.append(walkEyebrow("About 5 minutes"), walkHeading("Let's set up your plan"),
+    element.append(walkEyebrow("About 10 minutes"), walkHeading("Let's set up your plan"),
       walkParagraph("Each question is filled in with what your settings hold now: Continue takes what is shown, "
         + "changed or not, and Skip leaves it as it is. You can change any answer later.", "walk-lede"));
     const start = walkButton("Start", "button walk-primary", null, true);
@@ -7524,15 +7527,57 @@
       return walkNumberBox(node, { kind: "integer", unit: "count", label: WALK_ACTION_LABELS[node.action],
         minimum: node.minimum, maximum: node.maximum, nullable: false }, "count", count, labelIds, 0);
     }
+    if (node.action === "carCosts") return walkCarCosts(node);
+    if (node.action === "childAges") return walkChildAges(node);
     const total = walk.plan.facts ? Math.round(walk.plan.facts.monthlySpending) : 0;
     walk.pending.values.total = total;
     return walkNumberBox(node, { kind: "number", unit: "money", label: "Monthly spending", minimum: 0, maximum: null,
       nullable: false }, "total", total, labelIds, 0);
   }
 
+  // Labelled number boxes of one action answer, one per [label, value, field]; `onValue(index, number)` takes each.
+  function walkBoxes(node, boxes, onValue) {
+    const wrap = document.createElement("div");
+    boxes.forEach(([label, value, field], index) => {
+      const labelElement = walkParagraph(label, "walk-label");
+      labelElement.id = "walkLabel-" + index;
+      wrap.append(labelElement, walkNumberBox(node, { ...field, label, nullable: false }, null, value,
+        "walkTitle " + labelElement.id, index, (next) => onValue(index, next)));
+    });
+    return wrap;
+  }
+
+  // The cars' value and loans, all together (the backend spreads each over the cars).
+  function walkCarCosts(node) {
+    const facts = walk.plan.facts || {};
+    const answer = { value: Math.round(facts.carValue || 0), loan: Math.round(facts.carLoan || 0) };
+    walk.pending.values = { ...answer };
+    const money = { kind: "number", unit: "money", minimum: 0, maximum: null };
+    const keys = ["value", "loan"];
+    return walkBoxes(node, [["Car value", answer.value, money], ["Car loans still owed", answer.loan, money]],
+      (index, next) => walkSet(keys[index], next));
+  }
+
+  // One age box per child, from your age at each birth; a child you expect has a negative age.
+  function walkChildAges(node) {
+    const age = state.inputs.you.currentAge;
+    const ages = (state.inputs.children || []).map((child) => age - child.yourAgeAtBirth);
+    walk.pending.values.ages = ages.slice();
+    const field = { kind: "integer", unit: "age", minimum: node.minimum, maximum: age };
+    return walkBoxes(node, (state.inputs.children || []).map((child, index) => [child.name || "Child " + (index + 1),
+      ages[index], field]), (index, next) => {
+      ages[index] = next;
+      walkSet("ages", ages.slice());
+    });
+  }
+
   // Whether the inputs hold the example household's answer to a question.
   function walkIsExample(node) {
     if (node.action === "partner") return (state.inputs.partner != null) === node.example;
+    if (node.action === "carCosts") return sameValue(carTotalsOf(state.inputs), node.example);
+    if (node.action === "childAges") {
+      return sameValue((state.inputs.children || []).map((child) => child.yourAgeAtBirth), node.example);
+    }
     const countList = WALK_COUNT_LISTS[node.action];
     if (countList) return (state.inputs[countList] || []).length === node.example;
     if (node.action === "total") return walk.plan.facts != null
@@ -7557,8 +7602,10 @@
     const element = document.createElement("div");
     element.className = "walk-screen";
     element.dataset.question = id;
-    // "Question X of Y" is pinned above the stage (renderWalkTop); a deeper question is marked here.
+    // "Question X of Y" is pinned above the stage (renderWalkTop); a deeper question and a question of an optional
+    // topic (counted in no total) are marked here.
     if (row.depth > 0) element.append(walkEyebrow("Go deeper", "walk-deeper"));
+    else if (walk.index[id].topic.optional) element.append(walkEyebrow("Extra question", "walk-deeper"));
     const head = document.createElement("div");
     head.className = "walk-head";
     head.append(walkHeading(node.prompt));
@@ -7771,15 +7818,10 @@
       }).join("");
   }
 
-  // The lists the walkthrough does not set in full that still equal the example household's: [panel, label, count,
-  // unit] each (a list you changed is not listed).
+  // The parts the walkthrough does not set in full that still hold the example household's figures: [panel, label,
+  // count, unit] each (shared.js exampleLeftoverList).
   function exampleLeftoverItems() {
-    if (!state.inputs) return [];
-    return [["children", "Children", (state.inputs.children || []).length, "children"],
-      ["expenses", "Expense rows", (state.inputs.expenses || []).length, "rows"],
-      ["cars", "Cars", (state.inputs.cars || []).length, "cars"],
-      ["loans", "Loans", (state.inputs.loans || []).length, "loans"]].filter((item) => item[2] > 0
-        && state.defaults != null && sameValue(state.inputs[item[0]], state.defaults[item[0]]));
+    return exampleLeftoverList(state.inputs, state.defaults);
   }
 
   // The Review screen's group of those lists, each with its page.
@@ -7797,7 +7839,8 @@
     const element = document.createElement("div");
     element.className = "walk-screen walk-review";
     element.append(walkEyebrow("Review"), walkHeading("Here is your plan"),
-      walkParagraph("Every answer is already in your settings. Change any of them, or go deeper.", "walk-lede"));
+      walkParagraph("Every answer is already in your settings. Change any of them, or go deeper. Finish shows your "
+        + "results; the plan reruns itself whenever you change a setting.", "walk-lede"));
     const list = document.createElement("ol");
     list.className = "walk-trail";
     list.innerHTML = trailHtml(true) + exampleLeftovers();
@@ -7897,16 +7940,30 @@
   // the close button and Escape put back the tab, view and scroll the tour started from.
   const TOUR_STEPS = [
     { title: "Setup, Inputs and Outputs", when: () => !wide.on, target: () => document.querySelector(".tabbar"),
-      text: "The bar at the bottom moves between the three parts of the app. Setup holds your scenarios and the run, "
-        + "Inputs your settings and Outputs the results." },
+      text: "The bar at the bottom moves between the three parts of the app. Setup holds your saved plans (scenarios) "
+        + "and how many times the plan is simulated, Inputs your settings and Outputs the results." },
     { title: "Groups of settings", place: ["inputs"], when: () => state.schema != null,
       target: () => $("chips-settings"),
       text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more. "
         + "Swipe sideways to move between tabs." },
     { title: "Pin the tabs", place: ["inputs"], when: () => state.schema != null && !wide.on, target: () => $("chipsPin"),
       text: "The pin keeps the bubbles under the top bar while you scroll. Tap it to let them scroll away with the page." },
+    { title: "Moving in retirement", place: ["inputs"], when: () => state.schema != null,
+      target: () => settingsChip("strategies"),
+      text: "Strategies holds Relocation: a move to another state at a chosen age, whose taxes and living costs then "
+        + "apply. It also holds Roth conversions and gifts to charity." },
+    { title: "Beneficiaries", place: ["inputs"], when: () => state.schema != null,
+      target: () => settingsChip("savings"),
+      text: "Benefits ends with Beneficiaries: who inherits what is left and how they are taxed. They change only how "
+        + "the final value after tax is measured, not the plan itself." },
     { title: "Outputs views", place: ["outputs"], target: () => $("views-outputs"),
       text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
+    { title: "Optimize", place: ["outputs", "optimize"], target: () => $("sub-optimize"),
+      text: "Optimize tries other choices for you (when to claim Social Security, which state to retire in, how to "
+        + "draw down) and shows what each would be worth. Tick what you would consider and tap Find best settings." },
+    { title: "Compare", place: ["outputs", "compare"], target: () => $("sub-compare"),
+      text: "Compare runs two saved scenarios side by side: duplicate your plan on Setup, change one thing, then "
+        + "compare." },
     { title: "Undo", target: () => $("undoButton"),
       text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
     { title: "Your scenarios", place: ["setup"], target: () => $("savedCard"),
@@ -7916,11 +7973,17 @@
       text: "The menu's Walk me through it asks one question at a time and fills in your settings. Where a topic "
         + "has more detail, Go deeper adds its extra questions." },
     { title: "The menu", menu: true, target: () => $("menu"),
-      text: "The menu also holds Appearance (the color schemes), Help and tips, About and Legal." },
+      text: "The menu also holds Final report (PDF), a printable summary of this plan, Appearance (the color "
+        + "schemes), Help and tips, About and Legal." },
     { title: "This tour", target: () => $("helpButton"),
       text: "Tap ? any time to see this tour again." },
   ];
   const tour = { steps: [], at: 0, from: null };
+
+  // The bubble of one settings panel on Inputs (null before the chips are drawn).
+  function settingsChip(panelId) {
+    return $("chips-settings").querySelector(".chip[data-id=\"" + panelId + "\"]");
+  }
 
   function tourShown(element) {
     return element != null && element.getClientRects().length > 0;
@@ -7993,6 +8056,9 @@
     const box = target.getBoundingClientRect();
     if (box.top < 0 || box.bottom > window.innerHeight) {
       target.scrollIntoView({ block: "center" });
+    }
+    if (box.left < 0 || box.right > window.innerWidth) {  // a bubble scrolled out of its row
+      target.scrollIntoView({ block: "nearest", inline: "center" });
     }
     placeTourRing();
   }

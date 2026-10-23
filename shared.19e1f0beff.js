@@ -908,9 +908,10 @@
     return { rate: 1, cap: share };
   }
 
-  // The value at a walkthrough field path: an input path or an account selector `accounts[Savings].startingValue`
-  // (the first account of that kind); undefined when a part is missing. A person's `employerMatch.percent` is read
-  // as rate x cap.
+  // The value at a walkthrough field path: an input path, an account selector `accounts[Savings].startingValue`
+  // (the first account of that kind) or the home selector `homes[primary].valueToday` (the primary residence, as
+  // wmti.dashboard.walkthrough._selected); undefined when a part is missing. A person's `employerMatch.percent` is
+  // read as rate x cap.
   function walkRead(data, path) {
     if (path.endsWith("employerMatch." + MATCH_PERCENT_FIELD)) {
       return matchPercent(walkRead(data, path.slice(0, -(MATCH_PERCENT_FIELD.length + 1))));
@@ -919,7 +920,13 @@
     for (const part of path.split(".")) {
       if (target == null) return undefined;
       const selector = WALK_SELECTOR.exec(part);
-      target = selector ? (target[selector[1]] || []).find((item) => item && item.kind === selector[2]) : target[part];
+      if (!selector) {
+        target = target[part];
+        continue;
+      }
+      const pick = selector[1] === "homes" ? (item) => item && item.primaryResidence === true
+        : (item) => item && item.kind === selector[2];
+      target = (target[selector[1]] || []).find(pick);
     }
     return target;
   }
@@ -967,7 +974,8 @@
   // A question's short name in the Trail: its field's label, a fixed name for the shape-changing answers, else its
   // prompt.
   const WALK_ACTION_LABELS = { partner: "Partner", count: "Children", carCount: "Cars", homeCount: "Homes",
-    total: "Monthly spending", balances: "Savings balances" };
+    total: "Monthly spending", balances: "Savings balances", carCosts: "Car value and loans",
+    childAges: "Children's ages" };
   // The list each count question sets the length of: the children, the cars or the homes.
   const WALK_COUNT_LISTS = { count: "children", carCount: "cars", homeCount: "homes" };
   function walkLabel(node) {
@@ -989,7 +997,8 @@
 
   // The question number, total and progress segments for the current screen. `rows` are plan().questions; the number
   // counts the top-level questions of the topics that are not optional (a deeper question shows its parent's number),
-  // and each segment is one such topic: "done", "current" or "todo".
+  // and each segment is one such topic: "done", "current" or "todo". A question of an optional topic is `extra`: it has
+  // no number (0) and every segment is done, as the basic questions are behind it.
   function walkProgress(tree, rows, currentId) {
     const optional = new Set(tree.topics.filter((topic) => topic.optional).map((topic) => topic.id));
     const basic = rows.filter((row) => row.depth === 0 && !optional.has(row.topic));
@@ -997,12 +1006,14 @@
     for (const row of rows) byId[row.id] = row;
     let top = byId[currentId];
     while (top && top.parent) top = byId[top.parent];
-    const number = top ? basic.findIndex((row) => row.id === top.id) + 1 : 0;
+    const extra = Boolean(top && optional.has(top.topic));
+    const number = top && !extra ? basic.findIndex((row) => row.id === top.id) + 1 : 0;
     const topics = tree.topics.filter((topic) => !optional.has(topic.id) && basic.some((row) => row.topic === topic.id));
-    const reached = currentId === "review" ? topics.length : top ? topics.findIndex((topic) => topic.id === top.topic) : -1;
+    const reached = currentId === "review" || extra ? topics.length
+      : top ? topics.findIndex((topic) => topic.id === top.topic) : -1;
     const segments = topics.map((topic, index) => ({ id: topic.id, title: topic.title,
       state: index < reached ? "done" : index === reached ? "current" : "todo" }));
-    return { number, total: basic.length, topic: top ? top.topicTitle : null, segments };
+    return { number, total: basic.length, topic: top ? top.topicTitle : null, extra, segments };
   }
 
   // The Trail: one group per topic in tree order with its questions as plan() lists them (depth kept), each with its
@@ -1044,12 +1055,63 @@
       current: saved && screens(saved.current) ? saved.current : null };
   }
 
+  // What the cars are worth today and what their loans still owe, all together (as
+  // wmti.dashboard.walkthrough.carTotals): { value, loan }, a loan counted only while it is on.
+  function carTotalsOf(data) {
+    const cars = (data && data.cars) || [];
+    return { value: cars.reduce((sum, car) => sum + (car.valueToday || 0), 0),
+      loan: cars.reduce((sum, car) => sum + (car.hasLoan ? car.loanBalance || 0 : 0), 0) };
+  }
+
+  // The parts of the inputs the walkthrough does not set in full that still hold the example household's figures:
+  // [panel, label, count, unit] each. A whole list (children, expense rows, cars, loans, homes) equal to the
+  // example's; else, within a changed list, the example's one-off (Major Spending) rows still there and the children
+  // still born at the example's ages; and each Social Security benefit table still the example's (a benefit estimated
+  // from pay is not listed).
+  function exampleLeftoverList(inputs, defaults) {
+    if (!inputs || !defaults) return [];
+    const same = (key) => sameValue(inputs[key], defaults[key]);
+    const items = [["children", "Children", (inputs.children || []).length, "children"],
+      ["expenses", "Expense rows", (inputs.expenses || []).length, "rows"],
+      ["cars", "Cars", (inputs.cars || []).length, "cars"],
+      ["loans", "Loans", (inputs.loans || []).length, "loans"],
+      ["home", "Homes", (inputs.homes || []).length, "homes"]].filter((item) => item[2] > 0
+        && same(item[0] === "home" ? "homes" : item[0]));
+    if (!same("expenses")) {
+      const major = (rows) => (rows || []).filter((row) => row.category === "Major Spending");
+      const kept = major(inputs.expenses).filter((row) => major(defaults.expenses).some((old) => sameValue(old, row)));
+      if (kept.length) items.push(["expenses", "One-off costs (college, daycare, repairs)", kept.length, "rows"]);
+    }
+    if (!same("children")) {
+      const born = (inputs.children || []).filter((child, index) => defaults.children && defaults.children[index]
+        && child.yourAgeAtBirth === defaults.children[index].yourAgeAtBirth);
+      if (born.length) items.push(["children", "Children's ages", born.length, "children"]);
+    }
+    for (const [role, label] of [["you", "Your Social Security benefit"], ["partner", "Partner's Social Security benefit"]]) {
+      const person = inputs[role];
+      const example = defaults[role];
+      if (person && example && person.socialSecurityBasis === "table"
+        && sameValue(person.socialSecurityByAge, example.socialSecurityByAge)) {
+        items.push(["income", label, Object.keys(person.socialSecurityByAge || {}).length, "ages"]);
+      }
+    }
+    return items;
+  }
+
   // A question's answer as Trail and Review text, read from the current inputs.
   function answerText(node, data, facts) {
     if (node.control === "handoff") return "On the " + (node.handoff ? node.handoff.label : "") + " page";
     if (node.action === "partner") return data.partner != null ? "Yes" : "No";
     if (WALK_COUNT_LISTS[node.action]) return String((data[WALK_COUNT_LISTS[node.action]] || []).length);
     if (node.action === "total") return facts ? fullMoney(facts.monthlySpending) + " a month" : "";
+    if (node.action === "carCosts") {
+      const cars = carTotalsOf(data);
+      return "Worth " + fullMoney(cars.value) + ", loans " + fullMoney(cars.loan);
+    }
+    if (node.action === "childAges") {
+      const age = data.you ? data.you.currentAge : 0;
+      return (data.children || []).map((child) => String(age - child.yourAgeAtBirth)).join(", ") || "None";
+    }
     return node.fields.map((field) => {
       const value = walkRead(data, field.path);
       let text;
@@ -1307,7 +1369,7 @@
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, sheetDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
-    walkProgress, walkTrail, walkDirection, walkClean, answerText, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
+    walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
