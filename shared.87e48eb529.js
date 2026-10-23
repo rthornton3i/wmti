@@ -1365,13 +1365,128 @@
     return hash.toString(16).padStart(8, "0");
   }
 
+  // ---- The law viewer (menu, Tax law and costs): how one law file (wmti.dashboard.web.lawFile) is shown ----
+  // The header fields every law file starts with; the viewer shows them as facts, not sections.
+  const LAW_HEADER_FIELDS = ["schema_version", "jurisdiction", "name", "tax_year", "source", "as_of", "status"];
+  // The text fields shown under a section's rows instead of as rows.
+  const LAW_TEXT_FIELDS = ["note", "source", "check_at"];
+  const LAW_CONFIDENCE_ORDER = ["unconfirmed", "secondary", "primary"];  // weakest first
+  const LAW_CONFIDENCE_LABELS = { primary: "Confirmed primary", secondary: "Confirmed secondary",
+    unconfirmed: "Unconfirmed", none: "Not rated" };
+  const LAW_RATE_WORD = /(^|_)(rate|rates|percent|pct|share)(_|$)/i;
+
+  // Whether a law-file key names a rate, percent or share (its figures from -1 to 1 show as percents).
+  function lawIsRateKey(key) {
+    return LAW_RATE_WORD.test(String(key));
+  }
+
+  // The percent a rate shows ("6.625%"), or null when the figure is not a rate: a number from -1 to 1 whose key (or
+  // the key of the object it sits in, `inRate`) names a rate, percent or share.
+  function lawPercentText(key, value, inRate) {
+    if (typeof value !== "number" || !isFinite(value) || Math.abs(value) > 1) return null;
+    if (!inRate && !lawIsRateKey(key)) return null;
+    return String(Number((value * 100).toFixed(4))) + "%";
+  }
+
+  // Whether an array is a list of rows (plain objects) to draw as a table.
+  function lawIsRowArray(value) {
+    return Array.isArray(value) && value.length > 0
+      && value.every((item) => item !== null && typeof item === "object" && !Array.isArray(item));
+  }
+
+  // The columns of a row array: every key of every row, in the order first met.
+  function lawRowColumns(rows) {
+    const columns = [];
+    for (const row of rows) for (const key of Object.keys(row)) if (!columns.includes(key)) columns.push(key);
+    return columns;
+  }
+
+  // The class of a confidence text: "primary" (confirmed primary), "secondary" (confirmed secondary), "unconfirmed",
+  // or "none" when the text is missing or unknown.
+  function lawConfidenceClass(confidence) {
+    const text = String(confidence == null ? "" : confidence).trim().toLowerCase();
+    if (text.startsWith("unconfirmed")) return "unconfirmed";
+    if (text.startsWith("confirmed primary")) return "primary";
+    if (text.startsWith("confirmed secondary")) return "secondary";
+    return "none";
+  }
+
+  // A section's confidence: its own, else the weakest of its sub-sections' (such as state_strategies.qcd), else none.
+  function lawSectionConfidence(section) {
+    if (section === null || typeof section !== "object" || Array.isArray(section)) return "none";
+    if ("confidence" in section) return lawConfidenceClass(section.confidence);
+    const found = Object.values(section).filter((item) => item && typeof item === "object" && !Array.isArray(item)
+      && "confidence" in item).map((item) => lawConfidenceClass(item.confidence)).filter((level) => level !== "none");
+    return LAW_CONFIDENCE_ORDER.find((level) => found.includes(level)) || "none";
+  }
+
+  // The sections of a law file to draw: every field but the header ones, as {name, value, confidence}; unconfirmed
+  // sections first (so they are seen), the rest in file order.
+  function lawSections(law) {
+    const sections = Object.keys(law || {}).filter((name) => !LAW_HEADER_FIELDS.includes(name))
+      .map((name) => ({ name, value: law[name], confidence: lawSectionConfidence(law[name]) }));
+    return sections.filter((item) => item.confidence === "unconfirmed")
+      .concat(sections.filter((item) => item.confidence !== "unconfirmed"));
+  }
+
+  // How many sections have each confidence: {primary, secondary, unconfirmed, none}.
+  function lawConfidenceCounts(sections) {
+    const counts = { primary: 0, secondary: 0, unconfirmed: 0, none: 0 };
+    for (const item of sections) counts[item.confidence] += 1;
+    return counts;
+  }
+
+  // The summary line at the top: "Last reviewed 2026-10-07. 20 sections: 5 confirmed primary, ...".
+  function lawSummaryText(law, sections) {
+    const counts = lawConfidenceCounts(sections);
+    const parts = ["primary", "secondary", "unconfirmed", "none"].filter((level) => counts[level])
+      .map((level) => counts[level] + " " + LAW_CONFIDENCE_LABELS[level].toLowerCase());
+    const reviewed = law && law.as_of ? "Last reviewed " + law.as_of + ". " : "";
+    return reviewed + sections.length + (sections.length === 1 ? " section" : " sections")
+      + (parts.length ? ": " + parts.join(", ") : "") + ".";
+  }
+
+  // Whether a section matches the filter text: a blank filter, or the text (any case) in its name or in any key or
+  // value inside it.
+  function lawSectionMatches(name, value, text) {
+    const wanted = String(text == null ? "" : text).trim().toLowerCase();
+    if (!wanted) return true;
+    const seen = (item) => String(item).toLowerCase().includes(wanted);
+    const inside = (item) => {
+      if (item === null || item === undefined) return false;
+      if (Array.isArray(item)) return item.some(inside);
+      if (typeof item === "object") return Object.keys(item).some((key) => seen(key) || inside(item[key]));
+      return seen(item);
+    };
+    return seen(name) || inside(value);
+  }
+
+  // A plain figure as text: a rate as "6.625% (0.06625)", other numbers grouped, true/false as yes/no, null as none.
+  function lawValueText(key, value, inRate) {
+    if (value === null || value === undefined) return "none";
+    if (typeof value === "boolean") return value ? "yes" : "no";
+    if (typeof value === "number") {
+      const shown = lawPercentText(key, value, inRate);
+      return shown ? shown + " (" + value + ")" : value.toLocaleString("en-US", { maximumFractionDigits: 6 });
+    }
+    if (Array.isArray(value)) return value.map((item) => lawValueText(key, item, inRate)).join(", ");
+    if (typeof value === "object") {
+      const rate = inRate || lawIsRateKey(key);
+      return Object.keys(value).map((name) => name + ": " + lawValueText(name, value[name], rate)).join("; ");
+    }
+    return String(value);
+  }
+
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, sheetDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
-    changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview };
+    changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
+    LAW_HEADER_FIELDS, LAW_TEXT_FIELDS, LAW_CONFIDENCE_LABELS, lawIsRateKey, lawPercentText, lawIsRowArray, lawRowColumns,
+    lawConfidenceClass, lawSectionConfidence, lawSections, lawConfidenceCounts, lawSummaryText, lawSectionMatches,
+    lawValueText };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

@@ -13,7 +13,8 @@
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
     mergeUndoPop, changedPaths, optimizeStepText, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
-    spendingChangePreview } = window.WmtiShared;
+    spendingChangePreview, LAW_TEXT_FIELDS, LAW_CONFIDENCE_LABELS, lawIsRowArray, lawRowColumns, lawConfidenceClass,
+    lawIsRateKey, lawSections, lawSummaryText, lawSectionMatches, lawValueText } = window.WmtiShared;
   const charts = window.WmtiCharts;
   const report = window.WmtiReport;
   const insightRules = window.WmtiInsights;
@@ -84,8 +85,10 @@
   // An interrupted strategy search: {key (optimizeCheckpointKey), inputsText, optionsText, checkpoint}.
   const OPTIMIZE_CHECKPOINT_KEY = "wmti.optimizeCheckpoint.v1";
   const TABS_PIN_KEY = "wmti.tabsPin.v1";  // whether Inputs' tabs stay pinned under the top bar: "on" or "off"
+  const LAW_KEY = "wmti.lawState.v1";  // the jurisdiction the law viewer last showed: "federal" or a state code
+  const LAW_STATE_PATHS = ["homeState", "strategies.relocation.state"];  // state selects with a "See this state's rules" link
   const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
-    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY];
+    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY];
   // Keys kept before the rename (fpt.*) move to these once, before anything reads them.
   try {
     migrateLegacyStorage(localStorage, TERMS_KEY, (window.WMTI_LEGAL || {}).textHash || "");
@@ -167,7 +170,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.34d33a0374.js");
+      worker = new Worker("worker.68ad0ad2f2.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -4837,6 +4840,7 @@
         });
         markDefault(select, path);
         wrap.append(select);
+        if (LAW_STATE_PATHS.includes(path)) wrap.append(lawLink(select));
         return wrap;
       }
       case "text": {
@@ -7973,7 +7977,8 @@
       text: "The menu's Walk me through it asks one question at a time and fills in your settings. Where a topic "
         + "has more detail, Go deeper adds its extra questions." },
     { title: "The menu", menu: true, target: () => $("menu"),
-      text: "The menu also holds Final report (PDF), a printable summary of this plan, Appearance (the color "
+      text: "The menu also holds Tax law and costs, the law and cost figures behind each state, Final report "
+        + "(PDF), a printable summary of this plan, Appearance (the color "
         + "schemes), Help and tips, About and Legal." },
     { title: "This tour", target: () => $("helpButton"),
       text: "Tap ? any time to see this tour again." },
@@ -8201,8 +8206,222 @@
     $("bootRetry").addEventListener("click", () => location.reload());
   }
 
+  // ---- Tax law and costs (menu): the law viewer ----
+  // One jurisdiction's law file at a time, from wmti.dashboard.web.lawFile (the law files ship inside the model zip, so
+  // it works offline): a state picker, a filter, Expand all, the file's facts, a summary line counting the sections by
+  // confidence and one collapsible section per law-file section, unconfirmed ones first. The chosen jurisdiction is
+  // kept under LAW_KEY. Close, Escape and the back button leave it; focus goes back to what opened it.
+  const lawView = { code: null, law: null, sections: [], opener: null, request: 0 };
+
+  function lawElement(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text != null) element.textContent = text;
+    return element;
+  }
+
+  // A small link under a state select that opens the viewer on the chosen state (the home state when it is blank).
+  function lawLink(select) {
+    const link = lawElement("button", "law-link", "See this state's rules");
+    link.type = "button";
+    link.setAttribute("aria-haspopup", "dialog");
+    link.addEventListener("click", () => openLawViewer(select.value || state.inputs.homeState || null, link));
+    return link;
+  }
+
+  function openLawViewer(code, opener) {
+    closeMenu();
+    lawView.opener = opener || $("menuButton");
+    $("law").hidden = false;
+    $("app").inert = true;
+    try {
+      if (!(history.state && history.state.wmtiLaw)) history.pushState({ wmtiLaw: true }, "");
+    } catch (error) { /* a sandboxed frame: Close and Escape still work */ }
+    loadLawState(code || load(LAW_KEY) || (state.inputs && state.inputs.homeState) || "federal");
+    $("lawState").focus();
+  }
+
+  function closeLawViewer(fromHistory) {
+    if ($("law").hidden) return;
+    $("law").hidden = true;
+    $("app").inert = false;
+    if (!fromHistory) {
+      try { if (history.state && history.state.wmtiLaw) history.back(); } catch (error) { /* no history */ }
+    }
+    const opener = lawView.opener && lawView.opener.isConnected ? lawView.opener : $("menuButton");
+    opener.focus();
+  }
+
+  async function loadLawState(code) {
+    const request = ++lawView.request;
+    $("lawSummary").textContent = "Loading...";
+    $("lawSummary").classList.remove("banner-error");
+    const answer = await ask("lawFile", [code], "law");
+    if (request !== lawView.request || !answer) return;
+    if (!answer.ok) {
+      if (code !== "federal" && lawView.code === null) { loadLawState("federal"); return; }  // a stale saved code
+      $("lawSummary").textContent = "The law file did not load: " + answer.error;
+      $("lawSummary").classList.add("banner-error");
+      return;
+    }
+    lawView.code = answer.code;
+    lawView.law = answer.law;
+    lawView.sections = lawSections(answer.law);
+    store(LAW_KEY, answer.code);
+    fillLawPicker(answer.states, answer.code);
+    renderLawViewer();
+  }
+
+  function fillLawPicker(states, code) {
+    const select = $("lawState");
+    if (select.options.length !== states.length + 1) {
+      const option = (value, label) => { const item = lawElement("option", null, label); item.value = value; return item; };
+      select.replaceChildren(option("federal", "Federal"),
+        ...states.map((item) => option(item.code, item.code + " - " + item.name)));
+    }
+    select.value = code;
+  }
+
+  function renderLawViewer() {
+    const law = lawView.law;
+    $("lawSummary").textContent = lawSummaryText(law, lawView.sections);
+    const facts = [["Jurisdiction", lawView.code === "federal" ? "Federal" : $("lawState").selectedOptions[0].textContent],
+      ["Tax year", law.tax_year], ["As of", law.as_of], ["Status", law.status], ["Source", law.source]];
+    $("lawFacts").replaceChildren(...facts.filter(([, value]) => value != null && value !== "").flatMap(([label, value]) =>
+      [lawElement("dt", null, label), lawElement("dd", null, String(value))]));
+    $("lawSections").replaceChildren(...lawView.sections.map(lawSectionElement));
+    filterLawSections();
+  }
+
+  function lawChip(level) {
+    const chip = lawElement("span", "law-chip", LAW_CONFIDENCE_LABELS[level]);
+    chip.dataset.level = level;
+    return chip;
+  }
+
+  function lawSectionElement(item) {
+    const section = lawElement("details", "law-section");
+    section.dataset.section = item.name;
+    section.dataset.confidence = item.confidence;
+    const head = lawElement("summary", "law-section-head");
+    head.append(lawElement("span", "law-section-name", item.name), lawChip(item.confidence));
+    section.append(head, lawBlock(item.name, item.value, false));
+    return section;
+  }
+
+  // The body of a section or sub-section: plain figures as rows, row lists as tables, sub-sections nested, then
+  // the note, source and check_at texts.
+  function lawBlock(key, value, inRate) {
+    const block = lawElement("div", "law-block");
+    if (lawIsRowArray(value)) {
+      block.append(lawTable(key, value, inRate));
+      return block;
+    }
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+      const rows = lawElement("dl", "law-rows");
+      rows.append(lawElement("dt", null, key), lawElement("dd", null, lawValueText(key, value, inRate)));
+      block.append(rows);
+      return block;
+    }
+    const rate = inRate || lawIsRateKey(key);
+    let rows = null;
+    for (const name of Object.keys(value)) {
+      if (LAW_TEXT_FIELDS.includes(name) || name === "confidence") continue;
+      const item = value[name];
+      if (lawIsRowArray(item)) {
+        rows = null;
+        block.append(lawElement("p", "law-key", name), lawTable(name, item, rate));
+      } else if (item !== null && typeof item === "object" && !Array.isArray(item)) {
+        rows = null;
+        const group = lawElement("div", "law-group");
+        const title = lawElement("p", "law-key", name);
+        if ("confidence" in item) title.append(" ", lawChip(lawConfidenceClass(item.confidence)));
+        group.append(title, lawBlock(name, item, rate));
+        block.append(group);
+      } else {
+        if (!rows) { rows = lawElement("dl", "law-rows"); block.append(rows); }
+        rows.append(lawElement("dt", null, name), lawElement("dd", null, lawValueText(name, item, rate)));
+      }
+    }
+    for (const [name, label] of [["note", "Note"], ["source", "Source"], ["check_at", "Check at"]]) {
+      if (value[name] == null || value[name] === "") continue;
+      const text = lawElement("p", "law-note");
+      text.append(lawElement("strong", null, label + ": "), String(value[name]));
+      block.append(text);
+    }
+    return block;
+  }
+
+  function lawTable(key, rows, inRate) {
+    const columns = lawRowColumns(rows);
+    const scroll = lawElement("div", "table-scroll");
+    const table = lawElement("table", "data-table law-table");
+    table.setAttribute("aria-label", key);
+    const headRow = lawElement("tr");
+    headRow.append(...columns.map((column) => { const cell = lawElement("th", null, column); cell.scope = "col"; return cell; }));
+    const body = lawElement("tbody");
+    body.append(...rows.map((row) => {
+      const line = lawElement("tr");
+      line.append(...columns.map((column) => lawElement("td", null,
+        column in row ? lawValueText(column, row[column], inRate) : "")));
+      return line;
+    }));
+    const head = lawElement("thead");
+    head.append(headRow);
+    table.append(head, body);
+    scroll.append(table);
+    return scroll;
+  }
+
+  function filterLawSections() {
+    const text = $("lawFilter").value;
+    let shown = 0;
+    for (const section of $("lawSections").children) {
+      const item = lawView.sections.find((entry) => entry.name === section.dataset.section);
+      section.hidden = !lawSectionMatches(item.name, item.value, text);
+      if (!section.hidden) shown += 1;
+    }
+    $("lawEmpty").hidden = shown > 0 || !lawView.sections.length;
+    markLawExpand();
+  }
+
+  function lawShownSections() {
+    return [...$("lawSections").children].filter((section) => !section.hidden);
+  }
+
+  function markLawExpand() {
+    const shown = lawShownSections();
+    const allOpen = shown.length > 0 && shown.every((section) => section.open);
+    $("lawExpand").textContent = allOpen ? "Collapse all" : "Expand all";
+    $("lawExpand").setAttribute("aria-expanded", String(allOpen));
+  }
+
+  function toggleLawSections() {
+    const shown = lawShownSections();
+    const open = !(shown.length > 0 && shown.every((section) => section.open));
+    for (const section of shown) section.open = open;
+    markLawExpand();
+  }
+
+  function wireLawViewer() {
+    $("menuLaw").addEventListener("click", () => openLawViewer(null, $("menuButton")));
+    $("lawClose").addEventListener("click", () => closeLawViewer(false));
+    $("lawState").addEventListener("change", () => loadLawState($("lawState").value));
+    $("lawFilter").addEventListener("input", filterLawSections);
+    $("lawExpand").addEventListener("click", toggleLawSections);
+    $("lawSections").addEventListener("toggle", markLawExpand, true);  // toggle does not bubble; capture sees it
+    // Ahead of the page's own Escape handling (capture), so Escape closes only the viewer.
+    document.addEventListener("keydown", (event) => {
+      if ($("law").hidden || event.key !== "Escape") return;
+      event.stopPropagation();
+      closeLawViewer(false);
+    }, true);
+    window.addEventListener("popstate", () => closeLawViewer(true));
+  }
+
   renderBootSteps();
   wire();
+  wireLawViewer();
   startTerms();
   engine.start();
 })();
