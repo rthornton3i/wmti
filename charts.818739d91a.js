@@ -2,7 +2,7 @@
 // Draws the chart specs that wmti.dashboard.web returns as inline SVG, with a legend, a text summary, a table view
 // and a tap or hover readout. renderChart and renderTable return markup strings (they also run in Node for the
 // tests); attachChart adds the readout in the browser. Series colors come from the spec's palette slot through the
-// page's --s0..--s7 tokens, so dark mode can use its own steps of the same slots.
+// page's --s0..--s9 tokens, so dark mode can use its own steps of the same slots.
 (function (root) {
   "use strict";
 
@@ -24,7 +24,8 @@
   // and how far apart the configs' markers sit.
   const AFTER_TAX = { room: 24, out: 9, stagger: 7 };
 
-  const color = (series) => "var(--s" + (series.slot % 8) + ", " + series.color + ")";
+  const PALETTE_SIZE = 10;  // the --s0..--s9 tokens; a slot past the last wraps around
+  const color = (series) => "var(--s" + (series.slot % PALETTE_SIZE) + ", " + series.color + ")";
   const number = (value) => (value == null || !isFinite(value) ? 0 : value);
   const round = (value) => Math.round(value * 10) / 10;
 

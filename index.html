@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-GvGgnss3lt+w4oNKshbL0uevgt+VlJrcwJ7mKIQN3PU=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-jQVM9SYKvibOjB3y+VG3gTHVsTY4HQoxIK4HlIuh2zw=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -78,9 +78,10 @@ if (window.top !== window.self) {
   --good: #1a7f37;
   /* Information boxes (notes, banners, explanations): their own blue, apart from the tinted field rows */
   --info-bg: #E8EEFA; --info-ink: #1D3561; --info-line: #3A62B0;
-  /* The chart palette of wmti.dashboard.style in slot order (the fallback); each scheme below sets its own. */
+  /* The chart palette of wmti.dashboard.style in slot order (the fallback); each scheme below sets its own. Slots 8 and 9
+     are hues no other slot of that scheme uses (the flows chart's HSA and FSA bars). */
   --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #eda100;
-  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #e34948;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #e34948; --s8: #8c5a2e; --s9: #0b8f9c;
   /* The Home timeline's primary residence: the first series deepened toward the text color, so it differs slightly from
      a second home's --s0 in every scheme (each scheme's own --s0 and --ink, light or dark, resolve here). */
   --tl-primary: color-mix(in srgb, var(--s0) 72%, var(--ink));
@@ -94,7 +95,7 @@ if (window.top !== window.self) {
 /* Lagoon and hibiscus: its chart series (the other tokens are the :root ones) */
 :root[data-theme="lagoon"], :root[data-theme="device"] {
   --s0: #19B5C4; --s1: #F2675A; --s2: #1baf7a; --s3: #eda100;
-  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #2a78d6;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #2a78d6; --s8: #8c5a2e; --s9: #e34948;
 }
 /* Sunset over the motu */
 :root[data-theme="sunset"] {
@@ -107,7 +108,7 @@ if (window.top !== window.self) {
   --scroll-thumb: rgb(86 103 115 / 0.5);
   --info-bg: #ECEFFA; --info-ink: #263866; --info-line: #4A5FAE;
   --s0: #F59E4C; --s1: #19A7B6; --s2: #1baf7a; --s3: #2a78d6;
-  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #e34948;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #e34948; --s8: #8c5a2e; --s9: #7f7a12;
 }
 /* Palm and sand (light band) */
 :root[data-theme="palm"] {
@@ -120,7 +121,7 @@ if (window.top !== window.self) {
   --sheet-edge: rgb(0 0 0 / 0.07); --scroll-thumb: rgb(86 102 92 / 0.5);
   --info-bg: #E9EEF8; --info-ink: #213D6B; --info-line: #3D62A6;
   --s0: #2F8F6B; --s1: #19A7B6; --s2: #eb6834; --s3: #eda100;
-  --s4: #e87ba4; --s5: #2a78d6; --s6: #4a3aa7; --s7: #e34948;
+  --s4: #e87ba4; --s5: #2a78d6; --s6: #4a3aa7; --s7: #e34948; --s8: #8c5a2e; --s9: #a03fb3;
 }
 /* Night lagoon (dark): dark fills with light text for inputs, tables and help */
 :root[data-theme="night"] {
@@ -135,7 +136,7 @@ if (window.top !== window.self) {
   --bad: #ff8a7f; --bad-soft: #3a1d1b; --warn: #e5b45a; --warn-soft: #3a2f17; --good: #5fcf7c;
   --edge-shadow: rgb(0 0 0 / 0.55);
   --s0: #2CC5D2; --s1: #F2786C; --s2: #1baf7a; --s3: #b88000;
-  --s4: #d8668f; --s5: #008300; --s6: #7262d0; --s7: #5a8dee;
+  --s4: #d8668f; --s5: #008300; --s6: #7262d0; --s7: #5a8dee; --s8: #c28a5a; --s9: #b46ac4;
   --info-bg: #1C2B4A; --info-ink: #DCE6FA; --info-line: #8EAEF0;
   color-scheme: dark;
 }
@@ -153,7 +154,7 @@ if (window.top !== window.self) {
     --bad: #ff8a7f; --bad-soft: #3a1d1b; --warn: #e5b45a; --warn-soft: #3a2f17; --good: #5fcf7c;
     --edge-shadow: rgb(0 0 0 / 0.55);
     --s0: #2CC5D2; --s1: #F2786C; --s2: #1baf7a; --s3: #b88000;
-    --s4: #d8668f; --s5: #008300; --s6: #7262d0; --s7: #5a8dee;
+    --s4: #d8668f; --s5: #008300; --s6: #7262d0; --s7: #5a8dee; --s8: #c28a5a; --s9: #b46ac4;
     --info-bg: #1C2B4A; --info-ink: #DCE6FA; --info-line: #8EAEF0;
     color-scheme: dark;
   }
@@ -1517,14 +1518,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "1666d012603e", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "2501b490fbfd", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.d3e3f49e2d.js"></script>
-<script src="charts.54d59a7eb6.js"></script>
+<script src="shared.e42481712d.js"></script>
+<script src="charts.818739d91a.js"></script>
 <script src="insights.ee50546e73.js"></script>
-<script src="report.ad13ed448d.js"></script>
+<script src="report.d2fc90fa44.js"></script>
 <script src="jspdf.e6551fcdc3.js"></script>
-<script src="app.0710c183fb.js"></script>
+<script src="app.3274f24ed0.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

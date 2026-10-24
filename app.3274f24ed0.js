@@ -11,7 +11,7 @@
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
+    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
     mergeUndoPop, changedPaths, optimizeStepText, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
     spendingChangePreview, docsLink, stateRulesText } = window.WmtiShared;
   const charts = window.WmtiCharts;
@@ -21,7 +21,7 @@
   const BOOT_STEPS = [["script", "Loading the calculator"], ["boot", "Starting up"],
     ["packages", "Installing libraries"], ["imports", "Importing libraries"],
     ["model", "Loading the retirement model"], ["startup", "Reading your settings and the example household"]];
-  const NOTES_PANELS = new Set(["accounts", "cars", "expenses", "retirement", "strategies"]);  // panels that show settingsNotes
+  const NOTES_PANELS = new Set(["accounts", "cars", "expenses", "retirement", "savings", "strategies"]);  // panels that show settingsNotes
   const SETUP_PANEL = "household";  // the schema panel drawn on Setup instead of as an Inputs chip
   const INFLATION_CARD_FIELDS = ["useInflation", "inflation"];  // fields of that panel drawn in the Inflation card
   const ROLLOVER_SWITCH = "strategies.rothConversion.enabled";  // adds or removes the rollover account
@@ -171,7 +171,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.1f6f884499.js");
+      worker = new Worker("worker.5d319b4343.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -3586,7 +3586,16 @@
     if (panel.id === "home" && panel.fields.includes("homes")) {
       group.append(warningsBox("home-warnings"));  // in the Homes pane: a Mortgage while renting, bills counted twice
     }
+    if (panel.id === "savings" && panel.subsection && panel.fields.includes("hsa.enabled")
+      && getPath(state.inputs, "hsa.enabled")) {
+      group.append(warningsBox("hsa-warnings"));  // the medical plan's deductible below the HSA's minimum
+    }
+    if (panel.id === "savings" && panel.fields.includes("dependentCareFsa")
+      && getPath(state.inputs, "dependentCareFsa.enabled")) {
+      group.append(warningsBox("fsa-warnings"));  // an FSA that excludes nothing
+    }
     if (panel.id === "accounts") {
+      group.append(...benefitAccountRows());
       group.append(warningsBox("owner-warnings"));
       sections.push(surplusSection());
     }
@@ -3688,6 +3697,44 @@
     edit.textContent = "Edit the mortgage on Home";
     edit.addEventListener("click", () => {
       state.chips.settings = "home";
+      savePrefs();
+      renderSettings();
+    });
+    wrap.append(edit);
+    return [wrap];
+  }
+
+  // The Accounts chip's read-only benefit accounts (`benefitAccounts`): the HSA while it counts and the dependent care
+  // FSA while it is on, with what each starts with and its return, and a button that opens the Benefits chip where
+  // they are set. They are not in the accounts list, so they take no part in the withdrawal order or the surplus.
+  function benefitAccountRows() {
+    const accounts = benefitAccounts(state.inputs);
+    if (!accounts.length) return [];
+    const wrap = fieldShell("Benefit accounts", "Read-only here: the HSA and the dependent care FSA are set on the "
+      + "Benefits chip. They pay their own costs (qualified healthcare, dependent care), so they are outside the "
+      + "withdrawal order and get no surplus cash. The FSA starts each year empty and is used up by the year's care.",
+      null);
+    wrap.classList.add("benefit-account-rows");
+    for (const account of accounts) {
+      const row = document.createElement("div");
+      row.className = "item item-readonly";
+      row.dataset.kind = account.kind;
+      row.innerHTML = "<span class=\"item-name\"></span><span class=\"item-value\"></span>"
+        + "<span class=\"item-detail\"></span>";
+      row.querySelector(".item-name").textContent = account.name;
+      row.querySelector(".item-value").textContent = compactMoney(account.value);
+      row.querySelector(".item-detail").textContent = account.kind === "hsa"
+        ? "Return " + percent(account.meanReturn, 2) + " ± " + percent(account.returnStdDev, 2) + " · " + account.owner
+          + " · " + (account.sizing === "max" ? "puts in the most allowed" : "puts in what the year's costs need")
+        : "No return · starts each year empty";
+      wrap.append(row);
+    }
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "button button-quiet";
+    edit.textContent = "Edit on Benefits";
+    edit.addEventListener("click", () => {
+      state.chips.settings = "savings";
       savePrefs();
       renderSettings();
     });
@@ -4180,6 +4227,8 @@
     fillWarnings("home-warnings", notes.homeWarnings);
     fillWarnings("medicare-warnings", notes.medicareWarnings);
     fillWarnings("summary-warnings", notes.medicareWarnings);
+    fillWarnings("hsa-warnings", notes.hsaWarnings);
+    fillWarnings("fsa-warnings", notes.fsaWarnings);
     const countedCard = $("alreadyCounted");
     if (countedCard) fillAlreadyCounted(countedCard);
     const summaryCard = $("expenseSummary");
@@ -5285,12 +5334,12 @@
         if (field.choicesFrom && value != null && !choices.includes(value)) {
           choices = choices.concat([value]).sort((left, right) => left - right);
         }
-        if (field.name === "owner" && state.notes && state.notes.ownerOptions) {
+        if (path === "hsa.owner") {  // the HSA belongs to one person: no JOINT, and no PARTNER without a partner
+          choices = choices.filter((choice) => choice !== "PARTNER" || state.inputs.partner != null
+            || choice === value);
+        } else if (field.name === "owner" && state.notes && state.notes.ownerOptions) {
           choices = state.notes.ownerOptions.concat(value != null && !state.notes.ownerOptions.includes(value)
             ? [value] : []);
-        }
-        if (field.name === "kind" && value != null && !choices.includes(value)) {
-          choices = choices.concat([value]);  // a saved kind no longer offered (an HSA account row) stays shown
         }
         if (field.name === "account529") {  // a child's college 529: the household's 529 accounts by name
           const names = state.inputs.accounts.filter((account) => account.kind === "529").map((account) => account.name);

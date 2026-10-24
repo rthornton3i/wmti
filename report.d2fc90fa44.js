@@ -28,9 +28,10 @@
   // The app's own wording (the Setup notice): estimates for education, not advice.
   const NOTICE = "Estimates for education only; not financial, tax or legal advice.";
   const AFTER_TAX_PREFIX = "Final net worth after terminal tax";
-  // The light scheme's chart tokens (the plain :root block of styles.css) and its series palette, slots 0 to 7.
+  // The light scheme's chart tokens (the plain :root block of styles.css) and its series palette, slots 0 to 9.
   const LIGHT = { line: "#D6E2E4", muted: "#4F6772", surface: "#ffffff", ink: "#0B3A4F", ink2: "#2E5566" };
-  const PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
+  const PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948", "#8c5a2e",
+    "#0b8f9c"];
   const IMAGE_SIZE = { width: 640, height: 240 };  // the viewBox a chart is drawn on for the report
   const TURN_FIELDS = 9;  // a short list whose items fill more fields than this is drawn turned (a row per field)
   const TURN_ITEMS = 4;  // a list of at most this many items is short

@@ -1480,6 +1480,31 @@
     return names.filter((name) => name !== openName).sort((left, right) => left.localeCompare(right));
   }
 
+  // The system-managed accounts the Benefits tab feeds, as wmti.inputs.retirementInputs.managedAccounts adds them to
+  // a run: the HSA while it counts (on, with the medical plan on) with its starting balance, return and owner, then the
+  // dependent care FSA while it is on (empty at the start, no return). Each is named "HSA" or "Dependent care FSA",
+  // numbered from 2 when an account of the inputs already has that name (letter case counts, as in the model).
+  function benefitAccounts(inputs) {
+    const taken = new Set(((inputs && inputs.accounts) || []).map((account) => account.name));
+    const name = (base) => {
+      let candidate = base;
+      for (let number = 2; taken.has(candidate); number += 1) candidate = base + " " + number;
+      taken.add(candidate);
+      return candidate;
+    };
+    const hsa = (inputs && inputs.hsa) || {};
+    const accounts = [];
+    if (hsa.enabled && inputs.premiums && inputs.premiums.medicalPlanEnabled) {
+      accounts.push({ kind: "hsa", name: name("HSA"), value: hsa.startingBalance || 0, meanReturn: hsa.meanReturn,
+        returnStdDev: hsa.returnStdDev, owner: hsa.owner || "YOU", sizing: hsa.sizing || "needed" });
+    }
+    if (inputs && inputs.dependentCareFsa && inputs.dependentCareFsa.enabled) {
+      accounts.push({ kind: "fsa", name: name("Dependent care FSA"), value: 0, meanReturn: 0, returnStdDev: 0,
+        owner: inputs.partner != null ? "JOINT" : "YOU", sizing: null });
+    }
+    return accounts;
+  }
+
   // A name not yet taken: `base` itself, else "base 2", "base 3" and so on.
   function freeName(base, taken) {
     const used = new Set(taken.map((name) => name.toLowerCase()));
@@ -1664,7 +1689,7 @@
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
+    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

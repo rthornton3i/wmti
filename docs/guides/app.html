@@ -290,9 +290,18 @@ entered rows plus the Bills - Other (<code class="docutils literal notranslate">
 add up). The total reads n/a until the notes arrive.
 Benefits holds, under a “Medical plan” heading, the health premium, the
 pre-tax switch and the plan’s cost sharing, and inside it an “HSA”
-sub-section (the section’s <code class="docutils literal notranslate"><span class="pre">subsections</span></code> in the schema) with its own
-switch and the HSA contribution, shown only while the medical plan is
-on; Healthcare holds how the costs are set (a flat amount, the
+sub-section (the section’s <code class="docutils literal notranslate"><span class="pre">subsections</span></code> in the schema), shown only
+while the medical plan is on, with its own switch and, while that is on,
+<em>HSA contribution each year</em> (a select: “What the year’s costs need” or
+“The most allowed”, the schema’s <code class="docutils literal notranslate"><span class="pre">choiceLabels</span></code>), <em>HSA cap per year</em>
+(blank: the legal limit), <em>Contributed through payroll</em>, <em>Employer HSA
+contribution per year</em>, <em>HSA balance</em>, the mean return and its standard
+deviation, and <em>HSA owner</em> (You or Partner only; Partner only with a
+partner). The HSA pane shows its own warning, the medical plan’s
+deductible below the high-deductible minimum (<code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code>’
+<code class="docutils literal notranslate"><span class="pre">hsaWarnings</span></code>), and the Dependent care FSA pane its own, an FSA that
+sets nothing aside (<code class="docutils literal notranslate"><span class="pre">fsaWarnings</span></code>); Benefits asks for the notes for
+them. Healthcare holds how the costs are set (a flat amount, the
 default, or visit-based; healthcare always counts), the flat amount’s
 two ends or the visits, their price and the drugs, and
 ends with one “Reset to defaults” button for the
@@ -546,7 +555,16 @@ charge a cost a car already charges (<code class="docutils literal notranslate">
 <code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code>). Removing the partner makes a
 partner-driven car yours.
 Sheets follow the rules below. Accounts adds “Where surplus
-cash goes” (below). The account owner offers only the owners the
+cash goes” (below). While the HSA counts (it and the medical plan on)
+or the dependent care FSA is on, Accounts also shows a read-only
+“Benefit accounts” block: one row each (<code class="docutils literal notranslate"><span class="pre">benefitAccounts</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>, named as the model names them: “HSA” and
+“Dependent care FSA”, numbered when an account already has the name),
+the HSA with its balance, return, spread, owner and sizing, the FSA as
+“No return · starts each year empty”, and an “Edit on Benefits” button
+that opens the Benefits chip. They are not in the account list, so
+they take no part in the withdrawal order or the surplus sliders, and
+HSA is not offered as an account kind. The account owner offers only the owners the
 household has. Benefits has, under a “Retirement plan” heading, the
 plan’s switch, each person’s employer match under its own sub-heading
 (“Your employer match”, “Partner employer match”; the panel’s
@@ -671,7 +689,8 @@ and the chance of running out, then the single-run
 headline figures with their change from the loaded scenario; the Insights
 card (see <a class="reference internal" href="#app-insights"><span class="std std-ref">Insights</span></a>); the final worth by percentile table; the
 middle half average summary table),
-Accounts (the middle half average accounts table) and Taxes (owner
+Accounts (the middle half average accounts table, with the HSA’s and
+the dependent care FSA’s columns when they are on) and Taxes (owner
 ruling: a <em>Taxes paid by year</em> card with the Taxes plot’s figures, each
 kind (State without the local tax, then Local Tax on its own), their
 Total, the sales tax for records not added to Total, then the home
@@ -701,6 +720,12 @@ beside the title says whether amounts are today’s value or inflation
 adjusted. Deposits and withdrawals draws deposits above zero and
 withdrawals below it with two titled legend groups, x is the calendar
 year, and adds the RMD schedule and its notes (or why there is none).
+The HSA and the dependent care FSA have one deposit type, “HSA and
+dependent care FSA contributions”, and one withdrawal type, “HSA and
+dependent care FSA costs paid”; the other withdrawal type for untaxed
+money is “Roth”. Each type keeps its palette slot (<code class="docutils literal notranslate"><span class="pre">FLOW_SLOTS</span></code> in
+<code class="docutils literal notranslate"><span class="pre">wmti.dashboard.breakdown</span></code>): the types the chart had before keep their
+colours and the two HSA and FSA types take slots 8 and 9.
 Cash flow stacks cash in (pay, Social Security, sale
 proceeds, withdrawals and any shortfall) above zero and cash out (expenses,
 taxes, retirement deposits and the surplus to the accounts) below it,
@@ -992,7 +1017,10 @@ is ticked. The choice applies at once and is kept in this browser
 visit). A small script at the top of the page sets it before the first paint.
 Each scheme is a set of color tokens on <code class="docutils literal notranslate"><span class="pre">:root[data-theme=...]</span></code> in
 <code class="docutils literal notranslate"><span class="pre">frontend/src/styles.css</span></code>; the charts take the scheme’s two series colors for
-their first two series, and the scheme changes no figure. Some colors are
+their first two series, and the scheme changes no figure. The chart palette has ten
+slots (<code class="docutils literal notranslate"><span class="pre">--s0</span></code> to <code class="docutils literal notranslate"><span class="pre">--s9</span></code>; the dark schemes have their own steps of each), so a
+chart’s ninth and tenth series get their own colours; a slot past the tenth wraps
+around. Some colors are
 darker than in the mockups so text meets WCAG AA (4.5:1): the muted text of
 the three light schemes, Palm and sand’s band subtitle, the hero tile of
 Sunset and Palm, and the accent used for text and buttons (the toggle colors
