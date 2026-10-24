@@ -113,7 +113,7 @@ changes, and where to compare it; the home-state treatment and the rules the
 model leaves out are in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>. Save one config per choice and open <strong>Compare</strong>
 (see <a class="reference internal" href="usage.html"><span class="doc">Using the toolkit</span></a>): both configs run on the same random draws, so the difference comes
 from the setting. Everything below is a model of the law in the law files
-(<span>tax-year-update</span>), not tax advice.</p>
+(<a class="reference internal" href="../law/index.html"><span class="doc">Tax law by jurisdiction</span></a> shows every figure), not tax advice.</p>
 <section id="strategies-you-can-compare-today">
 <span id="strategies-today"></span><h2>Strategies you can compare today<a class="headerlink" href="#strategies-you-can-compare-today" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
@@ -450,11 +450,13 @@ beneficiaries’ payouts (see <a class="reference internal" href="usage.html"><s
 config): a switch (<code class="docutils literal notranslate"><span class="pre">enabled</span></code>), the state you move to (<code class="docutils literal notranslate"><span class="pre">state</span></code>), your age in the move
 year (<code class="docutils literal notranslate"><span class="pre">moveAge</span></code>; blank is your Social Security claim age, or with no benefit the age your
 pay stops, now when you are already retired; see <code class="docutils literal notranslate"><span class="pre">defaultSpendingStartAge</span></code>)
-and whether your homes follow (<code class="docutils literal notranslate"><span class="pre">homesFollow</span></code>, on by default). It is off by default, and
+and whether your home follows you (<code class="docutils literal notranslate"><span class="pre">homesFollow</span></code>, labelled <em>Home follows me</em>, on by default).
+It is off by default, and
 a move to your home state, or with no state, changes nothing. The Relocation section of
 the Strategies tab, after the QCD, edits them: the <em>Move to another state</em> switch, then while
 it is on <em>State you move to</em> (the 51 states, labelled like <em>NJ - New Jersey</em>), <em>Move at your
-age</em> (a blank shows that default age in gray until you type one) and <em>Homes follow</em>.
+age</em> (a blank shows that default age in gray until you type one) and, under it, <em>Home follows
+me</em>.
 The section’s “i” lists what changes at the move. The guide <a class="reference internal" href="states.html"><span class="doc">States: taxes, living costs and moving</span></a> explains the move
 for users.</p>
 <p>Both of you move at the start of the move year and live in the new state for whole
@@ -467,17 +469,22 @@ state, <code class="docutils literal notranslate"><span class="pre">wmti.inputs.
 inheritance taxes, and is a beneficiary’s income tax state when their card leaves it
 blank;</p></li>
 <li><p>your own amounts change only by how the new state compares with the old
-(<span>wmti.taxes.statecosts</span>): the primary home’s property tax and insurance, the cars’
+(<span>wmti.taxes.statecosts</span>): the cars’
 insurance and registration (the registration by the dollar difference of the states’
-car taxes, never below 0), the gas price, a replacement car’s sales tax, rent, the
+car taxes, never below 0), the gas price, a replacement car’s sales tax, the
 health premium before the Medicare age and the Medicare supplement and Part D premiums
 after it (inside <em>Health Premium</em>, shown as <code class="docutils literal notranslate"><span class="pre">Health</span> <span class="pre">Premium</span> <span class="pre">State</span> <span class="pre">Change</span></code>), and the
 sales tax inside your spending, charged as the signed outflow <code class="docutils literal notranslate"><span class="pre">State</span> <span class="pre">Cost</span> <span class="pre">Change</span></code>;</p></li>
-<li><p>with homes following, the primary home is swapped for a comparable one at its value
-times the states’ typical home value ratio (<code class="docutils literal notranslate"><span class="pre">housing.typical_home_value</span></code>): the signed
-outflow <code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Equity</span> <span class="pre">Change</span></code> (new value less old), the outflows <code class="docutils literal notranslate"><span class="pre">Move</span> <span class="pre">Selling</span> <span class="pre">Costs</span></code>
-and <code class="docutils literal notranslate"><span class="pre">Move</span> <span class="pre">Purchase</span> <span class="pre">Costs</span></code>, and the old home’s gain taxed like a sale. Its property tax
-also follows the value ratio.
+<li><p>your housing moves on the Home timeline (<span>wmti.homes.residence.relocatedLane()</span>, run
+by <span>wmti.inputs.retirementInputs.effectiveInputs()</span>; the saved homes never change): a
+primary residence in the new state starts in the move year, priced at your home’s value
+then times the states’ typical home value ratio (<code class="docutils literal notranslate"><span class="pre">housing.typical_home_value</span></code>), its
+property tax and insurance scaled by the states’ ratios. With <em>Home follows me</em> on, the
+old home is sold at the close of the year before (its gain taxed like any sale) and the
+mortgage balance and term carry over; off, it is kept as a second home and the new home
+is financed like a new purchase. A rent period is split at the move, its new part at the
+states’ housing-cost index ratio. A home or rent period of yours starting in the move
+year is the move itself.
 The rules are in <a class="reference internal" href="model-rules.html#moving-states"><span class="std std-ref">Moving states</span></a>.</p></li>
 </ul>
 <p>The legislature catch-up schedule of the state figures is one random stream for every
@@ -573,10 +580,17 @@ skips it (<em>pick at least one other state</em>), and with a blank move age tha
 last year it is greyed out. Under the list the page shows what the ticked states add, as in
 <em>3 states and staying put: up to 672 more runs, up to 2 minutes more (estimate)</em>, timed on
 your device (see <a class="reference internal" href="#optimizer-estimates"><span class="std std-ref">the estimates</span></a>).
-The result names the state, for example <em>Retire in Florida, move at 65</em> or <em>Stay in NJ</em>,
-and adds a note that a move is valued on taxes and the costs that follow you, not on
-climate, family or healthcare access. Apply turns Relocation on with the best state (the
-move age stays as set), or off when staying put wins over a planned move. See
+Every home and rent period that starts at or after the move (a home bought at the move age
+or later, a rent period starting then or later) is set to the state tried; the homes and rent
+periods before the move keep the states you set, and every move starts from your own homes
+as the Relocation strategy inserts them. <em>Home follows me</em> is not searched: it stays as you
+set it. Staying put restores the states as you set them.
+The result names the state, for example <em>Retire in Florida, move at 65</em>, followed by
+<em>; later homes set to Florida</em> when a later home or rent period gets that state, or <em>Stay
+in NJ</em>, and adds a note that a move is valued on taxes and the costs that follow you, not
+on climate, family or healthcare access. Apply turns Relocation on with the best state (the
+move age stays as set) and writes each later home’s and rent period’s state (listed as
+<em>Home Villa: state</em>), or turns Relocation off when staying put wins over a planned move. See
 <a class="reference internal" href="states.html#states-optimizer"><span class="std std-ref">Letting the optimizer compare states</span></a> for what a move changes.</p>
 <p><strong>Filing status (couples).</strong> For a household with a partner, the <em>Filing status (couples)</em>
 option (on by default) tries filing jointly and filing separately; without a partner it is

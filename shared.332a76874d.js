@@ -378,6 +378,13 @@
     return value == null ? null : { value, blank: rule.blank };
   }
 
+  // What a sheet field with a default stores when cleared (its rule's blank, which shows the source's value again),
+  // whatever the field showed when drawn; undefined for a field with no default (a blank is then refused or null).
+  function sheetBlank(typeName, name) {
+    const rule = (SHEET_DEFAULTS[typeName] || {})[name];
+    return rule ? rule.blank : undefined;
+  }
+
   // An expense row's sales tax default: true or false, or null for a row taxed by its state's own rule.
   function taxableDefaultOf(item, rules) {
     const defaults = (rules && rules.taxableDefaults) || {};
@@ -960,11 +967,23 @@
     return shared && !(move && Math.min(first[1], second[1]) === Math.max(first[0], second[0]));
   }
 
+  // The ages a rent period is rented, from its start age (or always) to its end age (or always), as
+  // wmti.homes.homes.rentPeriods.
+  function rentPeriod(rent) {
+    return [rent.startAge != null ? rent.startAge : -Infinity, rent.endAge != null ? rent.endAge : Infinity];
+  }
+
   // After the primary residence switch of the home at `position` changed: ticked, it is a primary and every other
   // primary held in the same years is unticked (with no purchase or sale, every other home); unticked, it stays off
-  // while another primary is left, else it is ticked again. Changes the list in place and returns it.
-  function choosePrimary(homes, position) {
+  // while another primary is left, else it is ticked again. A home held while a rent period (`rents`) is rented,
+  // other than in a shared move year, cannot be ticked: one primary residence at a time, the rent periods included,
+  // as wmti.homes.homes._checkPrimaryLane. Changes the list in place and returns it.
+  function choosePrimary(homes, position, rents) {
     const chosen = homes[position];
+    if (chosen.primaryResidence && (rents || []).some((rent) => periodsOverlap(rentPeriod(rent), primaryPeriod(chosen)))) {
+      chosen.primaryResidence = false;
+      return homes;
+    }
     if (!chosen.primaryResidence && homes.some((home, index) => index !== position && home.primaryResidence)) return homes;
     chosen.primaryResidence = true;
     homes.forEach((home, index) => {
@@ -973,6 +992,25 @@
       }
     });
     return homes;
+  }
+
+  // Why a home cannot be ticked primary (choosePrimary refuses it), as a sentence for the sheet: each rent period it
+  // overlaps, in start order, with the ages and calendar years they share (an open end clamped to the run, `low` to
+  // `high`, your ages; `lawYear` the year you are `low`); null when it overlaps none. The rule is
+  // wmti.homes.homes._checkPrimaryLane's.
+  function primaryClashText(home, rents, low, high, lawYear) {
+    const held = primaryPeriod(home);
+    const clashes = (rents || []).map((rent) => ({ rent, period: rentPeriod(rent) }))
+      .filter((entry) => periodsOverlap(entry.period, held))
+      .map((entry) => ({ name: entry.rent.name, first: Math.min(Math.max(entry.period[0], held[0], low), high),
+        last: Math.max(Math.min(entry.period[1], held[1], high), low) }))
+      .sort((first, second) => first.first - second.first);
+    if (!clashes.length) return null;
+    const parts = clashes.map((clash) => "the rent period " + clash.name + " at ages " + clash.first + " to "
+      + clash.last + " (" + yearOfAge(clash.first, low, lawYear) + " to " + yearOfAge(clash.last, low, lawYear) + ")");
+    const listed = parts.length === 1 ? parts[0] : parts.slice(0, -1).join(", ") + " and " + parts[parts.length - 1];
+    return home.name + " cannot be the primary residence: it overlaps " + listed + ". One primary residence at a time: "
+      + "on the Timeline, sell the home or end the rent first.";
   }
 
   // Keep a primary residence in a non-empty list with no two primaries overlapping in time, as
@@ -1016,7 +1054,9 @@
   // or no car) as its share of the run from `low` to `high` (your ages; an open segment runs to `high`), for CSS widths.
   // A car's replacements (the segment's `replacements`, the years wmti's model replaces it: timelineView) each become
   // a calculated stretch of its bar, from the replacement to the year before the next one or the bar's end; one at or
-  // past the bar's end is left out. Returns [{lane, segments, bars: [{mode, name, text, position, left, width,
+  // past the bar's end is left out. A home's bar carries its segment's `primary` (the primary residence lane), `state`
+  // and `isCalculated` (the Relocation strategy's home or rent, drawn gray over its lane; timelineView's `calculated`).
+  // Returns [{lane, segments, bars: [{mode, name, text, position, left, width, primary, state, isCalculated,
   // calculated: [{age, year, rule, label, method, left, width}]}]}], left and width in percent, `segments` the lane's
   // segments in order.
   function timelineBars(segments, low, high) {
@@ -1037,7 +1077,8 @@
         return { ...mark, left: ((mark.age - low) / span) * 100, width: ((to - mark.age + 1) / span) * 100 };
       });
       row.bars.push({ mode: segment.mode, name: segment.name, text: segment.text, position: segment.position,
-        left: ((segment.startAge - low) / span) * 100, width: ((end - segment.startAge + 1) / span) * 100, calculated });
+        left: ((segment.startAge - low) / span) * 100, width: ((end - segment.startAge + 1) / span) * 100, calculated,
+        primary: Boolean(segment.primary), state: segment.state || null, isCalculated: Boolean(segment.calculated) });
     }
     return lanes.sort((first, second) => first.lane - second.lane);
   }
@@ -1535,14 +1576,20 @@
     return text + String(page == null ? "" : page).replace(/^\/+/, "");
   }
 
+  // The words of the link under a state select: "See this state's rules" where the docs location is a folder (a
+  // state's own page can be linked), else "Open the documentation" (the docs artifact opens at its home).
+  function stateRulesText(base) {
+    return String(base == null ? "" : base).endsWith("/") ? "See this state's rules" : "Open the documentation";
+  }
+
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
-    docsLink };
+    docsLink, stateRulesText };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

@@ -265,7 +265,12 @@ switch on and a balance above 0, a home’s mortgage is a Mortgage loan named af
 charged, deducted and subtracted from net worth as described under <a class="reference internal" href="#tab-loans"><span class="std std-ref">Loans</span></a>.
 Each rent period’s monthly rent times 12 is charged in <code class="docutils literal notranslate"><span class="pre">Bills</span></code> in each of its years,
 inflation adjusted and not raised by the child inflation factor; a year with no home and no
-rent period charges no housing.</p>
+rent period charges no housing. The primary residences and the rent periods are one lane,
+one at a time: a primary home and a rent period that share a year other than a move year
+(one sold or ended in the year the other starts) are refused, naming both and the ages; a
+rent period beside a second home is allowed. A primary residence bought later or a rent
+period starting later with a state moves you to that state (see <em>Moving states</em> under
+<a class="reference internal" href="#tab-strategies"><span class="std std-ref">Strategies</span></a>).</p>
 <p>The timing rule of <a class="reference internal" href="#tab-cars"><span class="std std-ref">Cars</span></a> applies: a home is bought at the start of
 the year you are its purchase age and sold at the end of the year you are its sale age (at
 its start when the next primary home or rent period starts that year). A
@@ -294,7 +299,7 @@ state and the knock-ons on the taxable Social Security and the deductions), show
 The state tax on the gain is that of the state the home sits in, since a gain on real
 property is source income of its state even for a non-resident: the home’s own state
 (<code class="docutils literal notranslate"><span class="pre">Home.state</span></code>), else the state lived in when it was first held (the home state for a home
-owned now; the new state for the comparable home of a move, below). When that is not the
+owned now; the comparable home a Relocation move buys is in the new state, below). When that is not the
 state lived in that year, the gain is left out of the year’s state income and taxed alone
 with the home’s state’s rules (the gain is that state’s whole income for its brackets),
 added to <code class="docutils literal notranslate"><span class="pre">State</span></code> (<code class="docutils literal notranslate"><span class="pre">wmti.simulation.model._sourceTax</span></code>). This is an approximation: no
@@ -330,7 +335,10 @@ and sale ages, so every saved scenario shows its homes as they were. A scenario 
 household rent (version 34 or older) loads with a rent period for each run of years in which no
 primary residence was held, at that rent (“Rent”, “Rent 2” and so on; renting today when the
 run starts there, open when it reaches the end), so the rent is charged in the same years and
-results do not change.</p>
+results do not change. A scenario saved before the rent periods had a state (version 50 or
+older) loads with none, so its results do not change; one saved with a primary residence
+bought later whose state is not the state lived in at its purchase now moves you there from
+its purchase year, and one warning says so.</p>
 </section>
 <section id="cars">
 <span id="tab-cars"></span><h2>Cars<a class="headerlink" href="#cars" title="Link to this heading"></a></h2>
@@ -781,7 +789,7 @@ the law each one models are in <a class="reference internal" href="strategies.ht
 with it on and one with it off, and pick the two on <a class="reference internal" href="#tab-compare"><span class="std std-ref">Compare</span></a>.</p>
 <p><strong>Defaults.</strong> All three strategies off; a conversion window of ages 60 to 74 when switched
 on; one beneficiary with the whole estate, no other income, filing single, in the state you live in at
-the end, taking the money over 10 years; no terminal tax rate; no move to another state (homes follow a move when one is set).</p>
+the end, taking the money over 10 years; no terminal tax rate; no move to another state (Home follows me on when one is set).</p>
 <p><strong>Logic.</strong></p>
 <ul class="simple">
 <li><p>A conversion each year in the window moves Traditional money to a Roth account of the
@@ -814,33 +822,65 @@ below and <a class="reference internal" href="strategies.html#relocation"><span 
 <li><p>The strategy warnings say what the model leaves out for the settings chosen.</p></li>
 <li><p><a class="reference internal" href="#tab-optimize"><span class="std std-ref">Optimize</span></a> searches these settings for the best ones.</p></li>
 </ul>
-<p id="moving-states"><strong>Moving states.</strong> From the move year the year’s state replaces the home state, and your
-entered amounts, which hold the old state’s costs, change only by how the new state’s figures
-in its law file compare with the old one’s (a ratio new over old, 1 when the old figure is 0):</p>
-<ul class="simple">
+<p id="moving-states"><strong>Moving states.</strong> The state you live in each year is derived, never stored
+(<code class="docutils literal notranslate"><span class="pre">wmti.homes.residence.residenceStates</span></code>): year 0 is the home state; a primary residence
+bought later or a rent period starting later with a <em>State</em> (<code class="docutils literal notranslate"><span class="pre">Home.state</span></code>,
+<code class="docutils literal notranslate"><span class="pre">RentPeriod.state</span></code>) moves you to that state from its first year (a shared move year belongs to
+the item that starts in it); one with no state keeps the state lived in before it; a year with
+no primary residence and no rent period keeps the last state; a home or rent period held in
+year 0 never changes the home state (its state only says where the home sits, for its sale
+tax), and a second home never moves you. The Relocation strategy’s move is one more change in
+its year; the changes apply in year order, and a primary residence or rent period starting
+in the strategy’s move year wins. In each year lived in another state than the home state
+that year’s state replaces the home state, and your entered amounts, which hold the home
+state’s costs, change only by how that state’s figures in its law file compare with the home
+state’s (a ratio that state over the home state, 1 when the home state’s figure is 0), so
+several moves need no chaining and a year back in the home state costs as entered
+(<code class="docutils literal notranslate"><span class="pre">statecosts.factorsByYear</span></code>). The Relocation strategy’s own home or rent period (below)
+compares the relocation state with the state lived in the year before its move:</p>
+<ul>
 <li><p><em>Income tax.</em> The state income tax and the average local income tax are the new state’s.</p></li>
-<li><p><em>Homes.</em> With homes following (the default), the primary residence held in the move year
-and owned before it is treated as sold at the start of the move year and replaced by a
-comparable home in the new state (<code class="docutils literal notranslate"><span class="pre">wmti.homes.homes.homeMoves</span></code>), at the same place
-against the state’s typical home value (<code class="docutils literal notranslate"><span class="pre">housing.typical_home_value</span></code>): from the move
-year its value is multiplied by the value ratio and grows at its own rate, in net worth
-(<code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Value</span></code>), a later sale and the sale at the end alike. In the move year the new
-value less the old is the signed outflow <code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Equity</span> <span class="pre">Change</span></code> (negative: equity
-released); the old home’s selling costs (its rate times the old value plus its fees) are
-<code class="docutils literal notranslate"><span class="pre">Move</span> <span class="pre">Selling</span> <span class="pre">Costs</span></code> and the new home’s closing costs and transfer tax (their rates
-times the new value) plus its purchase fees are <code class="docutils literal notranslate"><span class="pre">Move</span> <span class="pre">Purchase</span> <span class="pre">Costs</span></code>, both outflows.
-The old home’s gain (old value less selling costs, less its basis) is taxed like a sale
-in <code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Sale</span> <span class="pre">Gain</span></code>, with the section 121 exclusion, and by the old state it sits in
-(see the home sale rule above): a California home swapped in a move to Nevada owes
-California tax on its taxable gain. The comparable home’s basis is its
-price at the expected inflation with the transfer tax and fees, and it counts as bought
-in the move year (a sale fewer than <code class="docutils literal notranslate"><span class="pre">min_years</span></code> later gets no exclusion). The mortgage
-carries over unchanged (no payoff). Its property tax
-(<code class="docutils literal notranslate"><span class="pre">property_tax.effective_rate</span></code>) is multiplied by the rate ratio and the value ratio,
-and its insurance (<code class="docutils literal notranslate"><span class="pre">home_insurance.average_annual</span></code>) by the insurance ratio, so the
-SALT deduction and the <code class="docutils literal notranslate"><span class="pre">Property</span></code> column follow. A second home, a home bought in or
-after the move year and every home with homes following off keep their entered value
-and costs.</p></li>
+<li><p><em>Homes.</em> The Relocation strategy moves your housing through the primary residence lane
+(<code class="docutils literal notranslate"><span class="pre">wmti.homes.residence.relocatedLane</span></code>, applied by
+<code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs.effectiveInputs</span></code> to the copy the model runs; the saved homes
+and rent periods never change). By the lane item that covers the move year m (after the
+hand-over of shared years):</p>
+<ul class="simple">
+<li><p>a primary home or rent period of yours starting in year m is the move itself: nothing is
+added; a blank state on it becomes the relocation state, and another state set on it wins
+(a strategy warning says the strategy’s state was ignored);</p></li>
+<li><p>a primary home O: with <em>Home follows me</em> (<code class="docutils literal notranslate"><span class="pre">homesFollow</span></code>) on, O is sold at the close of
+year m - 1 (a later sale age moves up to m: the shared year goes to the new home), its
+mortgage paid off from the proceeds and its gain taxed like any sale, by the state it sits
+in; off, O becomes a second home (<code class="docutils literal notranslate"><span class="pre">primaryResidence</span></code> off: no section 121 exclusion when
+it is sold) and keeps its own sale. Either way a new primary home “O (S)” in state S is
+bought at the start of year m: its price (today’s value) is O’s expected value in year m
+(<code class="docutils literal notranslate"><span class="pre">HomeValue.valueIn</span></code> at the mean inflation, in today’s value) times the
+<code class="docutils literal notranslate"><span class="pre">housing.typical_home_value</span></code> ratio; its property tax is O’s times the
+<code class="docutils literal notranslate"><span class="pre">property_tax.effective_rate</span></code> ratio and the value ratio; its insurance O’s times the
+<code class="docutils literal notranslate"><span class="pre">home_insurance.average_annual</span></code> ratio; it keeps O’s appreciation, closing cost,
+transfer tax, fee, selling cost and prepayment rates, has no cost basis or sale price of
+its own, and is sold when O was meant to be. Financing: on, O’s mortgage carries over
+(same rate, extra payment and months left, the amount financed equal to O’s balance at
+the start of year m, the down payment floored at 0); off, a new loan with the Home
+defaults (20% down, 360 months, O’s rate) when O has a mortgage; no mortgage on O means
+all cash. Its purchase cash is in <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Purchases</span></code>, and it counts as bought in year m
+(a sale fewer than <code class="docutils literal notranslate"><span class="pre">min_years</span></code> later gets no exclusion). In inflation adjusted dollars
+runs its value follows the run’s inflation index from its purchase, like any home bought
+later;</p></li>
+<li><p>a rent period O ends at year m - 1 and a rent period “O (S)” in state S starts in year m
+and runs to O’s end, at O’s rent times the housing cost index ratio
+(<code class="docutils literal notranslate"><span class="pre">housing.cost_index</span></code>); <em>Home follows me</em> makes no difference;</p></li>
+<li><p>no item in year m (a gap, or no homes and no rent): nothing is added; the state alone
+moves.</p></li>
+</ul>
+<p>A move in year 0 cannot sell a home owned now the year before: the home or rent held in
+year 0 is re-based in place instead (the home’s value, property tax and insurance by the
+ratios above, its state set, its mortgage unchanged, no sale or purchase); with <em>Home
+follows me</em> off the new home is bought in year 0. Later user homes and rent periods keep
+their value, dates and state; a second home and every home you entered keep their entered
+value and costs.</p>
+</li>
 <li><p><em>Cars and gas.</em> Each car’s insurance is multiplied by the car insurance ratio, its
 registration becomes the entered amount plus the car tax difference
 (<code class="docutils literal notranslate"><span class="pre">car_taxes.average_annual</span></code>, new less old, today’s value; at least 0) and maintenance
@@ -849,7 +889,8 @@ the change in the average pump price (<code class="docutils literal notranslate"
 least 0), and a car bought or replaced from the move year pays its sales tax rate plus the
 change in the vehicle sales tax rate (<code class="docutils literal notranslate"><span class="pre">sales_tax.vehicle_rate</span></code>, new less old; at least 0),
 so a move from a state without one (Montana, New Hampshire, Oregon) adds the new state’s rate.</p></li>
-<li><p><em>Rent.</em> Rent is multiplied by the housing cost index ratio (<code class="docutils literal notranslate"><span class="pre">housing.cost_index</span></code>).</p></li>
+<li><p><em>Rent.</em> Rent is charged as entered for each rent period; the Relocation strategy’s rent
+period in the new state carries the housing cost index ratio (see <em>Homes</em> above).</p></li>
 <li><p><em>Prices.</em> Each Bills, Planned Spending and Other Spending row is multiplied by the ratio
 of its price type (<code class="docutils literal notranslate"><span class="pre">ExpenseItem.priceType</span></code>, <code class="docutils literal notranslate"><span class="pre">expensecategories.priceRatio</span></code>): grocery by
 <code class="docutils literal notranslate"><span class="pre">price_indexes.grocery_index</span></code>, goods by <code class="docutils literal notranslate"><span class="pre">price_indexes.bea_goods</span></code>, services by

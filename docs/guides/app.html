@@ -121,12 +121,11 @@ scenarios and the household), <strong>Inputs</strong> (the settings, one chip pe
 right gives a short tour of the controls, and Undo at the top left takes back
 the last edits. This page is for anyone using the app: the pictures, then
 what every screen does and the final report. The rules behind each settings
-group are in <a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a>; how the app is built and shared is in
-<span>developing</span>.</p>
+group are in <a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a>.</p>
 <p>The app, Walk Me Through It (WMTI), runs the real <code class="docutils literal notranslate"><span class="pre">wmti</span></code> model in the
 browser with Pyodide, so its numbers are those of a native Python run. It is
 published as an installable web app on GitHub Pages and as a private claude.ai
-artifact (see <span>sharing the app</span>). It has the app frame, every settings
+artifact. It has the app frame, every settings
 group, the headline figures, the Monte Carlo behind every output (its tables,
 deductions, charts and RMD schedule), Compare, Optimize, the final report and
 saved scenarios on the device.</p>
@@ -224,7 +223,8 @@ Compare; its help gives the time on this device); then the Inflation card with t
 (amounts in today’s value when off) and the Inflation range under it; load the example household
 (fictional figures);
 and Clear all data on this device (a second tap deletes every <code class="docutils literal notranslate"><span class="pre">wmti.*</span></code>
-key, the offline copy’s caches and the service worker, then reloads, so
+key, the offline copy’s caches (<code class="docutils literal notranslate"><span class="pre">wmti:</span></code>), the saved documentation
+pages (<code class="docutils literal notranslate"><span class="pre">wmti-docs:</span></code>) and the service worker, then reloads, so
 the page starts as on a first visit). About (build id, a “Version:” line,
 Check for updates in the GitHub Pages build, engine versions, start-up, run and per-run Monte Carlo times, and lines saying the planner is not
 financial advice, models US federal tax and the income taxes of the 50 states and DC for the stated tax year
@@ -322,8 +322,22 @@ loan” button. The <em>Timeline</em> pane draws one group per <a class="referen
 bar row (owned filled, rent hatched; <code class="docutils literal notranslate"><span class="pre">timelineBars</span></code> in
 <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>, from the worker’s <code class="docutils literal notranslate"><span class="pre">timelineView</span></code>), then right
 below it the cards of that row’s stretches in order (“Elm St, owned
-2026-2035”, “Rent, rented 2036-2040”, “No home 2041-2045”), then the next
-row and its cards, so each card sits under its own row. A card has <em>Edit
+2026-2035 · primary residence in NJ”, “Rent, rented 2036-2040 · primary
+residence in NC”, “No home 2041-2045”; a second home’s card says “second
+home in ME”), then the next row and its cards, so each card sits under its
+own row. The primary residence row (homes and rent alike, <code class="docutils literal notranslate"><span class="pre">data-primary</span></code>)
+is drawn in a slightly deeper color than a second home’s, the theme token
+<code class="docutils literal notranslate"><span class="pre">--tl-primary</span></code> (the first chart series mixed toward the text color, in
+every scheme, light and dark), and a legend under the rows names Primary
+residence, Second home and Rent; color is never the only cue, since each
+card names its role and its state (its own, else the state lived in during
+its first year). While the Relocation strategy adds a home or rent period
+in the new state (<code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">follows</span> <span class="pre">me</span></code>, see <a class="reference internal" href="model-rules.html#moving-states"><span class="std std-ref">Moving states</span></a>), it shows on the primary row as a gray bar over the
+stretch it replaces and a gray, dashed, read-only card (“Elm St (NC), owned
+2036-open · primary residence in NC · calculated by Relocation”), in the
+style of a car’s calculated replacements, and the legend adds Calculated
+(added by Relocation); it is no saved item, so it has no buttons and
+changes only on Strategies &gt; Relocation. A card has <em>Edit
 timeline</em> (a pencil icon and the words; its accessible name is “Edit
 timeline: Elm St”) and <em>Delete</em> (a second tap confirms); the pane has no
 Add button of its own. <em>Edit timeline</em> opens the timeline’s own screen,
@@ -338,7 +352,13 @@ owed; beside a home owned today it is a second home), A future purchase
 (its name, purchase year, optional sale year, price, buying costs and
 mortgage) or Rent (a rent period: its name, first year, optional last
 year and monthly rent); the mortgage figures show only while its switch
-is ticked. <em>Add rent period</em> opens the same screen with Rent chosen.
+is ticked. A home’s and a rent period’s Add and Edit timeline screens
+also ask its state, a select labelled as on its sheet (<em>Home’s state</em>,
+<em>State</em>; blank first); picking a state other than the home state shows
+that a primary residence or rent period starting later moves you there
+from its first year, and once saved the note under the block names the
+year (“Living in FL from 2036”).
+<em>Add rent period</em> opens the same screen with Rent chosen.
 <em>Edit timeline</em> plans a sale: its <em>Plan to sell it</em> tick shows the sale year
 (your age beside it), and unticked the home is kept. Every screen is
 final, in the bottom sheet with one <em>Save</em> (applies the edit and closes)
@@ -370,7 +390,19 @@ it the only primary, unticking the only primary ticks it again, and
 removing or deleting the primary makes the first home left primary.
 Homes held in different years may each be primary (<code class="docutils literal notranslate"><span class="pre">choosePrimary</span></code>
 unticks only the primaries held in the same years; a sale and a purchase
-may share their year, <code class="docutils literal notranslate"><span class="pre">periodsOverlap</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>). Loans lists only the Student,
+may share their year, <code class="docutils literal notranslate"><span class="pre">periodsOverlap</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>).
+The primary residences and the rent periods are one lane, one at a time: a home
+held while a rent period is rented (other than a shared move year, <code class="docutils literal notranslate"><span class="pre">rentPeriod</span></code>)
+cannot be ticked primary: the switch stays off and the sheet shows a
+message naming each rent period it overlaps with the ages and years they
+share (“Cabin cannot be the primary residence: it overlaps the rent
+period Rent at ages 50 to 89 (2041 to 2080) …”, <code class="docutils literal notranslate"><span class="pre">primaryClashText</span></code>),
+and a saved file with such an overlap is refused with a
+message naming the rent period, the home and the ages. A home’s or rent period’s
+<em>State</em> (<code class="docutils literal notranslate"><span class="pre">Home.state</span></code>, <code class="docutils literal notranslate"><span class="pre">RentPeriod.state</span></code>) on a primary residence bought
+later or a rent period starting later moves you to that state from its first
+year; blank keeps the state you lived in before it, and a second home never
+moves you (see <a class="reference internal" href="model-rules.html#moving-states"><span class="std std-ref">Moving states</span></a>). Loans lists only the Student,
 Auto and Other loans (the panel’s <code class="docutils literal notranslate"><span class="pre">filters</span></code> in the schema), then each
 home’s mortgage as a read-only row titled with the home’s name (detail
 “&lt;home&gt; mortgage”, rate, months left and, bought or sold later, “starts
@@ -378,7 +410,7 @@ at 60 · ends at 70 (sold)”) and each other Mortgage loan as
 a read-only “Mortgage” row, with an “Edit the mortgage
 on Home” button that opens the Home chip, and each car loan as a
 read-only row (only while the car charges a loan) titled with the car’s name (detail “&lt;car&gt; loan”, rate,
-months left and, for a car bought or sold later, “starts at 55 Â· ends at 62
+months left and, for a car bought or sold later, “starts at 55 · ends at 62
 (sold)”; the amount is the price less the down payment for a car bought
 later) with an “Edit car loans on Cars” button that opens the
 Cars chip; a car loan cannot be edited on Loans. A loan’s sheet ends
@@ -549,13 +581,14 @@ strategy warnings follow the QCD section. The Relocation section
 <em>Move to another state</em> switch and, only while it is on, <em>State you move to</em>, <em>Move at
 your age</em> (blank shows your Social Security claim age, or with no benefit the age your
 pay stops, in gray, <code class="docutils literal notranslate"><span class="pre">.is-default</span></code>, until a typed
-age replaces it; clearing it shows that age again) and <em>Homes follow</em> (on by default;
-its “i” says “Your primary home is treated as replaced by a comparable one; its value,
-property tax and insurance follow the state … Use Buy/Sell on the Home tab for a
-real move”).
+age replaces it; clearing it shows that age again) and, under the move age, <em>Home
+follows me</em> (on by default; its “i” says “On: your home follows you. It is sold when
+you move and a comparable primary residence is bought in the new state … Off: your
+home stays where it is and becomes a second home under its own state’s rules”).
 The section’s “i” lists what changes at the move: income and local tax, estate and
-inheritance tax, property tax and home insurance, car insurance and taxes, the gas
-price, health premiums, rent and the Expenses rows’ prices, with the price change and
+inheritance tax, car insurance and taxes, the gas price, health premiums, the
+Expenses rows’ prices and your home (the new primary residence or rent on the Home
+timeline), with the price change and
 the sales tax difference together as <em>State Cost Change</em> (each dollar changed once).
 Every state select (home state, a beneficiary’s state, the state you move to) offers
 the 51 states (50 and DC) by code, each labelled like <em>NJ - New Jersey</em> (the field’s
@@ -794,13 +827,18 @@ to the button that opened it.</p>
 blank sheet figure that shows its source, such as a car’s replacement price
 following its purchase price or an expense row’s <em>Taxable</em>; the blank move age;
 a beneficiary’s start values) gets a small circular-arrow button inside its
-right edge once it is edited, hidden again while the default shows. The button
+right edge once it is edited, hidden again while the default shows or the value
+typed equals the default (<code class="docutils literal notranslate"><span class="pre">atResetTarget</span></code>, by <code class="docutils literal notranslate"><span class="pre">sameValue</span></code>). The button
 (<em>Reset &lt;field&gt; to default</em>, tooltip <em>Reset to default (&lt;value&gt;)</em>) puts back
 what <code class="docutils literal notranslate"><span class="pre">sheetResetTarget</span></code> and <code class="docutils literal notranslate"><span class="pre">panelResetTarget</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>
 (or <code class="docutils literal notranslate"><span class="pre">heirDefaults</span></code>) say: a blank-means-source field gets its blank back, not a
 copy of the number, so it follows its source again. The reset goes through the
 field’s own edit path (<code class="docutils literal notranslate"><span class="pre">addResetButton</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>), so it
-saves, reruns and is an undo step like typing.</p>
+saves, reruns and is an undo step like typing. Emptying a number field that has
+a default stores its blank too (<code class="docutils literal notranslate"><span class="pre">sheetBlank</span></code>; a car’s <em>Replacement price</em> and
+<em>Value today</em> store 0, which follows the purchase price or the estimate), even
+when the field held a figure of its own when drawn, so it never says <em>Enter a
+number.</em></p>
 </section>
 <section id="swapping-tabs">
 <h3>Swapping tabs<a class="headerlink" href="#swapping-tabs" title="Link to this heading"></a></h3>
@@ -898,7 +936,7 @@ button (<code class="docutils literal notranslate"><span class="pre">TOUR_STEPS<
 <p>The top bar has no account button: scenarios live on Setup. The menu button opens a
 menu: Walk me through it… (see Walkthrough below), Documentation (see
 <a class="reference internal" href="#app-documentation"><span class="std std-ref">Documentation</span></a> below), Appearance, Help and tips (a few
-lines in the menu; swiping is one line, “Swipe sideways to move between tabs.”), Install app (only in the GitHub Pages build; see <span>sharing the app</span>), About, which opens in its own window (Done, a tap outside or
+lines in the menu; swiping is one line, “Swipe sideways to move between tabs.”), Install app (only in the GitHub Pages build, the installable web app), About, which opens in its own window (Done, a tap outside or
 Escape closes it), and Legal, a window with a short disclaimer, the date the
 Terms were agreed to and each legal document as plain text (see
 <a class="reference internal" href="legal.html"><span class="doc">Legal</span></a>). Items that only led back to Setup are not in the menu. Escape or a tap
@@ -912,7 +950,8 @@ page you read for offline use (pages never opened need a connection). The claude
 build has no docs folder and opens the documentation’s own artifact instead. A <em>See this
 state’s rules</em> link under the home state (Setup) and under the Relocation state (Inputs,
 Strategies) opens the chosen state’s law page (<code class="docutils literal notranslate"><span class="pre">docs/law/&lt;code&gt;.html</span></code>) in a new tab; in the
-artifact build it opens the documentation’s home. The address comes from the build
+artifact build, which can only open the documentation’s home, the link says <em>Open the
+documentation</em> instead (<code class="docutils literal notranslate"><span class="pre">stateRulesText</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>). The address comes from the build
 (<code class="docutils literal notranslate"><span class="pre">DOCS_LOCATIONS</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/build.py</span></code>, read by <code class="docutils literal notranslate"><span class="pre">docsLink</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>).</p>
 <p>Appearance holds every color scheme: Lagoon and hibiscus (the default), Sunset over the motu,
 Palm and sand, Night lagoon (dark) and Match phone (stored as <code class="docutils literal notranslate"><span class="pre">device</span></code>; Lagoon and hibiscus in
@@ -1004,7 +1043,10 @@ carry a “Not sure?” line with the choice to keep (Original Medicare, claimin
 follow-up question or hand-off shows only once you say you have the thing: the
 main home’s figures and the Home page once you own a home (the number of homes
 is 0 if you rent; a first home is your primary residence and the value, property
-tax and mortgage questions write to it; a mortgage balance above $0 turns its
+tax and mortgage questions write to it; homes owned today drop a rent period
+that rents today, and a primary residence held when a later rent period starts
+is sold that year, as the timeline would fit them, so the answer never leaves
+two primaries at once; a mortgage balance above $0 turns its
 mortgage on and asks its rate and payments left, $0 turns it off), the match
 once you save in a 401k and its terms once the employer matches, the cars’
 value and loans (all together, split equally over the cars; a loan above $0
@@ -1030,7 +1072,8 @@ benefit to come from the earnings history and, when there is none yet, sets
 the history to <em>Last salary</em> with today’s pay, so the estimate needs nothing
 more typed (the same for a partner). It then asks whether you will move to
 another state when you retire (Relocation) and, once you say yes, the state and
-the move age (blank is the claim age), and hands off to Beneficiaries on the
+the move age (blank is the claim age), then, when you own a home or rent, whether your
+home moves with you (<em>Home follows me</em>), and hands off to Beneficiaries on the
 Benefits page.
 A few deeper questions carry one fixed line: the
 earnings history says someone already retired can turn on <em>I’m retired</em> and
@@ -1368,23 +1411,27 @@ or the run budget included. A checkpoint made by other code, or whose runs were
 of other settings, is refused with <em>The saved search was made by another version
 of the app; start a new search.</em> The checkpoint is cleared when the search ends,
 is cancelled or the settings change.</p>
-<p>The result card shows, under <em>Recommended changes</em>, one highlighted card per change that improves
-the score (<code class="docutils literal notranslate"><span class="pre">improvements</span></code>, from <code class="docutils literal notranslate"><span class="pre">improvementCards</span></code>): the setting in plain words, its value now
-→ the recommended value (wrapping on a phone, no wide table), and its gain, such as <em>+$15,247
-score</em>, in the accent and positive colours of the theme, light or dark. The gain is the score that
-change’s accepted steps added during the search (<code class="docutils literal notranslate"><span class="pre">SearchResult.steps</span></code>: the winner’s score less the
-incumbent’s on that step’s runs), so it is measured with the settings as they were then; a change
-with no measurable gain says <em>gain not measured on its own; part of the total</em>, and a change whose
-steps added nothing is not shown as a recommendation. Under the cards <em>Total improvement: +$N score,
-over M runs</em> notes that the gains need not add up to it. The settings the search kept fold into one
+<p>The result card shows, under <em>Settings that change</em>, one list of every change Apply writes
+(<code class="docutils literal notranslate"><span class="pre">improvements</span></code>, from <code class="docutils literal notranslate"><span class="pre">improvementCards</span></code>), one card each: the setting in plain words, its
+value now → the recommended value (wrapping on a phone, no wide table), and its gain. A change
+that improves the score is highlighted, its gain, such as <em>+$15,247 score</em>, in the accent and
+positive colours of the theme, light or dark. The gain is the score that change’s accepted steps
+added during the search (<code class="docutils literal notranslate"><span class="pre">SearchResult.steps</span></code>: the winner’s score less the incumbent’s on that
+step’s runs), so it is measured with the settings as they were then; a change with no measurable
+gain says <em>gain not measured on its own; part of the total</em>, and a change whose steps added
+nothing is a plain card marked <em>changed, no measured gain</em> (<code class="docutils literal notranslate"><span class="pre">improves</span></code> false). Under the cards
+<em>Total improvement: +$N score, over M runs</em> notes that each gain was measured when the search took
+that change, so the gains need not add up to it. The settings the search kept fold into one
 quiet line, <em>N other settings kept as they are</em>, that opens on a tap to list them with their values.
 Then the score breakdown, whether the best held up on fresh draws, the skipped strategies and
-notes, and the settings Apply writes (folded); every text is built in Python.
+notes; every text is built in Python.
 <em>Apply these settings</em> changes the settings at once through <code class="docutils literal notranslate"><span class="pre">applyOptimum</span></code>
 (only the settings the search moves), as one Undo step, and shows <em>Applied N
 settings</em>, naming the accounts it added and a 401k raise (<code class="docutils literal notranslate"><span class="pre">applyText</span></code>), with an Undo
 button. A Relocation state result writes the Relocation switch and state, so the
-Strategies panel’s Relocation section shows the move; a Filing status result writes
+Strategies panel’s Relocation section shows the move, and the state of each home and rent
+period starting at or after the move (<code class="docutils literal notranslate"><span class="pre">homes.&lt;n&gt;.state</span></code>, <code class="docutils literal notranslate"><span class="pre">rents.&lt;n&gt;.state</span></code>, listed as
+<em>Home Villa: state</em>); a Filing status result writes
 <code class="docutils literal notranslate"><span class="pre">filingStatus</span></code> (<em>Joint</em> or <em>Separate</em> in its card). It is off, with the reason, once the settings
 changed since the search (the result is then dimmed under a note) or when
 nothing changes.</p>
@@ -1526,8 +1573,6 @@ version after a republish, reload the page.</p></li>
 <ul class="simple">
 <li><p><a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a>: what the model does with each settings group (it was
 the second half of this page).</p></li>
-<li><p><span>developing</span>: build and publish, sharing the app, the entry point,
-chart specs and checks (formerly at the end of this page).</p></li>
 </ul>
 </section>
 </section>

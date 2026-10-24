@@ -6,14 +6,14 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
     mergeUndoPop, changedPaths, optimizeStepText, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
-    spendingChangePreview, docsLink } = window.WmtiShared;
+    spendingChangePreview, docsLink, stateRulesText } = window.WmtiShared;
   const charts = window.WmtiCharts;
   const report = window.WmtiReport;
   const insightRules = window.WmtiInsights;
@@ -170,7 +170,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.7bbcd2a496.js");
+      worker = new Worker("worker.f44abd4cec.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -2189,16 +2189,18 @@
     return null;
   }
 
-  // The recommended changes, one card each (setting, now → best, its gain), the total, and the settings kept folded
+  // Every change Apply writes, in one list: a highlighted card for each that improves the score (setting, now → best,
+  // its gain), a plain one marked "changed, no measured gain" for the rest; the total, and the settings kept folded
   // into one line that opens on a tap.
   function optimizeImprovementsHtml(result) {
-    const cards = result.improvements.map((item) => "<li class=\"optimize-improvement\">"
+    const cards = result.improvements.map((item) => "<li class=\""
+      + (item.improves === false ? "optimize-change-plain" : "optimize-improvement") + "\">"
       + "<div class=\"optimize-improvement-head\"><strong>" + escapeText(item.label) + "</strong><span class=\"optimize-gain\">" + escapeText(item.gainText)
       + "</span></div>" + item.changes.map((change) => "<p class=\"optimize-change\">"
         + (change.label !== item.label ? escapeText(change.label) + ": " : "") + "<span class=\"optimize-now\">"
         + escapeText(change.now) + "</span> → <span class=\"optimize-best\">" + escapeText(change.best)
         + "</span></p>").join("") + "</li>").join("");
-    return (cards ? "<h3>Recommended changes</h3><ul class=\"optimize-improvements\" id=\"optimizeImprovements\">"
+    return (cards ? "<h3>Settings that change</h3><ul class=\"optimize-improvements\" id=\"optimizeImprovements\">"
       + cards + "</ul><p class=\"field-help optimize-total\" id=\"optimizeTotal\">" + escapeText(result.totalText)
       + "</p>" : "")
       + (result.kept.length ? "<details class=\"optimize-kept\" id=\"optimizeKept\"><summary>"
@@ -2226,11 +2228,6 @@
       + "<p class=\"field-help\">" + escapeText(result.footnote) + "</p>"
       + banner(result.recheck.text, held === false ? "warn" : null)
       + result.skipped.concat(result.notes).map((note) => "<p class=\"field-help\">" + escapeText(note) + "</p>").join("");
-    if (result.changes.length) {
-      html += "<details class=\"optimize-changes\"><summary>Settings that change (" + result.changes.length
-        + ")</summary><ul>" + result.changes.map((change) => "<li>" + escapeText(change.label) + ": "
-          + escapeText(change.from) + " → " + escapeText(change.to) + "</li>").join("") + "</ul></details>";
-    }
     if (applied) {
       html += "<div class=\"run-row\"><span class=\"muted\" id=\"optimizeApplied\">Applied "
         + escapeText(result.applyText) + ".</span><button type=\"button\" class=\"button button-quiet\" id=\"optimizeUndo\">Undo</button></div>";
@@ -4867,6 +4864,21 @@
     return at ? sheetResetTarget(at.type, at.name, at.item, state.info.sheetRules) : panelResetTarget(path, state.inputs);
   }
 
+  // Whether a sheet or panel field already holds what its reset button would show (a figure typed equal to its
+  // default), so there is nothing to reset.
+  function atResetTarget(path) {
+    const target = resetTargetOf(path);
+    return target !== null && sameValue(getPath(state.inputs, path), target.value);
+  }
+
+  // What a field with a default stores when cleared: its sheet rule's blank (sheetBlank), null for a panel default,
+  // or undefined for a field with no default (numberInput then refuses a blank, or stores null if nullable).
+  function defaultBlankOf(path) {
+    const at = sheetItemOf(path);
+    if (at) return sheetBlank(at.type, at.name);
+    return panelResetTarget(path, state.inputs) ? null : undefined;
+  }
+
   // ---- Reset to default: a field with a default (`.is-default` while it shows it) gets a small reset button inside
   // its right edge, shown once the value is edited; a click puts the default back through the field's own edit path
   // (addResetButton). `describe` gives the default as text for the tooltip, or null when there is none now. ----
@@ -4875,6 +4887,7 @@
     + "v3.2h3.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" "
     + "stroke-linejoin=\"round\"/></svg>";
   const resetDescriptions = new WeakMap();
+  const resetMatches = new WeakMap();  // button -> () => whether the value already equals the default (atResetTarget)
 
   // The default's text for a tooltip: a select's option label, else the value in the field's unit ($1,234, 5%).
   function resetValueText(value, field, control) {
@@ -4887,8 +4900,9 @@
   }
 
   // Put a reset button beside `control` (inside its $ or % box, else in a new box around it). `reset` stores the
-  // default and shows it; the button then hides and the control takes the focus.
-  function addResetButton(control, label, describe, reset) {
+  // default and shows it; the button then hides and the control takes the focus. `matches` (optional) says whether the
+  // value already equals the default, which hides the button too.
+  function addResetButton(control, label, describe, reset, matches) {
     let host = control.parentNode;
     if (!(host && host.classList && host.classList.contains("affix"))) {
       host = document.createElement("div");
@@ -4911,16 +4925,20 @@
       if (control.isConnected) control.focus();
     });
     resetDescriptions.set(button, describe);
+    if (matches) resetMatches.set(button, matches);
     host.append(button);
     syncReset(control);
   }
 
-  // Show a control's reset button only while its value is not the default (not `.is-default`) and a default exists.
+  // Show a control's reset button only while its value is not the default (not `.is-default` and not equal to it)
+  // and a default exists.
   function syncReset(control) {
     const host = control.parentNode;
     const button = host && host.querySelector ? host.querySelector(":scope > .reset-default") : null;
     if (!button) return;
-    const text = control.classList.contains("is-default") ? null : resetDescriptions.get(button)();
+    const matches = resetMatches.get(button);
+    const text = control.classList.contains("is-default") || (matches && matches()) ? null
+      : resetDescriptions.get(button)();
     button.hidden = text == null;
     host.classList.toggle("reset-shown", text != null);
     if (text != null) button.title = "Reset to default (" + text + ")";
@@ -5032,7 +5050,7 @@
             markDefault(select, path);
             afterSheetEdit(path);
             if (!listed || isConditionPath(path)) refreshForm();
-          });
+          }, () => atResetTarget(path));
         }
         if (LAW_STATE_PATHS.includes(path)) wrap.append(stateRulesLink(select));
         return wrap;
@@ -5051,12 +5069,12 @@
       case "integer":
       case "number": {
         const wrap = fieldShell(field.label, field.help, id);
-        // A blank that shows its source's value: clearing it stores the blank again (the source shows on redraw).
-        const blank = fallback || prompt;
+        // A field with a default: clearing it stores the blank again (the source shows on redraw), whether or not it
+        // showed the default when drawn.
         const box = numberInput(id, field, value, (next) => {
           setValue(path, next);
           markDefault(input, path);
-        }, blank ? blank.blank : undefined);
+        }, defaultBlankOf(path));
         const input = box.querySelector("input") || box;
         if (prompt) input.placeholder = prompt.text;
         markDefault(input, path);
@@ -5072,7 +5090,7 @@
             input.value = shown(now ? now.value : null, scaleOf(field));
             markDefault(input, path);
             input.dispatchEvent(new Event("change"));
-          });
+          }, () => atResetTarget(path));
         }
         const at = sheetItemOf(path);
         if (at && sheetSources(at.type).includes(at.name)) {  // the figures that follow it, or show with it, redraw
@@ -5972,9 +5990,20 @@
     const name = path.startsWith(prefix) ? path.slice(prefix.length) : null;
     if (!name || name.includes(".")) return;
     if (sheetOpen.field.type === "Home" && name === "primaryResidence") {
-      choosePrimary(getPath(state.inputs, sheetOpen.path), sheetOpen.position);
+      // Ticked over a rent period, it is refused (one primary residence at a time): the sheet says why, naming the
+      // rent periods and the ages they share.
+      const homes = getPath(state.inputs, sheetOpen.path);
+      const low = state.inputs.you.currentAge;
+      const clash = homes[sheetOpen.position].primaryResidence ? primaryClashText(homes[sheetOpen.position],
+        state.inputs.rents, low, low + state.inputs.years - 1, state.info.lawTaxYear) : null;
+      choosePrimary(homes, sheetOpen.position, state.inputs.rents);
       inputsChanged();
       refreshForm();
+      if (clash && sheetOpen) {
+        const note = timelineNote(clash, true);
+        note.classList.add("primary-refused");
+        $("sheetBody").prepend(note);
+      }
       return;
     }
     const item = getPath(state.inputs, sheetOpen.path)[sheetOpen.position];
@@ -6249,8 +6278,13 @@
       lane.setAttribute("aria-hidden", "true");
       for (const bar of row.bars) {
         const span = document.createElement("span");
-        span.className = "timeline-bar";
+        span.className = "timeline-bar" + (bar.isCalculated ? " timeline-calculated" : "");
         span.dataset.mode = bar.mode;
+        if (kind === "Home" && bar.mode !== "gap") span.dataset.primary = String(bar.primary);
+        if (bar.isCalculated) {  // the Relocation strategy's home or rent: gray, drawn over the stretch it replaces
+          span.dataset.calculated = "true";
+          calculatedShown = true;
+        }
         span.style.left = bar.left + "%";
         span.style.width = bar.width + "%";
         span.title = bar.text;
@@ -6268,6 +6302,10 @@
       const list = document.createElement("ul");
       list.className = "timeline-cards";
       for (const segment of row.segments) {
+        if (segment.calculated) {
+          list.append(timelineInsertedCard(segment, words));
+          continue;
+        }
         list.append(timelineCard(kind, segment, words));
         for (const mark of segment.replacements || []) {
           list.append(timelineCalculatedCard(segment, mark, words));
@@ -6277,7 +6315,8 @@
       group.append(lane, list);
       parts.push(group);
     }
-    if (calculatedShown) {
+    if (kind === "Home") parts.push(timelineHomeLegend(words, calculatedShown));
+    else if (calculatedShown) {
       const legend = document.createElement("p");
       legend.className = "field-help timeline-legend";
       legend.innerHTML = "<span class=\"timeline-swatch\" aria-hidden=\"true\"></span>";
@@ -6286,6 +6325,43 @@
     }
     // Adding is the item list's one Add button (it opens this timeline's Add screen): no second one here.
     body.replaceChildren(...parts);
+  }
+
+  // The Home timeline's legend under the bars: a swatch and its words for the primary residence, a second home, rent
+  // and, while the Relocation strategy adds one, the calculated home or rent. The swatches are decoration; the words
+  // (and each card's text) carry the meaning.
+  function timelineHomeLegend(words, calculatedShown) {
+    const legend = document.createElement("ul");
+    legend.className = "field-help timeline-legend timeline-legend-home";
+    legend.setAttribute("aria-label", "Legend");
+    const keys = ["primary", "second", "rent"].concat(calculatedShown ? ["calculated"] : []);
+    for (const key of keys) {
+      const entry = document.createElement("li");
+      entry.dataset.swatch = key;
+      const swatch = document.createElement("span");
+      swatch.className = "timeline-swatch";
+      swatch.dataset.swatch = key;
+      swatch.setAttribute("aria-hidden", "true");
+      entry.append(swatch, document.createTextNode(words.legend[key]));
+      legend.append(entry);
+    }
+    return legend;
+  }
+
+  // The Relocation strategy's home or rent on the Home timeline: grayed, read only, its text naming it calculated.
+  function timelineInsertedCard(segment, words) {
+    const card = document.createElement("li");
+    card.className = "timeline-replacement is-calculated";
+    card.dataset.calculated = "true";
+    card.title = words.calculated;
+    const text = document.createElement("span");
+    text.className = "timeline-text";
+    text.textContent = segment.text;
+    const note = document.createElement("span");
+    note.className = "field-help";
+    note.textContent = words.calculated;
+    card.append(text, note);
+    return card;
   }
 
   // A calculated replacement under its car on the timeline: grayed, read only, named and dated with its rule.
@@ -6593,6 +6669,47 @@
     return wrap;
   }
 
+  // The State select of a home's or rent period's Add and Edit screens: the field of its sheet (`Home.state` or
+  // `RentPeriod.state`: the same label and choices, blank first), at `value`. Picking a state other than the home
+  // state shows the move note under it (the timeline's own note names the year once saved). `value()` reads the
+  // choice, null for blank.
+  function timelineState(type, value) {
+    const field = state.schema.types[type].find((item) => item.name === "state");
+    const id = "timeline-state-" + newHelpId();
+    const wrap = document.createElement("div");
+    wrap.className = "field timeline-field timeline-state";
+    const caption = document.createElement("label");
+    caption.className = "field-label";
+    caption.htmlFor = id;
+    caption.textContent = field.label;
+    const select = document.createElement("select");
+    select.className = "input";
+    select.id = id;
+    select.setAttribute("aria-describedby", id + "-note");
+    for (const choice of [null].concat(field.choices)) {
+      const option = document.createElement("option");
+      option.value = choice == null ? "" : String(choice);
+      option.textContent = choiceLabel(field, choice);
+      select.append(option);
+    }
+    select.value = value == null ? "" : String(value);
+    const note = document.createElement("span");
+    note.className = "field-help timeline-state-note";
+    note.id = id + "-note";
+    note.setAttribute("aria-live", "polite");
+    const sync = () => {
+      const chosen = select.value;
+      note.hidden = !chosen || chosen === String(state.inputs.homeState || "").toUpperCase();
+      note.textContent = timelineWords("Home").stateNote.replace("{state}", chosen);
+    };
+    select.addEventListener("change", sync);
+    sync();
+    wrap.append(caption, select, note);
+    wrap.input = select;
+    wrap.value = () => select.value || null;
+    return wrap;
+  }
+
   function timelineFreeName(kind, rent) {
     const items = (rent ? state.inputs.rents : kind === "Home" ? state.inputs.homes : state.inputs.cars) || [];
     return freeName(rent ? "Rent" : kind === "Home" ? "Home" : "Car", items.map((item) => item.name));
@@ -6650,14 +6767,17 @@
           hint.className = "field-help";
           hint.textContent = rent ? words.rentHint : words.leaseHint;
           const replaces = rent ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);  // a lease may replace a car
-          holder.replaceChildren(...[name, replaces, start, end, monthly, hint].filter(Boolean));
+          const where = rent ? timelineState("RentPeriod", kept.state) : null;
+          holder.replaceChildren(...[name, replaces, start, end, monthly, where, hint].filter(Boolean));
           read = () => {
             const endYear = end.input.value === "" ? null : Number(end.input.value);
             const fields = { name: name.input.value, mode: value, purchaseAge: timelineAge(Number(start.input.value)),
               saleAge: endYear == null ? null : timelineAge(endYear) };
             fields[rent ? "monthlyRent" : "leaseMonthly"] = Number(monthly.input.value);
+            if (where) fields.state = where.value();
             flow.addDraft = { choice: value, name: fields.name, purchaseAge: fields.purchaseAge, saleAge: fields.saleAge,
-              monthly: Number(monthly.input.value), replaces: replaces ? replaces.position() : null };
+              monthly: Number(monthly.input.value), replaces: replaces ? replaces.position() : null,
+              state: where ? where.value() : null };
             return { op: "buy", lane: rent ? 0 : replaces.lane(), fields };
           };
           return;
@@ -6676,13 +6796,16 @@
             caption(end).textContent = leased ? words.leaseEnd : words.saleYear + " (optional)";
           });
         }
-        holder.replaceChildren(...[name, replaces, start, end].filter(Boolean), ...figures.elements);
+        const where = kind === "Home" ? timelineState("Home", kept.state) : null;
+        holder.replaceChildren(...[name, replaces, start, end, where].filter(Boolean), ...figures.elements);
         read = () => {
           const fields = { name: name.input.value, purchaseAge: start ? timelineAge(Number(start.input.value)) : null,
             saleAge: end.input.value === "" ? null : timelineAge(Number(end.input.value)), ...figures.values() };
           if (figures.leased && figures.leased()) fields.mode = "lease";
+          if (where) fields.state = where.value();
           flow.addDraft = { choice: value, name: fields.name, purchaseAge: fields.purchaseAge, saleAge: fields.saleAge,
-            figures: figures.values(), replaces: replaces ? replaces.position() : null };  // kept for a refusal's redraw
+            figures: figures.values(), replaces: replaces ? replaces.position() : null,
+            state: where ? where.value() : null };  // kept for a refusal's redraw
           return { op: "buy", lane: replaces ? replaces.lane() : flow.lane, fields };
         };
       };
@@ -6703,6 +6826,7 @@
       const endYear = timelineYearInput(words.rentEnd.replace(" (optional)", ""), timelineYear(period.endAge == null
         ? currentAge + 1 : period.endAge));
       const monthly = timelineInput(words.rentQuestion, "number", period.monthlyRent, { min: 0, step: "any" });
+      const where = timelineState("RentPeriod", period.state);
       const sync = () => {
         startYear.hidden = today.input.checked;
         endYear.hidden = open.input.checked;
@@ -6710,11 +6834,11 @@
       today.input.addEventListener("change", sync);
       open.input.addEventListener("change", sync);
       sync();
-      parts.push(today, startYear, open, endYear, monthly);
+      parts.push(today, startYear, open, endYear, monthly, where);
       save = async () => {
         const fields = { monthlyRent: Number(monthly.input.value),
           purchaseAge: today.input.checked ? null : timelineAge(Number(startYear.input.value)),
-          saleAge: open.input.checked ? null : timelineAge(Number(endYear.input.value)) };
+          saleAge: open.input.checked ? null : timelineAge(Number(endYear.input.value)), state: where.value() };
         if (await timelineStep({ op: "edit", position: flow.position, fields })) timelineClose();
       };
     } else if (flow.step === "edit") {
@@ -6723,6 +6847,7 @@
       const currentAge = state.inputs.you.currentAge;
       let ownedNow = null;
       let selling = null;
+      let where = null;  // a home's State select
       const startYear = timelineYearInput(leased ? words.leaseStart : words.purchaseYear,
         timelineYear(item.buysLater ? item.purchaseAge : currentAge + 1));
       const endYear = timelineYearInput(leased ? words.leaseEnd : words.saleYear,
@@ -6743,6 +6868,7 @@
         selling.input.addEventListener("change", sync);
         sync();
         parts.push(ownedNow, startYear, figure, selling, endYear);
+        if (kind === "Home") parts.push(where = timelineState("Home", item.state));
       } else {  // a lease running today keeps no start year unless one is given
         ownedNow = timelineInput(words.leasedNow, "check", !item.buysLater);
         const sync = () => { startYear.hidden = ownedNow.input.checked; };
@@ -6757,6 +6883,7 @@
           : timelineAge(Number(endYear.input.value));
         if (leased) fields.leaseMonthly = Number(figure.input.value);
         else if (fields.purchaseAge != null) fields.purchasePrice = Number(figure.input.value);
+        if (where) fields.state = where.value();
         if (await timelineStep({ op: "edit", position: flow.position, fields })) timelineClose();
       };
     }
@@ -7145,8 +7272,8 @@
   }
 
   // Clear all data on this device: a first tap arms the button, a second removes every key this app keeps, the
-  // installed app's offline copy (its caches) and its service worker, then reloads, so the page starts as on a first
-  // visit (the Terms step included).
+  // installed app's offline copy and saved documentation pages (its caches) and its service worker, then reloads, so
+  // the page starts as on a first visit (the Terms step included).
   async function clearAllData(button) {
     if (button.dataset.armed !== "true") {
       button.dataset.armed = "true";
@@ -7161,7 +7288,11 @@
       try { localStorage.removeItem(key); } catch (error) { /* storage blocked: nothing kept */ }
     }
     try {
-      if (window.caches) for (const key of await caches.keys()) if (key.startsWith("wmti:")) await caches.delete(key);
+      if (window.caches) {  // the offline copy ("wmti:") and the saved documentation pages ("wmti-docs:", sw.js)
+        for (const key of await caches.keys()) {
+          if (key.startsWith("wmti:") || key.startsWith("wmti-docs:")) await caches.delete(key);
+        }
+      }
       if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
         for (const registration of await navigator.serviceWorker.getRegistrations()) await registration.unregister();
       }
@@ -8679,11 +8810,12 @@
     return docsLink((window.WMTI_BUILD || {}).docs, page);
   }
 
-  // A small link under a state select to the chosen state's law page (the home state's when the select is blank).
+  // A small link under a state select to the chosen state's law page (the home state's when the select is blank); in
+  // the artifact build, which can only open the docs home, it says "Open the documentation" (stateRulesText).
   function stateRulesLink(select) {
     const link = document.createElement("a");
     link.className = "state-rules-link";
-    link.textContent = "See this state's rules";
+    link.textContent = stateRulesText((window.WMTI_BUILD || {}).docs);
     link.target = "_blank";
     link.rel = "noopener";
     const point = () => {

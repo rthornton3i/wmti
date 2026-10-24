@@ -65,6 +65,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Tax law by jurisdiction</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">How to read the law pages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#confidence-chips">Confidence chips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#status-final-or-estimate">Status: final or estimate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#figures">Figures</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#where-the-data-lives-and-how-it-is-updated">Where the data lives and how it is updated</a></li>
 </ul>
@@ -154,15 +155,24 @@
 <h1>How to read the law pages<a class="headerlink" href="#how-to-read-the-law-pages" title="Link to this heading"></a></h1>
 <p>Every law page is written by <code class="docutils literal notranslate"><span class="pre">docs/generate_law_pages.py</span></code> from one law file in <code class="docutils literal notranslate"><span class="pre">.config/law</span></code> (the same files the model reads in the app), so the pages show exactly the figures the simulation uses. The text in a page’s notes and sources is the file’s own; the short line under each section heading says what the model does with the section.</p>
 <section id="confidence-chips">
-<h2>Confidence chips<a class="headerlink" href="#confidence-chips" title="Link to this heading"></a></h2>
-<p>Each section carries the confidence its file records:</p>
+<span id="law-confidence"></span><h2>Confidence chips<a class="headerlink" href="#confidence-chips" title="Link to this heading"></a></h2>
+<p>This is the one definition of the confidence labels; every other page links here. Each section carries the confidence its file records:</p>
 <ul class="simple">
 <li><p><span class="law-chip law-chip-primary">Confirmed primary</span>: read on a primary source (the tax agency, the statute or the official data).</p></li>
-<li><p><span class="law-chip law-chip-secondary">Confirmed secondary</span>: read on a secondary source (a compiled table, a publisher or a news report).</p></li>
-<li><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span>: not checked against a source yet (for example recalled or estimated); these sections sit in a box with a red edge.</p></li>
+<li><p><span class="law-chip law-chip-secondary">Confirmed secondary</span>: read on secondary sources only (a compiled table such as the Tax Foundation’s or the Census’s, a tax publisher or a news report), usually two that agree; not yet read on the primary source.</p></li>
+<li><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span>: not checked against a source yet (for example recalled or estimated), sources that disagree, or a rule the model can only approximate; these sections sit in a box with a red edge.</p></li>
 <li><p><span class="law-chip law-chip-none">Not rated</span>: the section carries no confidence label of its own; the file’s source line (in the facts table at the top of the page) says where its figures come from.</p></li>
 </ul>
-<p>A section made of parts (such as <code class="docutils literal notranslate"><span class="pre">state_strategies</span></code>) shows the weakest of its parts’ labels.</p>
+<p>A section made of parts (such as <code class="docutils literal notranslate"><span class="pre">state_strategies</span></code>) shows the weakest of its parts’ labels. On a state page the core income-tax sections (<code class="docutils literal notranslate"><span class="pre">filing_tables</span></code>, <code class="docutils literal notranslate"><span class="pre">state_base</span></code>, <code class="docutils literal notranslate"><span class="pre">income_brackets</span></code>, <code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code>, <code class="docutils literal notranslate"><span class="pre">exemptions</span></code>) carry no label of their own and show the state’s income tax confidence instead: the weakest label recorded for its own income tax (the labels of its income-tax sections and Social Security and those named in its source line and their notes; the average local income tax is left out), the same label the table of state law files shows.</p>
+</section>
+<section id="status-final-or-estimate">
+<span id="law-status"></span><h2>Status: final or estimate<a class="headerlink" href="#status-final-or-estimate" title="Link to this heading"></a></h2>
+<p>This is the one rule for a file’s status; every other page links here. Each law file records its status in its header, set by hand when the file is checked; the pages and the states table show it as the file records it and compute nothing:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: every income-tax figure of the file was checked against the jurisdiction’s own publication for the file’s tax year, and the file was then marked final.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">estimate</span></code>: anything else.</p></li>
+</ul>
+<p>Confirmed primary labels on every income-tax section are needed for <code class="docutils literal notranslate"><span class="pre">final</span></code> but do not make a file final on their own: a file stays an <code class="docutils literal notranslate"><span class="pre">estimate</span></code> until that check is done and recorded, so many files whose income tax is confirmed primary are still estimates. The living costs (property tax, insurance, car costs, gas, electricity, home values and sales tax) do not count toward the status.</p>
 </section>
 <section id="figures">
 <h2>Figures<a class="headerlink" href="#figures" title="Link to this heading"></a></h2>
@@ -170,7 +180,7 @@
 </section>
 <section id="where-the-data-lives-and-how-it-is-updated">
 <h2>Where the data lives and how it is updated<a class="headerlink" href="#where-the-data-lives-and-how-it-is-updated" title="Link to this heading"></a></h2>
-<p>The law files are <code class="docutils literal notranslate"><span class="pre">.config/law/federal.json</span></code> and <code class="docutils literal notranslate"><span class="pre">.config/law/&lt;code&gt;.json</span></code> for each state, listed in <code class="docutils literal notranslate"><span class="pre">.config/law/states.json</span></code>. They are updated once a year, as <span>../guides/tax-year-update</span> describes, and these pages are written again from them. <a class="reference internal" href="../guides/tax-law.html"><span class="doc">Tax law in the model</span></a> lists the rules the model leaves out.</p>
+<p>The law files are <code class="docutils literal notranslate"><span class="pre">.config/law/federal.json</span></code> and <code class="docutils literal notranslate"><span class="pre">.config/law/&lt;code&gt;.json</span></code> for each state, listed in <code class="docutils literal notranslate"><span class="pre">.config/law/states.json</span></code>. They are updated once a year, and these pages are written again from them. <a class="reference internal" href="../guides/tax-law.html"><span class="doc">Tax law in the model</span></a> lists the rules the model leaves out.</p>
 </section>
 </section>
 

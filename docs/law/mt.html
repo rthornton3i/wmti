@@ -201,7 +201,7 @@
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>20 sections: 4 confirmed primary, 9 confirmed secondary, 1 unconfirmed, 6 not rated</p></td>
+<td><p>20 sections: 4 confirmed primary, 9 confirmed secondary, 6 unconfirmed, 1 not rated</p></td>
 </tr>
 </tbody>
 </table>
@@ -222,23 +222,23 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-mt-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-mt-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-mt-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-mt-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-mt-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-mt-capital-gains-exclusion"><span class="std std-ref">Capital gains exclusion</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">capital_gains_exclusion</span></code></p></td>
@@ -305,8 +305,9 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-mt-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
+<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
 <p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
 <table class="law-table docutils align-default">
 <colgroup>
@@ -343,8 +344,9 @@
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-mt-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
+<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
 <p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
 <table class="law-table docutils align-default">
 <colgroup>
@@ -374,8 +376,9 @@
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-mt-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
+<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
 <p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
 <table class="law-table docutils align-default">
 <colgroup>
@@ -442,8 +445,9 @@
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-mt-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
+<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
 <p>The amount taken off the income the state taxes, per bracket table.</p>
 <table class="law-table docutils align-default">
 <colgroup>
@@ -477,8 +481,9 @@
 </section>
 <section id="exemptions-exemptions">
 <span id="law-mt-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
+<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
 <p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
 <table class="law-table docutils align-default">
 <colgroup>

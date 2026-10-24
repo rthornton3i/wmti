@@ -176,17 +176,12 @@ clothing is taxed (see <a class="reference internal" href="#states-sales-tax"><s
 </tr>
 </tbody>
 </table>
-<p><strong>How sure are the numbers?</strong> Every item carries a confidence label in its file:</p>
-<ul class="simple">
-<li><p><em>confirmed primary</em>: read from the state’s own revenue page or law;</p></li>
-<li><p><em>confirmed secondary</em>: two independent trusted summaries agree (or one
-authoritative compiler, such as the Tax Foundation or the Census, was read directly);</p></li>
-<li><p><em>unconfirmed</em>: one source or an approximation; check it before relying on it.</p></li>
-</ul>
-<p>Each item also has a <code class="docutils literal notranslate"><span class="pre">check_at</span></code> (where to check it) and a <code class="docutils literal notranslate"><span class="pre">note</span></code>. A state file is
-marked <code class="docutils literal notranslate"><span class="pre">final</span></code> only when every income-tax figure is confirmed primary; otherwise it
-is an <code class="docutils literal notranslate"><span class="pre">estimate</span></code>; the table in <a class="reference internal" href="tax-law.html#states-table"><span class="std std-ref">The state law files</span></a> gives each state’s status, its
-weakest income-tax label and the rules that are approximated. The living-cost figures (property tax, insurance, car costs, gas,
+<p><strong>How sure are the numbers?</strong> Every item carries a confidence label in its file
+(<em>confirmed primary</em>, <em>confirmed secondary</em> or <em>unconfirmed</em>), and every file a
+status (<code class="docutils literal notranslate"><span class="pre">final</span></code> or <code class="docutils literal notranslate"><span class="pre">estimate</span></code>); <a class="reference internal" href="../law/how-to-read.html#law-confidence"><span class="std std-ref">Confidence chips</span></a> and <a class="reference internal" href="../law/how-to-read.html#law-status"><span class="std std-ref">Status: final or estimate</span></a>
+in <a class="reference internal" href="../law/how-to-read.html"><span class="doc">How to read the law pages</span></a> define both. Each item also has a <code class="docutils literal notranslate"><span class="pre">check_at</span></code>
+(where to check it) and a <code class="docutils literal notranslate"><span class="pre">note</span></code>. The table in <a class="reference internal" href="tax-law.html#states-table"><span class="std std-ref">The state law files</span></a> gives each
+state’s status, its weakest income-tax label and the rules that are approximated. The living-cost figures (property tax, insurance, car costs, gas,
 electricity, home values and sales tax) all come from secondary research: compilers
 such as the Tax Foundation, the Census, the Missouri cost-of-living index, insurer
 quote sites, the federal energy agency and Zillow. They are labelled that way in the
@@ -277,42 +272,50 @@ it) and set <em>Move at your age</em>. The move age shows your Social Security c
 until you type your own (with no Social Security benefit, the age your pay stops, or now
 if you are already retired); clearing it goes back to that age.
 The walkthrough’s optional Tax strategies asks “Plan to move to another state at
-retirement?” and sets the switch and the state. Both of you move together, at the start
+retirement?” and sets the switch and the state, then, when you own a home or rent, “Does
+your home move with you?” (<em>Home follows me</em>). Both of you move together, at the start
 of the move year, and you are treated as living in the new state for the whole year.</p>
 <p><strong>What changes from the move year.</strong> Your own numbers stay the starting point; WMTI
 changes only the parts a move changes, by comparing the new state with the old one:</p>
-<ul>
+<ul class="simple">
 <li><p><strong>Income tax</strong>: from the move year your state tax (and the average local tax) is
 worked out with the new state’s rules, including how it treats Social Security,
 pensions and IRA withdrawals.</p></li>
-<li><p><strong>Your home</strong>: your main home is treated as sold and replaced by a comparable home
-in the new state, one that sits at the same place against the new state’s typical
-home value as yours does against your current state’s. From the move year:</p>
-<ul class="simple">
-<li><p>its value is your home’s value times the new state’s typical home value over your
-current state’s (<code class="docutils literal notranslate"><span class="pre">housing.typical_home_value</span></code> in the state files), and grows at
-your rate from there; net worth and any later sale use that value;</p></li>
-<li><p>the difference in the move year, new value less old, is one line,
-<code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Equity</span> <span class="pre">Change</span></code>, in your cash flow: negative when the new state’s homes cost
-less (equity released to your accounts), positive when they cost more;</p></li>
-<li><p>the swap pays its costs that year: your home’s own selling costs (rate and fees,
-<code class="docutils literal notranslate"><span class="pre">Move</span> <span class="pre">Selling</span> <span class="pre">Costs</span></code>) on the old value and its closing costs, transfer tax and
-fees (<code class="docutils literal notranslate"><span class="pre">Move</span> <span class="pre">Purchase</span> <span class="pre">Costs</span></code>) on the new one;</p></li>
-<li><p>the old home’s gain is taxed like any home sale, with the home sale exclusion, and
-by the state the home sits in: a California home sold in the year you move to
-Nevada still owes California tax on its taxable gain (a gain on a home is income of
-its state even when you no longer live there; WMTI taxes it with that state’s rules
-on the gain alone, with no credit from your new state and no part-year split); the
-new home’s cost basis is its price with the transfer tax and fees; a later sale
-within two years of the move gets no exclusion;</p></li>
-<li><p>its property tax is your entered tax times the new state’s rate over the old one’s
-and times the value ratio; its insurance is scaled by the states’ average premiums;</p></li>
-<li><p>its mortgage carries over unchanged.</p></li>
+<li><p><strong>Your home</strong>: the move adds a primary residence in the new state to your Home
+timeline, one that sits at the same place against the new state’s typical home value
+as yours does against your current state’s. It is worked out each run from the
+strategy; your saved homes never change. The switch <em>Home follows me</em> (on by default,
+under <em>Move at your age</em>) says what happens to the home you live in before the move:</p>
+<ul>
+<li><p><strong>On</strong> (your home follows you): it is sold at the close of the year before the move,
+at its value then, with its own selling costs; the mortgage is paid off from the
+proceeds and the rest goes to your accounts. Its gain is taxed like any home sale,
+with the home sale exclusion, by the state it sits in (you still live there that
+year). At the start of the move year a comparable home is bought in the new state:
+its price is your home’s value then (in today’s value) times the new state’s typical
+home value over your current state’s (<code class="docutils literal notranslate"><span class="pre">housing.typical_home_value</span></code> in the state
+files), and it grows at your rate from there; it pays your home’s closing cost and
+transfer tax rates and fees in cash (<em>Asset Purchases</em>); its property tax is your
+entered tax times the new state’s rate over the old one’s and times the value ratio,
+and its insurance is scaled by the states’ average premiums. Your mortgage carries
+over: the new home borrows what the old one still owed, at the same rate, extra
+payment and months left, so the Loan Balance goes on from where it was. Its cost
+basis is its price with the transfer tax and fees; a sale within two years of the
+move gets no exclusion.</p></li>
+<li><p><strong>Off</strong> (your home stays where it is): the old home is kept as a second home, with
+its own value, costs, mortgage and any sale you set, taxed under its own state’s
+rules when sold (a second home gets no home sale exclusion). The new primary
+residence is bought as above, financed like a new purchase (20% down over 360
+months at your old rate) when the old home has a mortgage, else in cash.</p></li>
+<li><p><strong>Renting</strong>: the rent period you are in ends and a new one starts in the move year
+in the new state, at your rent times the new state’s housing-cost index over your
+current state’s, to the end of the old one. On and Off are the same here.</p></li>
+<li><p>A home or rent period of yours that starts in the move year is the move itself:
+nothing is added (a blank state on it becomes the new state; another state you set
+wins, with a warning). With no home and no rent in the move year, nothing is added
+and only the state moves. A move in the first year of the plan re-bases the home
+you own now in place (the comparable home, no sale or purchase).</p></li>
 </ul>
-<p>The switch <em>Homes follow</em> (on by default) controls this; switch it off to keep the
-house where it is, with its value and costs unchanged. Its “i” says: “Your primary
-home is treated as replaced by a comparable one; its value, property tax and insurance
-follow the state”, and to use Buy/Sell on the Home tab for a real move.</p>
 </li>
 <li><p><strong>Car costs</strong>: car insurance is scaled the same way, each car’s registration and
 car taxes change by the difference in dollars between the two states’ typical
@@ -342,8 +345,6 @@ prices that already hold each state’s sales tax, so a re-priced row takes no
 separate sales tax change: each dollar changes once. The price change and the sales tax change are charged together as one
 line, <code class="docutils literal notranslate"><span class="pre">State</span> <span class="pre">Cost</span> <span class="pre">Change</span></code>, in your cash flow; moving somewhere cheaper makes it
 negative (a saving).</p></li>
-<li><p><strong>Rent</strong>: rent is scaled by the new state’s housing-cost index compared with your
-current state’s.</p></li>
 <li><p><strong>Health premiums</strong>: the health premium you pay before the Medicare age is scaled
 by the new state’s marketplace (ACA) premium at 60 compared with your current
 state’s; from the Medicare age, the Medicare supplement premium by the Medigap Plan G
@@ -370,13 +371,23 @@ one whose estate and inheritance taxes apply, and by default your beneficiaries�
 </ul>
 <p><strong>What stays anchored to your own numbers.</strong> Your salary, Social Security and pension
 amounts, your account balances and returns, your entered spending (apart from the
-sales-tax difference), your mortgage, any second home, and any home you buy at or after
-the move age keep exactly what you entered; your main home changes only as described
-above. For a sale and purchase at prices of your own, switch <em>Homes follow</em> off and use
-the Buy and Sell fields on the Home tab, and your entered numbers rule. Utility bills are not re-priced (see
-<a class="reference internal" href="#states-limits"><span class="std std-ref">Limits and assumptions</span></a>).</p>
+sales-tax difference), any second home, and any home or rent period you add that starts
+after the move keep exactly what you entered; your housing changes only as described
+above. For a sale and purchase at prices of your own, add them on the Home timeline
+(a home or rent period starting in the move year is the move), and your entered numbers
+rule. Utility bills are not re-priced (see <a class="reference internal" href="#states-limits"><span class="std std-ref">Limits and assumptions</span></a>).</p>
 <p>With Relocation off, or with the new state the same as your home state, nothing
 changes at all.</p>
+<p><strong>Moving through your homes.</strong> Your Home timeline can also say where you live: a primary
+residence you buy later, or a rent period that starts later, with its <em>State</em> set moves you
+to that state from its first year, with the same changes as above for income tax, cars,
+health premiums, prices and sales tax (your own amounts for that home or rent are kept as
+entered). Leave the state blank and you stay where you were; with no home and no rent for a
+while you stay in the last state; a second home never moves you. Every cost is compared
+with your home state, so moving twice, or back home, needs nothing more. A Relocation move
+and moves through your homes apply in year order; a home or rent period that starts in the
+Relocation move year decides that year. You live in one primary residence at a time:
+a primary home and a rent period may share only their move year.</p>
 </section>
 <section id="letting-the-optimizer-compare-states">
 <span id="states-optimizer"></span><h2>Letting the optimizer compare states<a class="headerlink" href="#letting-the-optimizer-compare-states" title="Link to this heading"></a></h2>
@@ -401,11 +412,15 @@ time from runs timed on your device. Each
 ticked state adds the search’s passes times one candidate’s full ladder of runs
 to the budget (Standard: 2 x (8 + 24 + 80) = 224 runs; Quick 50, Thorough 672) and
 those runs at three times 0.2 s each to the time cap (Standard about 134 s per state).</p></li>
+<li><p><strong>Later homes go with the state tried.</strong> Homes and rent periods that start at or
+after the move are set to the state tried; earlier ones keep the states you set,
+and <em>Home follows me</em> stays as you set it. Staying put restores your states.</p></li>
 <li><p><strong>The result names the best state</strong>, for example <em>Retire in Florida, move at 65</em>
-or <em>Stay in NJ</em>, with its score beside your current settings. The move age is the
+(with <em>; later homes set to Florida</em> when a later home or rent period gets that
+state) or <em>Stay in NJ</em>, with its score beside your current settings. The move age is the
 one under Relocation (your Social Security claim age when blank). Applying it fills in the
-Relocation section for you: Relocation on with the best state, or off when staying
-put beats a move you had planned.</p></li>
+Relocation section for you: Relocation on with the best state and the later homes’
+states written, or off when staying put beats a move you had planned.</p></li>
 </ul>
 <p><strong>How this differs from Relocation.</strong> Relocation is your own plan: one state and
 one move age that you choose, and every run uses it. The States section is a
@@ -585,9 +600,7 @@ no class names a state, and every number stays in the file. Each kind of section
 <code class="docutils literal notranslate"><span class="pre">LawSection</span></code> (<code class="docutils literal notranslate"><span class="pre">BracketSchedule</span></code>, <code class="docutils literal notranslate"><span class="pre">StandardDeduction</span></code>, <code class="docutils literal notranslate"><span class="pre">Exemptions</span></code>, <code class="docutils literal notranslate"><span class="pre">ExemptionCredits</span></code>,
 <code class="docutils literal notranslate"><span class="pre">RetirementExclusion</span></code>, <code class="docutils literal notranslate"><span class="pre">SocialSecurityRule</span></code>, <code class="docutils literal notranslate"><span class="pre">GainsExclusion</span></code>, <code class="docutils literal notranslate"><span class="pre">LocalIncomeTax</span></code>, <code class="docutils literal notranslate"><span class="pre">EstateInheritanceTax</span></code>,
 <code class="docutils literal notranslate"><span class="pre">StateBase</span></code> and <code class="docutils literal notranslate"><span class="pre">StateStrategies</span></code>), and each state gets one <code class="docutils literal notranslate"><span class="pre">StateLaw</span></code> of the family its brackets choose:
-<code class="docutils literal notranslate"><span class="pre">NoIncomeTaxState</span></code> (a single 0% bracket), <code class="docutils literal notranslate"><span class="pre">FlatTaxState</span></code> (one bracket per filing table) or <code class="docutils literal notranslate"><span class="pre">GradedTaxState</span></code>.
-The class tree and the order of the calculation are in <span>architecture</span> and on the
-<span>../reference/sysml-diagrams</span> page.</p>
+<code class="docutils literal notranslate"><span class="pre">NoIncomeTaxState</span></code> (a single 0% bracket), <code class="docutils literal notranslate"><span class="pre">FlatTaxState</span></code> (one bracket per filing table) or <code class="docutils literal notranslate"><span class="pre">GradedTaxState</span></code>.</p>
 <p>To add a new kind of rule:</p>
 <ol class="arabic simple">
 <li><p><strong>A rule many states share</strong> (a new kind of section): add the section and its checks to the law files and

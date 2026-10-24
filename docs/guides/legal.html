@@ -65,8 +65,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Legal</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-is-where">What is where</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-terms-version">The Terms version</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#placeholders">Placeholders</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#how-to-finish">How to finish</a></li>
 </ul>
 </li>
 </ul>
@@ -100,7 +98,7 @@
 License 1.0.0: anyone may read and use the code for non-commercial purposes
 only. Its Terms say the results are estimates for education, not advice, may
 not come true and come with no warranty. This page lists where each piece
-lives, the placeholders still to fill in and how to finish them.</p>
+lives.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This is not legal advice. Have a qualified lawyer review these documents
@@ -110,8 +108,9 @@ before a wide release.</p>
 <h2>What is where<a class="headerlink" href="#what-is-where" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>: the official PolyForm Noncommercial License 1.0.0 text,
-unchanged, after the line <code class="docutils literal notranslate"><span class="pre">Required</span> <span class="pre">Notice:</span> <span class="pre">Copyright</span> <span class="pre">(c)</span> <span class="pre">2026</span> <span class="pre">[BRAND</span>
-<span class="pre">NAME],</span> <span class="pre">Walk</span> <span class="pre">Me</span> <span class="pre">Through</span> <span class="pre">It</span> <span class="pre">(WMTI)</span> <span class="pre">([PUBLIC</span> <span class="pre">REPOSITORY</span> <span class="pre">URL])</span></code>.</p></li>
+unchanged, after the <code class="docutils literal notranslate"><span class="pre">Required</span> <span class="pre">Notice</span></code> line (the copyright year, the
+copyright holder’s name, Walk Me Through It (WMTI) and the address of the
+public repository).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code>: the Terms of use, in numbered sections with defined
 terms (the Terms, the Software, Results, Your Data, the Privacy Notice, the
 License): eligibility (legal age and capacity, confirmed by agreeing; the
@@ -129,7 +128,7 @@ clauses.</p></li>
 shared devices, exported files, children, your rights, how to clear your
 data). It has its own <code class="docutils literal notranslate"><span class="pre">Version:</span></code> line, for
 readers; only the Terms version asks users to agree again.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">legal/TRADEMARKS.md</span></code>: the unregistered marks claimed (<code class="docutils literal notranslate"><span class="pre">[BRAND</span> <span class="pre">NAME]</span></code>,
+<li><p><code class="docutils literal notranslate"><span class="pre">legal/TRADEMARKS.md</span></code>: the unregistered marks claimed (the brand name,
 Walk Me Through It, WMTI) and the third-party names used.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">legal/NOTICE.md</span></code>: the third-party components the app ships and
 their licenses; <code class="docutils literal notranslate"><span class="pre">legal/third-party/</span></code>: each component’s full license text
@@ -161,53 +160,6 @@ made LF first), such as <code class="docutils literal notranslate"><span class="
 version, even when the date stays, so every user is asked to agree again; still
 change the date when the Terms change, so readers see it. An acceptance records
 the version, the text’s full sha256, the build id and the time, so it shows which text was accepted.</p>
-</section>
-<section id="placeholders">
-<h2>Placeholders<a class="headerlink" href="#placeholders" title="Link to this heading"></a></h2>
-<p>Five tokens stand in for facts not chosen yet. Each is written exactly the
-same way everywhere, so one search-and-replace across the repository finishes
-it (tests that check the text hold the same token and change with it).
-<code class="docutils literal notranslate"><span class="pre">frontend/publish_pages.py</span></code> refuses to publish while any of them is left in
-what it would publish, unless <code class="docutils literal notranslate"><span class="pre">--allow-placeholders</span></code> is given:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[BRAND</span> <span class="pre">NAME]</span></code>: the legal person (the owner decision: a single-member LLC
-doing business as the trade name) that holds the copyright and the marks and
-offers the software. In <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> (the <code class="docutils literal notranslate"><span class="pre">Required</span> <span class="pre">Notice</span></code> line, and so the
-license header of every built file), <code class="docutils literal notranslate"><span class="pre">README.md</span></code>, <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>,
-<code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code>, <code class="docutils literal notranslate"><span class="pre">legal/PRIVACY.md</span></code>, <code class="docutils literal notranslate"><span class="pre">legal/TRADEMARKS.md</span></code>,
-<code class="docutils literal notranslate"><span class="pre">frontend/publish_pages.py</span></code>,
-<code class="docutils literal notranslate"><span class="pre">backend/tests/frontend_build/test_frontend_build.py</span></code> and this page.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[CONTACT</span> <span class="pre">EMAIL]</span></code>: where questions go (the owner decision: an alias on a
-brand domain). In <code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code>, <code class="docutils literal notranslate"><span class="pre">legal/PRIVACY.md</span></code> and this page.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[SECURITY</span> <span class="pre">EMAIL]</span></code>: where security reports go (the same alias, by
-default). In <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code> and this page.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[GOVERNING</span> <span class="pre">LAW:</span> <span class="pre">STATE/COUNTRY]</span></code>: the law and the courts that govern the
-Terms (the owner decision: the owner’s home state). In <code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code>
-and this page.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[PUBLIC</span> <span class="pre">REPOSITORY</span> <span class="pre">URL]</span></code>: the address of the public repository that holds
-the built site (the owner decision: a GitHub organisation named after the
-trade name). In <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>,
-<code class="docutils literal notranslate"><span class="pre">backend/tests/frontend_build/test_frontend_build.py</span></code> and this page.</p></li>
-</ul>
-</section>
-<section id="how-to-finish">
-<h2>How to finish<a class="headerlink" href="#how-to-finish" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p>Republish only after the fixes and the rename, from a clean public
-repository history (the owner’s step; <code class="docutils literal notranslate"><span class="pre">publish_pages.py</span></code> never pushes).</p></li>
-<li><p>Choose the legal entity and brand name, the contact and security
-addresses, the governing law and the public repository address.</p></li>
-<li><p>Replace each token across the repository (for example with your editor’s
-search-and-replace over the whole folder), leaving <code class="docutils literal notranslate"><span class="pre">frontend/published</span></code>
-alone: the next publish copies the new texts there.</p></li>
-<li><p>Change the <code class="docutils literal notranslate"><span class="pre">Version:</span></code> line of <code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code> to the new date; the text
-change alone already gives a new Terms version, so everyone agrees to the
-finished Terms.</p></li>
-<li><p>Run the tests, rebuild the app (<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">frontend/build.py</span></code> and
-<code class="docutils literal notranslate"><span class="pre">--target</span> <span class="pre">pages</span></code>) and publish as usual (without
-<code class="docutils literal notranslate"><span class="pre">--allow-placeholders</span></code>).</p></li>
-<li><p>Have a lawyer review the documents before a wide release.</p></li>
-</ol>
 </section>
 </section>
 
