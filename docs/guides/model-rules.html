@@ -338,15 +338,29 @@ results do not change.</p>
 its commute, its running costs, an optional replacement cycle and when it is bought, sold or
 leased during the run, all in today’s value, and the fuel price for every car.</p>
 <p><strong>Defaults.</strong> No cars, and a fuel price of 3.50. A new car, from Cars or the
-walkthrough, is driven by you, loses 10% of its value a year, has its Loan and Commute
+walkthrough, is driven by you, loses 20% of its price in its first year (the usual first-year drop,
+<code class="docutils literal notranslate"><span class="pre">first_year_drop</span></code> in <code class="docutils literal notranslate"><span class="pre">.config/carDepreciation.json</span></code>) and 10% of its value a year after, has its Loan and Commute
 switches off (with a 7% rate, 60 months and 230 commute days ready once they are on), 25
 miles per gallon, and no replacement (first in 5 years once a cycle and a price are set). It
 is owned, not leased (a lease payment of 0), and a car bought on the timeline has a 10% down
 payment and no sales tax, fees, selling costs or prepayment penalty. The default profile keeps its
 Car, Car Insurance, Car Maintenance and Gas/Tolls rows on Expenses.</p>
-<p><strong>Logic.</strong> A car’s value is today’s value times (1 - the depreciation rate) for each year
-since it was bought, inflation adjusted like the home value; it is shown as the <code class="docutils literal notranslate"><span class="pre">Car</span>
-<span class="pre">Value</span></code> summary column and counts in net worth. Fuel each year is (2 times the commute miles one way times the commute days while
+<p><strong>Logic.</strong> A car owned today is defined by its <em>Purchase price (as paid)</em>, the price paid in
+the dollars of the purchase, and its <em>Year bought</em>. The depreciation calculator gives its value
+today: the price times (1 - the first-year drop) times (1 - the depreciation per year) for each
+year owned after the first (<code class="docutils literal notranslate"><span class="pre">wmti.cars.cars.estimatedValueToday</span></code>); a car bought this year or
+later is at its price. <em>Depreciation first year</em> is the car’s own first-year drop; blank, it
+shows (gray) and uses the usual one from <code class="docutils literal notranslate"><span class="pre">.config/carDepreciation.json</span></code> (20%, a typical new
+car’s first-year loss in Carfax and Edmunds figures, <code class="docutils literal notranslate"><span class="pre">confidence:</span> <span class="pre">unconfirmed</span></code>). The car’s
+sheet shows the result, gray and read only, as <em>Estimated value today</em>. A figure entered in
+<em>Value today (override)</em> wins over the estimate; blank or 0 uses it, and with neither a value
+nor a year bought the car has no value. A profile saved before the year bought (version 48 or
+older) keeps each car’s value today, now the override, so its results are the same. From
+today the value falls by the depreciation per year each year, after the first-year drop when
+the car was bought this year; a car with no year bought is taken as past its first year. A
+car bought later, and each replacement, starts at its price and loses the first-year drop in
+the year after the purchase, then the depreciation per year. The value is inflation adjusted
+like the home value; it is shown as the <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Value</span></code> summary column and counts in net worth. Fuel each year is (2 times the commute miles one way times the commute days while
 the driver works, plus the miles per year) divided by the miles per gallon, times the fuel
 price; tolls and parking are charged per commute day while the driver works. A car that does
 not commute has no commute days, so only its miles per year count. The commute stops when
@@ -364,7 +378,8 @@ are the car’s commute and other miles per year since the last purchase, a year
 counting at its end, so 12,000 miles a year and 36,000 miles replace the car at the start of
 year 3; a car owned today starts from <em>Miles on it today</em> (a car bought later from 0). The
 price is the replacement price, or with 0 the purchase price (the same model; for a car
-owned today, its <em>Price paid</em>); with neither, the car is not replaced. At each replacement
+owned today, the price paid, as paid and not grown to today’s dollars), which the blank
+<em>Replacement price</em> shows gray; with neither, the car is not replaced. At each replacement
 the car is traded in at its value and the new one is paid by <em>Replacement paid by</em> (blank:
 the car’s own <em>Pay method</em>, which with blank follows the Loan switch: finance with it on,
 cash with it off). Paid in cash, the rest of the price, the sales tax and purchase fees on
@@ -397,7 +412,7 @@ sale age, so the sale year is still charged; when the next car of its lane start
 year, the sale is at the start of the year, booked at the close of the year before, and only
 the new car is charged that year. A car bought later has no value, costs, commute
 or loan before its purchase year; its value in the purchase year is its price, then falls
-by the depreciation, and its replacement cycle counts from the purchase. In the purchase
+by the first-year drop and the depreciation, and its replacement cycle counts from the purchase. In the purchase
 year the down payment (the whole price without a loan), the sales tax and the fees are paid
 in cash in the <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Purchases</span></code> outflow, from the accounts in the withdrawal order like
 any expense (a large purchase can raise the tax on Traditional withdrawals that year, or
@@ -405,7 +420,7 @@ show as <code class="docutils literal notranslate"><span class="pre">Shortfall</
 the rest is an Auto loan that starts that year, and with cash the whole price is paid. A car sold has its value, costs, commute and replacements stop: its value is 0
 from the sale year and its costs from the next year. The sale price is the one entered, or
 with 0 the car’s value that year before the sale (today’s value, the purchase price or the
-latest replacement’s price after the depreciation since). The selling costs (<code class="docutils literal notranslate"><span class="pre">Selling</span>
+latest replacement’s price after the first-year drop and the depreciation since). The selling costs (<code class="docutils literal notranslate"><span class="pre">Selling</span>
 <span class="pre">Costs</span></code>, shown for information) and the car loan still owed after the sale year’s payments,
 with its prepayment penalty, are taken from the price; what is left is <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Sale</span>
 <span class="pre">Proceeds</span></code>, income that the surplus rule deposits to the cash and Investments accounts by

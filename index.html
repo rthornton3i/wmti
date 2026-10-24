@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-LTO6FXvQZ00fvXOvfOXbIrqBumCrftOV8RfkTJbLVyg=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-ksXI8feWN09s27Wvi85nj3iRLp24d6KMUCuK1384QOM=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -487,6 +487,20 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .input[aria-invalid="true"] { border-color: var(--bad); }
 /* A blank sheet or panel figure showing its source's value until edited (sheetDefault, panelDefault in shared.js). */
 .input.is-default { color: var(--muted); }
+/* A field with a default: a small reset button inside its right edge, shown once edited (addResetButton in app.js).
+   The button is a 32px target around a 14px icon; the box keeps its size, only its text stops short of the icon. */
+.has-reset { position: relative; }
+.reset-default { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 32px; height: 32px; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.reset-default[hidden] { display: none; }
+.reset-default svg { width: 14px; height: 14px; }
+.reset-default:hover { color: var(--accent); background: var(--accent-soft); }
+.reset-default:focus-visible { color: var(--accent); outline-offset: 0; }
+.has-reset.reset-shown > .input { padding-right: 42px; }
+.affix[data-suffix].has-reset > .reset-default { right: 28px; }
+.affix[data-suffix].has-reset.reset-shown > .input { padding-right: 62px; }
+.has-reset > select.input ~ .reset-default { right: 28px; }
+.has-reset.reset-shown > select.input { padding-right: 64px; }
 /* A suggested expense row not filled in yet: its $0 on the list card (unfilledSuggestion in shared.js). */
 .item-value.is-default { color: var(--muted); font-weight: 400; }
 /* Benefits, Beneficiaries: one card per beneficiary (beneficiaryCards in app.js). */
@@ -1384,14 +1398,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "9683c0da38cc", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "477eb6376d17", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.8fe05a5c08.js"></script>
+<script src="shared.cff4cab1b9.js"></script>
 <script src="charts.54d59a7eb6.js"></script>
 <script src="insights.ee50546e73.js"></script>
 <script src="report.ad13ed448d.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.c00d05880d.js"></script>
+<script src="app.44734bf7ab.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

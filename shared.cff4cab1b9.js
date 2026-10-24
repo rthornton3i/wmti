@@ -135,15 +135,18 @@
     },
     // Drawn in titled sections by each field's schema group (Value, Loan, Commute, Running costs, Replacement, Lease);
     // the miles per year close the Commute section, after the commute figures its switch shows. The purchase and sale
-    // are set on the timeline (`timelineManaged`), so their sections are not drawn.
+    // are set on the timeline (`timelineManaged`), so their sections are not drawn. A car owned today opens its Value
+    // with the price paid and the year bought (then its estimated value today, `carEstimatedValue`), the two
+    // depreciation rates and the value today as an override.
     Car: {
-      order: ["name", "driver", "valueToday", "depreciationRate", "payMethod", "hasLoan", "loanBalance", "loanRate",
+      order: ["name", "driver", "purchasePrice", "purchaseYear", "firstYearDrop", "depreciationRate", "valueToday",
+        "payMethod", "hasLoan", "loanBalance", "loanRate",
         "loanMonthsLeft", "loanExtraMonthly", "commutes", "commuteMilesOneWay", "commuteDaysPerYear", "commuteTollsPerDay",
         "otherMilesPerYear", "milesPerGallon", "insurancePerYear", "registrationPerYear", "maintenancePerYear",
         "replaceBy", "replaceEveryYears", "replaceInYears", "replaceEveryMiles", "odometerToday", "replacementPrice",
         "replacementPayMethod", "replacementLoanRate", "replacementLoanMonths", "replacementDownPaymentRate",
         "replacementLeaseMonthly", "replacementLeaseMonths", "replacementLeaseFee", "leases", "leaseMonthly", "buysLater",
-        "purchaseAge", "purchasePrice",
+        "purchaseAge",
         "downPaymentRate", "salesTaxRate", "purchaseFees", "sellsLater", "saleAge", "salePrice", "sellingCostRate",
         "sellingFees", "prepayPenaltyRate"],
       groups: {},
@@ -166,12 +169,15 @@
   // the timeline, and so is a car's lane. The figures behind an item's other switches (a car's loan, commute and lease;
   // a home's mortgage; a loan's later start and early payoff: `itemSwitches`) show only while it is on, and the figures
   // a switch replaces (a car bought later has no value or balance today, a leased one no value, loan or replacement:
-  // `itemSwitchReplaces`) only while it is off.
+  // `itemSwitchReplaces`) only while it is off. A switch the item's plan rules out is hidden while off
+  // (`switchRuledOut`).
   function hiddenReason(typeName, name, item, rules) {
     if (typeName === "Car") {
       const reason = carHiddenReason(name, item, rules);
       if (reason !== undefined) return reason;
     }
+    const ruledOut = switchRuledOut(typeName, name, item, rules);
+    if (ruledOut) return ruledOut;
     const managed = (rules.timelineManaged || {})[typeName] || [];
     const switches = (rules.itemSwitches || {})[typeName] || {};
     if (managed.some((toggle) => toggle === name || (switches[toggle] || []).includes(name))) return "set on the timeline";
@@ -207,10 +213,27 @@
     return null;
   }
 
+  // Why a switch is left off an item's sheet because the item's plan rules it out (`itemSwitchHiddenBy`: a car bought
+  // later, or replaced with cash or a loan, has no Lease switch), or null. A switch that is on stays shown so it can
+  // be turned off.
+  function switchRuledOut(typeName, name, item, rules) {
+    const by = ((rules.itemSwitchHiddenBy || {})[typeName] || {})[name];
+    if (!by || item[name]) return null;
+    const on = (by.switches || []).find((toggle) => item[toggle]);
+    if (on) return "not used while its " + on + " switch is on";
+    const method = typeName === "Car" && carReplaceRuleOn(item) ? carReplacementMethodOf(item) : null;
+    if (method && (by.replacementPayMethods || []).includes(method)) {
+      return "not used while replacements are paid by " + method;
+    }
+    return null;
+  }
+
   // Why a car's pay or replacement rule figure is left off its sheet: null when shown, undefined when the general rules
-  // decide. A rule's figures show only while Replace by selects that rule (`carReplaceRules`). A car owned today shows its purchase price (the Price paid, which a blank replacement price follows) and its replacement pay
-  // figures only while a replacement rule is on and it is not leased; the loan figures of a replacement only while
-  // the replacements are financed, the lease figures only while they are leased (`carReplacementPayFields`).
+  // decide. A rule's figures show only while Replace by selects that rule (`carReplaceRules`). A car owned today shows
+  // its purchase price (the price paid, which sets its estimated value and which a blank replacement price follows)
+  // unless it is leased, and its replacement pay figures only while a replacement rule is on and it is not leased; the
+  // loan figures of a replacement only while the replacements are financed, the lease figures only while they are
+  // leased (`carReplacementPayFields`).
   function carHiddenReason(name, item, rules) {
     for (const [rule, entry] of Object.entries(rules.carReplaceRules || {})) {
       if (entry.fields.includes(name) && !item.leases && !carReplaceRulesOf(item)[rule]) {
@@ -219,7 +242,7 @@
     }
     const ruleOn = carReplaceRuleOn(item);
     if (name === "purchasePrice" && !item.buysLater) {
-      return ruleOn && !item.leases ? null : "shown for a car owned today while a replacement rule is on";
+      return item.leases ? "not used while its leases switch is on" : null;
     }
     const payFields = rules.carReplacementPayFields || {};
     const methodFields = Object.values(payFields).flat();
@@ -275,6 +298,8 @@
   const SHEET_DEFAULTS = {
     Car: {
       replacementPrice: { blank: 0, shown: (car) => (car.purchasePrice > 0 ? car.purchasePrice : null) },
+      // A blank first-year drop shows the usual one (`carValue.firstYearDrop`, from .config/carDepreciation.json).
+      firstYearDrop: { blank: null, shown: (car, rules) => (rules.carValue ? rules.carValue.firstYearDrop : null) },
       payMethod: { blank: "", shown: (car) => (car.hasLoan ? "finance" : "cash") },
       replacementPayMethod: { blank: "", shown: (car) => carPayMethodOf(car) },
       replacementLoanRate: { blank: null, shown: (car) => car.loanRate },
@@ -312,6 +337,15 @@
     return sheetDefault(typeName, name, item, rules) !== null;
   }
 
+  // What a sheet field's reset button puts back, edited or not: {value, blank} with the value its source shows once
+  // the field holds its blank again and that blank, or null when the field has no source or the source shows nothing.
+  function sheetResetTarget(typeName, name, item, rules) {
+    const rule = (SHEET_DEFAULTS[typeName] || {})[name];
+    if (!rule || !item) return null;
+    const value = rule.shown({ ...item, [name]: rule.blank }, rules || {});
+    return value == null ? null : { value, blank: rule.blank };
+  }
+
   // An expense row's sales tax default: true or false, or null for a row taxed by its state's own rule.
   function taxableDefaultOf(item, rules) {
     const defaults = (rules && rules.taxableDefaults) || {};
@@ -336,6 +370,14 @@
   function panelDefault(path, inputs) {
     const rule = PANEL_DEFAULTS[path];
     if (!rule || getPath(inputs, path) != null) return null;
+    const value = rule(inputs);
+    return value == null ? null : { value, blank: null };
+  }
+
+  // What a panel field's reset button puts back, edited or not: {value, blank: null}, or null as panelDefault.
+  function panelResetTarget(path, inputs) {
+    const rule = PANEL_DEFAULTS[path];
+    if (!rule) return null;
     const value = rule(inputs);
     return value == null ? null : { value, blank: null };
   }
@@ -409,7 +451,36 @@
   // replacement rules, which decide what the sheet shows.
   function sheetSources(typeName) {
     return typeName === "Car" ? ["purchasePrice", "loanRate", "loanMonthsLeft", "downPaymentRate", "replaceEveryYears",
-      "replaceEveryMiles", "replaceBy"] : [];
+      "replaceEveryMiles", "replaceBy", "purchaseYear", "firstYearDrop", "depreciationRate", "valueToday"] : [];
+  }
+
+  // The section a field is drawn in on an item's sheet instead of its schema group, or null: a car owned today's
+  // purchase price opens its Value section (`carValue.group`).
+  function sheetGroup(typeName, name, item, rules) {
+    if (typeName === "Car" && name === "purchasePrice" && item && !item.buysLater && rules.carValue) {
+      return rules.carValue.group;
+    }
+    return null;
+  }
+
+  // A car owned today's value as the depreciation calculator sees it (wmti estimatedValueToday): the price paid less
+  // the first-year drop (its own, else `carValue.firstYearDrop`), then the yearly rate for each later year owned up to
+  // `carValue.thisYear`; a car bought this year or later is at its price. null without a year bought or the rules.
+  function carEstimatedValue(car, rules) {
+    const value = rules && rules.carValue;
+    if (!value || !car || car.purchaseYear == null || car.purchaseYear === "") return null;
+    const years = Math.max(0, value.thisYear - Number(car.purchaseYear));
+    const price = Number(car.purchasePrice) || 0;
+    if (years === 0) return price;
+    const drop = car.firstYearDrop == null ? value.firstYearDrop : Number(car.firstYearDrop);
+    return price * (1 - drop) * Math.pow(1 - (Number(car.depreciationRate) || 0), years - 1);
+  }
+
+  // A car's value today (wmti valueTodayOf): the value entered (an override) when above 0, else for a car owned today
+  // (not bought later or leased) its estimate (`carEstimatedValue`), else 0.
+  function carValueToday(car, rules) {
+    if (Number(car.valueToday) > 0 || car.buysLater || car.leases) return Number(car.valueToday) || 0;
+    return carEstimatedValue(car, rules) || 0;
   }
 
   // The label a field takes on an item's sheet instead of its schema label, or null: a commuting car's miles per year
@@ -813,8 +884,8 @@
 
   // A car's card on the Cars chip: its name, the driver, "loan" while it charges one, the replacement cycle when one is
   // on (every so many years or miles, each only while Replace by selects it, and a price above 0: the purchase price of a car bought later when blank), when
-  // it is bought and sold (`spanText`), and its value today (its price when bought later).
-  function carSummary(car, currentAge) {
+  // it is bought and sold (`spanText`), and its value today (its price when bought later; see `carValueToday`).
+  function carSummary(car, currentAge, sheetRules) {
     const price = car.replacementPrice > 0 ? car.replacementPrice : (car.purchasePrice || 0);
     const method = carReplacementMethodOf(car);
     const rules = [];
@@ -826,7 +897,7 @@
     const span = spanText(car, currentAge);
     return { name: car.name, detail: car.driver + (hasCarLoan(car) ? " · loan" : "")
       + (replaced ? " · replaced every " + rules.join(" or ") + how : "") + (span ? " · " + span : ""),
-    value: compactMoney(car.buysLater ? car.purchasePrice : car.valueToday) };
+    value: compactMoney(car.buysLater ? car.purchasePrice : carValueToday(car, sheetRules)) };
   }
 
   // A home's card: its name, "primary residence" or "second home", "mortgage" while its mortgage counts, when it is
@@ -1098,10 +1169,11 @@
   }
 
   // What the cars are worth today and what their loans still owe, all together (as
-  // wmti.dashboard.walkthrough.carTotals): { value, loan }, a loan counted only while it is on.
-  function carTotalsOf(data) {
+  // wmti.dashboard.walkthrough.carTotals): { value, loan }, each car's value today by `carValueToday` (`rules`: the
+  // sheet rules, for the estimate), a loan counted only while it is on.
+  function carTotalsOf(data, rules) {
     const cars = (data && data.cars) || [];
-    return { value: cars.reduce((sum, car) => sum + (car.valueToday || 0), 0),
+    return { value: cars.reduce((sum, car) => sum + carValueToday(car, rules), 0),
       loan: cars.reduce((sum, car) => sum + (car.hasLoan ? car.loanBalance || 0 : 0), 0) };
   }
 
@@ -1140,14 +1212,15 @@
     return items;
   }
 
-  // A question's answer as Trail and Review text, read from the current inputs.
-  function answerText(node, data, facts) {
+  // A question's answer as Trail and Review text, read from the current inputs (`rules`: the sheet rules, for a car's
+  // estimated value).
+  function answerText(node, data, facts, rules) {
     if (node.control === "handoff") return "On the " + (node.handoff ? node.handoff.label : "") + " page";
     if (node.action === "partner") return data.partner != null ? "Yes" : "No";
     if (WALK_COUNT_LISTS[node.action]) return String((data[WALK_COUNT_LISTS[node.action]] || []).length);
     if (node.action === "total") return facts ? fullMoney(facts.monthlySpending) + " a month" : "";
     if (node.action === "carCosts") {
-      const cars = carTotalsOf(data);
+      const cars = carTotalsOf(data, rules);
       return "Worth " + fullMoney(cars.value) + ", loans " + fullMoney(cars.loan);
     }
     if (node.action === "childAges") {
@@ -1418,7 +1491,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,

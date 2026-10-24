@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetSources,
-    panelDefault, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -169,7 +169,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.48c09a2019.js");
+      worker = new Worker("worker.f115d48ebe.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -4323,13 +4323,25 @@
     card.dataset.position = String(position);
     const fields = Object.fromEntries(heirFieldsSchema().map((field) => [field.name, field]));
     const pathOf = (name) => HEIRS_PATH + "." + position + "." + name;
-    const mark = (control, name) => control.classList.toggle("is-default",
-      heirFieldIsDefault(heirFieldsSchema(), getPath(state.inputs, HEIRS_PATH), position, name));
+    const mark = (control, name) => {
+      control.classList.toggle("is-default",
+        heirFieldIsDefault(heirFieldsSchema(), getPath(state.inputs, HEIRS_PATH), position, name));
+      syncReset(control);
+    };
     const commit = (name, value, control) => {
       setValue(pathOf(name), value);
       mark(control, name);
       if (name === "share") updateHeirShareError();
     };
+    // A field's reset button puts back the value it started with (heirDefaults), shown as typing it would show.
+    const startOf = (name) => heirDefaults(heirFieldsSchema(), position,
+      (getPath(state.inputs, HEIRS_PATH) || []).length)[name];
+    const resettable = (control, field, name, show) => addResetButton(control, field.label,
+      () => resetValueText(startOf(name), field, control), () => {
+        const start = startOf(name);
+        show(start);
+        commit(name, start, control);
+      });
     const head = document.createElement("div");
     head.className = "heir-card-head";
     const title = document.createElement("span");
@@ -4361,11 +4373,13 @@
         input.addEventListener("input", () => commit(name, input.value, input));
         mark(input, name);
         shell.append(input);
+        resettable(input, field, name, (start) => { input.value = start == null ? "" : start; });
       } else {
         const box = numberInput(id, field, heirs[position][name], (value) => commit(name, value, input));
         const input = box.querySelector("input");
         mark(input, name);
         shell.append(box);
+        resettable(input, field, name, (start) => { input.value = shown(start, scaleOf(field)); });
       }
       card.append(shell);
     }
@@ -4388,6 +4402,7 @@
       select.addEventListener("change", () => commit(name, select.value === "" ? null : select.value, select));
       mark(select, name);
       shell.append(select);
+      resettable(select, field, name, (start) => { select.value = start == null ? "" : String(start); });
       card.append(shell);
     }
     return card;
@@ -4828,6 +4843,73 @@
     const at = sheetItemOf(path);
     element.classList.toggle("is-default", at ? showsDefault(at.type, at.name, at.item, state.info.sheetRules)
       : panelDefault(path, state.inputs) !== null);
+    syncReset(element);
+  }
+
+  // What a sheet or panel field's reset button puts back ({value, blank}, from the same rules as sheetDefaultOf), or
+  // null when it has no default.
+  function resetTargetOf(path) {
+    const at = sheetItemOf(path);
+    return at ? sheetResetTarget(at.type, at.name, at.item, state.info.sheetRules) : panelResetTarget(path, state.inputs);
+  }
+
+  // ---- Reset to default: a field with a default (`.is-default` while it shows it) gets a small reset button inside
+  // its right edge, shown once the value is edited; a click puts the default back through the field's own edit path
+  // (addResetButton). `describe` gives the default as text for the tooltip, or null when there is none now. ----
+  const RESET_ICON = "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3.5 8a4.5 4.5 0 1 0 "
+    + "1.4-3.3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"/><path d=\"M4.6 1.8"
+    + "v3.2h3.2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" "
+    + "stroke-linejoin=\"round\"/></svg>";
+  const resetDescriptions = new WeakMap();
+
+  // The default's text for a tooltip: a select's option label, else the value in the field's unit ($1,234, 5%).
+  function resetValueText(value, field, control) {
+    if (control.tagName === "SELECT") {
+      const option = Array.from(control.options).find((item) => item.value === (value == null ? "" : String(value)));
+      if (option) return option.textContent;
+      return choiceLabel(field, value, NULL_LABELS[field.name]);
+    }
+    return typeof value === "number" ? formatValue(value, field.unit) : String(value);
+  }
+
+  // Put a reset button beside `control` (inside its $ or % box, else in a new box around it). `reset` stores the
+  // default and shows it; the button then hides and the control takes the focus.
+  function addResetButton(control, label, describe, reset) {
+    let host = control.parentNode;
+    if (!(host && host.classList && host.classList.contains("affix"))) {
+      host = document.createElement("div");
+      control.replaceWith(host);
+      host.append(control);
+    }
+    host.classList.add("has-reset");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "reset-default";
+    button.setAttribute("aria-label", "Reset " + label + " to default");
+    button.innerHTML = RESET_ICON;
+    // A press keeps the focus in the field, so the bottom bar hidden while typing does not come back under the finger.
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("click", () => {
+      reset();
+      if (control.getAttribute("aria-invalid") === "true") control.setAttribute("aria-invalid", "false");
+      const problem = host.nextElementSibling;
+      if (problem && problem.classList.contains("field-error")) problem.hidden = true;
+      if (control.isConnected) control.focus();
+    });
+    resetDescriptions.set(button, describe);
+    host.append(button);
+    syncReset(control);
+  }
+
+  // Show a control's reset button only while its value is not the default (not `.is-default`) and a default exists.
+  function syncReset(control) {
+    const host = control.parentNode;
+    const button = host && host.querySelector ? host.querySelector(":scope > .reset-default") : null;
+    if (!button) return;
+    const text = control.classList.contains("is-default") ? null : resetDescriptions.get(button)();
+    button.hidden = text == null;
+    host.classList.toggle("reset-shown", text != null);
+    if (text != null) button.title = "Reset to default (" + text + ")";
   }
 
   // `filter` (a panel's list filter, see filteredPositions) limits which items of a list field are shown.
@@ -4913,6 +4995,23 @@
         });
         markDefault(select, path);
         wrap.append(select);
+        if (resetTargetOf(path)) {  // reset stores the blank and runs the select's own change path
+          addResetButton(select, field.label, () => {
+            const target = resetTargetOf(path);
+            return target ? resetValueText(target.value, field, select) : null;
+          }, () => {
+            const target = resetTargetOf(path);
+            if (!target) return;
+            setValue(path, target.blank);
+            const now = resetTargetOf(path);
+            const shownChoice = now ? String(now.value) : "";
+            const listed = Array.from(select.options).some((option) => option.value === shownChoice);
+            select.value = listed ? shownChoice : "";
+            markDefault(select, path);
+            afterSheetEdit(path);
+            if (!listed || isConditionPath(path)) refreshForm();
+          });
+        }
         if (LAW_STATE_PATHS.includes(path)) wrap.append(stateRulesLink(select));
         return wrap;
       }
@@ -4937,6 +5036,20 @@
         }, fallback ? fallback.blank : undefined);
         const input = box.querySelector("input") || box;
         markDefault(input, path);
+        if (resetTargetOf(path)) {  // reset stores the blank and shows the source's value, as a redraw would
+          addResetButton(input, field.label, () => {
+            const target = resetTargetOf(path);
+            return target ? resetValueText(target.value, field, input) : null;
+          }, () => {
+            const target = resetTargetOf(path);
+            if (!target) return;
+            setValue(path, target.blank);
+            const now = resetTargetOf(path);
+            input.value = shown(now ? now.value : null, scaleOf(field));
+            markDefault(input, path);
+            input.dispatchEvent(new Event("change"));
+          });
+        }
         const at = sheetItemOf(path);
         if (at && sheetSources(at.type).includes(at.name)) {  // the figures that follow it, or show with it, redraw
           input.addEventListener("change", () => {
@@ -5517,7 +5630,7 @@
         + (span ? " · " + span : ""),
       value: compactMoney(item.balance) };
     }
-    if (typeName === "Car") return carSummary(item, state.inputs.you.currentAge);
+    if (typeName === "Car") return carSummary(item, state.inputs.you.currentAge, state.info.sheetRules);
     if (typeName === "Home") return homeSummary(item, state.inputs.you.currentAge);
     if (typeName === "RentPeriod") {
       const from = item.startAge == null ? "today" : String(timelineYear(item.startAge));
@@ -5892,7 +6005,8 @@
     for (const entry of layout.shown) {
       const schemaChild = children.find((candidate) => candidate.name === entry.name);
       const label = sheetLabel(field.type, entry.name, items[position], state.info.sheetRules);
-      const child = label ? { ...schemaChild, label } : schemaChild;
+      const group = sheetGroup(field.type, entry.name, items[position], state.info.sheetRules);
+      const child = { ...schemaChild, ...(label ? { label } : {}), ...(group ? { group } : {}) };
       if (layout.sections && child.group && child.group !== section) {  // a titled section per schema group
         parts.push(sheetHeading(child.group, section === null));
         section = child.group;
@@ -5903,6 +6017,10 @@
       if (entry.group && entry.group.startsWith("replaceRule")) {  // a car's replacement rule: one bordered block
         if (!ruleBox) parts.push(ruleBox = replaceRuleBox());
         placeInReplaceRule(ruleBox, entry.group, element);
+        continue;
+      }
+      if (field.type === "Car" && entry.name === "purchaseYear") {  // a car owned today: its estimated value follows
+        parts.push(element, carEstimateField(items[position], path + "." + position));
         continue;
       }
       if (entry.group !== "returns") { parts.push(element); continue; }
@@ -5965,6 +6083,24 @@
     $("app").classList.remove("typing");
     const first = body.querySelector("input, select");
     if (first && !keepFocus) first.focus({ preventScroll: true });
+  }
+
+  // A car owned today's estimated value today on its sheet, below the year bought: read only and gray
+  // (`.is-default`), the price paid after the first-year drop and the yearly depreciation (`carEstimatedValue`), or a
+  // prompt without a year bought. A value today entered below overrides it in the model.
+  function carEstimateField(car, path) {
+    const rules = state.info.sheetRules;
+    const id = fieldId(path + ".estimatedValueToday");
+    const wrap = fieldShell(rules.carValue.estimateLabel, null, id);
+    const input = document.createElement("input");
+    input.className = "input is-default car-estimate";
+    input.id = id;
+    input.type = "text";
+    input.readOnly = true;
+    const estimate = carEstimatedValue(car, rules);
+    input.value = estimate == null ? rules.carValue.estimateNone : fullMoney(estimate);
+    wrap.append(input);
+    return wrap;
   }
 
   // A car's replacement rule on its sheet: a bordered block titled by `carReplaceRuleTitle` holding Replace by, the note
@@ -6282,7 +6418,8 @@
   }
 
   // The figures a purchase screen asks: the buying figures and the financing switch with its figures, from the
-  // schema (shares as percents), at the item type's defaults. For an item owned now (`owned`): its value today and the
+  // schema (shares as percents), at the item type's defaults. For an item owned now (`owned`): its value today (a car:
+  // the price paid and the year bought, then the value today as an override; a blank year stays blank) and the
   // financing switch with every financing figure, the balance owed among them. A car bought later asks its Pay method
   // instead of the switch: cash, finance (the loan figures show) or lease, which calls `onLease` (the Add screen's
   // lease case, the same data as adding a lease).
@@ -6307,6 +6444,10 @@
       inputs[name] = () => (field.kind === "toggle" ? element.input.checked
         : (percentUnit ? Number(element.input.value) / 100 : Number(element.input.value)));
       if (field.kind === "integer") inputs[name] = () => Math.round(Number(element.input.value));
+      if (field.nullable && field.kind !== "toggle") {  // a figure that may be blank (a car's year bought) stays blank
+        const read = inputs[name];
+        inputs[name] = () => (element.input.value === "" ? null : read());
+      }
       return element;
     });
     // The financing figures show only while its switch (the mortgage or the loan) is ticked, or the pay method is
@@ -7693,7 +7834,7 @@
   // Whether the inputs hold the example household's answer to a question.
   function walkIsExample(node) {
     if (node.action === "partner") return (state.inputs.partner != null) === node.example;
-    if (node.action === "carCosts") return sameValue(carTotalsOf(state.inputs), node.example);
+    if (node.action === "carCosts") return sameValue(carTotalsOf(state.inputs, state.info.sheetRules), node.example);
     if (node.action === "childAges") {
       return sameValue((state.inputs.children || []).map((child) => child.yourAgeAtBirth), node.example);
     }
@@ -7920,7 +8061,8 @@
               + escapeText(item.id) + "\">+ " + escapeText(item.label) + "</button></li>";
           }
           const node = walk.index[item.id].node;
-          const answer = item.status === "todo" && !review ? "Not yet" : answerText(node, state.inputs, facts);
+          const answer = item.status === "todo" && !review ? "Not yet"
+            : answerText(node, state.inputs, facts, state.info.sheetRules);
           const tag = "<span class=\"walk-tag\" data-status=\"" + item.status + "\">" + WALK_TAGS[item.status]
             + "</span>";
           const text = "<span class=\"walk-row-text\"><span class=\"walk-row-label\">" + escapeText(item.label)

@@ -407,15 +407,28 @@ while it charges a loan, “replaced every N years or M miles” when
 a replacement rule <em>Replace by</em> selects and a price are set (only the
 selected rules are named) (”, financed” or “, leased” after
 it by the replacement pay method), “buys at 55” and “sells at 62” while
-the timeline has it bought or sold during the run, and its value today (its
-price when bought later); Add car opens the timeline’s Add screen, as
+the timeline has it bought or sold during the run, and its value today (the
+value entered, else the estimate from the price paid and the year bought;
+its price when bought later); Add car opens the timeline’s Add screen, as
 for homes, and the car starts with the schema defaults (every switch off)
 apart from what that screen asks; a car’s sheet holds
 every field of a car under the section titles Value,
 Loan, Commute, Running costs, Replacement and Lease (each field’s schema
-<code class="docutils literal notranslate"><span class="pre">group</span></code>). The Lease section shows its <em>Lease</em> switch and, while it is
+<code class="docutils literal notranslate"><span class="pre">group</span></code>). A car owned today opens its Value section with <em>Purchase
+price (as paid)</em> and <em>Year bought</em>, then <em>Estimated value today</em>, gray
+and read only (the price after the first-year drop and the yearly
+depreciation, <code class="docutils literal notranslate"><span class="pre">carEstimatedValue</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>, or a prompt
+without a year bought), <em>Depreciation first year</em> (blank: the usual drop,
+gray), <em>Depreciation per year</em> and <em>Value today (override)</em>, which wins
+over the estimate when above 0 (<code class="docutils literal notranslate"><span class="pre">sheetGroup</span></code> moves the purchase price
+into Value; <code class="docutils literal notranslate"><span class="pre">carValue</span></code> in the sheet rules). The Lease section shows its <em>Lease</em> switch and, while it is
 on, the lease payment per month, and hides the value, the loan and the
-replacement figures; while the car is bought later the value today and
+replacement figures. The Lease switch and its section are left off
+while it is off and the car is bought later or has a replacement rule
+whose replacements are paid with cash or finance (<code class="docutils literal notranslate"><span class="pre">itemSwitchHiddenBy</span></code>;
+a purchase or replacement is leased through its pay method instead); a
+switch already on stays shown so it can be turned off. While the car is
+bought later the value today and
 the loan balance are hidden and the loan’s months read <em>Loan term
 (months)</em> (<code class="docutils literal notranslate"><span class="pre">itemSwitchReplaces</span></code> and <code class="docutils literal notranslate"><span class="pre">switchLabels</span></code>). The Loan
 section opens with <em>Pay method</em> (cash or finance; choosing one sets the
@@ -430,17 +443,18 @@ age of car</em>: <em>Replace every (years)</em> and <em>First replacement in
 the model ignores them. The price and pay figures follow below the
 block. While a replacement rule is on, the Replacement section adds
 <em>Replacement paid by</em> with the loan figures of a financed replacement or
-the lease figures of a leased one (<code class="docutils literal notranslate"><span class="pre">carReplacementPayFields</span></code>), and a car
-owned today shows its <em>Price paid</em> (its purchase price). A blank figure
-that falls back on another (the replacement price, the two pay methods,
-the replacement loan rate, term and down payment) shows that figure’s
+the lease figures of a leased one (<code class="docutils literal notranslate"><span class="pre">carReplacementPayFields</span></code>). A blank figure
+that falls back on another (the replacement price, which shows the
+purchase price, the price paid; the two pay methods; the replacement
+loan rate, term and down payment; the first-year drop) shows that figure’s
 value, in a muted colour (<code class="docutils literal notranslate"><span class="pre">.is-default</span></code>), and follows it until you
 change it; clearing it follows again (<code class="docutils literal notranslate"><span class="pre">sheetDefault</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>).
 The car’s
 purchase and sale are set on the Cars chip’s <em>Timeline</em> pane, at the top
 of the panel, which works as Home’s: one bar row per lane (a lease
 outlined), and <em>Add car</em> under the car cards opens its Add screen, which offers a
-car owned now, a future purchase (its <em>Pay method</em>: cash, finance with
+car owned now (its purchase price as paid, year bought, optional value
+today override and the loan; <code class="docutils literal notranslate"><span class="pre">CAR_OWNED_FIELDS</span></code>), a future purchase (its <em>Pay method</em>: cash, finance with
 the loan figures, or lease, which turns the screen into the Lease case) or a Lease (name, lease start, optional end and monthly
 payment); a future purchase or a lease has an optional <em>Replaces</em>
 select (<a class="reference internal" href="overview.html#term-Replaces"><span class="xref std std-term">Replaces</span></a>) (“Nothing, a separate item”, or a car owned; for homes, a home on
@@ -744,6 +758,17 @@ path keys); <code class="docutils literal notranslate"><span class="pre">showUnd
 Every dialog keeps the focus inside it
 while open, closes on Escape, Cancel or a tap outside, and gives the focus back
 to the button that opened it.</p>
+<p><strong>Reset to default</strong>: every field that shows a default in gray (<code class="docutils literal notranslate"><span class="pre">.is-default</span></code>: a
+blank sheet figure that shows its source, such as a car’s replacement price
+following its purchase price or an expense row’s <em>Taxable</em>; the blank move age;
+a beneficiary’s start values) gets a small circular-arrow button inside its
+right edge once it is edited, hidden again while the default shows. The button
+(<em>Reset &lt;field&gt; to default</em>, tooltip <em>Reset to default (&lt;value&gt;)</em>) puts back
+what <code class="docutils literal notranslate"><span class="pre">sheetResetTarget</span></code> and <code class="docutils literal notranslate"><span class="pre">panelResetTarget</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>
+(or <code class="docutils literal notranslate"><span class="pre">heirDefaults</span></code>) say: a blank-means-source field gets its blank back, not a
+copy of the number, so it follows its source again. The reset goes through the
+field’s own edit path (<code class="docutils literal notranslate"><span class="pre">addResetButton</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>), so it
+saves, reruns and is an undo step like typing.</p>
 </section>
 <section id="swapping-tabs">
 <h3>Swapping tabs<a class="headerlink" href="#swapping-tabs" title="Link to this heading"></a></h3>
