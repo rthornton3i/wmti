@@ -209,7 +209,12 @@ already a row on Expenses, tick <em>Payment in Expenses</em> so it is not charge
 <p>Saved configs are JSON files; <code class="docutils literal notranslate"><span class="pre">saveInputs</span></code> and <code class="docutils literal notranslate"><span class="pre">loadInputs</span></code> write and read
 them, and a file from an older version of the toolkit is upgraded when it loads.
 <code class="docutils literal notranslate"><span class="pre">loadInputsWithVersion</span></code> also returns the file’s own <code class="docutils literal notranslate"><span class="pre">schemaVersion</span></code>, so a
-caller can tell an upgraded load. <code class="docutils literal notranslate"><span class="pre">loadScenarioUpgrading</span></code> (in
+caller can tell an upgraded load. A file with no <code class="docutils literal notranslate"><span class="pre">schemaVersion</span></code> is read as
+version 0, but one that also holds <code class="docutils literal notranslate"><span class="pre">homes</span></code>, <code class="docutils literal notranslate"><span class="pre">rents</span></code> or <code class="docutils literal notranslate"><span class="pre">cars</span></code> (lists only
+newer versions save) is refused with a message asking for the version it was saved
+with. Whole-number fields (ages, years, months) refuse a fraction such as 40.7, and
+an upgrade that changes results warns, never naming the amounts.
+<code class="docutils literal notranslate"><span class="pre">loadScenarioUpgrading</span></code> (in
 <code class="docutils literal notranslate"><span class="pre">wmti.inputs.scenarios</span></code>) saves an upgraded config
 back at once in the current format after copying the original to
 <code class="docutils literal notranslate"><span class="pre">.backup/&lt;name&gt;.v&lt;old</span> <span class="pre">version&gt;.json</span></code> beside it (an existing backup is never

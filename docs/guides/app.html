@@ -217,8 +217,8 @@ Household &amp; run:
 the “Include a partner” switch, Your age
 and Partner age (the current ages; Partner age only with a partner),
 filing status, home state, the partner’s share of joint accounts and the years
-to simulate. Below it the Run card: the Seed (of the single run behind the headline figures
-and of the Monte Carlo, whose first run is that single run), the Runs
+to simulate. Below it the Run card: the Seed (a whole number of 0 or more; of the single run
+behind the headline figures and of the Monte Carlo, whose first run is that single run), the Runs
 (25, 50 or 100, default 25; the one run count for the Monte Carlo and
 Compare; its help gives the time on this device); then the Inflation card with the inflation adjusted switch
 (amounts in today’s value when off) and the Inflation range under it; load the example household
@@ -318,12 +318,20 @@ later), Rent, one card per rent period (its name, “per month” with its
 first and last years, “today” and “open” for renting today and to the end,
 and its monthly rent), Utilities, and Other mortgage loans, the Mortgage
 loans a home cannot hold (the panel’s <code class="docutils literal notranslate"><span class="pre">labels</span></code>) with an “Add mortgage
-loan” button. The <em>Timeline</em> pane draws one bar row per <a class="reference internal" href="overview.html#term-Lane"><span class="xref std std-term">lane</span></a> (owned
-filled, rent hatched; <code class="docutils literal notranslate"><span class="pre">timelineBars</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>, from
-the worker’s <code class="docutils literal notranslate"><span class="pre">timelineView</span></code>) and one card per stretch (“Elm St, owned
-2026-2035”, “Rent, rented 2036-2040”, “No home 2041-2045”) with <em>Edit</em>
-and <em>Delete</em> (a second tap confirms); the pane has no Add button of its
-own. <em>Add home</em> under the home cards opens the
+loan” button. The <em>Timeline</em> pane draws one group per <a class="reference internal" href="overview.html#term-Lane"><span class="xref std std-term">lane</span></a>: its
+bar row (owned filled, rent hatched; <code class="docutils literal notranslate"><span class="pre">timelineBars</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>, from the worker’s <code class="docutils literal notranslate"><span class="pre">timelineView</span></code>), then right
+below it the cards of that row’s stretches in order (“Elm St, owned
+2026-2035”, “Rent, rented 2036-2040”, “No home 2041-2045”), then the next
+row and its cards, so each card sits under its own row. A card has <em>Edit
+timeline</em> (a pencil icon and the words; its accessible name is “Edit
+timeline: Elm St”) and <em>Delete</em> (a second tap confirms); the pane has no
+Add button of its own. <em>Edit timeline</em> opens the timeline’s own screen,
+titled “Edit timeline: &lt;name&gt;”, for the years and price only; its <em>Open full
+home details</em> (<em>Open full rent details</em>) link closes it with nothing
+applied and opens the item’s full sheet, and the sheet of a home, rent
+period or car has a matching <em>Edit on timeline</em> button.
+<em>Add home</em> under the home cards opens the
 timeline’s one Add screen, “What are you adding?”: I currently own it
 (its name, optional sale year, value today and mortgage with the balance
 owed; beside a home owned today it is a second home), A future purchase
@@ -331,12 +339,16 @@ owed; beside a home owned today it is a second home), A future purchase
 mortgage) or Rent (a rent period: its name, first year, optional last
 year and monthly rent); the mortgage figures show only while its switch
 is ticked. <em>Add rent period</em> opens the same screen with Rent chosen.
-<em>Edit</em> plans a sale: its <em>Plan to sell it</em> tick shows the sale year
+<em>Edit timeline</em> plans a sale: its <em>Plan to sell it</em> tick shows the sale year
 (your age beside it), and unticked the home is kept. Every screen is
 final, in the bottom sheet with one <em>Save</em> (applies the edit and closes)
 and one <em>Cancel</em> (closes with nothing applied); the sheet’s own header
 Done is hidden while it shows (<code class="docutils literal notranslate"><span class="pre">timeline-sheet</span></code>).
 The words come from <code class="docutils literal notranslate"><span class="pre">timeline.flow</span></code> in the settings schema.
+A warnings box under the Homes pane says when a Mortgage loan is entered
+while you own no home, and names the Expenses rows that charge a utility or
+a home’s insurance the Home tab already charges (<code class="docutils literal notranslate"><span class="pre">homeWarnings</span></code> from
+<code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code>).
 Back to back stretches share a year and the new one counts for it (its
 bar fills that year). Adding a home or rent period
 between two others refits both: the one before ends in its first year,
@@ -409,33 +421,39 @@ selected rules are named) (”, financed” or “, leased” after
 it by the replacement pay method), “buys at 55” and “sells at 62” while
 the timeline has it bought or sold during the run, and its value today (the
 value entered, else the estimate from the price paid and the year bought;
-its price when bought later); Add car opens the timeline’s Add screen, as
-for homes, and the car starts with the schema defaults (every switch off)
-apart from what that screen asks; a car’s sheet holds
-every field of a car under the section titles Value,
-Loan, Commute, Running costs, Replacement and Lease (each field’s schema
-<code class="docutils literal notranslate"><span class="pre">group</span></code>). A car owned today opens its Value section with <em>Purchase
-price (as paid)</em> and <em>Year bought</em>, then <em>Estimated value today</em>, gray
-and read only (the price after the first-year drop and the yearly
-depreciation, <code class="docutils literal notranslate"><span class="pre">carEstimatedValue</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>, or a prompt
-without a year bought), <em>Depreciation first year</em> (blank: the usual drop,
-gray), <em>Depreciation per year</em> and <em>Value today (override)</em>, which wins
-over the estimate when above 0 (<code class="docutils literal notranslate"><span class="pre">sheetGroup</span></code> moves the purchase price
-into Value; <code class="docutils literal notranslate"><span class="pre">carValue</span></code> in the sheet rules). The Lease section shows its <em>Lease</em> switch and, while it is
-on, the lease payment per month, and hides the value, the loan and the
-replacement figures. The Lease switch and its section are left off
-while it is off and the car is bought later or has a replacement rule
-whose replacements are paid with cash or finance (<code class="docutils literal notranslate"><span class="pre">itemSwitchHiddenBy</span></code>;
-a purchase or replacement is leased through its pay method instead); a
-switch already on stays shown so it can be turned off. While the car is
+its price when bought later; 0 for a leased car, which is not owned); Add
+car opens the timeline’s Add screen, as
+for homes, and the car starts with the schema defaults (paid in cash,
+every switch off) apart from what that screen asks; a car’s sheet holds
+every field of a car in one order under the section titles Basics, Value,
+How it is paid, Replacement, Commute and Running costs (each field’s
+schema <code class="docutils literal notranslate"><span class="pre">group</span></code>). A car owned today opens its Value section with
+<em>Purchase price (as paid)</em>, <em>Year bought</em>, <em>Depreciation first year</em>
+(blank: the usual drop, gray) and <em>Depreciation per year</em>, the figures
+that feed its one <em>Value today</em>, which follows them: while it
+is blank or 0 it shows the estimate gray (the price after the
+first-year drop and the yearly depreciation, <code class="docutils literal notranslate"><span class="pre">carEstimatedValue</span></code> in
+<code class="docutils literal notranslate"><span class="pre">shared.js</span></code>), or is empty with a prompt without a year bought
+(<code class="docutils literal notranslate"><span class="pre">sheetPrompt</span></code>); a value typed wins over the estimate and its reset
+button puts the estimate back (stores 0)
+(<code class="docutils literal notranslate"><span class="pre">sheetGroup</span></code> moves the purchase price into Value; <code class="docutils literal notranslate"><span class="pre">carValue</span></code> in
+the sheet rules). The timeline’s Add screen asks the same single
+<em>Value today</em>, empty with the estimate as its placeholder. The How it
+is paid section opens with one <em>How it is paid</em> toggle (Cash, Finance
+or Lease, showing what the car does: <code class="docutils literal notranslate"><span class="pre">carPaidBy</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>);
+it sets the car’s pay method and its Loan and Lease switches
+(<code class="docutils literal notranslate"><span class="pre">clearedOnChange</span></code>), which are never drawn (<code class="docutils literal notranslate"><span class="pre">carPaidBySwitches</span></code>).
+Finance shows the loan figures, Lease the lease payment per month and
+hides the value, the loan and the replacement figures
+(<code class="docutils literal notranslate"><span class="pre">itemSwitchReplaces</span></code>), Cash neither. While the car is
 bought later the value today and
 the loan balance are hidden and the loan’s months read <em>Loan term
-(months)</em> (<code class="docutils literal notranslate"><span class="pre">itemSwitchReplaces</span></code> and <code class="docutils literal notranslate"><span class="pre">switchLabels</span></code>). The Loan
-section opens with <em>Pay method</em> (cash or finance; choosing one sets the
-<em>Car loan</em> switch, and turning the switch makes it follow the switch
-again). The Replacement section opens with a bordered <em>Replacement
+(months)</em> (<code class="docutils literal notranslate"><span class="pre">itemSwitchReplaces</span></code> and <code class="docutils literal notranslate"><span class="pre">switchLabels</span></code>). A switch the
+item’s plan rules out would be hidden while off (<code class="docutils literal notranslate"><span class="pre">itemSwitchHiddenBy</span></code>,
+empty now). The Replacement section opens with a bordered <em>Replacement
 rule</em> block: the <em>Replace by</em> toggle (Years, Miles or Both), the note
-that with Both the first rule reached triggers the replacement, then
+that with Both the first rule reached triggers the replacement (only
+while Both is chosen), then
 the figures of each rule the toggle selects under its sub-label (<em>By
 age of car</em>: <em>Replace every (years)</em> and <em>First replacement in
 (years)</em>; <em>By miles</em>: <em>Replace every (miles)</em> and <em>Miles on it today</em>;
@@ -445,7 +463,8 @@ block. While a replacement rule is on, the Replacement section adds
 <em>Replacement paid by</em> with the loan figures of a financed replacement or
 the lease figures of a leased one (<code class="docutils literal notranslate"><span class="pre">carReplacementPayFields</span></code>). A blank figure
 that falls back on another (the replacement price, which shows the
-purchase price, the price paid; the two pay methods; the replacement
+purchase price, the price paid; <em>Replacement paid by</em>, which shows the
+car’s own, its blank labelled <em>Same as the car</em>; the replacement
 loan rate, term and down payment; the first-year drop) shows that figure’s
 value, in a muted colour (<code class="docutils literal notranslate"><span class="pre">.is-default</span></code>), and follows it until you
 change it; clearing it follows again (<code class="docutils literal notranslate"><span class="pre">sheetDefault</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>).
@@ -453,14 +472,27 @@ The car’s
 purchase and sale are set on the Cars chip’s <em>Timeline</em> pane, at the top
 of the panel, which works as Home’s: one bar row per lane (a lease
 outlined), and <em>Add car</em> under the car cards opens its Add screen, which offers a
-car owned now (its purchase price as paid, year bought, optional value
-today override and the loan; <code class="docutils literal notranslate"><span class="pre">CAR_OWNED_FIELDS</span></code>), a future purchase (its <em>Pay method</em>: cash, finance with
-the loan figures, or lease, which turns the screen into the Lease case) or a Lease (name, lease start, optional end and monthly
-payment); a future purchase or a lease has an optional <em>Replaces</em>
+car owned now (its <em>Purchase price (as paid)</em>, <em>Year bought</em>, optional value
+today override and the loan; <code class="docutils literal notranslate"><span class="pre">CAR_OWNED_FIELDS</span></code>) or a future purchase
+(its <em>Buy in year</em> and price); either then asks the same <em>How it is
+paid</em> as the sheet: Cash, Finance with the loan figures, or Lease, which
+asks only the lease payment and turns the years into the lease’s start
+(none for a lease running today) and optional end. Edit on a lease
+running today keeps it so (<em>Leased since before today</em>). A future
+purchase has an optional <em>Replaces</em>
 select (<a class="reference internal" href="overview.html#term-Replaces"><span class="xref std std-term">Replaces</span></a>) (“Nothing, a separate item”, or a car owned; for homes, a home on
 the first lane) that puts the new one in that car’s lane, starting in its
-sale year; a sale is planned, or the car kept, on <em>Edit</em>. The Loan section shows its <em>Car loan</em> switch and, while it is
-on, the loan figures; the Commute section shows its <em>Commutes to work</em>
+sale year; a sale is planned, or the car kept, on <em>Edit timeline</em>. A car’s
+replacements by its replacement rule (by age, by miles, or Both at
+whichever comes first) show on its row as calculated, not entered: gray
+stretches of its bar and gray, dashed cards under its card (“Sedan
+replacement, 2031 by miles”, titled <em>Calculated from the replacement
+rule</em>), with a gray legend under the pane. Their years are the model’s own
+(<code class="docutils literal notranslate"><span class="pre">carReplacements</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.cars.cars</span></code>, run by <code class="docutils literal notranslate"><span class="pre">timelineView</span></code> on the
+inputs as the run holds them, commute miles counting only while the
+driver works), so the timeline shows exactly the replacements the run
+makes; a leased car has none, a car sold first has none from its sale
+year, and no miles per year never replaces by miles. The Commute section shows its <em>Commutes to work</em>
 switch, the commute figures while it is on, and the miles per year,
 labelled <em>Miles per year</em> without a commute and <em>Extra miles per year (not
 commuting)</em> with one (<code class="docutils literal notranslate"><span class="pre">sheetRules</span></code>’ <code class="docutils literal notranslate"><span class="pre">itemSwitches</span></code> and

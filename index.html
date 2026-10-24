@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-ksXI8feWN09s27Wvi85nj3iRLp24d6KMUCuK1384QOM=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-tp2XbDLN0aL5A3dADJ2a8Av3MmrWagP/FH2GJUwn2Bk=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1011,22 +1011,36 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .state-rules-link { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; color: var(--accent);
   font-size: 14px; text-decoration: underline; }
 
-/* The ownership timeline on the Home and Cars panes: one bar row per lane (owned filled, rented hatched, leased
-   outlined, no car blank), the segment cards with their buttons, and the workflow's fields in the bottom sheet. */
+/* The ownership timeline on the Home and Cars panes: one group per lane, its bar row (owned filled, rented hatched,
+   leased outlined, no car blank, a car's calculated replacements gray) then its segment cards with their buttons and
+   its calculated replacement cards (gray, dashed); and the workflow's fields in the bottom sheet. */
 .timeline-body { display: grid; gap: 10px; }
 .earnings-editor .input { width: 100%; min-width: 6em; }
-.timeline-bars { display: grid; gap: 6px; padding: 6px 0; }
+.timeline-group { display: grid; gap: 8px; padding: 6px 0; }
+.timeline-group + .timeline-group { border-top: 1px solid var(--line); padding-top: 12px; }
 .timeline-lane { position: relative; height: 22px; border-radius: 6px; background: var(--surface-2); }
 .timeline-bar { position: absolute; top: 0; bottom: 0; border-radius: 6px; box-sizing: border-box; }
 .timeline-bar[data-mode=own] { background: var(--s0); }
 .timeline-bar[data-mode=rent] { background: repeating-linear-gradient(45deg, var(--s1) 0 4px, transparent 4px 8px); }
 .timeline-bar[data-mode=lease] { border: 2px solid var(--s2); }
 .timeline-bar[data-mode=gap] { background: transparent; }
+.timeline-bar.timeline-calculated { border-left: 2px solid var(--surface); }
+.timeline-bar.timeline-calculated[data-mode=own] { background: var(--muted); opacity: .45; }
+.timeline-bar.timeline-calculated[data-mode=lease] { background: var(--surface-2); border: 2px dashed var(--muted); }
 .timeline-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.timeline-card { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
-  background: var(--surface); }
+.timeline-card, .timeline-replacement { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 10px; background: var(--surface); min-width: 0; overflow-wrap: anywhere; }
+.timeline-replacement.is-calculated { margin-left: 14px; border-style: dashed; background: var(--surface-2);
+  color: var(--muted); }
+.timeline-replacement .timeline-text { font-weight: 400; }
 .timeline-text { font-weight: 600; }
 .timeline-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.timeline-actions .button[data-action=edit] { display: inline-flex; align-items: center; gap: 6px; }
+.button-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; }
+.timeline-legend { display: flex; align-items: center; gap: 6px; margin: 0; }
+.timeline-swatch { width: 18px; height: 10px; border-radius: 3px; background: var(--muted); opacity: .45; flex: none; }
+.timeline-details { justify-self: start; }
 .timeline-question { display: grid; gap: 8px; }
 .timeline-field { display: grid; gap: 4px; padding: 6px 0; }
 .timeline-field[hidden] { display: none; }
@@ -1398,14 +1412,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "477eb6376d17", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "62454671b57a", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.cff4cab1b9.js"></script>
+<script src="shared.630752009c.js"></script>
 <script src="charts.54d59a7eb6.js"></script>
 <script src="insights.ee50546e73.js"></script>
 <script src="report.ad13ed448d.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.44734bf7ab.js"></script>
+<script src="app.6c680f3089.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

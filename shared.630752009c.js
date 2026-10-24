@@ -133,22 +133,23 @@
       order: ["name", "kind", "owner", "startingValue", "meanReturn", "returnStdDev", "costBasis", "iraBasis"],
       groups: { meanReturn: "returns", returnStdDev: "returns", costBasis: "returns", iraBasis: "returns" },
     },
-    // Drawn in titled sections by each field's schema group (Value, Loan, Commute, Running costs, Replacement, Lease);
-    // the miles per year close the Commute section, after the commute figures its switch shows. The purchase and sale
-    // are set on the timeline (`timelineManaged`), so their sections are not drawn. A car owned today opens its Value
-    // with the price paid and the year bought (then its estimated value today, `carEstimatedValue`), the two
-    // depreciation rates and the value today as an override.
+    // Drawn in titled sections by each field's schema group: Basics, Value, How it is paid, Replacement, Commute,
+    // Running costs. A car owned today opens its Value with the price paid, the year bought and the two depreciation
+    // rates that feed its one value today (the estimate gray until a value is entered, see SHEET_DEFAULTS). How it is
+    // paid is one Cash / Finance / Lease control (`payMethod`, which sets the Loan and Lease switches, never drawn)
+    // followed by the loan figures or the lease payment. The miles per year close the Commute section, after the
+    // commute figures its switch shows. The purchase and sale are set on the timeline (`timelineManaged`), so their
+    // sections are not drawn.
     Car: {
       order: ["name", "driver", "purchasePrice", "purchaseYear", "firstYearDrop", "depreciationRate", "valueToday",
-        "payMethod", "hasLoan", "loanBalance", "loanRate",
-        "loanMonthsLeft", "loanExtraMonthly", "commutes", "commuteMilesOneWay", "commuteDaysPerYear", "commuteTollsPerDay",
-        "otherMilesPerYear", "milesPerGallon", "insurancePerYear", "registrationPerYear", "maintenancePerYear",
+        "payMethod", "hasLoan", "loanBalance", "loanRate", "loanMonthsLeft", "loanExtraMonthly", "leases", "leaseMonthly",
         "replaceBy", "replaceEveryYears", "replaceInYears", "replaceEveryMiles", "odometerToday", "replacementPrice",
         "replacementPayMethod", "replacementLoanRate", "replacementLoanMonths", "replacementDownPaymentRate",
-        "replacementLeaseMonthly", "replacementLeaseMonths", "replacementLeaseFee", "leases", "leaseMonthly", "buysLater",
-        "purchaseAge",
-        "downPaymentRate", "salesTaxRate", "purchaseFees", "sellsLater", "saleAge", "salePrice", "sellingCostRate",
-        "sellingFees", "prepayPenaltyRate"],
+        "replacementLeaseMonthly", "replacementLeaseMonths", "replacementLeaseFee",
+        "commutes", "commuteMilesOneWay", "commuteDaysPerYear", "commuteTollsPerDay", "otherMilesPerYear",
+        "milesPerGallon", "insurancePerYear", "registrationPerYear", "maintenancePerYear",
+        "buysLater", "purchaseAge", "downPaymentRate", "salesTaxRate", "purchaseFees",
+        "sellsLater", "saleAge", "salePrice", "sellingCostRate", "sellingFees", "prepayPenaltyRate"],
       groups: {},
       sections: true,
     },
@@ -169,8 +170,8 @@
   // the timeline, and so is a car's lane. The figures behind an item's other switches (a car's loan, commute and lease;
   // a home's mortgage; a loan's later start and early payoff: `itemSwitches`) show only while it is on, and the figures
   // a switch replaces (a car bought later has no value or balance today, a leased one no value, loan or replacement:
-  // `itemSwitchReplaces`) only while it is off. A switch the item's plan rules out is hidden while off
-  // (`switchRuledOut`).
+  // `itemSwitchReplaces`) only while it is off. A car's Loan and Lease switches are set by its How it is paid
+  // (`carPaidBySwitches`), never drawn. A switch the item's plan rules out is hidden while off (`switchRuledOut`).
   function hiddenReason(typeName, name, item, rules) {
     if (typeName === "Car") {
       const reason = carHiddenReason(name, item, rules);
@@ -213,9 +214,9 @@
     return null;
   }
 
-  // Why a switch is left off an item's sheet because the item's plan rules it out (`itemSwitchHiddenBy`: a car bought
-  // later, or replaced with cash or a loan, has no Lease switch), or null. A switch that is on stays shown so it can
-  // be turned off.
+  // Why a switch is left off an item's sheet because the item's plan rules it out (`itemSwitchHiddenBy`: the switches
+  // that do while on and, for a car, the replacement pay methods that do), or null. A switch that is on stays shown so
+  // it can be turned off.
   function switchRuledOut(typeName, name, item, rules) {
     const by = ((rules.itemSwitchHiddenBy || {})[typeName] || {})[name];
     if (!by || item[name]) return null;
@@ -229,12 +230,18 @@
   }
 
   // Why a car's pay or replacement rule figure is left off its sheet: null when shown, undefined when the general rules
-  // decide. A rule's figures show only while Replace by selects that rule (`carReplaceRules`). A car owned today shows
-  // its purchase price (the price paid, which sets its estimated value and which a blank replacement price follows)
-  // unless it is leased, and its replacement pay figures only while a replacement rule is on and it is not leased; the
-  // loan figures of a replacement only while the replacements are financed, the lease figures only while they are
-  // leased (`carReplacementPayFields`).
+  // decide. The Loan and Lease switches are set by How it is paid (`carPaidBySwitches`); the loan figures show only
+  // while it is Finance (`carPaidBy`). A rule's figures show only while Replace by selects that rule
+  // (`carReplaceRules`). A car owned today shows its purchase price (the price paid, which sets its estimated value and
+  // which a blank replacement price follows) unless it is leased, and its replacement pay figures only while a
+  // replacement rule is on and it is not leased; the loan figures of a replacement only while the replacements are
+  // financed, the lease figures only while they are leased (`carReplacementPayFields`).
   function carHiddenReason(name, item, rules) {
+    if ((rules.carPaidBySwitches || []).includes(name)) return "set by How it is paid";
+    if ((((rules.itemSwitches || {}).Car || {}).hasLoan || []).includes(name)) {
+      if (carPaidBy(item) !== "finance") return "shown while How it is paid is Finance";
+      return item.buysLater && name === "loanBalance" ? undefined : null;
+    }
     for (const [rule, entry] of Object.entries(rules.carReplaceRules || {})) {
       if (entry.fields.includes(name) && !item.leases && !carReplaceRulesOf(item)[rule]) {
         return "shown while Replace by is " + (rule === "years" ? "Years" : "Miles") + " or Both";
@@ -280,6 +287,15 @@
     return null;
   }
 
+  // How a car is paid as its How it is paid control shows it: what the model does with the car, so the control never
+  // disagrees with the results. Leased: lease; bought later: its pay method (carPayMethodOf); owned today: finance
+  // while its Loan switch is on (wmti hasCarLoan), else cash.
+  function carPaidBy(car) {
+    if (car.leases) return "lease";
+    if (car.buysLater) return carPayMethodOf(car);
+    return car.hasLoan ? "finance" : "cash";
+  }
+
   // How a car is paid and how its replacements are (wmti payMethodOf and replacementMethodOf): a blank pay method
   // follows the Lease and Loan switches; a blank replacement pay method follows the car's.
   function carPayMethodOf(car) {
@@ -295,12 +311,17 @@
   // The blank sheet figures that show another figure's value until edited, by item type: each field's source and the
   // value it holds while blank (wmti.cars.cars falls back the same way, so what is shown is what the model uses).
   // `shown` may read the sheet rules (an expense row's sales tax default by its name, `rules.taxableDefaults`).
+  // `prompt` (optional) is the placeholder an empty box shows while the blank has no source value (`sheetPrompt`).
   const SHEET_DEFAULTS = {
     Car: {
+      // A blank or 0 value today shows the estimate from the price paid and the year bought (wmti valueTodayOf); a
+      // value entered overrides it. Without a year bought the box stays empty with `carValue.estimateNone`.
+      valueToday: { blank: 0,
+        shown: (car, rules) => (car.buysLater || car.leases ? null : carEstimatedValue(car, rules)),
+        prompt: (rules) => (rules.carValue ? rules.carValue.estimateNone : null) },
       replacementPrice: { blank: 0, shown: (car) => (car.purchasePrice > 0 ? car.purchasePrice : null) },
       // A blank first-year drop shows the usual one (`carValue.firstYearDrop`, from .config/carDepreciation.json).
       firstYearDrop: { blank: null, shown: (car, rules) => (rules.carValue ? rules.carValue.firstYearDrop : null) },
-      payMethod: { blank: "", shown: (car) => (car.hasLoan ? "finance" : "cash") },
       replacementPayMethod: { blank: "", shown: (car) => carPayMethodOf(car) },
       replacementLoanRate: { blank: null, shown: (car) => car.loanRate },
       replacementLoanMonths: { blank: null, shown: (car) => car.loanMonthsLeft },
@@ -330,6 +351,17 @@
     if (!(stored === rule.blank || stored == null)) return null;
     const value = rule.shown(item, rules || {});
     return value == null ? null : { value, blank: rule.blank };
+  }
+
+  // What an empty sheet field says while it holds its blank and its source shows nothing: {text, blank} with the
+  // rule's prompt and the stored blank, or null (no prompt, a value of its own, or a source value to show instead).
+  function sheetPrompt(typeName, name, item, rules) {
+    const rule = (SHEET_DEFAULTS[typeName] || {})[name];
+    if (!rule || !rule.prompt || !item) return null;
+    const stored = item[name];
+    if (!(stored === rule.blank || stored == null) || rule.shown(item, rules || {}) != null) return null;
+    const text = rule.prompt(rules || {});
+    return text == null ? null : { text, blank: rule.blank };
   }
 
   // Whether a sheet field shows its source's value (styled as a default, `.is-default`) rather than one entered.
@@ -476,10 +508,11 @@
     return price * (1 - drop) * Math.pow(1 - (Number(car.depreciationRate) || 0), years - 1);
   }
 
-  // A car's value today (wmti valueTodayOf): the value entered (an override) when above 0, else for a car owned today
-  // (not bought later or leased) its estimate (`carEstimatedValue`), else 0.
+  // A car's value today (wmti valueTodayOf): 0 for a leased car, which is not owned; the value entered (an override)
+  // when above 0, else for a car owned today (not bought later) its estimate (`carEstimatedValue`), else 0.
   function carValueToday(car, rules) {
-    if (Number(car.valueToday) > 0 || car.buysLater || car.leases) return Number(car.valueToday) || 0;
+    if (car.leases) return 0;
+    if (Number(car.valueToday) > 0 || car.buysLater) return Number(car.valueToday) || 0;
     return carEstimatedValue(car, rules) || 0;
   }
 
@@ -498,9 +531,10 @@
   }
 
   // The switches on an item's sheet that show or hide other fields, so changing one redraws the sheet (the timeline's
-  // switches are not on the sheet).
+  // switches and the car switches How it is paid sets are not on the sheet; How it is paid is).
   function sheetSwitches(typeName, rules) {
-    const managed = (rules.timelineManaged || {})[typeName] || [];
+    const managed = ((rules.timelineManaged || {})[typeName] || [])
+      .concat(typeName === "Car" ? rules.carPaidBySwitches || [] : []);
     const switches = Object.keys((rules.itemSwitches || {})[typeName] || {}).filter((toggle) => !managed.includes(toggle));
     return typeName === "Car" ? switches.concat(["payMethod", "replacementPayMethod"]) : switches;
   }
@@ -541,13 +575,14 @@
       if (item.kind !== rules.iraBasisKind && item.iraBasis != null) cleared.iraBasis = null;
       if (!rules.depositKinds.includes(item.kind) && item.deposit != null) cleared.deposit = null;
     }
-    // A car's pay method and its Loan switch say the same thing: choosing cash or finance sets the switch, and
-    // turning the switch blanks the pay method so it follows the switch again.
+    // A car's How it is paid sets its Loan and Lease switches: Finance turns the Loan switch on, Lease the Lease
+    // switch, Cash both off.
     if (typeName === "Car" && field === "payMethod" && item.payMethod) {
       const financed = item.payMethod === "finance";
+      const leased = item.payMethod === "lease";
       if (Boolean(item.hasLoan) !== financed) cleared.hasLoan = financed;
+      if (Boolean(item.leases) !== leased) cleared.leases = leased;
     }
-    if (typeName === "Car" && field === "hasLoan" && item.payMethod) cleared.payMethod = "";
     return cleared;
   }
 
@@ -897,7 +932,7 @@
     const span = spanText(car, currentAge);
     return { name: car.name, detail: car.driver + (hasCarLoan(car) ? " · loan" : "")
       + (replaced ? " · replaced every " + rules.join(" or ") + how : "") + (span ? " · " + span : ""),
-    value: compactMoney(car.buysLater ? car.purchasePrice : carValueToday(car, sheetRules)) };
+    value: compactMoney(car.buysLater && !car.leases ? car.purchasePrice : carValueToday(car, sheetRules)) };
   }
 
   // A home's card: its name, "primary residence" or "second home", "mortgage" while its mortgage counts, when it is
@@ -979,20 +1014,30 @@
 
   // The ownership timeline's bars, one row per lane in lane order: each segment of timelineView (owned, rented, leased
   // or no car) as its share of the run from `low` to `high` (your ages; an open segment runs to `high`), for CSS widths.
-  // Returns [{lane, bars: [{mode, name, text, position, left, width}]}], left and width in percent.
+  // A car's replacements (the segment's `replacements`, the years wmti's model replaces it: timelineView) each become
+  // a calculated stretch of its bar, from the replacement to the year before the next one or the bar's end; one at or
+  // past the bar's end is left out. Returns [{lane, segments, bars: [{mode, name, text, position, left, width,
+  // calculated: [{age, year, rule, label, method, left, width}]}]}], left and width in percent, `segments` the lane's
+  // segments in order.
   function timelineBars(segments, low, high) {
     const span = high - low + 1;
     const lanes = [];
     for (const segment of segments) {
       let row = lanes.find((entry) => entry.lane === segment.lane);
       if (!row) {
-        row = { lane: segment.lane, bars: [] };
+        row = { lane: segment.lane, segments: [], bars: [] };
         lanes.push(row);
       }
+      row.segments.push(segment);
       // A segment that hands its end year to the next one is drawn up to the year before; the next one fills it.
       const end = segment.endAge == null ? high : segment.endAge - (segment.handsOver ? 1 : 0);
+      const marks = (segment.replacements || []).filter((mark) => mark.age <= end);
+      const calculated = marks.map((mark, index) => {
+        const to = index + 1 < marks.length ? marks[index + 1].age - 1 : end;
+        return { ...mark, left: ((mark.age - low) / span) * 100, width: ((to - mark.age + 1) / span) * 100 };
+      });
       row.bars.push({ mode: segment.mode, name: segment.name, text: segment.text, position: segment.position,
-        left: ((segment.startAge - low) / span) * 100, width: ((end - segment.startAge + 1) / span) * 100 });
+        left: ((segment.startAge - low) / span) * 100, width: ((end - segment.startAge + 1) / span) * 100, calculated });
     }
     return lanes.sort((first, second) => first.lane - second.lane);
   }
@@ -1491,7 +1536,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,

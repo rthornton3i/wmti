@@ -157,8 +157,10 @@ and gains, so the claim age can change the tax on the same withdrawals.</p></td>
 age; Compare tab: two saved configs with different claim ages; or Optimize</p></td>
 </tr>
 <tr class="row-even"><td><p>Health premium before or after tax</p></td>
-<td><p>A premium paid before tax lowers taxable pay; one paid after tax can be
-itemized above the medical floor. Medicare premiums are always after tax.</p></td>
+<td><p>A premium paid before tax lowers taxable pay, up to the pay left after the
+Traditional deposits and the dependent care FSA (with no pay it is paid after
+tax); one paid after tax can be itemized above the medical floor. Medicare
+premiums are always after tax.</p></td>
 <td><p>Benefits tab (Medical plan); Medicare on the Retirement tab</p></td>
 </tr>
 <tr class="row-odd"><td><p>Using an HSA</p></td>
@@ -241,7 +243,9 @@ Traditional IRA and no Roth IRA) adds a Roth IRA named <code class="docutils lit
 owner (<code class="docutils literal notranslate"><span class="pre">Rollover</span> <span class="pre">account</span> <span class="pre">(partner)</span></code> for the partner): worth 0, with the usual Roth IRA
 returns, no surplus share and the last withdrawal priority. Switching the conversion off
 removes it again while it is untouched; editing it in any field (name, kind, owner,
-starting value, returns) makes it your own account, which is never removed. The account
+starting value, surplus share, returns, basis or deposit) makes it your own account, which
+is never removed (<code class="docutils literal notranslate"><span class="pre">isUntouchedRollover</span></code> is the one rule for the switch and the
+optimizer). The account
 carries <code class="docutils literal notranslate"><span class="pre">autoCreated</span></code> in the saved config (schema version 27, which marks every account
 saved before as not added), and a config loaded with the conversion on and no Roth account
 to convert into gets its rollover account at load, so Traditional money is never stranded
@@ -405,7 +409,10 @@ and cars less loans, before the beneficiaries’ income tax and the selling cost
 indexed to inflation: it stays constant in today’s-value runs and grows with each run’s
 inflation in inflation-adjusted runs. Your home state’s estate tax is charged on the gross
 estate and its inheritance tax on each beneficiary’s share after the estate taxes, at the rate for
-children (most states exempt children); the tables are in <a class="reference internal" href="tax-law.html#state-death-taxes"><span class="std std-ref">State estate and inheritance taxes</span></a>. The
+children (most states exempt children); the tables are in <a class="reference internal" href="tax-law.html#state-death-taxes"><span class="std std-ref">State estate and inheritance taxes</span></a>. A state
+table not flagged indexed is a fixed dollar figure: it stays itself in inflation-adjusted runs
+and is deflated by the expected inflation to the last year in today’s-value runs, so both modes
+charge the same tax in today’s value. The
 federal deduction for state death taxes is not modelled. The
 beneficiaries’ tax rate box in the Beneficiaries section of <strong>Benefits</strong> (0% to 50%) taxes the beneficiaries’ payouts
 while blank and shows the model’s flat estimate as a guide in its caption,

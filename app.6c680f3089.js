@@ -5,8 +5,8 @@
   "use strict";
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
-    sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetSources,
-    panelDefault, sheetResetTarget, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
+    panelDefault, sheetResetTarget, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -117,6 +117,7 @@
     pig: "<circle cx=\"12\" cy=\"13\" r=\"7\"/><path d=\"M12 9v8M9.5 11h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4\"/>",
     receipt: "<path d=\"M6 3h12v18l-3-2-3 2-3-2-3 2z\"/><path d=\"M9 8h6M9 12h6\"/>",
     bands: "<path d=\"M3 17l5-5 4 3 8-8\"/><path d=\"M3 21h18\"/>",
+    pencil: "<path d=\"M4 20h4L19 9l-4-4L4 16z\"/><path d=\"M13 7l4 4\"/>",  // the timeline's Edit timeline button
   };
   // The icon of a chip or pane: the first word here found in its label, else in its id; sliders when none is.
   const ICON_WORDS = [["household", "user"], ["income", "briefcase"], ["benefit", "briefcase"], ["savings", "briefcase"],
@@ -169,7 +170,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.f115d48ebe.js");
+      worker = new Worker("worker.7bbcd2a496.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1438,7 +1439,7 @@
   function wireSeedControl(holder, prefix, onSeed) {
     const seed = holder.querySelector("#" + prefix + "Seed");
     seed.addEventListener("input", () => {
-      const ok = /^-?\d+$/.test(seed.value.trim());
+      const ok = /^\d+$/.test(seed.value.trim());  // a whole number of 0 or more
       seed.setAttribute("aria-invalid", String(!ok));
       if (ok) onSeed(Number(seed.value.trim()));
     });
@@ -3457,6 +3458,9 @@
     const sections = [group];
     if (panel.id === "loans") group.append(...mortgageRows(), ...carLoanRows());
     if (panel.id === "cars") group.append(warningsBox("car-warnings"));  // Expenses rows a car charges again
+    if (panel.id === "home" && panel.fields.includes("homes")) {
+      group.append(warningsBox("home-warnings"));  // in the Homes pane: a Mortgage while renting, bills counted twice
+    }
     if (panel.id === "accounts") {
       group.append(warningsBox("owner-warnings"));
       sections.push(surplusSection());
@@ -4048,6 +4052,7 @@
     fillWarnings("owner-warnings", notes.ownerWarnings);
     fillWarnings("strategy-warnings", notes.strategyWarnings);
     fillWarnings("car-warnings", notes.carWarnings);
+    fillWarnings("home-warnings", notes.homeWarnings);
     fillWarnings("medicare-warnings", notes.medicareWarnings);
     fillWarnings("summary-warnings", notes.medicareWarnings);
     const countedCard = $("alreadyCounted");
@@ -4504,7 +4509,8 @@
   function seedField() {
     const control = state.schema.controls.seed;
     const wrap = fieldShell(control.label, control.help, "f-seed");
-    wrap.append(numberInput("f-seed", { kind: "integer", step: control.step }, state.seed, (value) => {
+    const field = { kind: "integer", step: control.step, minimum: control.minimum, checkMinimum: true };
+    wrap.append(numberInput("f-seed", field, state.seed, (value) => {
       state.seed = value;
       inputsChanged();
     }));
@@ -4580,6 +4586,7 @@
         if (field.kind === "integer") {
           if (!Number.isInteger(Number(text))) error = "Enter a whole number.";
           next = Number(text);
+          if (!error && field.checkMinimum && next < field.minimum) error = "Enter " + field.minimum + " or more.";
         } else {
           next = Number(next.toPrecision(12));
         }
@@ -4652,11 +4659,13 @@
     if (/^(you|partner)\.employerMatch\.percent$/.test(path)) return matchPercentField(field, path);
     const at = sheetItemOf(path);
     if (at && at.type === "Car" && at.name === "replaceBy") return segmentedField(field, path, value);
+    if (at && at.type === "Car" && at.name === "payMethod") return segmentedField(field, path, carPaidBy(at.item));
     return null;
   }
 
-  // A sheet choice of a few options as a segmented toggle (a car's Replace by: Years, Miles, Both): picking one stores
-  // it and redraws the sheet, which shows the figures it selects.
+  // A sheet choice of a few options as a segmented toggle (a car's Replace by: Years, Miles, Both; its How it is paid:
+  // Cash, Finance, Lease): picking one stores it with what it sets (clearedOnChange: How it is paid sets the Loan and
+  // Lease switches) and redraws the sheet, which shows the figures it selects.
   function segmentedField(field, path, value) {
     const wrap = fieldShell(field.label, field.help, null);
     const group = document.createElement("div");
@@ -4671,7 +4680,12 @@
       button.textContent = choiceLabel(field, choice);
       button.setAttribute("aria-pressed", String(choice === value));
       button.addEventListener("click", () => {
-        if (choice === getPath(state.inputs, path)) return;
+        if (choice === value && choice === getPath(state.inputs, path)) return;
+        const at = sheetItemOf(path);
+        if (at) {
+          Object.assign(at.item, clearedOnChange(at.type, at.name, { ...at.item, [at.name]: choice },
+            state.info.sheetRules));
+        }
         setValue(path, choice);
         refreshForm();
         const redrawn = document.querySelector("#" + CSS.escape(group.id) + " [data-choice=\"" + choice + "\"]");
@@ -4912,10 +4926,18 @@
     if (text != null) button.title = "Reset to default (" + text + ")";
   }
 
+  // A blank sheet figure whose source shows nothing yet (sheetPrompt): {text, blank}, or null.
+  function sheetPromptOf(path) {
+    const at = sheetItemOf(path);
+    return at ? sheetPrompt(at.type, at.name, at.item, state.info.sheetRules) : null;
+  }
+
   // `filter` (a panel's list filter, see filteredPositions) limits which items of a list field are shown.
   function fieldControl(field, path, filter) {
     const fallback = sheetDefaultOf(path);
-    const value = fallback ? fallback.value : getPath(state.inputs, path);
+    // A blank with a prompt and nothing to show (a car's value today without a year bought) is an empty box.
+    const prompt = fallback ? null : sheetPromptOf(path);
+    const value = fallback ? fallback.value : prompt ? null : getPath(state.inputs, path);
     const id = fieldId(path);
     const special = specialField(field, path, value);
     if (special) return special;
@@ -5030,11 +5052,13 @@
       case "number": {
         const wrap = fieldShell(field.label, field.help, id);
         // A blank that shows its source's value: clearing it stores the blank again (the source shows on redraw).
+        const blank = fallback || prompt;
         const box = numberInput(id, field, value, (next) => {
           setValue(path, next);
           markDefault(input, path);
-        }, fallback ? fallback.blank : undefined);
+        }, blank ? blank.blank : undefined);
         const input = box.querySelector("input") || box;
+        if (prompt) input.placeholder = prompt.text;
         markDefault(input, path);
         if (resetTargetOf(path)) {  // reset stores the blank and shows the source's value, as a redraw would
           addResetButton(input, field.label, () => {
@@ -6016,11 +6040,7 @@
       if (holder) { holder.fields.push(element); continue; }
       if (entry.group && entry.group.startsWith("replaceRule")) {  // a car's replacement rule: one bordered block
         if (!ruleBox) parts.push(ruleBox = replaceRuleBox());
-        placeInReplaceRule(ruleBox, entry.group, element);
-        continue;
-      }
-      if (field.type === "Car" && entry.name === "purchaseYear") {  // a car owned today: its estimated value follows
-        parts.push(element, carEstimateField(items[position], path + "." + position));
+        placeInReplaceRule(ruleBox, entry.group, element, items[position]);
         continue;
       }
       if (entry.group !== "returns") { parts.push(element); continue; }
@@ -6076,6 +6096,8 @@
       closeSheet();
     });
     actions.append(move(-1, "Move up"), move(1, "Move down"), remove);
+    const onTimeline = sheetTimelineLink(field.type, position);  // a home, rent period or car: its years are there
+    if (onTimeline) actions.prepend(onTimeline);
     body.append(actions);
     $("sheet").classList.remove("timeline-sheet");  // an item sheet keeps its header Done
     $("sheet").hidden = false;
@@ -6085,27 +6107,9 @@
     if (first && !keepFocus) first.focus({ preventScroll: true });
   }
 
-  // A car owned today's estimated value today on its sheet, below the year bought: read only and gray
-  // (`.is-default`), the price paid after the first-year drop and the yearly depreciation (`carEstimatedValue`), or a
-  // prompt without a year bought. A value today entered below overrides it in the model.
-  function carEstimateField(car, path) {
-    const rules = state.info.sheetRules;
-    const id = fieldId(path + ".estimatedValueToday");
-    const wrap = fieldShell(rules.carValue.estimateLabel, null, id);
-    const input = document.createElement("input");
-    input.className = "input is-default car-estimate";
-    input.id = id;
-    input.type = "text";
-    input.readOnly = true;
-    const estimate = carEstimatedValue(car, rules);
-    input.value = estimate == null ? rules.carValue.estimateNone : fullMoney(estimate);
-    wrap.append(input);
-    return wrap;
-  }
-
   // A car's replacement rule on its sheet: a bordered block titled by `carReplaceRuleTitle` holding Replace by, the note
-  // that Both replaces at the first rule reached, then each selected rule's figures under its sub-label
-  // (`carReplaceRules`); the price and pay figures follow below the block.
+  // that Both replaces at the first rule reached (only while Both is chosen), then each selected rule's figures under
+  // its sub-label (`carReplaceRules`); the price and pay figures follow below the block.
   function replaceRuleBox() {
     const group = document.createElement("fieldset");
     group.className = "group replace-rule";
@@ -6115,14 +6119,17 @@
     return group;
   }
 
-  function placeInReplaceRule(box, group, element) {
+  function placeInReplaceRule(box, group, element, car) {
     const rules = state.info.sheetRules;
     const rule = group.split(".")[1];
     if (!rule) {
-      const note = document.createElement("p");
-      note.className = "field-help replace-rule-note";
-      note.textContent = rules.carReplaceBothNote;
-      box.append(element, note);
+      box.append(element);
+      if (car && car.replaceBy === "both") {
+        const note = document.createElement("p");
+        note.className = "field-help replace-rule-note";
+        note.textContent = rules.carReplaceBothNote;
+        box.append(note);
+      }
       return;
     }
     let part = box.querySelector("[data-rule=\"" + rule + "\"]");
@@ -6228,12 +6235,18 @@
     const words = timelineWords(kind);
     timelineSegmentsShown[kind] = reply.segments;
     const parts = [];
-    const bars = document.createElement("div");
-    bars.className = "timeline-bars";
-    bars.setAttribute("aria-hidden", "true");
+    for (const note of timelineNotes[kind] || []) parts.push(timelineNote(note));
+    delete timelineNotes[kind];
+    // One group per lane: its bar row, then the cards of its items in order (a car's calculated replacements under
+    // it), so each row's items sit right below it.
+    let calculatedShown = false;
     for (const row of timelineBars(reply.segments, reply.currentAge, reply.lastAge)) {
+      const group = document.createElement("div");
+      group.className = "timeline-group";
+      group.dataset.lane = String(row.lane);
       const lane = document.createElement("div");
       lane.className = "timeline-lane";
+      lane.setAttribute("aria-hidden", "true");
       for (const bar of row.bars) {
         const span = document.createElement("span");
         span.className = "timeline-bar";
@@ -6242,53 +6255,94 @@
         span.style.width = bar.width + "%";
         span.title = bar.text;
         lane.append(span);
+        for (const mark of bar.calculated) {  // grayed: worked out from the replacement rule, not entered
+          const part = document.createElement("span");
+          part.className = "timeline-bar timeline-calculated";
+          part.dataset.mode = mark.method === "lease" ? "lease" : "own";
+          part.style.left = mark.left + "%";
+          part.style.width = mark.width + "%";
+          part.title = mark.year + " " + mark.label + ": " + words.calculated;
+          lane.append(part);
+        }
       }
-      bars.append(lane);
-    }
-    parts.push(bars);
-    for (const note of timelineNotes[kind] || []) parts.push(timelineNote(note));
-    delete timelineNotes[kind];
-    const list = document.createElement("ul");
-    list.className = "timeline-cards";
-    for (const segment of reply.segments) {
-      const card = document.createElement("li");
-      card.className = "timeline-card";
-      card.dataset.mode = segment.mode;
-      const text = document.createElement("span");
-      text.className = "timeline-text";
-      text.textContent = segment.text;
-      card.append(text);
-      if (segment.position == null) {
-        const hint = document.createElement("span");
-        hint.className = "field-help";
-        hint.textContent = words.gapEdit;
-        card.append(hint);
-      } else {
-        // Edit and Delete only: a sale is planned, or a car kept, on the Edit screen.
-        const edit = timelineButton(words.start.edit, "edit");
-        edit.addEventListener("click", () => openTimeline(kind, "edit", { position: segment.position, lane: segment.lane }));
-        const remove = timelineButton(words.start.delete, "delete", "button-danger");
-        remove.addEventListener("click", async () => {
-          if (remove.dataset.armed !== "true") {
-            remove.dataset.armed = "true";
-            remove.textContent = "Tap again to delete";
-            return;
-          }
-          remove.disabled = true;
-          const result = await applyTimeline(kind, { op: "delete", position: segment.position });
-          timelineNotes[kind] = result.ok ? result.notes : [result.error];
-          renderSettings();
-        });
-        const actions = document.createElement("span");
-        actions.className = "timeline-actions";
-        actions.append(edit, remove);
-        card.append(actions);
+      const list = document.createElement("ul");
+      list.className = "timeline-cards";
+      for (const segment of row.segments) {
+        list.append(timelineCard(kind, segment, words));
+        for (const mark of segment.replacements || []) {
+          list.append(timelineCalculatedCard(segment, mark, words));
+          calculatedShown = true;
+        }
       }
-      list.append(card);
+      group.append(lane, list);
+      parts.push(group);
     }
-    parts.push(list);
+    if (calculatedShown) {
+      const legend = document.createElement("p");
+      legend.className = "field-help timeline-legend";
+      legend.innerHTML = "<span class=\"timeline-swatch\" aria-hidden=\"true\"></span>";
+      legend.append(document.createTextNode("Gray: " + words.calculated.toLowerCase()));
+      parts.push(legend);
+    }
     // Adding is the item list's one Add button (it opens this timeline's Add screen): no second one here.
     body.replaceChildren(...parts);
+  }
+
+  // A calculated replacement under its car on the timeline: grayed, read only, named and dated with its rule.
+  function timelineCalculatedCard(segment, mark, words) {
+    const card = document.createElement("li");
+    card.className = "timeline-replacement is-calculated";
+    card.title = words.calculated;
+    const text = document.createElement("span");
+    text.className = "timeline-text";
+    text.textContent = words.replacementName.replace("{name}", segment.name) + ", " + mark.year + " " + mark.label;
+    const note = document.createElement("span");
+    note.className = "field-help";
+    note.textContent = words.calculated;
+    card.append(text, note);
+    return card;
+  }
+
+  // One segment's card on the timeline: its label, then Edit timeline and Delete (a gap: the hint on changing it).
+  function timelineCard(kind, segment, words) {
+    const card = document.createElement("li");
+    card.className = "timeline-card";
+    card.dataset.mode = segment.mode;
+    const text = document.createElement("span");
+    text.className = "timeline-text";
+    text.textContent = segment.text;
+    card.append(text);
+    if (segment.position == null) {
+      const hint = document.createElement("span");
+      hint.className = "field-help";
+      hint.textContent = words.gapEdit;
+      card.append(hint);
+      return card;
+    }
+    // Edit timeline and Delete only: a sale is planned, or a car kept, on the Edit timeline screen; the item's other
+    // figures are on its sheet (the screen links to it).
+    const edit = timelineButton(words.start.edit, "edit");
+    edit.innerHTML = iconSvg("pencil", "button-icon") + "<span></span>";
+    edit.querySelector("span").textContent = words.start.edit;
+    edit.setAttribute("aria-label", words.editTitle.replace("{name}", segment.name));
+    edit.addEventListener("click", () => openTimeline(kind, "edit", { position: segment.position, lane: segment.lane }));
+    const remove = timelineButton(words.start.delete, "delete", "button-danger");
+    remove.addEventListener("click", async () => {
+      if (remove.dataset.armed !== "true") {
+        remove.dataset.armed = "true";
+        remove.textContent = "Tap again to delete";
+        return;
+      }
+      remove.disabled = true;
+      const result = await applyTimeline(kind, { op: "delete", position: segment.position });
+      timelineNotes[kind] = result.ok ? result.notes : [result.error];
+      renderSettings();
+    });
+    const actions = document.createElement("span");
+    actions.className = "timeline-actions";
+    actions.append(edit, remove);
+    card.append(actions);
+    return card;
   }
 
   // Apply one timeline edit through the worker: on success the inputs take the result (and every pane redraws), on
@@ -6419,27 +6473,31 @@
 
   // The figures a purchase screen asks: the buying figures and the financing switch with its figures, from the
   // schema (shares as percents), at the item type's defaults. For an item owned now (`owned`): its value today (a car:
-  // the price paid and the year bought, then the value today as an override; a blank year stays blank) and the
-  // financing switch with every financing figure, the balance owed among them. A car bought later asks its Pay method
-  // instead of the switch: cash, finance (the loan figures show) or lease, which calls `onLease` (the Add screen's
-  // lease case, the same data as adding a lease).
-  function timelineFigures(kind, owned, initial, onLease) {
+  // the price paid and the year bought, labelled as on its sheet, then its value today, empty with the estimate shown
+  // gray until a value is entered (`timelineCarValue`); a blank year stays blank) and the
+  // financing switch with every financing figure, the balance owed among them. A car asks its How it is paid instead
+  // of the switch (`timelinePayMethod`): Cash, Finance (the loan figures show) or Lease (only the lease payment and
+  // its hint show; `leased()` is then true and `values()` holds the pay method, the switches and the payment).
+  function timelineFigures(kind, owned, initial) {
     const words = timelineWords(kind);
     const fields = state.schema.types[kind];
     const blank = { ...Object.fromEntries(fields.map((field) => [field.name, field.default])), ...(initial || {}) };
     const replaced = state.info.sheetRules.itemSwitchReplaces[kind].buysLater || [];
     const own = (owned ? words.ownedFields : words.purchaseFields.filter((name) => name !== "purchaseAge"))
       .filter((name) => !words.financingFields.includes(name));
+    const payChoice = kind === "Car";
+    const leaseNames = payChoice ? words.leaseFields : [];
     const names = own.concat([words.financingSwitch],
-      words.financingFields.filter((name) => owned || !replaced.includes(name)));
+      words.financingFields.filter((name) => owned || !replaced.includes(name)), leaseNames);
     const inputs = {};
-    const payChoice = kind === "Car" && !owned;
     const elements = names.map((name) => {
       if (payChoice && name === words.financingSwitch) return timelinePayMethod(blank, inputs);
       const field = fields.find((item) => item.name === name);
       const percentUnit = field.unit === "percent";
-      const element = field.kind === "toggle" ? timelineInput(field.label, "check", blank[name])
-        : timelineInput(field.label + (percentUnit ? " (%)" : ""), "number",
+      const label = kind === "Car" && owned && name === "purchasePrice" ? state.info.sheetRules.carPricePaidLabel
+        : field.label;
+      const element = field.kind === "toggle" ? timelineInput(label, "check", blank[name])
+        : timelineInput(label + (percentUnit ? " (%)" : ""), "number",
           percentUnit ? blank[name] * 100 : blank[name], { min: 0, step: "any" });
       inputs[name] = () => (field.kind === "toggle" ? element.input.checked
         : (percentUnit ? Number(element.input.value) / 100 : Number(element.input.value)));
@@ -6450,25 +6508,67 @@
       }
       return element;
     });
-    // The financing figures show only while its switch (the mortgage or the loan) is ticked, or the pay method is
-    // finance.
+    if (kind === "Car" && owned && names.includes("valueToday")) timelineCarValue(elements, names, blank, inputs);
+    let hint = null;
+    if (payChoice) {
+      hint = document.createElement("p");
+      hint.className = "field-help";
+      hint.textContent = words.leaseHint;
+      elements.push(hint);
+    }
+    // The financing figures show only while its switch (the mortgage) is ticked, or How it is paid is Finance; a
+    // lease shows only the lease payment and its hint.
     const switchElement = elements[names.indexOf(words.financingSwitch)];
-    const financing = names.map((name, at) => (words.financingFields.includes(name) ? elements[at] : null)).filter(Boolean);
+    const elementOf = (list) => names.map((name, at) => (list.includes(name) ? elements[at] : null)).filter(Boolean);
+    const financing = elementOf(words.financingFields);
+    const owning = elementOf(own);
+    const leasing = elementOf(leaseNames).concat(hint ? [hint] : []);
+    const leased = () => payChoice && switchElement.input.value === "lease";
+    const listeners = [];
     const syncFinancing = () => {
-      if (payChoice && switchElement.input.value === "lease" && onLease) {
-        onLease();
-        return;
-      }
       const financed = payChoice ? switchElement.input.value === "finance" : switchElement.input.checked;
       for (const element of financing) element.hidden = !financed;
+      for (const element of owning) element.hidden = leased();
+      for (const element of leasing) element.hidden = !leased();
+      for (const listener of listeners) listener(leased());
     };
     switchElement.input.addEventListener("change", syncFinancing);
     syncFinancing();
-    return { elements, values: () => Object.fromEntries(Object.entries(inputs).map(([name, read]) => [name, read()])) };
+    const values = () => {
+      const all = Object.fromEntries(Object.entries(inputs).map(([name, read]) => [name, read()]));
+      const kept = leased() ? ["payMethod", "hasLoan", "leases", ...leaseNames]
+        : Object.keys(all).filter((name) => !leaseNames.includes(name));
+      return Object.fromEntries(kept.map((name) => [name, all[name]]));
+    };
+    // `onPay(listener)`: call `listener(leased)` now and whenever How it is paid changes.
+    const onPay = (listener) => {
+      listeners.push(listener);
+      listener(leased());
+    };
+    return { elements, values, leased, onPay };
   }
 
-  // A car purchase's Pay method on the Add screen: cash, finance or lease (schema labels), at the draft's choice or the
-  // Loan switch's; it sets both the pay method and the Loan switch (`inputs`), so the two agree.
+  // A car owned today's value today on the Add screen: empty (read as 0, the estimate) unless a value is set, with the
+  // estimate from the price paid and the year bought as its gray placeholder (`carEstimatedValue`), or the prompt
+  // `carValue.estimateNone` without a year bought; a value typed overrides it.
+  function timelineCarValue(elements, names, blank, inputs) {
+    const rules = state.info.sheetRules;
+    const value = elements[names.indexOf("valueToday")].input;
+    if (!(Number(blank.valueToday) > 0)) value.value = "";
+    const sync = () => {
+      const estimate = carEstimatedValue({ ...blank, purchasePrice: inputs.purchasePrice(),
+        purchaseYear: inputs.purchaseYear() }, rules);
+      value.placeholder = estimate == null ? rules.carValue.estimateNone : fullMoney(estimate);
+    };
+    for (const name of ["purchasePrice", "purchaseYear"]) {
+      elements[names.indexOf(name)].input.addEventListener("input", sync);
+    }
+    sync();
+  }
+
+  // A car's How it is paid on the Add screen: Cash, Finance or Lease (the schema's choices and labels), at the draft's
+  // choice (`carPaidBy`); it sets the pay method and the Loan and Lease switches (`inputs`), so the three agree, as on
+  // the car's sheet.
   function timelinePayMethod(blank, inputs) {
     const field = state.schema.types.Car.find((item) => item.name === "payMethod");
     const wrap = document.createElement("label");
@@ -6478,17 +6578,18 @@
     caption.textContent = field.label;
     const select = document.createElement("select");
     select.className = "input";
-    for (const choice of ["cash", "finance", "lease"]) {
+    for (const choice of field.choices) {
       const option = document.createElement("option");
       option.value = choice;
-      option.textContent = (field.choiceLabels || {})[choice] || choice[0].toUpperCase() + choice.slice(1);
+      option.textContent = choiceLabel(field, choice);
       select.append(option);
     }
-    select.value = blank.payMethod || (blank.hasLoan ? "finance" : "cash");
+    select.value = carPaidBy(blank);
     wrap.append(caption, select);
     wrap.input = select;
     inputs.payMethod = () => select.value;
     inputs.hasLoan = () => select.value === "finance";
+    inputs.leases = () => select.value === "lease";
     return wrap;
   }
 
@@ -6511,12 +6612,17 @@
     const nameLabel = state.schema.types[kind].find((field) => field.name === "name").label;
     const parts = [];
     let save = null;  // the screen's Save: an async step that applies the edit and closes the sheet once applied
+    // The Edit screen is the timeline's own, not the item's sheet: its title says so and a link opens the full sheet.
+    const editing = flow.step === "edit" && items[flow.position];
+    $("sheetTitle").textContent = editing ? words.editTitle.replace("{name}", items[flow.position].name) : "Timeline";
+    if (editing) parts.push(timelineDetailsLink(kind, flow.position, isRent, words));
     if (flow.step === "add") {
-      // One screen: first what is added (owned now, a future purchase, or a rent period or lease); then that case's
-      // fields below it. Save applies one buy and closes; nothing chains to a second screen.
+      // One screen: first what is added (owned now, a future purchase, or for a home a rent period); then that case's
+      // fields below it. A car's lease is chosen by its How it is paid (`timelineFigures`), as on its sheet. Save
+      // applies one buy and closes; nothing chains to a second screen.
       const other = kind === "Home" ? "rent" : "lease";
-      const options = [["owned", words.addOptions.owned], ["future", words.addOptions.future],
-        [other, kind === "Home" ? "Rent" : "Lease"]];
+      const options = [["owned", words.addOptions.owned], ["future", words.addOptions.future]]
+        .concat(kind === "Home" ? [[other, "Rent"]] : []);
       const choice = timelineChoice("What are you adding?", options, flow.addChoice || null);
       const holder = document.createElement("div");
       holder.className = "timeline-add";
@@ -6561,16 +6667,20 @@
         const start = owned ? null : timelineYearInput(words.purchaseYear, kept.purchaseAge != null
           ? timelineYear(kept.purchaseAge) : flow.year || state.info.lawTaxYear + 1);
         const end = timelineYearInput(words.saleYear + " (optional)", yearOf(kept.saleAge), true);
-        const figures = timelineFigures(kind, owned, kept.figures, () => {  // a lease is the Add screen's lease case
-          const lease = choice.querySelector("input[value=\"" + other + "\"]");
-          if (lease) lease.checked = true;
-          draw();
-        });
+        const figures = timelineFigures(kind, owned, kept.figures);
         const replaces = owned ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);
+        if (kind === "Car") {  // a car leased: the years are the lease's start and end
+          const caption = (element) => element.querySelector(".field-label");
+          figures.onPay((leased) => {
+            if (start) caption(start).textContent = leased ? words.leaseStart : words.purchaseYear;
+            caption(end).textContent = leased ? words.leaseEnd : words.saleYear + " (optional)";
+          });
+        }
         holder.replaceChildren(...[name, replaces, start, end].filter(Boolean), ...figures.elements);
         read = () => {
           const fields = { name: name.input.value, purchaseAge: start ? timelineAge(Number(start.input.value)) : null,
             saleAge: end.input.value === "" ? null : timelineAge(Number(end.input.value)), ...figures.values() };
+          if (figures.leased && figures.leased()) fields.mode = "lease";
           flow.addDraft = { choice: value, name: fields.name, purchaseAge: fields.purchaseAge, saleAge: fields.saleAge,
             figures: figures.values(), replaces: replaces ? replaces.position() : null };  // kept for a refusal's redraw
           return { op: "buy", lane: replaces ? replaces.lane() : flow.lane, fields };
@@ -6633,8 +6743,12 @@
         selling.input.addEventListener("change", sync);
         sync();
         parts.push(ownedNow, startYear, figure, selling, endYear);
-      } else {
-        parts.push(startYear, endYear, figure);
+      } else {  // a lease running today keeps no start year unless one is given
+        ownedNow = timelineInput(words.leasedNow, "check", !item.buysLater);
+        const sync = () => { startYear.hidden = ownedNow.input.checked; };
+        ownedNow.input.addEventListener("change", sync);
+        sync();
+        parts.push(ownedNow, startYear, endYear, figure);
       }
       save = async () => {
         const fields = {};
@@ -6680,6 +6794,36 @@
     $("sheetBody").replaceChildren(...parts);
     const first = $("sheetBody").querySelector("input");
     if (first) first.focus({ preventScroll: true });
+  }
+
+  // The Edit timeline screen's "Open full car details" (home, rent): closes the screen with nothing applied and opens
+  // the item's sheet from its list, as tapping the item there does.
+  function timelineDetailsLink(kind, position, isRent, words) {
+    const link = timelineButton(isRent ? words.rentDetails : words.details, "details", "button-quiet timeline-details");
+    link.addEventListener("click", () => {
+      const homes = (state.inputs.homes || []).length;
+      const list = kind === "Car" ? "cars" : isRent ? "rents" : "homes";
+      const index = isRent ? position - homes : position;
+      closeSheet();
+      const item = document.querySelector("#settings-body .items[data-list='" + list + "'] button.item[data-position='"
+        + index + "']");
+      if (item) item.click();
+    });
+    return link;
+  }
+
+  // An item sheet's "Edit on timeline" for a home, rent period or car: closes the sheet and opens the item's Edit
+  // timeline screen.
+  function sheetTimelineLink(type, position) {
+    const kind = { Home: "Home", RentPeriod: "Home", Car: "Car" }[type];
+    if (!kind) return null;
+    const link = timelineButton(timelineWords(kind).onTimeline, "timeline", "button-quiet sheet-timeline");
+    link.addEventListener("click", () => {
+      const at = type === "RentPeriod" ? (state.inputs.homes || []).length + position : position;
+      closeSheet();
+      openTimeline(kind, "edit", { position: at });
+    });
+    return link;
   }
 
   // Apply the screen's edit; on refusal show its sentence on the same screen. Returns the result, or null.

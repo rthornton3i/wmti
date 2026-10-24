@@ -352,8 +352,8 @@ year owned after the first (<code class="docutils literal notranslate"><span cla
 later is at its price. <em>Depreciation first year</em> is the car’s own first-year drop; blank, it
 shows (gray) and uses the usual one from <code class="docutils literal notranslate"><span class="pre">.config/carDepreciation.json</span></code> (20%, a typical new
 car’s first-year loss in Carfax and Edmunds figures, <code class="docutils literal notranslate"><span class="pre">confidence:</span> <span class="pre">unconfirmed</span></code>). The car’s
-sheet shows the result, gray and read only, as <em>Estimated value today</em>. A figure entered in
-<em>Value today (override)</em> wins over the estimate; blank or 0 uses it, and with neither a value
+sheet shows the result gray in its one <em>Value today</em> field. A figure entered there wins over
+the estimate; blank or 0 (its reset button) uses it, and with neither a value
 nor a year bought the car has no value. A profile saved before the year bought (version 48 or
 older) keeps each car’s value today, now the override, so its results are the same. From
 today the value falls by the depreciation per year each year, after the first-year drop when
@@ -379,10 +379,11 @@ counting at its end, so 12,000 miles a year and 36,000 miles replace the car at 
 year 3; a car owned today starts from <em>Miles on it today</em> (a car bought later from 0). The
 price is the replacement price, or with 0 the purchase price (the same model; for a car
 owned today, the price paid, as paid and not grown to today’s dollars), which the blank
-<em>Replacement price</em> shows gray; with neither, the car is not replaced. At each replacement
+<em>Replacement price</em> shows gray; with neither, the car is not replaced. The Cars <em>Timeline</em>
+shows each replacement in the year the run makes it, labelled by age, by miles or by age and
+miles (both rules met that year), and gray as calculated; it is display only. At each replacement
 the car is traded in at its value and the new one is paid by <em>Replacement paid by</em> (blank:
-the car’s own <em>Pay method</em>, which with blank follows the Loan switch: finance with it on,
-cash with it off). Paid in cash, the rest of the price, the sales tax and purchase fees on
+the car’s own <em>How it is paid</em>). Paid in cash, the rest of the price, the sales tax and purchase fees on
 the price and the selling costs on the trade-in are paid in <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Replacement</span></code> and the
 car’s loan runs on. Financed, the down payment less the trade-in’s value (at least 0) with
 the same tax, fees and selling costs is paid in <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Replacement</span></code>; the car’s loan is paid
@@ -402,7 +403,7 @@ cash. The price is in today’s value, so it grows with inflation in a nominal r
 flat in today’s value. All costs grow with
 inflation like the other expenses and are charged in the one <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Costs</span></code> outflow (shown in
 the Expenses chart), with <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Fuel</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Tolls</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Upkeep</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span>
-<span class="pre">Replacement</span></code> and <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Lease</span></code> as its parts. With the Loan switch on, a loan balance above 0 is an Auto loan run by the loan engine
+<span class="pre">Replacement</span></code> and <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Lease</span></code> as its parts. Financed (<em>How it is paid</em>: Finance), a loan balance above 0 is an Auto loan run by the loan engine
 like a loan on <a class="reference internal" href="#tab-loans"><span class="std std-ref">Loans</span></a>: its payments are in <code class="docutils literal notranslate"><span class="pre">Loan</span> <span class="pre">Payments</span></code> and
 its balance is subtracted from net worth. No car cost is tax deductible. Removing the
 partner makes a PARTNER car yours.</p>
@@ -416,7 +417,7 @@ by the first-year drop and the depreciation, and its replacement cycle counts fr
 year the down payment (the whole price without a loan), the sales tax and the fees are paid
 in cash in the <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Purchases</span></code> outflow, from the accounts in the withdrawal order like
 any expense (a large purchase can raise the tax on Traditional withdrawals that year, or
-show as <code class="docutils literal notranslate"><span class="pre">Shortfall</span> <span class="pre">(unpaid)</span></code>); with its <em>Pay method</em> finance (blank: the Loan switch on)
+show as <code class="docutils literal notranslate"><span class="pre">Shortfall</span> <span class="pre">(unpaid)</span></code>); with <em>How it is paid</em> Finance
 the rest is an Auto loan that starts that year, and with cash the whole price is paid. A car sold has its value, costs, commute and replacements stop: its value is 0
 from the sale year and its costs from the next year. The sale price is the one entered, or
 with 0 the car’s value that year before the sale (today’s value, the purchase price or the
@@ -431,7 +432,7 @@ with 10% down, 6% sales tax and 500 of fees takes 3,000 + 1,800 + 500 in cash th
 <p>A leased car’s purchase and sale years are the lease’s first and last years. In each year of
 the lease <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Lease</span></code> charges 12 lease payments (inflation adjusted), and its fuel,
 insurance, registration and maintenance are charged as for an owned car; it has no value, no
-loan (even with <em>Car loan</em> ticked), no replacement, no purchase cash and no sale proceeds. A
+loan, no replacement, no purchase cash and no sale proceeds. A
 payment due at signing, a residual or a buyout is not modelled. Example: a lease of 400 a
 month from 2031 to 2033 adds 4,800 a year (inflation adjusted) to <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Costs</span></code> in those three
 years.</p>
@@ -440,6 +441,13 @@ so its results do not change; its car rows stay on Expenses until you move them.
 scenario saved before the switches (version 27 or older) loads with each car’s Loan switch on
 when its loan balance is above 0, and its Commute switch on when its commute days are above
 0 and its commute miles or its tolls and parking are above 0, so its results do not change.
+<em>How it is paid</em> (Cash, Finance or Lease) is one setting that also sets the car’s Loan and
+Lease switches (<code class="docutils literal notranslate"><span class="pre">Car.payMethod</span></code>, <code class="docutils literal notranslate"><span class="pre">hasLoan</span></code>, <code class="docutils literal notranslate"><span class="pre">leases</span></code>). A scenario saved before it
+(version 49 or older) loads with each car’s pay method set to what the car did: lease while
+leased, a car bought later its pay method (blank: finance with the Loan switch on), a car owned
+today finance with its Loan switch on and cash with it off, the Loan switch on for finance
+only; a blank <em>Replacement paid by</em> that followed a different pay method takes that method,
+so every replacement is paid as before and its results do not change.
 The warning about car rows on Expenses still reads the figures as entered, switch or not. A
 scenario saved before the purchase and sale switches (version 29 or older) loads with them off,
 so its results do not change. A scenario saved before the timeline (version 33 or older) loads
@@ -515,7 +523,10 @@ out-of-pocket maximum, per person. These are placeholders, not sourced.</p>
 <p><strong>Logic.</strong> The health premium before the Medicare age is charged as spending in today’s
 value and grows 1.5% a year above general inflation, like every healthcare cost and premium
 (a fixed figure, not an input). A premium paid before tax lowers taxable pay; one paid after
-tax can be itemized above the medical floor. Without a medical plan the visits before the
+tax can be itemized above the medical floor. A pre-tax premium is taken from pay, so each
+return’s part of it is held to that return’s wages less its Traditional deposits and dependent
+care FSA; the rest (all of it in a year without pay) is paid after tax and itemized like an
+after-tax premium. The <code class="docutils literal notranslate"><span class="pre">Pre-tax</span> <span class="pre">Premium</span></code> column is the part the pay covered. Without a medical plan the visits before the
 Medicare age are paid at their full price, with no deductible, coinsurance or maximum.</p>
 </section>
 <section id="hsa">
@@ -835,8 +846,9 @@ registration becomes the entered amount plus the car tax difference
 (<code class="docutils literal notranslate"><span class="pre">car_taxes.average_annual</span></code>, new less old, today’s value; at least 0) and maintenance
 does not change; its gallons are priced at your fuel price plus
 the change in the average pump price (<code class="docutils literal notranslate"><span class="pre">fuel.average_price_per_gallon</span></code>, new less old; at
-least 0), and a replacement bought from the move year pays its sales tax rate times the
-vehicle sales tax ratio (<code class="docutils literal notranslate"><span class="pre">sales_tax.vehicle_rate</span></code>).</p></li>
+least 0), and a car bought or replaced from the move year pays its sales tax rate plus the
+change in the vehicle sales tax rate (<code class="docutils literal notranslate"><span class="pre">sales_tax.vehicle_rate</span></code>, new less old; at least 0),
+so a move from a state without one (Montana, New Hampshire, Oregon) adds the new state’s rate.</p></li>
 <li><p><em>Rent.</em> Rent is multiplied by the housing cost index ratio (<code class="docutils literal notranslate"><span class="pre">housing.cost_index</span></code>).</p></li>
 <li><p><em>Prices.</em> Each Bills, Planned Spending and Other Spending row is multiplied by the ratio
 of its price type (<code class="docutils literal notranslate"><span class="pre">ExpenseItem.priceType</span></code>, <code class="docutils literal notranslate"><span class="pre">expensecategories.priceRatio</span></code>): grocery by
@@ -938,8 +950,9 @@ that does not fit these three is approximated and flagged <code class="docutils 
 A state may also leave a share of long-term capital gains out of its income, give exemptions as non-refundable
 credits off the tax (never below zero) and carry an average local income tax rate (county, city and school taxes
 averaged over the state), counted as state tax. Its <code class="docutils literal notranslate"><span class="pre">applies_to</span></code> sets the base: <code class="docutils literal notranslate"><span class="pre">all</span> <span class="pre">income</span></code> charges it on the
-state’s taxable income, <code class="docutils literal notranslate"><span class="pre">wages</span></code> on the wages only (the state gross income less retirement income and long-term
-gains, never below zero). A file without that rate has no local tax. The State summary column holds the local tax;
+state’s taxable income, <code class="docutils literal notranslate"><span class="pre">wages</span></code> on the return’s wages only (pay less the pre-tax premium and the dependent care
+FSA, with the 401(k) deferrals, which local wage taxes count; never interest, gains or retirement income; never below
+zero), which is charged even in a year with no state taxable income. A file without that rate has no local tax. The State summary column holds the local tax;
 the <em>Local Tax</em> summary column is that part of it. The Taxes plot and the <em>Taxes paid by year</em> table show it as its
 own kind and State without it, so their Total is unchanged. Being part of the state tax, it counts in the itemized
 state and local taxes.</p>
