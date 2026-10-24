@@ -170,7 +170,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.656c7c17c8.js");
+      worker = new Worker("worker.6c9d8f45eb.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -5160,6 +5160,9 @@
         if (field.name === "owner" && state.notes && state.notes.ownerOptions) {
           choices = state.notes.ownerOptions.concat(value != null && !state.notes.ownerOptions.includes(value)
             ? [value] : []);
+        }
+        if (field.name === "kind" && value != null && !choices.includes(value)) {
+          choices = choices.concat([value]);  // a saved kind no longer offered (an HSA account row) stays shown
         }
         if (field.name === "account529") {  // a child's college 529: the household's 529 accounts by name
           const names = state.inputs.accounts.filter((account) => account.kind === "529").map((account) => account.name);

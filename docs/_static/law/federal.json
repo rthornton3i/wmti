@@ -124,9 +124,10 @@
     "catch_up": 1000.0,
     "catch_up_adjustment": "legislated",
     "catch_up_age": 55,
+    "hdhp_minimum_deductible": { "SINGLE": 1700.0, "JOINT": 3400.0 },
     "confidence": "unconfirmed",
     "check_at": "https://www.irs.gov/pub/irs-drop/rp-25-19.pdf",
-    "note": "HSA contribution limits for 2026 from Rev. Proc. 2025-19 (self-only 4400, family 8750; the PDF was not opened). The catch-up from age 55 is set by statute and not indexed, so it is legislated (catch_up_adjustment): it follows the run's federal catch-up schedule while the limits follow inflation."
+    "note": "HSA contribution limits for 2026 from Rev. Proc. 2025-19 (self-only 4400, family 8750; the PDF was not opened). The catch-up from age 55 is set by statute and not indexed, so it is legislated (catch_up_adjustment): it follows the run's federal catch-up schedule while the limits follow inflation. hdhp_minimum_deductible is the lowest deductible a high-deductible health plan may have for an HSA (2026: 1700 self-only, 3400 family, from the same Rev. Proc., unconfirmed); it is indexed like the limits."
   },
   "medicare_part_b": {
     "indexed": false,

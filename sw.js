@@ -10,14 +10,14 @@
 // A docs page never read fails offline as any page would; it is never answered with the app's index.html.
 "use strict";
 
-const BUILD_ID = "cd86dab71878";
+const BUILD_ID = "742aa9e06161";
 const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
 const DOCS_CACHE = "wmti-docs:" + self.registration.scope;
 const DOCS_PATH = new URL("docs/", self.registration.scope).pathname;
 const FILES = [
  "./",
- "app.0358f4d2df.js",
+ "app.dbd9e757e1.js",
  "charts.54d59a7eb6.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
@@ -31,7 +31,7 @@ const FILES = [
  "icons/icon-maskable-512.png",
  "index.html",
  "insights.ee50546e73.js",
- "jspdf.822d41ab6f.js",
+ "jspdf.e6551fcdc3.js",
  "legal.5beed0797f.js",
  "manifest.webmanifest",
  "pyodide/numpy-2.2.5-cp313-cp313-pyemscripten_2025_0_wasm32_whl.wasm",
@@ -46,8 +46,8 @@ const FILES = [
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
  "report.ad13ed448d.js",
  "shared.df61c672e3.js",
- "wmti.a4f5c43d0f.wasm",
- "worker.656c7c17c8.js"
+ "wmti.8363d5318d.wasm",
+ "worker.6c9d8f45eb.js"
 ];
 
 self.addEventListener("install", (event) => {
