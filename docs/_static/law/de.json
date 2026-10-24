@@ -1,0 +1,258 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "de",
+  "name": "Delaware",
+  "tax_year": 2026,
+  "source": "Delaware Division of Revenue personal income tax page (https://revenue.delaware.gov/personal-income-tax/, read 2026-10-22: rates 2.2% to 5.55% under 60,000 and 6.60% from 60,000; pension exclusion; Social Security not taxable) and the 2025 PIT-RES form (standard deduction 3,250 / 6,500, additional 2,500 at 65, personal credits of 110, read in search extracts); second source Tax Foundation, State Individual Income Tax Rates and Brackets 2026 (https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/). HB 13 (2025; 6.75% to 6.95% above 150,000) failed in committee on 2025-06-18, so the 2025 schedule is used for 2026",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Delaware starts from federal AGI, so 401(k) deferrals and HSA deposits stay deductible as on the federal return (confirmed primary: https://delcode.delaware.gov/title30/c011/sc02/index.html, validation run 2, 2026-10-22)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 2000,
+        "rate": 0.022,
+        "base": 0.0
+      },
+      {
+        "threshold": 5000,
+        "rate": 0.039,
+        "base": 66.0
+      },
+      {
+        "threshold": 10000,
+        "rate": 0.048,
+        "base": 261.0
+      },
+      {
+        "threshold": 20000,
+        "rate": 0.052,
+        "base": 741.0
+      },
+      {
+        "threshold": 25000,
+        "rate": 0.0555,
+        "base": 1001.0
+      },
+      {
+        "threshold": 60000,
+        "rate": 0.066,
+        "base": 2943.5
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 2000,
+        "rate": 0.022,
+        "base": 0.0
+      },
+      {
+        "threshold": 5000,
+        "rate": 0.039,
+        "base": 66.0
+      },
+      {
+        "threshold": 10000,
+        "rate": 0.048,
+        "base": 261.0
+      },
+      {
+        "threshold": 20000,
+        "rate": 0.052,
+        "base": 741.0
+      },
+      {
+        "threshold": 25000,
+        "rate": 0.0555,
+        "base": 1001.0
+      },
+      {
+        "threshold": 60000,
+        "rate": 0.066,
+        "base": 2943.5
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 3250.0,
+    "JOINT": 6500.0
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 2500.0,
+    "dependent": 0.0,
+    "note": "Delaware has no personal exemption deduction (it gives credits, below); senior is the additional standard deduction of 2,500 for each person 65 or older (PIT-RES 2025), which is not allowed to itemizers."
+  },
+  "exemption_credits": {
+    "indexed": false,
+    "personal": {
+      "SINGLE": 110.0,
+      "JOINT": 220.0
+    },
+    "dependent": 110.0,
+    "senior": 110.0,
+    "note": "Personal credit of 110 per person and per dependent, and an additional 110 per person 60 or older (PIT-RES 2025; Tax Foundation 2026). The model grants the additional credit at 65, not 60."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 60,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 12500.0,
+      "JOINT": 25000.0,
+      "MFS": 12500.0
+    },
+    "note": "Pension exclusion of up to 12,500 per person 60 or older, covering pensions and eligible retirement income (dividends, interest, capital gains, net rental income, IRA, 401(k), Keogh and 457 distributions) (Division of Revenue page, read 2026-10-22). Not modelled: the 2,000 exclusion under 60, the military pension exclusion, and dividends, interest and gains as eligible income (the model applies the cap to retirement distributions only). Each spouse's 12,500 applies to that spouse's own income only (30 Del. C. 1106(b)(3); PIT-RES 2024 example, https://revenuefiles.delaware.gov/2024/PIT_2024_Forms/PIT_Instructions/PIT-RES_TY24_2024-01_Instructions.pdf, confirmed primary, validation run 3, 2026-10-22)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://delcode.delaware.gov/title30/c015/index.html",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Delaware repealed its estate tax for deaths from 2018-01-01 and has no inheritance tax (state-costs.csv columns estate_tax and inheritance_tax: none; AARP 2026 list of estate and inheritance tax states does not include Delaware). Confirmed primary on https://delcode.delaware.gov/title30/c015/index.html (validation run 3, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.delaware.gov/personal-income-tax/",
+    "note": "\"Social Security and Railroad Retirement benefits are not taxable in Delaware\" (Division of Revenue personal income tax page, read 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0009,
+    "applies_to": "wages",
+    "confidence": "unconfirmed",
+    "check_at": "City of Wilmington earned income (wage) tax page",
+    "note": "Only Wilmington levies a local income tax: 1.25% of earned income (state-costs.csv local_income_tax, from memory). Averaged over the state by population (Wilmington about 71,000 of about 1,030,000 residents): about 0.09% of wages."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.0,
+    "vehicle_rate": 0.0525,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Delaware revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0525 from the state's own source (Delaware document fee 5.25% of the greater of the price or the NADA value from 2025-10-01, HB 164 (https://news.delaware.gov/2025/09/30/dmv-fees-increase-in-october-2025, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: No sales tax. clothing_taxable is false (research: no; No sales tax). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00513,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1272.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 3144.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 40.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://delcode.delaware.gov/title21/c021/sc04/index.html",
+    "source": "carregistrationfee.com Delaware guide (2026) and platealmanac.com: flat 40 a year for a passenger car up to 5,000 lb",
+    "note": "Delaware: registration 40 a year for a passenger car; no annual vehicle property tax (the 5.25% document fee, 4.25% before 2025-10-01, is paid once at purchase). Electric and hybrid cars pay 60 to 110 more a year from 2025-10-01 (not modelled). Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand after the import: rerunning importStateCosts.py resets it to 0. Confirmed primary on https://delcode.delaware.gov/title21/c021/sc04/index.html (validation run 2, 2026-10-22)."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.23,
+    "average_price_per_gallon": 3.31,
+    "confidence": "unconfirmed",
+    "check_at": "Delaware motor fuel tax page and EIA gasoline prices (https://www.eia.gov/petroleum/gasdiesel/)",
+    "source": "Excise: USGasGauge/EIA (https://usgasgauge.com/gas-tax) and Kiplinger 2026 for some states, memory for the rest; price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1786,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 405061.0,
+    "cost_index": 99.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1467.0,
+    "medigap_g_monthly": 203.0,
+    "part_d_monthly": 44.95,
+    "medicare_advantage_monthly": 22.66,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Delaware insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 101.6,
+    "bea_goods": 96.2,
+    "bea_services": 101.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6483.0,
+    "assisted_living_monthly": 8558.0,
+    "nursing_home_private_monthly": 14889.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

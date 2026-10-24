@@ -9,7 +9,7 @@
   <title>Hawaii &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -191,19 +191,189 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
-<td><p>Hawaii Department of Taxation Announcement 2024-03 on Act 46, SLH 2024 (<a class="reference external" href="https://files.hawaii.gov/tax/news/announce/ann24-03.pdf">https://files.hawaii.gov/tax/news/announce/ann24-03.pdf</a>, read 2026-10-22): 2025 brackets kept for 2026, standard deduction 8,000 / 16,000 for 2026; personal exemption 1,144 from Tax Foundation, State Individual Income Tax Rates and Brackets 2026 (<a class="reference external" href="https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/">https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/</a>) (whose brackets agree; its standard deduction 4,400 / 8,800 is the 2024-2025 figure). Act 24, SLH 2026 (13% above 1,000,000) starts in 2027 and is not modelled</p></td>
+<td><p>Hawaii Department of Taxation Announcement 2024-03 on Act 46, SLH 2024 (<a class="reference external" href="https://files.hawaii.gov/tax/news/announce/ann24-03.pdf">https://files.hawaii.gov/tax/news/announce/ann24-03.pdf</a>, read again 2026-10-24): 2025 brackets kept for 2026 (every threshold, rate and base of the single and joint tables match), standard deduction 8,000 / 16,000 for 2026; personal exemption 1,144 and the extra exemption at 65 from the 2025 Form N-11 instructions (<a class="reference external" href="https://files.hawaii.gov/tax/forms/2025/n11ins.pdf">https://files.hawaii.gov/tax/forms/2025/n11ins.pdf</a>, read 2026-10-24) and Booklet A for 2026 withholding (<a class="reference external" href="https://files.hawaii.gov/tax/news/pubs/25BkltA.pdf">https://files.hawaii.gov/tax/news/pubs/25BkltA.pdf</a>, allowance 1,144). Tax Foundation, State Individual Income Tax Rates and Brackets 2026 (<a class="reference external" href="https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/">https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/</a>) agrees on the brackets. The 2026 Form N-11 is not yet published. Act 24, SLH 2026 (13% above 1,000,000) starts in 2027 and is not modelled</p></td>
 </tr>
 <tr class="row-odd"><td><p>Schema version</p></td>
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>19 sections: 3 confirmed primary, 7 confirmed secondary, 9 unconfirmed</p></td>
+<td><p>19 sections: 8 confirmed primary, 8 confirmed secondary, 3 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/hi.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/hi.json">hi.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;SINGLE&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://files.hawaii.gov/tax/news/announce/ann24-03.pdf&quot;,
+    &quot;note&quot;: &quot;Single and married filing separately share one rate schedule, joint and surviving spouse the other (Hawaii Department of Taxation Announcement 2024-03, read 2026-10-24). Head of household is not modelled.&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [],
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://files.hawaii.gov/tax/forms/2025/n11ins.pdf&quot;,
+    &quot;note&quot;: &quot;Hawaii starts from federal adjusted gross income and follows the federal treatment of 401(k) and 403(b) deferrals, Traditional IRA deposits and HSA deposits: the Hawaii Additions Worksheet of the 2025 Form N-11 instructions (read 2026-10-24) has no line for them (also https://data.capitol.hawaii.gov/sessions/session2026/bills/HB2329_SD1_.HTM, validation run 3, 2026-10-22). Not modelled: Hawaii excludes employer-funded pension income; distributions from employee-elective plans (401(k), IRAs) are taxable, so the model&#x27;s Traditional withdrawals are taxed in full and no retirement_exclusion section is needed.&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;adjustment&quot;: &quot;legislated&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://files.hawaii.gov/tax/news/announce/ann24-03.pdf&quot;,
+    &quot;note&quot;: &quot;Every threshold and rate of the single and joint tables matches the 2025 schedules, which Act 46 (SLH 2024) keeps for 2026 (Announcement 2024-03, read 2026-10-24); the bases are the exact cumulative tax (the announcement rounds them). The wider brackets from 2027 and the Act 24 13% bracket are not modelled.&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.014,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 9600,
+        &quot;rate&quot;: 0.032,
+        &quot;base&quot;: 134.4
+      },
+      {
+        &quot;threshold&quot;: 14400,
+        &quot;rate&quot;: 0.055,
+        &quot;base&quot;: 288.0
+      },
+      {
+        &quot;threshold&quot;: 19200,
+        &quot;rate&quot;: 0.064,
+        &quot;base&quot;: 552.0
+      },
+      {
+        &quot;threshold&quot;: 24000,
+        &quot;rate&quot;: 0.068,
+        &quot;base&quot;: 859.2
+      },
+      {
+        &quot;threshold&quot;: 36000,
+        &quot;rate&quot;: 0.072,
+        &quot;base&quot;: 1675.2
+      },
+      {
+        &quot;threshold&quot;: 48000,
+        &quot;rate&quot;: 0.076,
+        &quot;base&quot;: 2539.2
+      },
+      {
+        &quot;threshold&quot;: 125000,
+        &quot;rate&quot;: 0.079,
+        &quot;base&quot;: 8391.2
+      },
+      {
+        &quot;threshold&quot;: 175000,
+        &quot;rate&quot;: 0.0825,
+        &quot;base&quot;: 12341.2
+      },
+      {
+        &quot;threshold&quot;: 225000,
+        &quot;rate&quot;: 0.09,
+        &quot;base&quot;: 16466.2
+      },
+      {
+        &quot;threshold&quot;: 275000,
+        &quot;rate&quot;: 0.1,
+        &quot;base&quot;: 20966.2
+      },
+      {
+        &quot;threshold&quot;: 325000,
+        &quot;rate&quot;: 0.11,
+        &quot;base&quot;: 25966.2
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.014,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 19200,
+        &quot;rate&quot;: 0.032,
+        &quot;base&quot;: 268.8
+      },
+      {
+        &quot;threshold&quot;: 28800,
+        &quot;rate&quot;: 0.055,
+        &quot;base&quot;: 576.0
+      },
+      {
+        &quot;threshold&quot;: 38400,
+        &quot;rate&quot;: 0.064,
+        &quot;base&quot;: 1104.0
+      },
+      {
+        &quot;threshold&quot;: 48000,
+        &quot;rate&quot;: 0.068,
+        &quot;base&quot;: 1718.4
+      },
+      {
+        &quot;threshold&quot;: 72000,
+        &quot;rate&quot;: 0.072,
+        &quot;base&quot;: 3350.4
+      },
+      {
+        &quot;threshold&quot;: 96000,
+        &quot;rate&quot;: 0.076,
+        &quot;base&quot;: 5078.4
+      },
+      {
+        &quot;threshold&quot;: 250000,
+        &quot;rate&quot;: 0.079,
+        &quot;base&quot;: 16782.4
+      },
+      {
+        &quot;threshold&quot;: 350000,
+        &quot;rate&quot;: 0.0825,
+        &quot;base&quot;: 24682.4
+      },
+      {
+        &quot;threshold&quot;: 450000,
+        &quot;rate&quot;: 0.09,
+        &quot;base&quot;: 32932.4
+      },
+      {
+        &quot;threshold&quot;: 550000,
+        &quot;rate&quot;: 0.1,
+        &quot;base&quot;: 41932.4
+      },
+      {
+        &quot;threshold&quot;: 650000,
+        &quot;rate&quot;: 0.11,
+        &quot;base&quot;: 51932.4
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 8000.0,
+    &quot;JOINT&quot;: 16000.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://files.hawaii.gov/tax/news/announce/ann24-03.pdf&quot;,
+    &quot;note&quot;: &quot;Hawaii Department of Taxation Announcement 2024-03 (read 2026-10-24): Act 46 amounts for 2026 and 2027, set by statute, not indexed (9,000 / 18,000 from 2028; not modelled). The 2025 Form N-11 instructions give 4,400 / 8,800 for 2025, as the announcement says. The bracket bases are exact cumulative tax; the announcement rounds them to whole dollars (134 for 134.40). Not modelled: the 7.25% cap on net capital gains, the wider brackets from 2027 (Act 46) and the 13% bracket from 2027 (Act 24, 2026).&quot;
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 1144.0,
+    &quot;JOINT&quot;: 2288.0,
+    &quot;senior&quot;: 1144.0,
+    &quot;dependent&quot;: 1144.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://files.hawaii.gov/tax/forms/2025/n11ins.pdf&quot;,
+    &quot;note&quot;: &quot;Personal exemption of 1,144 per person and dependent, and an additional 1,144 for each person 65 or older: 2025 Form N-11 instructions (read 2026-10-24: 1,144 for each exemption claimed; the filing thresholds for 65 or older, such as 6,688 single, are the standard deduction plus two exemptions). A fixed statutory amount, not indexed; Booklet A for 2026 withholding still uses 1,144.&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -221,23 +391,23 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-hi-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-hi-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-hi-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-hi-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-hi-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-hi-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -249,7 +419,7 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-hi-local-income-tax"><span class="std std-ref">Local income tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">local_income_tax</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-hi-sales-tax"><span class="std std-ref">Sales tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sales_tax</span></code></p></td>
@@ -300,49 +470,43 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-hi-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://files.hawaii.gov/tax/news/announce/ann24-03.pdf">https://files.hawaii.gov/tax/news/announce/ann24-03.pdf</a></p>
+<p><strong>Note:</strong> Single and married filing separately share one rate schedule, joint and surviving spouse the other (Hawaii Department of Taxation Announcement 2024-03, read 2026-10-24). Head of household is not modelled.</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-hi-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back none of the federal deductions the model tracks (Traditional deposits, Traditional IRA deposits and HSA deposits): it starts from the same income as the federal return.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -366,164 +530,200 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Hawaii follows the federal treatment of 401(k) deferrals and HSA deposits (confirmed primary: <a class="reference external" href="https://data.capitol.hawaii.gov/sessions/session2026/bills/HB2329_SD1_.HTM">https://data.capitol.hawaii.gov/sessions/session2026/bills/HB2329_SD1_.HTM</a>, validation run 3, 2026-10-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://files.hawaii.gov/tax/forms/2025/n11ins.pdf">https://files.hawaii.gov/tax/forms/2025/n11ins.pdf</a></p>
+<p><strong>Note:</strong> Hawaii starts from federal adjusted gross income and follows the federal treatment of 401(k) and 403(b) deferrals, Traditional IRA deposits and HSA deposits: the Hawaii Additions Worksheet of the 2025 Form N-11 instructions (read 2026-10-24) has no line for them (also <a class="reference external" href="https://data.capitol.hawaii.gov/sessions/session2026/bills/HB2329_SD1_.HTM">https://data.capitol.hawaii.gov/sessions/session2026/bills/HB2329_SD1_.HTM</a>, validation run 3, 2026-10-22). Not modelled: Hawaii excludes employer-funded pension income; distributions from employee-elective plans (401(k), IRAs) are taxable, so the model’s Traditional withdrawals are taxed in full and no retirement_exclusion section is needed.</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-hi-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Graduated rates from 1.4% to 11%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are not indexed: only a new law changes them (<code class="docutils literal notranslate"><span class="pre">legislated</span></code>).</p>
+<p class="rubric">Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$9,600</p></td>
+<td><p>1.4%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>legislated</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;legislated&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>$9,600</p></td>
+<td><p>$14,400</p></td>
+<td><p>3.2%</p></td>
+<td><p>$134.40</p></td>
+</tr>
+<tr class="row-even"><td><p>$14,400</p></td>
+<td><p>$19,200</p></td>
+<td><p>5.5%</p></td>
+<td><p>$288</p></td>
+</tr>
+<tr class="row-odd"><td><p>$19,200</p></td>
+<td><p>$24,000</p></td>
+<td><p>6.4%</p></td>
+<td><p>$552</p></td>
+</tr>
+<tr class="row-even"><td><p>$24,000</p></td>
+<td><p>$36,000</p></td>
+<td><p>6.8%</p></td>
+<td><p>$859.20</p></td>
+</tr>
+<tr class="row-odd"><td><p>$36,000</p></td>
+<td><p>$48,000</p></td>
+<td><p>7.2%</p></td>
+<td><p>$1,675.20</p></td>
+</tr>
+<tr class="row-even"><td><p>$48,000</p></td>
+<td><p>$125,000</p></td>
+<td><p>7.6%</p></td>
+<td><p>$2,539.20</p></td>
+</tr>
+<tr class="row-odd"><td><p>$125,000</p></td>
+<td><p>$175,000</p></td>
+<td><p>7.9%</p></td>
+<td><p>$8,391.20</p></td>
+</tr>
+<tr class="row-even"><td><p>$175,000</p></td>
+<td><p>$225,000</p></td>
+<td><p>8.25%</p></td>
+<td><p>$12,341.20</p></td>
+</tr>
+<tr class="row-odd"><td><p>$225,000</p></td>
+<td><p>$275,000</p></td>
+<td><p>9%</p></td>
+<td><p>$16,466.20</p></td>
+</tr>
+<tr class="row-even"><td><p>$275,000</p></td>
+<td><p>$325,000</p></td>
+<td><p>10%</p></td>
+<td><p>$20,966.20</p></td>
+</tr>
+<tr class="row-odd"><td><p>$325,000</p></td>
+<td><p>and above</p></td>
+<td><p>11%</p></td>
+<td><p>$25,966.20</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>1.4% (0.014)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$19,200</p></td>
+<td><p>1.4%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>9,600</p></td>
-<td><p>3.2% (0.032)</p></td>
-<td><p>134.4</p></td>
+<tr class="row-odd"><td><p>$19,200</p></td>
+<td><p>$28,800</p></td>
+<td><p>3.2%</p></td>
+<td><p>$268.80</p></td>
 </tr>
-<tr class="row-even"><td><p>14,400</p></td>
-<td><p>5.5% (0.055)</p></td>
-<td><p>288</p></td>
+<tr class="row-even"><td><p>$28,800</p></td>
+<td><p>$38,400</p></td>
+<td><p>5.5%</p></td>
+<td><p>$576</p></td>
 </tr>
-<tr class="row-odd"><td><p>19,200</p></td>
-<td><p>6.4% (0.064)</p></td>
-<td><p>552</p></td>
+<tr class="row-odd"><td><p>$38,400</p></td>
+<td><p>$48,000</p></td>
+<td><p>6.4%</p></td>
+<td><p>$1,104</p></td>
 </tr>
-<tr class="row-even"><td><p>24,000</p></td>
-<td><p>6.8% (0.068)</p></td>
-<td><p>859.2</p></td>
+<tr class="row-even"><td><p>$48,000</p></td>
+<td><p>$72,000</p></td>
+<td><p>6.8%</p></td>
+<td><p>$1,718.40</p></td>
 </tr>
-<tr class="row-odd"><td><p>36,000</p></td>
-<td><p>7.2% (0.072)</p></td>
-<td><p>1,675.2</p></td>
+<tr class="row-odd"><td><p>$72,000</p></td>
+<td><p>$96,000</p></td>
+<td><p>7.2%</p></td>
+<td><p>$3,350.40</p></td>
 </tr>
-<tr class="row-even"><td><p>48,000</p></td>
-<td><p>7.6% (0.076)</p></td>
-<td><p>2,539.2</p></td>
+<tr class="row-even"><td><p>$96,000</p></td>
+<td><p>$250,000</p></td>
+<td><p>7.6%</p></td>
+<td><p>$5,078.40</p></td>
 </tr>
-<tr class="row-odd"><td><p>125,000</p></td>
-<td><p>7.9% (0.079)</p></td>
-<td><p>8,391.2</p></td>
+<tr class="row-odd"><td><p>$250,000</p></td>
+<td><p>$350,000</p></td>
+<td><p>7.9%</p></td>
+<td><p>$16,782.40</p></td>
 </tr>
-<tr class="row-even"><td><p>175,000</p></td>
-<td><p>8.25% (0.0825)</p></td>
-<td><p>12,341.2</p></td>
+<tr class="row-even"><td><p>$350,000</p></td>
+<td><p>$450,000</p></td>
+<td><p>8.25%</p></td>
+<td><p>$24,682.40</p></td>
 </tr>
-<tr class="row-odd"><td><p>225,000</p></td>
-<td><p>9% (0.09)</p></td>
-<td><p>16,466.2</p></td>
+<tr class="row-odd"><td><p>$450,000</p></td>
+<td><p>$550,000</p></td>
+<td><p>9%</p></td>
+<td><p>$32,932.40</p></td>
 </tr>
-<tr class="row-even"><td><p>275,000</p></td>
-<td><p>10% (0.1)</p></td>
-<td><p>20,966.2</p></td>
+<tr class="row-even"><td><p>$550,000</p></td>
+<td><p>$650,000</p></td>
+<td><p>10%</p></td>
+<td><p>$41,932.40</p></td>
 </tr>
-<tr class="row-odd"><td><p>325,000</p></td>
-<td><p>11% (0.11)</p></td>
-<td><p>25,966.2</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>1.4% (0.014)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>19,200</p></td>
-<td><p>3.2% (0.032)</p></td>
-<td><p>268.8</p></td>
-</tr>
-<tr class="row-even"><td><p>28,800</p></td>
-<td><p>5.5% (0.055)</p></td>
-<td><p>576</p></td>
-</tr>
-<tr class="row-odd"><td><p>38,400</p></td>
-<td><p>6.4% (0.064)</p></td>
-<td><p>1,104</p></td>
-</tr>
-<tr class="row-even"><td><p>48,000</p></td>
-<td><p>6.8% (0.068)</p></td>
-<td><p>1,718.4</p></td>
-</tr>
-<tr class="row-odd"><td><p>72,000</p></td>
-<td><p>7.2% (0.072)</p></td>
-<td><p>3,350.4</p></td>
-</tr>
-<tr class="row-even"><td><p>96,000</p></td>
-<td><p>7.6% (0.076)</p></td>
-<td><p>5,078.4</p></td>
-</tr>
-<tr class="row-odd"><td><p>250,000</p></td>
-<td><p>7.9% (0.079)</p></td>
-<td><p>16,782.4</p></td>
-</tr>
-<tr class="row-even"><td><p>350,000</p></td>
-<td><p>8.25% (0.0825)</p></td>
-<td><p>24,682.4</p></td>
-</tr>
-<tr class="row-odd"><td><p>450,000</p></td>
-<td><p>9% (0.09)</p></td>
-<td><p>32,932.4</p></td>
-</tr>
-<tr class="row-even"><td><p>550,000</p></td>
-<td><p>10% (0.1)</p></td>
-<td><p>41,932.4</p></td>
-</tr>
-<tr class="row-odd"><td><p>650,000</p></td>
-<td><p>11% (0.11)</p></td>
-<td><p>51,932.4</p></td>
+<tr class="row-odd"><td><p>$650,000</p></td>
+<td><p>and above</p></td>
+<td><p>11%</p></td>
+<td><p>$51,932.40</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://files.hawaii.gov/tax/news/announce/ann24-03.pdf">https://files.hawaii.gov/tax/news/announce/ann24-03.pdf</a></p>
+<p><strong>Note:</strong> Every threshold and rate of the single and joint tables matches the 2025 schedules, which Act 46 (SLH 2024) keeps for 2026 (Announcement 2024-03, read 2026-10-24); the bases are the exact cumulative tax (the announcement rounds them). The wider brackets from 2027 and the Act 24 13% bracket are not modelled.</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-hi-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The amount taken off the income the state taxes, per bracket table.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$8,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$16,000</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> The amount taken off the income the state taxes, per bracket table. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -551,15 +751,43 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Act 46 amounts for 2026 and 2027 (9,000 / 18,000 from 2028; not modelled). The bracket bases are exact cumulative tax; the announcement rounds them to whole dollars (134 for 134.40). Not modelled: the 7.25% cap on net capital gains, the wider brackets from 2027 (Act 46) and the 13% bracket from 2027 (Act 24, 2026).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://files.hawaii.gov/tax/news/announce/ann24-03.pdf">https://files.hawaii.gov/tax/news/announce/ann24-03.pdf</a></p>
+<p><strong>Note:</strong> Hawaii Department of Taxation Announcement 2024-03 (read 2026-10-24): Act 46 amounts for 2026 and 2027, set by statute, not indexed (9,000 / 18,000 from 2028; not modelled). The 2025 Form N-11 instructions give 4,400 / 8,800 for 2025, as the announcement says. The bracket bases are exact cumulative tax; the announcement rounds them to whole dollars (134 for 134.40). Not modelled: the 7.25% cap on net capital gains, the wider brackets from 2027 (Act 46) and the 13% bracket from 2027 (Act 24, 2026).</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-hi-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$1,144</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$2,288</p></td>
+</tr>
+<tr class="row-even"><td><p>Per person 65 or older</p></td>
+<td><p>$1,144</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per dependent</p></td>
+<td><p>$1,144</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -595,14 +823,70 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Personal exemption of 1,144 per person and dependent, and an additional 1,144 for each person 65 or older (Tax Foundation 2026; senior amount from memory, unconfirmed).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://files.hawaii.gov/tax/forms/2025/n11ins.pdf">https://files.hawaii.gov/tax/forms/2025/n11ins.pdf</a></p>
+<p><strong>Note:</strong> Personal exemption of 1,144 per person and dependent, and an additional 1,144 for each person 65 or older: 2025 Form N-11 instructions (read 2026-10-24: 1,144 for each exemption claimed; the filing thresholds for 65 or older, such as 6,688 single, are the standard deduction plus two exemptions). A fixed statutory amount, not indexed; Booklet A for 2026 withholding still uses 1,144.</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-hi-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>Estate tax on the part of an estate above $5,490,000, by this schedule (amounts above the exemption):</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Amount over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$1,000,000</p></td>
+<td><p>10%</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>$1,000,000</p></td>
+<td><p>$2,000,000</p></td>
+<td><p>11%</p></td>
+<td><p>$100,000</p></td>
+</tr>
+<tr class="row-even"><td><p>$2,000,000</p></td>
+<td><p>$3,000,000</p></td>
+<td><p>12%</p></td>
+<td><p>$210,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>$3,000,000</p></td>
+<td><p>$4,000,000</p></td>
+<td><p>13%</p></td>
+<td><p>$330,000</p></td>
+</tr>
+<tr class="row-even"><td><p>$4,000,000</p></td>
+<td><p>$5,000,000</p></td>
+<td><p>14%</p></td>
+<td><p>$460,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>$5,000,000</p></td>
+<td><p>$10,000,000</p></td>
+<td><p>15.7%</p></td>
+<td><p>$600,000</p></td>
+</tr>
+<tr class="row-even"><td><p>$10,000,000</p></td>
+<td><p>and above</p></td>
+<td><p>20%</p></td>
+<td><p>$1,385,000</p></td>
+</tr>
+</tbody>
+</table>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -693,7 +977,9 @@
 <span id="law-hi-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<p>The state does not tax Social Security benefits.</p>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -717,16 +1003,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> <a class="reference external" href="https://files.hawaii.gov/tax/news/pubs/25BkltA.pdf">https://files.hawaii.gov/tax/news/pubs/25BkltA.pdf</a></p>
-<p><strong>Note:</strong> Hawaii does not tax Social Security benefits (state-costs.csv ss_taxed N; Kiplinger 2026 list does not include Hawaii). Confirmed primary on <a class="reference external" href="https://files.hawaii.gov/tax/news/pubs/25BkltA.pdf">https://files.hawaii.gov/tax/news/pubs/25BkltA.pdf</a> (validation run 2, 2026-10-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://files.hawaii.gov/tax/forms/2025/n11ins.pdf">https://files.hawaii.gov/tax/forms/2025/n11ins.pdf</a></p>
+<p><strong>Note:</strong> Hawaii does not tax Social Security or first-tier Railroad Retirement benefits: 2025 Form N-11 instructions, line 14 (read 2026-10-24); also Booklet A (<a class="reference external" href="https://files.hawaii.gov/tax/news/pubs/25BkltA.pdf">https://files.hawaii.gov/tax/news/pubs/25BkltA.pdf</a>, validation run 2, 2026-10-22).</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
 <span id="law-hi-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
-<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<div class="law-section law-secondary docutils container">
+<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -755,14 +1042,16 @@
 </tbody>
 </table>
 <p><strong>Check at:</strong> Hawaii county tax pages (no county income tax is authorised)</p>
-<p><strong>Note:</strong> Hawaii counties levy no income tax (state-costs.csv local_income_tax none).</p>
+<p><strong>Note:</strong> Hawaii counties levy no income tax: Hawaii is not among the 16 states with local income taxes in Tax Foundation, Local Income Taxes (<a class="reference external" href="https://taxfoundation.org/research/all/state/local-income-taxes-2023/">https://taxfoundation.org/research/all/state/local-income-taxes-2023/</a>, updated 2024-06-13, read 2026-10-24), and the 2025 Form N-11 has no county tax line (state-costs.csv local_income_tax none).</p>
 </div>
 </section>
 <section id="sales-tax-sales-tax">
 <span id="law-hi-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 4%; local sales taxes add 0.5% on average (4.5% combined). A car purchase pays 4.5%; groceries pay 4.5%. Clothing taxed: yes.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -815,7 +1104,9 @@
 <span id="law-hi-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 0.308% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -848,7 +1139,9 @@
 <span id="law-hi-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $1,488 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -881,7 +1174,9 @@
 <span id="law-hi-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $1,512 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -915,7 +1210,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $340 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -949,7 +1246,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.16 a gallon. Gas averages $4.73 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -986,7 +1285,9 @@
 <span id="law-hi-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.4628 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1019,7 +1320,9 @@
 <span id="law-hi-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $832,932. The housing cost index is 302.6 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1057,7 +1360,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,149; Medigap Plan G at 65 $194; Part D $39.91; Medicare Advantage $31.70.</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1102,7 +1407,9 @@
 <span id="law-hi-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 135.8; goods 111.6; services other than rent 102.9.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1143,7 +1450,9 @@
 <span id="law-hi-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $8,103; assisted living $11,311; a private nursing home room $16,364.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

@@ -1,0 +1,278 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "mn",
+  "name": "Minnesota",
+  "tax_year": 2026,
+  "source": "Minnesota Department of Revenue, Tax Year 2026 Inflation-Adjusted Amounts in Minnesota Statutes (2025-12-01, https://www.revenue.state.mn.us/sites/default/files/2025-12/inflation-adjusted-amounts-2026.pdf, read 2026-10-24): brackets, standard deduction, aged additional deduction, dependent exemption, Social Security subtraction thresholds; MN DOR press release 2025-12-16 (read) agrees; 2025 Schedule M1M and M1NC (read 2026-10-24) for the base; DOR analysis of S.F. 1942 (2025-03-26, read) for the estate tax rates",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "MFS",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.revenue.state.mn.us/sites/default/files/2025-12/inflation-adjusted-amounts-2026.pdf",
+    "note": "Minnesota has its own single, married joint and married separate bracket tables (290.06 subd. 2c; MN DOR Tax Year 2026 Inflation-Adjusted Amounts, read 2026-10-24); head of household is not modelled."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Minnesota starts from federal adjusted gross income (Form M1 line 1) and keeps the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits: the 2025 Schedule M1M additions (other states' bond interest, expenses for income Minnesota does not tax, lump-sum capital gain, homebuyer account and K-12 529 distributions) and Schedule M1NC (only 529 credentialing and rural loan interest) have no line for them (MN DOR 2025 Schedule M1M and M1NC, read 2026-10-24). The 2026 forms are not published yet.",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.revenue.state.mn.us/sites/default/files/2026-07/m1m-25.pdf"
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.revenue.state.mn.us/sites/default/files/2025-12/inflation-adjusted-amounts-2026.pdf",
+    "note": "Every threshold and rate of the three tables matches the DOR's Tax Year 2026 Inflation-Adjusted Amounts (read 2026-10-24); each base equals the cumulative tax of the lower brackets.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0535,
+        "base": 0.0
+      },
+      {
+        "threshold": 33310,
+        "rate": 0.068,
+        "base": 1782.09
+      },
+      {
+        "threshold": 109430,
+        "rate": 0.0785,
+        "base": 6958.25
+      },
+      {
+        "threshold": 203150,
+        "rate": 0.0985,
+        "base": 14315.27
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0535,
+        "base": 0.0
+      },
+      {
+        "threshold": 48700,
+        "rate": 0.068,
+        "base": 2605.45
+      },
+      {
+        "threshold": 193480,
+        "rate": 0.0785,
+        "base": 12450.49
+      },
+      {
+        "threshold": 337930,
+        "rate": 0.0985,
+        "base": 23789.82
+      }
+    ],
+    "MFS": [
+      {
+        "threshold": 0,
+        "rate": 0.0535,
+        "base": 0.0
+      },
+      {
+        "threshold": 24350,
+        "rate": 0.068,
+        "base": 1302.72
+      },
+      {
+        "threshold": 96740,
+        "rate": 0.0785,
+        "base": 6225.25
+      },
+      {
+        "threshold": 168965,
+        "rate": 0.0985,
+        "base": 11894.91
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 15300.0,
+    "JOINT": 30600.0,
+    "MFS": 15300.0,
+    "note": "Minnesota's own standard deduction for 2026: 15,300 single and separate, 30,600 joint (290.0123 subd. 1; MN DOR Tax Year 2026 Inflation-Adjusted Amounts, read 2026-10-24; press release 2025-12-16 agrees). Minnesota indexes it, the brackets, the dependent exemption and the Social Security thresholds every year by statute (270C.22); the file keeps them legislated (owner to decide). Not modelled: the reduction above AGI 244,400 (122,200 separate), to at most 80%.",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.revenue.state.mn.us/sites/default/files/2025-12/inflation-adjusted-amounts-2026.pdf"
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "MFS": 0.0,
+    "senior": 1600.0,
+    "dependent": 5300.0,
+    "note": "No personal exemption; 5,300 per dependent (290.0121 subd. 1, 2026, MN DOR inflation-adjusted amounts, read 2026-10-24); senior is the additional standard deduction per person 65 or older (290.0123: 1,600 married, 2,000 single or head of household; the married figure is used for both). Not modelled: the dependent exemption phase-out above AGI 244,500 single / 366,700 joint / 183,350 separate, and the public pension subtraction (27,690 joint, 13,850 others, public pensions only).",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.revenue.state.mn.us/sites/default/files/2025-12/inflation-adjusted-amounts-2026.pdf"
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.revenue.state.mn.us/estate-tax (Form M706 instructions; Minn. Stat. 291.016 and 291.03)",
+    "estate_tax": {
+      "exemption": 3000000.0,
+      "brackets": [
+        {
+          "threshold": 0.0,
+          "rate": 0.13,
+          "base": 0.0
+        },
+        {
+          "threshold": 7100000.0,
+          "rate": 0.136,
+          "base": 923000.0
+        },
+        {
+          "threshold": 8100000.0,
+          "rate": 0.144,
+          "base": 1059000.0
+        },
+        {
+          "threshold": 9100000.0,
+          "rate": 0.152,
+          "base": 1203000.0
+        },
+        {
+          "threshold": 10100000.0,
+          "rate": 0.16,
+          "base": 1355000.0
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "Minnesota estate tax: the 3,000,000 exclusion (since 2020, not indexed) is subtracted and the Minnesota taxable estate is taxed at 13% to 7,100,000, then 13.6%, 14.4%, 15.2% in 1,000,000 bands and 16% above 10,100,000 (DOR analysis of S.F. 1942, 2025-03-26, read; the bill to match the federal exclusion was not enacted as of 2026 per Farrish Law and the ustax.tools 2026 calculator, which uses 3,000,000). Not modelled: the farm and small business subtraction (up to 2,000,000) and gifts within three years. No inheritance tax."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "threshold",
+    "agi_limit": {
+      "SINGLE": 106410.0,
+      "JOINT": 130780.0,
+      "MFS": 65390.0
+    },
+    "max_share": 1.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.revenue.state.mn.us/sites/default/files/2025-12/inflation-adjusted-amounts-2026.pdf (thresholds, 290.0132 subd. 26) and https://www.revenue.state.mn.us/sites/default/files/2026-07/m1m-25.pdf (Worksheet for Line 12: 10% less per 4,000 of AGI, 2,000 separate)",
+    "note": "Minnesota subtracts all federally taxed Social Security when AGI is at or below 110,780 joint, 86,410 single or head of household and 55,390 separate (2026, MN DOR inflation-adjusted amounts, read 2026-10-24); above it the subtraction falls 10% for each 4,000 (2,000 separate) of AGI, so it is gone 40,000 (20,000) higher (2025 Schedule M1M Worksheet for Line 12, read). Approximated as a single cliff at the middle of that band (130,780 / 106,410 / 65,390): exempt below, the federal taxed amount above. Off by up to half the taxed benefits inside the band. The small alternate subtraction (5,840 joint, 4,560 single, phase-out from 88,630 / 69,250, not indexed) is not modelled. The thresholds match the primary source; the section stays unconfirmed because the rule is approximated (owner ruling 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "all income",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.revenue.state.mn.us/sites/default/files/2025-07/shares-state-and-local-taxes-march-2025.pdf",
+    "note": "Minnesota has no local income taxes (Tax Foundation local income tax list and state-costs.csv local_income_tax agree). Confirmed primary on https://www.revenue.state.mn.us/sites/default/files/2025-07/shares-state-and-local-taxes-march-2025.pdf (validation run 3, 2026-10-22)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06875,
+    "avg_local_rate": 0.01265,
+    "combined_rate": 0.0814,
+    "vehicle_rate": 0.06875,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Minnesota revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.06875 from the state's own source (Minnesota motor vehicle sales tax 6.875%; local general sales taxes do not apply (Minn. Stat. 297B.02 subd. 1(a), https://www.revisor.mn.gov/statutes/cite/297B.02, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt from state and local general taxes. clothing_taxable is false (research: no; General clothing exempt; accessories fur sports/protective taxable). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00987,
+    "confidence": "confirmed primary",
+    "check_at": "https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US27",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Confirmed primary on the Census ACS 2024 1-year tables (https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US27, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2676.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2184.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 35.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://dps.mn.gov/divisions/dvs/Pages/registration-tax.aspx",
+    "source": "Minnesota DPS Driver and Vehicle Services, registration tax page: the minimum tax for passenger vehicles 10 years old and older is 35 (search extract, 2026-10-23)",
+    "note": "Floor: the minimum passenger registration tax. Newer cars pay 10 plus a share of the base value that falls with age, so the real cost is usually higher. Set by hand (s328, 2026-10-23, owner decision C4: no 0 that only means unknown); a move changes the entered car tax by the dollar difference of the two states' figures, and the importer keeps a non-zero figure."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.326,
+    "average_price_per_gallon": 3.11,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.revenue.state.mn.us/petroleum-tax-fuel-excise-tax-rates-and-fees",
+    "source": "Excise: https://www.revenue.state.mn.us/petroleum-tax-fuel-excise-tax-rates-and-fees (validation run 2, 2026-10-22); price: https://usgasgauge.com/gas-prices/minnesota/2024 (validation run 3, 2026-10-22)",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.326 for 2026 (0.328 from 2027); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Price: 3.11, USGasGauge 2024 nominal average for regular from EIA weekly data (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1625,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 348778.0,
+    "cost_index": 79.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 951.0,
+    "medigap_g_monthly": 250.0,
+    "part_d_monthly": 34.76,
+    "medicare_advantage_monthly": 46.19,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Minnesota insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Research note: ACA state age curve: age-60 value uses federal curve (approx); Medigap: state-standardized plans; source substitutes nearest plan (MA = Supplement 1A). Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 99.2,
+    "bea_goods": 100.5,
+    "bea_services": 100.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 8199.0,
+    "assisted_living_monthly": 5825.0,
+    "nursing_home_private_monthly": 14068.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

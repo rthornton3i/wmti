@@ -1,0 +1,249 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "wv",
+  "name": "West Virginia",
+  "tax_year": 2026,
+  "source": "Income tax confirmed primary (s359, read 2026-10-24): W. Va. Code 11-21-4j (rate schedules for taxable years on and after 2026-01-01, enacted by SB 392 of 2026; https://code.wvlegislature.gov/11-21-4j/), 11-21-12 (Social Security, senior and pension modifications; https://code.wvlegislature.gov/11-21-12/), 11-21-16 (2000 personal exemption; https://code.wvlegislature.gov/11-21-16/), 2025 Form IT-140 instructions (https://tax.wv.gov/Documents/PIT/2025/it140.PersonalIncomeTaxFormsAndInstructions.2025.pdf); second sources EY Tax News 2026-0864 (top rate 4.58%, retroactive to 2026-01-01) and the TaxAct West Virginia guide (2026 brackets 2.11% to 4.58%)",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://code.wvlegislature.gov/11-21-4j/",
+    "SINGLE": "SINGLE",
+    "MFS": "MFS",
+    "JOINT": "JOINT",
+    "note": "One rate schedule for single, head of household and married filing jointly (11-21-4j(a), Rate Schedule I) and a half-width one for married filing separately (11-21-4j(b), Rate Schedule II); read 2026-10-24."
+  },
+  "state_base": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.wv.gov/Documents/PIT/2025/it140.PersonalIncomeTaxFormsAndInstructions.2025.pdf",
+    "add_back": [],
+    "note": "West Virginia starts from federal adjusted gross income (IT-140 line 1), so 401(k) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible as on the federal return; Schedule M and 11-21-12(b) list no add-back for them (2025 IT-140 instructions and the statute, read 2026-10-24)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://code.wvlegislature.gov/11-21-4j/",
+    "note": "Every threshold, rate and base matches W. Va. Code 11-21-4j for taxable years from 2026-01-01 (SB 392 of 2026, read 2026-10-24): 2.11% to 4.58%, married separate on half the thresholds. Fixed in statute, not indexed.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0211,
+        "base": 0.0
+      },
+      {
+        "threshold": 10000,
+        "rate": 0.0281,
+        "base": 211.0
+      },
+      {
+        "threshold": 25000,
+        "rate": 0.0316,
+        "base": 632.5
+      },
+      {
+        "threshold": 40000,
+        "rate": 0.0422,
+        "base": 1106.5
+      },
+      {
+        "threshold": 60000,
+        "rate": 0.0458,
+        "base": 1950.5
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0211,
+        "base": 0.0
+      },
+      {
+        "threshold": 10000,
+        "rate": 0.0281,
+        "base": 211.0
+      },
+      {
+        "threshold": 25000,
+        "rate": 0.0316,
+        "base": 632.5
+      },
+      {
+        "threshold": 40000,
+        "rate": 0.0422,
+        "base": 1106.5
+      },
+      {
+        "threshold": 60000,
+        "rate": 0.0458,
+        "base": 1950.5
+      }
+    ],
+    "MFS": [
+      {
+        "threshold": 0,
+        "rate": 0.0211,
+        "base": 0.0
+      },
+      {
+        "threshold": 5000,
+        "rate": 0.0281,
+        "base": 105.5
+      },
+      {
+        "threshold": 12500,
+        "rate": 0.0316,
+        "base": 316.25
+      },
+      {
+        "threshold": 20000,
+        "rate": 0.0422,
+        "base": 553.25
+      },
+      {
+        "threshold": 30000,
+        "rate": 0.0458,
+        "base": 975.25
+      }
+    ]
+  },
+  "exemptions": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://code.wvlegislature.gov/11-21-16/",
+    "SINGLE": 2000.0,
+    "JOINT": 4000.0,
+    "MFS": 2000.0,
+    "senior": 0.0,
+    "dependent": 2000.0,
+    "note": "2000 per exemption: each person and dependent, 500 when no exemption is claimed (W. Va. Code 11-21-16 and the 2025 IT-140 line 6 instructions, read 2026-10-24); no extra exemption at 65 and no standard deduction. Approximation: not modelled are the 8000 senior modification (11-21-12(c)(9)), which is cut by the other modifications including the Social Security subtraction, so it is nil for most people drawing 8000 or more of benefits; the 2000 PERS/TRS and federal retirement subtraction and full police, fire and military pension subtractions."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://code.wvlegislature.gov/11-11-3/",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "West Virginia levies no estate tax and no inheritance tax; its estate tax was a pick-up of the federal state death tax credit, which ended in 2005 (state-costs.csv columns estate_tax and inheritance_tax; Tax Foundation and Kiplinger state death-tax lists). Confirmed primary on https://code.wvlegislature.gov/11-11-3/ (validation run 3, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://code.wvlegislature.gov/11-21-12/",
+    "treatment": "exempt",
+    "note": "From 2026 West Virginia subtracts 100 percent of the Social Security benefits in federal AGI, at every income (11-21-12(c)(8): 100% at or below 50000 single and 100000 joint, and (c)(8)(E) 100% above them from 2026; 35% in 2024 and 65% in 2025 above the limits; read 2026-10-24)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "https://tax.wv.gov (municipalities may levy flat user fees, not an income tax)",
+    "note": "West Virginia cities levy no income tax; some (Charleston, Huntington, Wheeling) charge a flat weekly city service or user fee on people working there, which is not a rate on income and is left out (state-costs.csv local_income_tax 'some city user fees')."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.006,
+    "combined_rate": 0.066,
+    "vehicle_rate": 0.06,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "West Virginia revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.06 from the state's own source (West Virginia motor vehicle sales tax at titling, 6% from 2017-07-01, no municipal sales tax on vehicles (W. Va. Code 11-15-3c(b) and (j), code.wvlegislature.gov, fetched 2026-10-22; replaced the 5% privilege tax of 17A-3-4, abolished 2008-07-01)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt since 2013; municipal taxes follow state base. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.0051,
+    "confidence": "confirmed secondary",
+    "check_at": "https://taxfoundation.org/data/all/state/property-taxes-by-state-county/",
+    "source": "0.51%, Tax Foundation table 2, 2024 owner-occupied (https://taxfoundation.org/data/all/state/property-taxes-by-state-county/, validation run 3, 2026-10-22)",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Set by hand from a secondary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1536.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1872.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 51.5,
+    "confidence": "confirmed secondary",
+    "check_at": "https://transportation.wv.gov/DMV/News/Pages/Senate-Bill-1006-Changes-DMV-Fees-Effective-July-1,-2017.aspx",
+    "source": "West Virginia DMV: Class A passenger registration 51.50 a year from 2017-07-01 (Senate Bill 1006 news release and special plate pages, search extract, 2026-10-23); vehicle property tax: WalletHub, 2026's Property Taxes by State, vehicle tax table, and the WVMV-1 credit (The Intermountain 2026-09, Bloomberg Tax 2026-02)",
+    "note": "Floor: the Class A registration fee. Counties tax vehicles as personal property (WalletHub: 484 a year on a 29100 car), but since tax year 2024 a refundable income tax credit (Schedule WVMV-1) pays back the vehicle property tax paid on time, so that tax nets to 0 and is left out. Set by hand (s328, 2026-10-23, owner decision C4: no 0 that only means unknown); a move changes the entered car tax by the dollar difference of the two states' figures, and the importer keeps a non-zero figure."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.357,
+    "average_price_per_gallon": 3.33,
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.wv.gov/Documents/MotorFuel/2026/MotorFuelRates.2026.pdf",
+    "source": "Excise: https://tax.wv.gov/Documents/MotorFuel/2026/MotorFuelRates.2026.pdf (validation run 3, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Gas excise confirmed primary: Gasoline combined rate $0.3570 (flat $0.2050 + variable $0.1520), effective 2026-01-01 to 2026-12-31 (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1547,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 176576.0,
+    "cost_index": 69.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 2279.0,
+    "medigap_g_monthly": 186.0,
+    "part_d_monthly": 44.71,
+    "medicare_advantage_monthly": 19.99,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, West Virginia insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 96.4,
+    "bea_goods": 96.5,
+    "bea_services": 99.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 5529.0,
+    "assisted_living_monthly": 5600.0,
+    "nursing_home_private_monthly": 12866.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

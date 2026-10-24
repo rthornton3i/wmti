@@ -1,0 +1,156 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "nv",
+  "name": "Nevada",
+  "tax_year": 2026,
+  "source": "Nevada levies no personal income tax: the Nevada Constitution, Article 10, Section 1(9) bars a tax on wages or personal income (read in a search extract, 2026-10-22); the Department of Taxation lists no individual income tax (https://tax.nv.gov); second source Tax Foundation, State Individual Income Tax Rates and Brackets 2026 (https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/)",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "ALL",
+    "MFS": "ALL",
+    "JOINT": "ALL"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Nevada has no state income tax."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "ALL": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      }
+    ]
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.leg.state.nv.us/NRS/NRS-375A.html",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Nevada levies no estate tax and no inheritance tax: its estate tax (NRS chapter 375A) only picked up the federal state death tax credit and has collected nothing since that credit ended in 2005 (state-costs.csv columns estate_tax and inheritance_tax; Tax Foundation and Kiplinger state death-tax lists). Confirmed primary on https://www.leg.state.nv.us/NRS/NRS-375A.html (validation run 2, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.leg.state.nv.us/Const/NvConst.html",
+    "note": "Nevada has no personal income tax, so Social Security benefits are not taxed. Confirmed primary on https://www.leg.state.nv.us/Const/NvConst.html (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.leg.state.nv.us/Const/NvConst.html",
+    "note": "Nevada counties and cities levy no income tax; the constitutional bar covers the state's political subdivisions too (state-costs.csv local_income_tax 'none'; Tax Foundation). Confirmed primary on https://www.leg.state.nv.us/Const/NvConst.html (validation run 2, 2026-10-22)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0685,
+    "avg_local_rate": 0.0139,
+    "combined_rate": 0.0824,
+    "vehicle_rate": 0.0824,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Nevada revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food for home consumption exempt by constitution; Zamp says local may apply but exemption covers local rates. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00504,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1308.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 3120.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 246.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://dmv.nv.gov/regfees.htm",
+    "source": "https://dmv.nv.gov/regfees.htm (validation run 2, 2026-10-22)",
+    "note": "Nevada governmental services tax: 4% of 35% of the list price, depreciated 5% in the first year and 10% a year after down to 15%, plus the 1% supplemental tax in Clark and Churchill counties (about 73% of residents); on a 29,100 car 484 in the first year in Clark, about 246 a year over ten years statewide. The registration fee is left out. Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.238,
+    "average_price_per_gallon": 3.96,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.fhwa.dot.gov/policyinformation/statistics/2023/mf121t.cfm",
+    "source": "Excise: https://www.fhwa.dot.gov/policyinformation/statistics/2023/mf121t.cfm (validation run 3, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Research note: gas local option adds ~10c in Clark County. Gas excise confirmed primary: 23.8 cents/gal gasoline, effective 07/01/20 (FHWA Highway Statistics 2023, table MF-121T) (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1353,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 440739.0,
+    "cost_index": 119.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Both figures confirmed primary (https://fred.stlouisfed.org/series/NVUCSFRCONDOSMSAMID and https://meric.mo.gov/data/cost-living-data-series, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1055.0,
+    "medigap_g_monthly": 223.0,
+    "part_d_monthly": 43.31,
+    "medicare_advantage_monthly": 1.83,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Nevada insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 103.2,
+    "bea_goods": 96.3,
+    "bea_services": 98.7,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7245.0,
+    "assisted_living_monthly": 6110.0,
+    "nursing_home_private_monthly": 12790.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

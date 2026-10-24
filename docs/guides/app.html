@@ -9,7 +9,7 @@
   <title>The app &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -212,7 +212,7 @@ narrower window is the phone layout (<code class="docutils literal notranslate">
 is saved, the Auto-save switch and one strip of Save, Rename, Duplicate, Clear and Export (the settings as a
 scenario file); then Other scenarios (the scenarios saved on this
 device, each with a “…” menu) and the New and Import buttons (see Scenarios on Setup below). Then
-Household &amp; run:
+Household:
 the “Include a partner” switch, Your age
 and Partner age (the current ages; Partner age only with a partner),
 filing status, home state, the partner’s share of joint accounts and the years
@@ -233,7 +233,7 @@ only, and that the example household’s figures are fictional) opens from the m
 </tr>
 <tr class="row-odd"><td><p>Inputs</p></td>
 <td><p>Income, Children, Home, Cars, Loans, Accounts, Benefits, Healthcare, Expenses,
-Retirement and Strategies (Household &amp; run with the current ages, the Seed, the Runs, the
+Retirement and Strategies (Household with the current ages, the Seed, the Runs, the
 inflation adjusted switch, the only inflation setting, and the Inflation range are on Setup). Labels, help, units and bounds come from the
 Python settings schema; Home, Loans and Expenses have notes
 behind the “i” beside the group heading (only Mortgage loans feed the
@@ -353,7 +353,7 @@ owed; beside a home owned today it is a second home), A future purchase
 mortgage) or Rent (a rent period: its name, first year, optional last
 year and monthly rent); the mortgage figures show only while its switch
 is ticked. A home’s and a rent period’s Add and Edit timeline screens
-also ask its state, a select labelled as on its sheet (<em>Home’s state</em>,
+also ask its state, a state combobox labelled as on its sheet (<em>Home’s state</em>,
 <em>State</em>; blank first); picking a state other than the home state shows
 that a primary residence or rent period starting later moves you there
 from its first year, and once saved the note under the block names the
@@ -551,8 +551,8 @@ switch. Benefits ends with the Beneficiaries section (no switch; the beneficiari
 not a strategy), its note on screen under its title: “Beneficiaries set how the after-tax
 final value is measured (the tax they pay when they inherit Traditional money); they do
 not change the plan itself.” It shows one card per beneficiary (<code class="docutils literal notranslate"><span class="pre">strategies.heirs</span></code>):
-<em>Name</em>, <em>Share of the estate</em>, <em>Other income</em>, <em>Filing status</em>, <em>State</em> (a plain list:
-<em>Same as household</em>, then the 51 labelled states, with no search box) and <em>Takes Traditional
+<em>Name</em>, <em>Share of the estate</em>, <em>Other income</em>, <em>Filing status</em>, <em>State</em> (the state combobox
+below: <em>Same as household</em>, then the 51 labelled states) and <em>Takes Traditional
 money</em> (<em>Over 10 years</em> or <em>All at once</em>), with <em>Remove</em> on each card (not on the last one)
 and <em>Add beneficiary</em> below (up to 20); Add and Remove split the shares equally again. A
 field still at its start value is grey (<code class="docutils literal notranslate"><span class="pre">.is-default</span></code>) until edited. While the shares do
@@ -590,11 +590,18 @@ inheritance tax, car insurance and taxes, the gas price, health premiums, the
 Expenses rows’ prices and your home (the new primary residence or rent on the Home
 timeline), with the price change and
 the sales tax difference together as <em>State Cost Change</em> (each dollar changed once).
-Every state select (home state, a beneficiary’s state, the state you move to) offers
+Every state choice (home state, a beneficiary’s state, the state you move to, a home’s
+or rent period’s state, the walkthrough’s state question) offers
 the 51 states (50 and DC) by code, each labelled like <em>NJ - New Jersey</em> (the field’s
-<code class="docutils literal notranslate"><span class="pre">choiceLabels</span></code> in the schema); on the phone layout a <em>Search</em> box above the list (but
-the beneficiary’s plain list) keeps
-the states whose name or code starts with what is typed. Income
+<code class="docutils literal notranslate"><span class="pre">choiceLabels</span></code> in the schema), in one box, a combobox (<code class="docutils literal notranslate"><span class="pre">stateCombobox</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>, the same on the phone and wide layouts): the box shows the chosen
+state’s name; a tap or focus opens the list under it, floating over the page; typing
+filters the list to the states whose name or code starts with what is typed
+(<code class="docutils literal notranslate"><span class="pre">comboOptions</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>); the arrow keys, Home and End move the
+highlight, and Enter or a tap picks; Escape, or leaving without a pick, puts the chosen
+state back. Enter on a cleared box picks the blank choice (<em>Same as household</em>, none)
+where the field has one. There is no separate search box; the grey default look and the
+reset button work as on any field. Income
 puts each person’s raise and promotion in a “Raises and promotions”
 disclosure: a mean slider (0% to 10%) and a standard deviation slider
 (0% to 5%) with a small curve that moves with them, the chance and the
@@ -917,22 +924,33 @@ last step) and a close button. On a first visit it also opens by itself once the
 first walkthrough ends (finished, skipped or closed; not after a hand-off to an
 Inputs page or an import), once per device (<code class="docutils literal notranslate"><span class="pre">wmti.tour.v1</span></code>; without storage it
 may show again); never after loading a config or a later walkthrough. It covers
-the app’s main parts, sixteen steps on a phone and fourteen in the wide layout:
-the bottom bar, the headline figures across the top, the Inputs bubbles (with
-one line, “Swipe sideways to move between tabs.”) and pin, the Outputs views,
-Summary, Plots, Optimize (what it tries and Find best settings), Compare
-(duplicate a plan, change one thing, compare), Undo, Setup’s scenario card, its
-household (partner, ages, filing status, home state) and Runs (how many Monte
-Carlo runs, and the seed), the walkthrough (Go deeper), the menu (with Tax law
-and costs and Final report (PDF)) and the <strong>?</strong> button itself. Minor inputs such
-as Relocation and Beneficiaries are left to the walkthrough. Each
-step opens the tab its control is on, scrolls the control into view (the page,
-its wide layout column and its sideways chips row), waits for the scroll to
-settle and only then rings the part of the control that shows; a turned or
-resized screen does the same again. A control that is not drawn, or still not in
-view after that, is skipped rather than ringed over nothing. Done, the close button and Escape put
-back the tab, view and scroll it started from, and focus returns to the <strong>?</strong>
-button (<code class="docutils literal notranslate"><span class="pre">TOUR_STEPS</span></code>, <code class="docutils literal notranslate"><span class="pre">openTour</span></code> and <code class="docutils literal notranslate"><span class="pre">closeTour</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+the app’s main parts, eighteen steps on a phone and sixteen in the wide layout,
+in the order of the bottom bar and, on each page, top to bottom: on Setup, Undo,
+the headline figures across the top, the scenario card, the household (partner,
+ages, filing status, home state), Runs (how many Monte Carlo runs, and the seed)
+and the bottom bar; on Inputs, the bubbles (with one line, “Swipe sideways to
+move between tabs.”) and pin; on Outputs, the views, then Summary, Plots,
+Compare (duplicate a plan, change one thing, compare) and Optimize (what it
+tries and Find best settings); then the menu’s Walk me through it (Go deeper),
+Documentation, Appearance and Final report (PDF), each item ringed in turn; and
+last the <strong>?</strong> button itself. Minor inputs such as Relocation and Beneficiaries
+are left to the walkthrough. Before the first step on another page or Outputs
+view the tour shows the move: the card says “Next: Inputs” (a polite live
+region) while the ring presses the button that goes there (the bottom tab, the
+view’s chip, or the menu button before the menu opens), then the page slides in
+as a swipe slides it, opened at its top, and only then does the step show; it
+never goes back to an earlier page. With reduced motion the caption still shows
+but nothing slides; in the wide layout, with no bottom bar, only the caption
+shows. Back and Next wait while a move is under way. Each step scrolls its
+control into view (the page, its wide layout column and its sideways chips
+row), waits for the scroll to settle and only then rings the part of the
+control that shows; a turned or resized screen does the same again. A control
+that is not drawn, or still not in view after that, is skipped rather than
+ringed over nothing. Done, the close button and Escape put back the tab, view
+and scroll it started from (a move under way stops), and focus returns to the
+<strong>?</strong> button (<code class="docutils literal notranslate"><span class="pre">TOUR_STEPS</span></code>, <code class="docutils literal notranslate"><span class="pre">tourMove</span></code>, <code class="docutils literal notranslate"><span class="pre">openTour</span></code> and <code class="docutils literal notranslate"><span class="pre">closeTour</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>; the order is checked by
+<code class="docutils literal notranslate"><span class="pre">frontend/tests/unit/tour.test.mjs</span></code>).</p>
 <p>The top bar has no account button: scenarios live on Setup. The menu button opens a
 menu: Walk me through it… (see Walkthrough below), Documentation (see
 <a class="reference internal" href="#app-documentation"><span class="std std-ref">Documentation</span></a> below), Appearance, Help and tips (a few
@@ -1358,7 +1376,8 @@ greyed out, with <em>Not available: &lt;reason&gt;</em> under it, and is left ou
 beneficiaries’ payouts are not an option: each beneficiary keeps the payout set in Benefits,
 Beneficiaries, and Apply never changes it. The first option, <em>Relocation state</em>, is a list to tick instead of a switch: the states from
 <code class="docutils literal notranslate"><span class="pre">appInfo</span></code> as <em>NJ - New Jersey</em> in a short scrolling box, a search box above it on
-the phone (the <code class="docutils literal notranslate"><span class="pre">select-search</span></code> box, keeping the ticked states in view), <em>None</em> to
+the phone (the <code class="docutils literal notranslate"><span class="pre">select-search</span></code> box, keeping the ticked states in view; this list keeps its
+search box because several states are ticked at once, unlike the single state comboboxes), <em>None</em> to
 clear the ticks, and at most <code class="docutils literal notranslate"><span class="pre">optimizeInfo</span></code>’s <code class="docutils literal notranslate"><span class="pre">maxStates</span></code> (5): with five ticked the
 other boxes are off under <em>Up to 5 states per search.</em> Under the list what the ticked
 states add to the chosen effort (<code class="docutils literal notranslate"><span class="pre">optimizeStatesEstimate</span></code> in

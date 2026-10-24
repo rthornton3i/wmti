@@ -1,0 +1,164 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "tx",
+  "name": "Texas",
+  "tax_year": 2026,
+  "source": "Texas levies no personal income tax (confirmed primary, read 2026-10-24): Texas Constitution, Article 8, Section 24-a, added by H.J.R. 38 (86th Legislature) and adopted at the election of 2019-11-05, says the legislature may not impose a tax on the net incomes of individuals, including an individual's share of partnership and unincorporated association income (enrolled text https://capitol.texas.gov/tlodocs/86R/billtext/html/HJ00038F.htm; codified at https://statutes.capitol.texas.gov/Docs/CN/htm/CN.8.htm); the Comptroller's list of state taxes (https://comptroller.texas.gov/taxes/) names no personal income tax; second source Tax Foundation, State Individual Income Tax Rates and Brackets 2026 (https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/)",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "ALL",
+    "MFS": "ALL",
+    "JOINT": "ALL",
+    "confidence": "confirmed primary",
+    "check_at": "https://capitol.texas.gov/tlodocs/86R/billtext/html/HJ00038F.htm",
+    "note": "Every filing status uses the one zero-rate table: Texas has no personal income tax (Texas Constitution Art. 8, Sec. 24-a, enrolled H.J.R. 38 read 2026-10-24; Comptroller tax list read 2026-10-24)."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://capitol.texas.gov/tlodocs/86R/billtext/html/HJ00038F.htm",
+    "note": "Texas has no state income tax, so there is no state base and nothing to add back; 401(k), 403(b) and HSA deposits do not matter here. Confirmed primary: Texas Constitution Art. 8, Sec. 24-a (enrolled H.J.R. 38, 86th Legislature) and the Comptroller's tax list (https://comptroller.texas.gov/taxes/), both read 2026-10-24."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://capitol.texas.gov/tlodocs/86R/billtext/html/HJ00038F.htm",
+    "note": "Zero-rate table (legislated, not indexed): Texas Constitution Art. 8, Sec. 24-a (enrolled H.J.R. 38, 86th Legislature) bars a tax on the net incomes of individuals, and the Comptroller's tax list names none (read 2026-10-24); it holds for 2026 and every later year until the constitution is amended.",
+    "ALL": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      }
+    ]
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "https://comptroller.texas.gov/taxes/ (Texas inheritance tax ended for deaths after 2004)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Texas levies no estate tax and no inheritance tax: its inheritance tax was a pick-up of the federal state death tax credit and ended with that credit for deaths after 2004 (state-costs.csv columns estate_tax and inheritance_tax; Tax Foundation and Kiplinger state death-tax lists). Triage 2026-10-23 (category A): Texas has no estate or inheritance tax."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://capitol.texas.gov/tlodocs/86R/billtext/html/HJ00038F.htm",
+    "note": "Texas has no personal income tax, so Social Security benefits are not taxed (Texas Constitution Art. 8, Sec. 24-a, enrolled H.J.R. 38 read 2026-10-24; Comptroller tax list https://comptroller.texas.gov/taxes/ read 2026-10-24)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "https://capitol.texas.gov/tlodocs/86R/billtext/html/HJ00038F.htm and Tax Foundation, Local Income Taxes in 2023 (https://taxfoundation.org/research/all/state/local-income-taxes-2023/)",
+    "note": "Texas counties and cities levy no income tax: Texas is not among the states with local income taxes in Tax Foundation, Local Income Taxes in 2023 (read in a search extract 2026-10-24), and Art. 8, Sec. 24-a bars a state tax on individuals' net incomes. No statute or agency page saying localities may not levy one was read, so it stays confirmed secondary. Triage 2026-10-23 (category A): Texas has no local income tax."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0625,
+    "avg_local_rate": 0.0195,
+    "combined_rate": 0.082,
+    "vehicle_rate": 0.0625,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Texas revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0625 from the state's own source (Texas motor vehicle sales tax 6.25% of the price less trade-in (https://comptroller.texas.gov/taxes/motor-vehicle/sales-use.php, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food products exempt from state and local. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01245,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 4668.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2448.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 75.0,
+    "confidence": "unconfirmed",
+    "check_at": "TxDMV registration fee chart (https://www.txdmv.gov) and Texas Transportation Code 502",
+    "source": "carregistrationfee.com Texas guide and dmvfeecalculator.com, 2026 (base 50.75, inspection program replacement 7.50, TexasSure included in the base, processing 4.75, county 0 to 21.50, most 11.50)",
+    "note": "Texas: base registration 50.75 plus state add-ons of about 13 and a county fee of 0 to 31.50 (about 11.50; base 50.75 includes TexasSure, https://www.txdmv.gov/motorists/register-your-vehicle, validation run 2, 2026-10-22); about 75 a year. No annual vehicle property tax (the 6.25% motor vehicle sales tax is paid once at purchase). Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand after the import: rerunning importStateCosts.py resets it to 0."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.2,
+    "average_price_per_gallon": 2.862,
+    "confidence": "confirmed primary",
+    "check_at": "https://comptroller.texas.gov/taxes/fuels/gasoline.php",
+    "source": "Excise: https://comptroller.texas.gov/taxes/fuels/gasoline.php (validation run 2, 2026-10-22); price: https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMM_EPMR_PTE_STX_DPG&f=A (validation run 3, 2026-10-22)",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.2 (20 cents/gal (Tax Code 162.102)); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Price: 2.862, EIA Texas regular retail, 2024 annual (2025: 2.660) (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1606,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 296424.0,
+    "cost_index": 77.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1404.0,
+    "medigap_g_monthly": 202.0,
+    "part_d_monthly": 40.23,
+    "medicare_advantage_monthly": 3.8,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Texas insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 96.0,
+    "bea_goods": 98.1,
+    "bea_services": 97.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 5720.0,
+    "assisted_living_monthly": 5250.0,
+    "nursing_home_private_monthly": 7087.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

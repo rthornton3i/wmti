@@ -1,0 +1,382 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ct",
+  "name": "Connecticut",
+  "tax_year": 2026,
+  "source": "Connecticut Department of Revenue Services 2025 tax calculation schedule (rates unchanged for 2026), read through the TaxAct 2025 Connecticut guide and the Office of Legislative Research comparison of state income taxes (2026-R-0057); Social Security and pension rules from OLR report 2025-R-0152 and the DRS 2025 form updates via search extracts; second sources: Bankrate and TurboTax state guides",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Connecticut starts from federal adjusted gross income, so 401(k) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible (not checked against DRS guidance). Approximations: the personal exemption (15,000 single, 24,000 joint) is left out because it is gone above a federal AGI of 44,000 single and 71,000 joint; the personal tax credit for low incomes, the 2% rate phase-out add-back and the benefit recapture that tax high incomes more are not modelled, so the file undertaxes incomes above a Connecticut AGI of 56,500 single (100,500 joint; CGS chapter 229, https://www.cga.ct.gov/current/pub/chap_229.htm, validation run 2, 2026-10-22) by up to a few thousand dollars at the top."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 10000,
+        "rate": 0.045,
+        "base": 200.0
+      },
+      {
+        "threshold": 50000,
+        "rate": 0.055,
+        "base": 2000.0
+      },
+      {
+        "threshold": 100000,
+        "rate": 0.06,
+        "base": 4750.0
+      },
+      {
+        "threshold": 200000,
+        "rate": 0.065,
+        "base": 10750.0
+      },
+      {
+        "threshold": 250000,
+        "rate": 0.069,
+        "base": 14000.0
+      },
+      {
+        "threshold": 500000,
+        "rate": 0.0699,
+        "base": 31250.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 20000,
+        "rate": 0.045,
+        "base": 400.0
+      },
+      {
+        "threshold": 100000,
+        "rate": 0.055,
+        "base": 4000.0
+      },
+      {
+        "threshold": 200000,
+        "rate": 0.06,
+        "base": 9500.0
+      },
+      {
+        "threshold": 400000,
+        "rate": 0.065,
+        "base": 21500.0
+      },
+      {
+        "threshold": 500000,
+        "rate": 0.069,
+        "base": 28000.0
+      },
+      {
+        "threshold": 1000000,
+        "rate": 0.0699,
+        "base": 62500.0
+      }
+    ]
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 59.5,
+    "full": true,
+    "income_tiers": [
+      {
+        "up_to": 75000.0,
+        "percent": {
+          "SINGLE": 1.0,
+          "JOINT": 1.0,
+          "MFS": 1.0
+        }
+      },
+      {
+        "up_to": 77500.0,
+        "percent": {
+          "SINGLE": 0.85,
+          "JOINT": 1.0,
+          "MFS": 0.85
+        }
+      },
+      {
+        "up_to": 80000.0,
+        "percent": {
+          "SINGLE": 0.7,
+          "JOINT": 1.0,
+          "MFS": 0.7
+        }
+      },
+      {
+        "up_to": 82500.0,
+        "percent": {
+          "SINGLE": 0.55,
+          "JOINT": 1.0,
+          "MFS": 0.55
+        }
+      },
+      {
+        "up_to": 85000.0,
+        "percent": {
+          "SINGLE": 0.4,
+          "JOINT": 1.0,
+          "MFS": 0.4
+        }
+      },
+      {
+        "up_to": 87500.0,
+        "percent": {
+          "SINGLE": 0.25,
+          "JOINT": 1.0,
+          "MFS": 0.25
+        }
+      },
+      {
+        "up_to": 90000.0,
+        "percent": {
+          "SINGLE": 0.1,
+          "JOINT": 1.0,
+          "MFS": 0.1
+        }
+      },
+      {
+        "up_to": 95000.0,
+        "percent": {
+          "SINGLE": 0.05,
+          "JOINT": 1.0,
+          "MFS": 0.05
+        }
+      },
+      {
+        "up_to": 100000.0,
+        "percent": {
+          "SINGLE": 0.025,
+          "JOINT": 1.0,
+          "MFS": 0.025
+        }
+      },
+      {
+        "up_to": 105000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.85,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 110000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.7,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 115000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.55,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 120000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.4,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 125000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.25,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 130000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.1,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 140000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.05,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 150000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.025,
+          "MFS": 0.0
+        }
+      }
+    ],
+    "note": "Pension, annuity and Traditional IRA distributions are fully subtracted below a federal AGI of 75,000 (100,000 joint); the subtraction phases out in steps above that and is gone above 100,000 (150,000 joint): single and separate 85% to 77,500, 70% to 80,000, 55% to 82,500, 40% to 85,000, 25% to 87,500, 10% to 90,000, 5% to 95,000, 2.5% to 100,000; joint 85% to 105,000, 70% to 110,000, 55% to 115,000, 40% to 120,000, 25% to 125,000, 10% to 130,000, 5% to 140,000, 2.5% to 150,000 (OLR 2025-R-0152, https://prdext2.cga.ct.gov/2025/rpt/pdf/2025-R-0152.pdf, confirmed primary, validation run 2, 2026-10-22; IRA distributions 100% from 2026). Approximation: the tiers test state gross income rather than federal AGI. Connecticut has no age test; 59 1/2 keeps early withdrawals taxed, as in the other files."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "https://portal.ct.gov/drs (Form CT-706 NT instructions) and Conn. Gen. Stat. 12-391",
+    "estate_tax": {
+      "exemption": 15000000.0,
+      "brackets": [
+        {
+          "threshold": 0,
+          "rate": 0.12,
+          "base": 0.0
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "Connecticut estate tax: a flat 12% on the Connecticut taxable estate above the exemption, which equals the federal basic exclusion amount from 2023 (15,000,000 for deaths in 2026); no portability between spouses. SmartAsset, Wealthspire and Hartford Business agree on 15,000,000 and 12% (one law firm table still shows an older figure). Not modelled: the 15,000,000 cap on the combined estate and gift tax, and taxable gifts added back. Connecticut has no inheritance tax. Triage 2026-10-23 (category A): Rule confirmed; affects only estates paying CT gift tax."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "threshold",
+    "agi_limit": {
+      "SINGLE": 75000.0,
+      "JOINT": 100000.0,
+      "MFS": 75000.0
+    },
+    "max_share": 0.25,
+    "confidence": "confirmed primary",
+    "check_at": "https://prdext2.cga.ct.gov/2025/rpt/pdf/2025-R-0152.pdf",
+    "note": "Social Security is fully subtracted when federal AGI is below 75,000 (single and married separate) or 100,000 (joint); above it no more than 25% of the benefits is taxed (the federal taxable amount, capped at 25% of the benefits). OLR report 2025-R-0152 and housedems.ct.gov retirement tax summary, read through search extracts; the model tests the limit at or below rather than strictly below. Confirmed primary on https://prdext2.cga.ct.gov/2025/rpt/pdf/2025-R-0152.pdf (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.cga.ct.gov/2014/rpt/2014-R-0037.htm",
+    "note": "Connecticut towns levy no income tax (state-costs.csv local_income_tax, from memory). Confirmed primary on https://www.cga.ct.gov/2014/rpt/2014-R-0037.htm (validation run 2, 2026-10-22)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0635,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.0635,
+    "vehicle_rate": 0.0635,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Connecticut revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0635 from the state's own source (Connecticut sales tax on a car 6.35%, 7.75% when the price exceeds 50,000 (https://portal.ct.gov/dmv/vehicle-services/sales-tax-registrations, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food products exempt; no local sales tax. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01355,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1980.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2700.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 375.0,
+    "confidence": "unconfirmed",
+    "check_at": "Connecticut Office of Policy and Management grand list and mill rate reports; Connecticut DMV fee schedule",
+    "source": "Connecticut Conference of Municipalities (motor vehicle property tax revenue above 900 million a year) and the Connecticut General Assembly tax panel paper 'Taxing motor vehicles' (2015: 2.856 million registered vehicles), read through search extracts; WalletHub gives about 555 on a 23,000 car",
+    "note": "Municipal property tax on cars (70% of value times the town mill rate, capped at 32.46 mills): about 900 million / 2.856 million vehicles = about 315 a year, plus the two-year registration of about 120 (60 a year), about 375. The revenue and vehicle count are from different years, so unconfirmed. Hand-set in s294; importStateCosts.py writes 0 here again if rerun for CT."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.25,
+    "average_price_per_gallon": 3.37,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.cga.ct.gov/2021/rpt/pdf/2021-r-0003.pdf",
+    "source": "Excise: https://www.cga.ct.gov/2021/rpt/pdf/2021-r-0003.pdf (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.25, the CGS 12-458 gasoline excise (the 8.1% petroleum gross earnings tax is not a per-gallon excise); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2797,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 447319.0,
+    "cost_index": 97.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1848.0,
+    "medigap_g_monthly": 344.0,
+    "part_d_monthly": 48.56,
+    "medicare_advantage_monthly": 11.4,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Connecticut insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Research note: Medigap community rated (all ages same). Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 103.0,
+    "bea_goods": 97.3,
+    "bea_services": 102.7,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6673.0,
+    "assisted_living_monthly": 8955.0,
+    "nursing_home_private_monthly": 16577.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

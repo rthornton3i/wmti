@@ -9,7 +9,7 @@
   <title>South Carolina &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -192,11 +192,11 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
 <td><ol class="upperalpha simple" start="8">
-<li><p>4216 (signed 2026-03-30, tax years from 2026): SC Revenue and Fiscal Affairs signed fiscal impact statement (scstatehouse.gov, read) and the SCDOR ‘Information about H. 4216’ page (read): 1.99% to 30,000, 5.21% above, South Carolina Income Adjusted Deduction 15,000 / 30,000 with its phase-out, all other state deductions kept; SCDOR Chapter 3 individual income tax guidance and the 2025 IIT packet (search extracts) for the 65+ deduction, retirement deduction, dependent exemption and 44% capital gain deduction; second sources: WMBF/Fox Carolina news and EY Tax News on the signing</p></li>
+<li><p>4216 (Act 110 of 2026, signed 2026-03-30, tax years from 2026), all read directly on 2026-10-24 (s359): SCDOR Information Letter #26-20 of 2026-08-31 (<a class="reference external" href="https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf">https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf</a>) for the 2026 rates, brackets, SCIAD and its phase-out; the enacted bill (<a class="reference external" href="https://www.scstatehouse.gov/sess126_2025-2026/bills/4216.htm">https://www.scstatehouse.gov/sess126_2025-2026/bills/4216.htm</a>) and the SCDOR ‘Information about H. 4216’ page (<a class="reference external" href="https://dor.sc.gov/news/information-about-h-4216">https://dor.sc.gov/news/information-about-h-4216</a>); S.C. Code title 12 chapter 6 (<a class="reference external" href="https://www.scstatehouse.gov/code/t12c006.php">https://www.scstatehouse.gov/code/t12c006.php</a>: 12-6-520 indexing, 12-6-1120(4) Social Security, 12-6-1150 capital gain, 12-6-1170 retirement and age-65 deductions); SCDOR 2025 SC1040 packet (<a class="reference external" href="https://dor.sc.gov/sites/dor/files/forms/IITPacket_2025.pdf">https://dor.sc.gov/sites/dor/files/forms/IITPacket_2025.pdf</a>) for the 2025 dependent exemption and the line instructions</p></li>
 </ol>
 </td>
 </tr>
@@ -204,10 +204,80 @@
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>20 sections: 4 confirmed primary, 8 confirmed secondary, 7 unconfirmed, 1 not rated</p></td>
+<td><p>20 sections: 10 confirmed primary, 8 confirmed secondary, 2 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/sc.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/sc.json">sc.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;SINGLE&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf&quot;,
+    &quot;note&quot;: &quot;One rate schedule for every filing status (12-6-510(C) as amended by Act 110; SCDOR IL 26-20, read 2026-10-24); the two identical tables let the SCIAD differ by status, and separate filers use the single table (SCIAD 15,000 for single and separate).&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [],
+    &quot;note&quot;: &quot;From 2026 South Carolina starts from federal adjusted gross income and no longer allows the federal standard, itemized, senior, tip, overtime, car loan interest or QBI deductions (12-6-50(21) added by Act 110; SCDOR IL 26-20, read 2026-10-24). 401(k) and 403(b) deferrals stay out of income and deductible Traditional IRA and HSA deposits stay deducted, because they are inside federal AGI and the South Carolina additions (SC1040 lines a to e, 2025 packet, read 2026-10-24) do not add them back; no add-back is modelled. Not modelled: the retirement deduction of up to 3,000 per person under 65 (12-6-1170(A); from 65 it is inside the 15,000 deduction, see exemptions), the 3% rate on active trade or business income (I-335), and the automatic top-rate cuts from 2027 when revenue grows 5% or more.&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;adjustment&quot;: &quot;indexed&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf&quot;,
+    &quot;note&quot;: &quot;2026 schedule (12-6-510(C) as amended by Act 110; SCDOR IL 26-20 of 2026-08-31, read 2026-10-24): 1.99% of taxable income below 30,000; from 30,000, 5.21% of taxable income minus 966, the same as 597 (1.99% of 30,000) plus 5.21% above 30,000. The 30,000 is the statutory 2026 figure; after 2026 it is indexed yearly by the chained CPI, at most 4% a year, rounded to 10 (12-6-520, read 2026-10-24), so the indexed flag is right.&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0199,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 30000,
+        &quot;rate&quot;: 0.0521,
+        &quot;base&quot;: 597.0
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0199,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 30000,
+        &quot;rate&quot;: 0.0521,
+        &quot;base&quot;: 597.0
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 15000.0,
+    &quot;JOINT&quot;: 30000.0,
+    &quot;note&quot;: &quot;South Carolina Income Adjusted Deduction (SCIAD, 12-6-1140(15) added by Act 110; SCDOR IL 26-20, read 2026-10-24): 15,000 single and separate, 30,000 joint and surviving spouse (22,500 head of household); fixed amounts, not indexed. Approximation: it is reduced by the fraction (federal AGI - 40,000) / 55,000 single, (AGI - 80,000) / 110,000 joint, the reduction rounded down to 10, and is zero from 95,000 single and 190,000 joint; the file keeps the full amount, so incomes above 40,000 / 80,000 are undertaxed by up to 781 single / 1,563 joint.&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf&quot;
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 0.0,
+    &quot;JOINT&quot;: 0.0,
+    &quot;senior&quot;: 15000.0,
+    &quot;dependent&quot;: 4930.0,
+    &quot;note&quot;: &quot;Each person 65 or older deducts up to 15,000 (30,000 joint when both are 65 or older), reduced by the retirement deduction (up to 10,000 from 65) taken, so a person 65 or older gets 15,000 in total either way (12-6-1170(B), read 2026-10-24; 2025 SC1040 line q-1 worksheet; a fixed amount, not indexed). Dependent exemption 4,930 per dependent for 2025 (2025 SC1040 packet, read 2026-10-24; 12-6-1140(13), indexed each December by the chained CPI); approximation: SCDOR has not published the 2026 figure yet, so the 2025 amount is used for 2026.&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://dor.sc.gov/sites/dor/files/forms/IITPacket_2025.pdf&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -225,27 +295,27 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-sc-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-sc-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-sc-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-sc-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-sc-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-sc-capital-gains-exclusion"><span class="std std-ref">Capital gains exclusion</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">capital_gains_exclusion</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-sc-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -308,49 +378,43 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-sc-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf">https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf</a></p>
+<p><strong>Note:</strong> One rate schedule for every filing status (12-6-510(C) as amended by Act 110; SCDOR IL 26-20, read 2026-10-24); the two identical tables let the SCIAD differ by status, and separate filers use the single table (SCIAD 15,000 for single and separate).</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-sc-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back none of the federal deductions the model tracks (Traditional deposits, Traditional IRA deposits and HSA deposits): it starts from the same income as the federal return.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -374,84 +438,100 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Brackets: 2026 rates under H. 4216: 1.99% on taxable income up to 30,000 and 5.21% above (SCDOR: 5.21% minus 966, the same tax), one schedule for every filing status (RFA fiscal impact statement and SCDOR, primary; news reports agree). Two identical tables so the deduction can differ by filing status. From 2026 South Carolina starts from federal adjusted gross income (H. 4216), so 401(k) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible. Not modelled: the retirement deduction of 3,000 per person under 65 (from 65 it is inside the 15,000 deduction, see exemptions), the 3% rate on active trade or business income, and the automatic rate cuts from 2027 when revenue grows 5% or more.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf">https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf</a></p>
+<p><strong>Note:</strong> From 2026 South Carolina starts from federal adjusted gross income and no longer allows the federal standard, itemized, senior, tip, overtime, car loan interest or QBI deductions (12-6-50(21) added by Act 110; SCDOR IL 26-20, read 2026-10-24). 401(k) and 403(b) deferrals stay out of income and deductible Traditional IRA and HSA deposits stay deducted, because they are inside federal AGI and the South Carolina additions (SC1040 lines a to e, 2025 packet, read 2026-10-24) do not add them back; no add-back is modelled. Not modelled: the retirement deduction of up to 3,000 per person under 65 (12-6-1170(A); from 65 it is inside the 15,000 deduction, see exemptions), the 3% rate on active trade or business income (I-335), and the automatic top-rate cuts from 2027 when revenue grows 5% or more.</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-sc-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Graduated rates from 1.99% to 5.21%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p class="rubric">Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>yes</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$30,000</p></td>
+<td><p>1.99%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>indexed</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;indexed&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>$30,000</p></td>
+<td><p>and above</p></td>
+<td><p>5.21%</p></td>
+<td><p>$597</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>1.99% (0.0199)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$30,000</p></td>
+<td><p>1.99%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>30,000</p></td>
-<td><p>5.21% (0.0521)</p></td>
-<td><p>597</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>1.99% (0.0199)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>30,000</p></td>
-<td><p>5.21% (0.0521)</p></td>
-<td><p>597</p></td>
+<tr class="row-odd"><td><p>$30,000</p></td>
+<td><p>and above</p></td>
+<td><p>5.21%</p></td>
+<td><p>$597</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf">https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf</a></p>
+<p><strong>Note:</strong> 2026 schedule (12-6-510(C) as amended by Act 110; SCDOR IL 26-20 of 2026-08-31, read 2026-10-24): 1.99% of taxable income below 30,000; from 30,000, 5.21% of taxable income minus 966, the same as 597 (1.99% of 30,000) plus 5.21% above 30,000. The 30,000 is the statutory 2026 figure; after 2026 it is indexed yearly by the chained CPI, at most 4% a year, rounded to 10 (12-6-520, read 2026-10-24), so the indexed flag is right.</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-sc-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The amount taken off the income the state taxes, per bracket table.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$15,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$30,000</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> The amount taken off the income the state taxes, per bracket table. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -479,15 +559,43 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> South Carolina Income Adjusted Deduction (SCIAD) replacing the federal standard and itemized deductions: 15,000 single and separate, 30,000 joint (22,500 head of household). Approximation, unconfirmed: it phases out in proportion between a federal AGI of 40,000 and 95,000 single, 80,000 and 190,000 joint; the file keeps the full amount, so incomes above 40,000 / 80,000 are undertaxed by up to 781 single / 1,563 joint.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf">https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf</a></p>
+<p><strong>Note:</strong> South Carolina Income Adjusted Deduction (SCIAD, 12-6-1140(15) added by Act 110; SCDOR IL 26-20, read 2026-10-24): 15,000 single and separate, 30,000 joint and surviving spouse (22,500 head of household); fixed amounts, not indexed. Approximation: it is reduced by the fraction (federal AGI - 40,000) / 55,000 single, (AGI - 80,000) / 110,000 joint, the reduction rounded down to 10, and is zero from 95,000 single and 190,000 joint; the file keeps the full amount, so incomes above 40,000 / 80,000 are undertaxed by up to 781 single / 1,563 joint.</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-sc-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-even"><td><p>Per person 65 or older</p></td>
+<td><p>$15,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per dependent</p></td>
+<td><p>$4,930</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -523,14 +631,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Each person 65 or older deducts 15,000, reduced by the retirement deduction (up to 10,000 from 65) taken, so a person 65 or older gets 15,000 in total either way (SCDOR Chapter 3 guidance). Dependent exemption 4,930 for 2025 (SCDOR 2025 packet; indexed, 2026 not yet published). Brackets: the bracket amounts are indexed yearly by chained CPI (12-6-520; SCDOR Information Letter 26-20, <a class="reference external" href="https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf">https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf</a>, confirmed primary, validation run 2, 2026-10-22), so the file flags them indexed and the whole return grows with inflation.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://dor.sc.gov/sites/dor/files/forms/IITPacket_2025.pdf">https://dor.sc.gov/sites/dor/files/forms/IITPacket_2025.pdf</a></p>
+<p><strong>Note:</strong> Each person 65 or older deducts up to 15,000 (30,000 joint when both are 65 or older), reduced by the retirement deduction (up to 10,000 from 65) taken, so a person 65 or older gets 15,000 in total either way (12-6-1170(B), read 2026-10-24; 2025 SC1040 line q-1 worksheet; a fixed amount, not indexed). Dependent exemption 4,930 per dependent for 2025 (2025 SC1040 packet, read 2026-10-24; 12-6-1140(13), indexed each December by the chained CPI); approximation: SCDOR has not published the 2026 figure yet, so the 2025 amount is used for 2026.</p>
 </div>
 </section>
 <section id="capital-gains-exclusion-capital-gains-exclusion">
 <span id="law-sc-capital-gains-exclusion"></span><h2>Capital gains exclusion (capital_gains_exclusion)<a class="headerlink" href="#capital-gains-exclusion-capital-gains-exclusion" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The share of long-term capital gains the state leaves out of its income.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state leaves 44% of long-term capital gains out of the income it taxes.</p>
+<p><strong>How the model uses this:</strong> The share of long-term capital gains the state leaves out of its income. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -554,14 +665,18 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> South Carolina deducts 44% of net capital gain held more than one year (SCDOR Chapter 3; kept by H. 4216, which retains all other deductions).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.scstatehouse.gov/code/t12c006.php">https://www.scstatehouse.gov/code/t12c006.php</a></p>
+<p><strong>Note:</strong> South Carolina deducts 44% of net capital gain held more than one year (12-6-1150 and the 2025 SC1040 line instructions, read 2026-10-24); Act 110 does not change it.</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-sc-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>No estate tax.</p>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -597,7 +712,9 @@
 <span id="law-sc-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<p>The state does not tax Social Security benefits.</p>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -622,14 +739,16 @@
 </tbody>
 </table>
 <p><strong>Check at:</strong> <a class="reference external" href="https://www.scstatehouse.gov/code/t12c006.php">https://www.scstatehouse.gov/code/t12c006.php</a></p>
-<p><strong>Note:</strong> South Carolina subtracts all Social Security benefits included in federal AGI; it is not among the states that tax them in Kiplinger 2026 (<a class="reference external" href="https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits">https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits</a>) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on <a class="reference external" href="https://www.scstatehouse.gov/code/t12c006.php">https://www.scstatehouse.gov/code/t12c006.php</a> (validation run 2, 2026-10-22).</p>
+<p><strong>Note:</strong> South Carolina gross income is computed without IRC 86, so Social Security and Tier 1 railroad retirement benefits are not taxed (12-6-1120(4) on <a class="reference external" href="https://www.scstatehouse.gov/code/t12c006.php">https://www.scstatehouse.gov/code/t12c006.php</a>, read 2026-10-24; the 2025 SC1040 line o subtracts any amount taxed federally). Act 110 does not change it. Kiplinger 2026 and AARP agree.</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
 <span id="law-sc-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -658,14 +777,16 @@
 </tbody>
 </table>
 <p><strong>Check at:</strong> SCDOR local tax pages</p>
-<p><strong>Note:</strong> South Carolina cities and counties levy no income tax (state-costs.csv local_income_tax, from memory). Triage 2026-10-23 (category A): South Carolina has no local income tax.</p>
+<p><strong>Note:</strong> South Carolina cities and counties levy no income tax (state-costs.csv local_income_tax, from memory). Triage 2026-10-23 (category A): South Carolina has no local income tax. Re-checked 2026-10-24 (s359): no SCDOR page says so in words (state law authorises no local income tax), so it stays confirmed secondary.</p>
 </div>
 </section>
 <section id="sales-tax-sales-tax">
 <span id="law-sc-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 6%; local sales taxes add 1.49% on average (7.49% combined). A car purchase pays 1.72%; groceries pay 1.49%. Clothing taxed: yes.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -718,7 +839,9 @@
 <span id="law-sc-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 0.438% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -751,7 +874,9 @@
 <span id="law-sc-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $2,700 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -784,7 +909,9 @@
 <span id="law-sc-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $3,060 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -818,7 +945,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $698 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -851,7 +980,9 @@
 <span id="law-sc-fuel"></span><h2>Fuel (fuel)<a class="headerlink" href="#fuel-fuel" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.28 a gallon. Gas averages $2.99 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -888,7 +1019,9 @@
 <span id="law-sc-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.1593 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -921,7 +1054,9 @@
 <span id="law-sc-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $304,319. The housing cost index is 79.5 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -959,7 +1094,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,198; Medigap Plan G at 65 $169; Part D $44.53; Medicare Advantage $11.11.</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1004,7 +1141,9 @@
 <span id="law-sc-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 99.1; goods 96.3; services other than rent 98.3.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1045,7 +1184,9 @@
 <span id="law-sc-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $5,720; assisted living $5,200; a private nursing home room $9,536.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

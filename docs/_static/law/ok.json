@@ -1,0 +1,219 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ok",
+  "name": "Oklahoma",
+  "tax_year": 2026,
+  "source": "HB 2764 (2025) as summarised by the Oklahoma Policy Institute (https://okpolicy.org/individual-income-tax/: four brackets, top rate 4.5% from 2026, top rate above 7,200 single); joint thresholds, standard deduction and exemption read through secondary 2026 guides (ustax.tools, incometaxpro.com, wealthvieu.com, calculatorhub.com), which agree; Form 511 retirement exclusion text through TaxSlayer and TurboTax support notes; the Oklahoma Tax Commission's 2026 forms and the enrolled bill could not be fetched",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Brackets: 2026 brackets under HB 2764: 0% to 3,750, 2.5% to 4,900, 3.5% to 7,200 and 4.5% above, doubled for joint returns (7,500 / 9,800 / 14,400). OK Policy Institute confirms the 4.5% top rate and 7,200 single; it gives 12,200 for joint, which is the old schedule's top threshold, while four secondary 2026 guides give 14,400 (taken here). Oklahoma starts from federal adjusted gross income, so 401(k) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible (not checked against Tax Commission guidance). Not modelled: the extra 1,000 exemption for people 65 or older with low income, and the 0.25-point automatic rate cuts the law triggers when revenue targets are met."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 3750,
+        "rate": 0.025,
+        "base": 0.0
+      },
+      {
+        "threshold": 4900,
+        "rate": 0.035,
+        "base": 28.75
+      },
+      {
+        "threshold": 7200,
+        "rate": 0.045,
+        "base": 109.25
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 7500,
+        "rate": 0.025,
+        "base": 0.0
+      },
+      {
+        "threshold": 9800,
+        "rate": 0.035,
+        "base": 57.5
+      },
+      {
+        "threshold": 14400,
+        "rate": 0.045,
+        "base": 218.5
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 6350.0,
+    "JOINT": 12700.0,
+    "note": "Oklahoma standard deduction 6,350 single and 12,700 joint (unchanged; calculatorhub.com and incometaxpro.com 2026)."
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 1000.0,
+    "JOINT": 2000.0,
+    "senior": 0.0,
+    "dependent": 1000.0,
+    "note": "Personal exemption 1,000 per taxpayer and per dependent (each OK-W-4 allowance is 1,000, nationaltaxtools.com citing Packet OW-2)."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 0,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 10000.0,
+      "JOINT": 20000.0,
+      "MFS": 10000.0
+    },
+    "note": "Each individual may exclude up to 10,000 of retirement benefits from 401, 403, 408 (IRA) and 457 plans, not more than the amount in federal AGI (Form 511 packet, Schedule 511-A, https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/individuals/current/511-Pkt.pdf, confirmed primary, validation run 2, 2026-10-22). No age test: early distributions may qualify too. Oklahoma and federal civil-service pensions share the same 10,000 cap (Schedule 511-A lines 3-6); military retirement and CSRS pensions in lieu of Social Security are exempt in full (not modelled)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.oscn.net/applications/oscn/DeliverDocument.asp?CiteID=460726",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Oklahoma repealed its estate tax for deaths from 2010 and has no inheritance tax (state-costs.csv estate_tax and inheritance_tax 'none'; Wealthspire 2026 state estate tax list does not include Oklahoma). Confirmed primary on https://www.oscn.net/applications/oscn/DeliverDocument.asp?CiteID=460726 (validation run 3, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/individuals/current/511-Pkt.pdf",
+    "note": "Oklahoma subtracts all Social Security benefits included in federal AGI; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/individuals/current/511-Pkt.pdf (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "Oklahoma Tax Commission local tax pages",
+    "note": "Oklahoma cities and counties levy no income tax (state-costs.csv local_income_tax, from memory). Triage 2026-10-23 (category A): Oklahoma has no local income tax."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.045,
+    "avg_local_rate": 0.0456,
+    "combined_rate": 0.0906,
+    "vehicle_rate": 0.045,
+    "grocery_rate": 0.0456,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Oklahoma revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://news9.com/story/66cfaaa8304ef7cf6a6b4799/state-grocery-sales-tax-eliminated-in-oklahoma-lawmakers-project-significant-savings and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.045 from the state's own source (Oklahoma 3.25% motor vehicle excise on the value of a new car (68 O.S. 2103(A)(1)) plus the 1.25% state sales tax on vehicle sales (68 O.S. 1355(2)), no local tax (https://www.oscn.net/applications/oscn/DeliverDocument.asp?CiteID=92346, validation run 3)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: yes); research note: State 4.5% on groceries eliminated 2024-08-29 (HB 1955); city and county taxes still apply; sales tax relief credit exists for low income. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.0078,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 5556.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2028.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 85.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://oklahoma.gov/service/all-services/auto-vehicle/fees.html",
+    "source": "Plate Almanac and carregistrationfee.com 2026 Oklahoma guides (search extracts): 96 a year for years 1-4, 86 for 5-8, 66 for 9-12, then less",
+    "note": "Annual registration falls with the car's age; about 85 for a typical car under 9 years old. The 3.25% excise at purchase is sales_tax.vehicle_rate. Oklahoma has no annual vehicle property tax. Hand-set in s297; importStateCosts.py writes 0 here again if rerun for OK. Confirmed primary on https://oklahoma.gov/service/all-services/auto-vehicle/fees.html (validation run 2, 2026-10-22)."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.19,
+    "average_price_per_gallon": 3.04,
+    "confidence": "confirmed secondary",
+    "check_at": "https://oklahoma.gov/tax/businesses/other-taxes.html",
+    "source": "Excise: https://oklahoma.gov/tax/businesses/other-taxes.html (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.19 (the former 0.20 likely added a 0.01 storage-tank fee); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1358,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 220801.0,
+    "cost_index": 65.1,
+    "confidence": "confirmed primary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Both figures confirmed primary (https://fred.stlouisfed.org/series/OKUCSFRCONDOSMSAMID and https://meric.mo.gov/data/cost-living-data-series, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1283.0,
+    "medigap_g_monthly": 193.0,
+    "part_d_monthly": 43.6,
+    "medicare_advantage_monthly": 9.67,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Oklahoma insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 94.1,
+    "bea_goods": 93.8,
+    "bea_services": 95.5,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6673.0,
+    "assisted_living_monthly": 4822.0,
+    "nursing_home_private_monthly": 7604.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

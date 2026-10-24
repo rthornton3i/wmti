@@ -9,7 +9,7 @@
   <title>How to read the law pages &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -64,6 +64,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../guides/tax-law.html">Tax law in the model</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Tax law by jurisdiction</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">How to read the law pages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bracket-tables">Bracket tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-law-file-box">The law file box</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#confidence-chips">Confidence chips</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#status-final-or-estimate">Status: final or estimate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#figures">Figures</a></li>
@@ -153,7 +155,15 @@
              
   <section id="how-to-read-the-law-pages">
 <h1>How to read the law pages<a class="headerlink" href="#how-to-read-the-law-pages" title="Link to this heading"></a></h1>
-<p>Every law page is written by <code class="docutils literal notranslate"><span class="pre">docs/generate_law_pages.py</span></code> from one law file in <code class="docutils literal notranslate"><span class="pre">.config/law</span></code> (the same files the model reads in the app), so the pages show exactly the figures the simulation uses. The text in a page’s notes and sources is the file’s own; the short line under each section heading says what the model does with the section.</p>
+<p>Every law page is written by <code class="docutils literal notranslate"><span class="pre">docs/generate_law_pages.py</span></code> from one law file in <code class="docutils literal notranslate"><span class="pre">.config/law</span></code> (the same files the model reads in the app), so the pages show exactly the figures the simulation uses. The text in a page’s notes and sources is the file’s own. Each section first states the law in plain words, computed from the file’s figures (nothing is copied by hand): the income tax brackets as one table per bracket table, the deductions, exemptions and exclusions with their amounts, and the other taxes and costs in a sentence or a short table. A line marked <em>How the model uses this</em> then says what the model does with the section and links <a class="reference internal" href="../guides/model-rules.html"><span class="doc">Model rules by group</span></a>; the figures as the file stores them follow under <em>As stored in the file</em>.</p>
+<section id="bracket-tables">
+<h2>Bracket tables<a class="headerlink" href="#bracket-tables" title="Link to this heading"></a></h2>
+<p>A bracket table lists, per bracket, the taxable income it starts <em>over</em>, where it ends (<em>up to</em> the next bracket’s threshold; the last runs <em>and above</em>), its rate, and its <em>base</em>: the tax on all the brackets below, as the file stores it. The tax on an income is the base of its bracket plus the rate times the income over the threshold. The table’s heading names the filing statuses that use it (from the file’s <code class="docutils literal notranslate"><span class="pre">filing_tables</span></code>); a flat tax has one bracket, and a state without an income tax has one bracket at 0%. Whether the thresholds are indexed is said above the tables.</p>
+</section>
+<section id="the-law-file-box">
+<h2>The law file box<a class="headerlink" href="#the-law-file-box" title="Link to this heading"></a></h2>
+<p>Under the facts at the top of each page, a box names the law file the page is written from (<code class="docutils literal notranslate"><span class="pre">.config/law/&lt;code&gt;.json</span></code>) and links a copy of it that ships with these pages (<code class="docutils literal notranslate"><span class="pre">_static/law</span></code>), the same file the model reads. In the html pages the box also holds the income-tax sections of the file as raw JSON, folded: click <em>The income-tax sections as stored (JSON)</em> to open it.</p>
+</section>
 <section id="confidence-chips">
 <span id="law-confidence"></span><h2>Confidence chips<a class="headerlink" href="#confidence-chips" title="Link to this heading"></a></h2>
 <p>This is the one definition of the confidence labels; every other page links here. Each section carries the confidence its file records:</p>

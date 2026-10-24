@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-iI8l4MiRHNJOu6EXXx4N80U0dVnjy4YrzOsPkxzMULw=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-mO1wSSR5iRb1tlyI3rULI0T85q/uS2fik0SVexuQRRA=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -510,9 +510,27 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .heir-cards { display: grid; gap: 10px; }
 .heir-card { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
 .heir-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-/* The search box above a long select (the states): on the phone layout only; wide screens type to jump. */
+/* The search box above the optimizer's States list (several states ticked at once): on the phone layout only. */
 .select-search { margin-bottom: 6px; }
 @media (min-width: 1100px) { .select-search { display: none; } }
+/* A state combobox (stateCombobox in app.js): one box that filters its list as you type, the list floating under it
+   (no layout shift), a chevron at its right edge; the select it stands for stays as the hidden value. */
+.combo { position: relative; }
+.combo::after { content: ""; position: absolute; top: 50%; right: 14px; width: 7px; height: 7px; margin-top: -6px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); pointer-events: none; }
+.combo-input { padding-right: 36px; text-overflow: ellipsis; }
+.combo-input.is-default { color: var(--muted); }
+.combo-list { position: absolute; z-index: 40; top: calc(100% + 4px); left: 0; right: 0; max-height: min(280px, 45vh);
+  overflow-y: auto; margin: 0; padding: 4px 0; list-style: none; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.2); overscroll-behavior: contain; }
+.combo-list[hidden] { display: none; }
+.combo-option { min-height: 44px; display: flex; align-items: center; padding: 6px 12px; cursor: pointer; }
+.combo-option:hover, .combo-option.active { background: var(--surface-2); }
+.combo-option[aria-selected="true"] { font-weight: 600; color: var(--accent); }
+.combo-empty { padding: 10px 12px; color: var(--muted); }
+select.combo-native { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important;
+  padding: 0 !important; border: 0 !important; margin: 0 !important; opacity: 0; pointer-events: none; overflow: hidden; }
+.has-reset.reset-shown > .combo > .combo-input { padding-right: 64px; }
 /* The optimizer's States list: the states to tick, in a short scrolling box. */
 .state-picks { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
 .state-pick { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
@@ -850,6 +868,10 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .tour-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tour-count { margin: 0; }
 .tour-title { margin: 0; font-size: 18px; }
+/* The move to another page: the caption in the card and a press on the ring over the button being pressed. */
+.tour-nav { margin: 0; font-size: 18px; font-weight: 600; color: var(--ink); }
+.tour-ring.tour-press { animation: tour-press 360ms ease-in-out 2; }
+@keyframes tour-press { 50% { transform: scale(0.9); } }
 .tour-text { margin: 0; color: var(--ink-2); }
 .tour-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .tour-actions .button:disabled { opacity: 0.45; cursor: default; }
@@ -1332,7 +1354,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20c2-6 5-4 7-9s4-6 7-7"/><circle cx="5" cy="20" r="1.5"/><circle cx="19" cy="4" r="1.5"/></svg><span id="menuWalkText">Walk me through it...</span></button>
     <a class="menu-item" id="menuDocs" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/></svg><span>Documentation</span></a>
-    <div class="menu-group" role="radiogroup" aria-labelledby="schemeTitle">
+    <div class="menu-group" id="menuScheme" role="radiogroup" aria-labelledby="schemeTitle">
       <p class="menu-heading" id="schemeTitle">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.2-1-1.6-1-2.6 0-.9.7-1.7 1.7-1.7H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="11" cy="7.5" r="1.2"/><circle cx="15.5" cy="8.5" r="1.2"/></svg><span>Appearance</span></p>
       <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="lagoon"><span class="swatch swatch-lagoon"></span><span class="scheme-name">Lagoon and hibiscus</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
@@ -1360,7 +1382,9 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 </div>
 
 <!-- The tour of the controls (the ? button): a ring over one control at a time and a card that names it, with Back,
-     Next (Done on the last step) and a close button; the page is inert meanwhile. app.js fills it (TOUR_STEPS). -->
+     Next (Done on the last step) and a close button; the page is inert meanwhile. Before a step on another page the
+     card shows only the caption ("Next: Inputs") while the ring is on the button pressed and the page slides in. app.js
+     fills it (TOUR_STEPS). -->
 <div class="tour" id="tour" hidden>
   <div class="tour-ring" id="tourRing" aria-hidden="true"></div>
   <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText" tabindex="-1">
@@ -1369,6 +1393,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <button type="button" class="walk-icon tour-close" id="tourClose" aria-label="Close the tour">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
+    <p class="tour-nav" id="tourNav" aria-live="polite" hidden></p>
     <h2 class="tour-title" id="tourTitle"></h2>
     <p class="tour-text" id="tourText" aria-live="polite"></p>
     <div class="tour-actions">
@@ -1434,14 +1459,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "c5cf671495e8", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "cd86dab71878", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.332a76874d.js"></script>
+<script src="shared.df61c672e3.js"></script>
 <script src="charts.54d59a7eb6.js"></script>
 <script src="insights.ee50546e73.js"></script>
 <script src="report.ad13ed448d.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.f890cc6e61.js"></script>
+<script src="app.0358f4d2df.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

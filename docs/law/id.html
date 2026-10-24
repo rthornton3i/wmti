@@ -9,7 +9,7 @@
   <title>Idaho &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -191,19 +191,89 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
-<td><p>Idaho State Tax Commission basics guide (5.3% on Idaho taxable income for 2025, read 2026-10-22; HB 40, 2025); first 4,811 single / 9,622 joint taxed at 0% (2025 widths, Tax Foundation 2026 table and TaxAct agree; 2026 widths were not published); no 2026 rate change found (HB 559 conformity keeps 5.3%)</p></td>
+<td><p>Idaho State Tax Commission, 2025 Individual Income Tax Instructions (EIN00046, <a class="reference external" href="https://tax.idaho.gov/document-mngr/forms_EIN00046">https://tax.idaho.gov/document-mngr/forms_EIN00046</a>, read 2026-10-24): tax = 5.3% of Idaho taxable income above 4,811 single and separate / 9,622 joint; Idaho Code 63-3024 (<a class="reference external" href="https://legislature.idaho.gov/statutesrules/idstat/Title63/T63CH30/SECT63-3024/">https://legislature.idaho.gov/statutesrules/idstat/Title63/T63CH30/SECT63-3024/</a>, read 2026-10-24): 5.3% above 2,500 / 5,000, thresholds indexed by statute to the CPI since 1998, so the 2025 thresholds are an approximation for 2026 (2026 figures not yet published); standard deduction and the 65-or-older amounts from IRS Rev. Proc. 2025-32 (<a class="reference external" href="https://www.irs.gov/pub/irs-drop/rp-25-32.pdf">https://www.irs.gov/pub/irs-drop/rp-25-32.pdf</a>, read 2026-10-24), which Idaho adopts (conformity to the IRC as of 2026-01-01); no 2026 rate change found</p></td>
 </tr>
 <tr class="row-odd"><td><p>Schema version</p></td>
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>19 sections: 3 confirmed primary, 14 confirmed secondary, 2 unconfirmed</p></td>
+<td><p>19 sections: 9 confirmed primary, 8 confirmed secondary, 2 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/id.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/id.json">id.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;SINGLE&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.idaho.gov/document-mngr/forms_EIN00046&quot;,
+    &quot;note&quot;: &quot;Single and married filing separately use 4,811, joint (and head of household, surviving spouse) 9,622 in the 2025 Form 40 tax worksheet (Idaho State Tax Commission, read 2026-10-24). Head of household is not modelled.&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [],
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.idaho.gov/document-mngr/forms_EIN00046&quot;,
+    &quot;note&quot;: &quot;Idaho starts from federal adjusted gross income (Form 40, line 7) and keeps the federal treatment of 401(k) and 403(b) deferrals, Traditional IRA deposits and HSA deposits: the additions on Form 39R, Part A of the 2025 instructions (Idaho State Tax Commission, read 2026-10-24) hold no line for them.&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;adjustment&quot;: &quot;legislated&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.idaho.gov/document-mngr/forms_EIN00046&quot;,
+    &quot;note&quot;: &quot;5.3% above 4,811 single and separate / 9,622 joint, matching the 2025 instructions (read 2026-10-24). Idaho Code 63-3024 indexes the threshold yearly and the 2026 figure is not published, so the 2025 threshold stands in for 2026 (approximation).&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 4811,
+        &quot;rate&quot;: 0.053,
+        &quot;base&quot;: 0.0
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 9622,
+        &quot;rate&quot;: 0.053,
+        &quot;base&quot;: 0.0
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 16100.0,
+    &quot;JOINT&quot;: 32200.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.irs.gov/pub/irs-drop/rp-25-32.pdf&quot;,
+    &quot;note&quot;: &quot;Idaho uses the federal standard deduction (2025 instructions, https://tax.idaho.gov/document-mngr/forms_EIN00046: 15,750 / 31,500 for 2025, conformity to the IRC as of 2026-01-01); the 2026 federal amounts 16,100 / 32,200 are from IRS Rev. Proc. 2025-32 and IR-2025-103 (read 2026-10-24). Brackets: the 0% band (4,811 / 9,622) is the 2025 figure; Idaho Code 63-3024 indexes it to the CPI each year, so using it for 2026 is an approximation (the 2026 figure, about 3% higher, is not yet published; about 7 dollars of tax a year) while the file keeps the brackets legislated. Not modelled: HB 559 (signed 2026-02-10) adopts the federal enhanced senior deduction, tips, overtime and car loan interest deductions (https://tax.idaho.gov/?p=217967, validation run 2, 2026-10-22); the model&#x27;s state calculation starts before federal deductions, so the 6,000 senior deduction is left out.&quot;
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 0.0,
+    &quot;JOINT&quot;: 0.0,
+    &quot;senior&quot;: 1650.0,
+    &quot;dependent&quot;: 0.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.irs.gov/pub/irs-drop/rp-25-32.pdf&quot;,
+    &quot;note&quot;: &quot;Idaho&#x27;s personal exemption is 0 (it follows the federal return, which has none); senior is the federal additional standard deduction for 65 or older, which the Idaho standard deduction worksheet adds (2025: 1,600 married, 2,000 single; 2026: 1,650 married, 2,050 single per IRS Rev. Proc. 2025-32, read 2026-10-24; the married figure is used for both).&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -221,23 +291,23 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-id-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-id-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-id-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-id-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-id-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-id-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -245,7 +315,7 @@
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-id-social-security"><span class="std std-ref">Social Security benefits</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">social_security</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-id-local-income-tax"><span class="std std-ref">Local income tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">local_income_tax</span></code></p></td>
@@ -300,47 +370,43 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-id-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.idaho.gov/document-mngr/forms_EIN00046">https://tax.idaho.gov/document-mngr/forms_EIN00046</a></p>
+<p><strong>Note:</strong> Single and married filing separately use 4,811, joint (and head of household, surviving spouse) 9,622 in the 2025 Form 40 tax worksheet (Idaho State Tax Commission, read 2026-10-24). Head of household is not modelled.</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-id-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back none of the federal deductions the model tracks (Traditional deposits, Traditional IRA deposits and HSA deposits): it starts from the same income as the federal return.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -364,82 +430,100 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Idaho starts from federal adjusted (or taxable) income and keeps the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits (no add-back; only California and New Jersey tax HSA deposits). Not checked against a state ruling.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.idaho.gov/document-mngr/forms_EIN00046">https://tax.idaho.gov/document-mngr/forms_EIN00046</a></p>
+<p><strong>Note:</strong> Idaho starts from federal adjusted gross income (Form 40, line 7) and keeps the federal treatment of 401(k) and 403(b) deferrals, Traditional IRA deposits and HSA deposits: the additions on Form 39R, Part A of the 2025 instructions (Idaho State Tax Commission, read 2026-10-24) hold no line for them.</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-id-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Graduated rates from 0% to 5.3%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are not indexed: only a new law changes them (<code class="docutils literal notranslate"><span class="pre">legislated</span></code>).</p>
+<p class="rubric">Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$4,811</p></td>
+<td><p>0%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>legislated</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;legislated&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>$4,811</p></td>
+<td><p>and above</p></td>
+<td><p>5.3%</p></td>
+<td><p>$0</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>0% (0.0)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$9,622</p></td>
+<td><p>0%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>4,811</p></td>
-<td><p>5.3% (0.053)</p></td>
-<td><p>0</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>0% (0.0)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>9,622</p></td>
-<td><p>5.3% (0.053)</p></td>
-<td><p>0</p></td>
+<tr class="row-odd"><td><p>$9,622</p></td>
+<td><p>and above</p></td>
+<td><p>5.3%</p></td>
+<td><p>$0</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.idaho.gov/document-mngr/forms_EIN00046">https://tax.idaho.gov/document-mngr/forms_EIN00046</a></p>
+<p><strong>Note:</strong> 5.3% above 4,811 single and separate / 9,622 joint, matching the 2025 instructions (read 2026-10-24). Idaho Code 63-3024 indexes the threshold yearly and the 2026 figure is not published, so the 2025 threshold stands in for 2026 (approximation).</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-id-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>The amount taken off the income the state taxes, per bracket table.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$16,100</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$32,200</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> The amount taken off the income the state taxes, per bracket table. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -467,14 +551,43 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Idaho uses the federal standard deduction (Tax Foundation 2026: 16,100 / 32,200, confirmed secondary). Not modelled: HB 559 (signed 2026-02-10) adopts the federal enhanced senior deduction, tips, overtime and car loan interest deductions (<a class="reference external" href="https://tax.idaho.gov/?p=217967">https://tax.idaho.gov/?p=217967</a>, validation run 2, 2026-10-22); the model’s state calculation starts before federal deductions, so the 6,000 senior deduction is left out.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/pub/irs-drop/rp-25-32.pdf">https://www.irs.gov/pub/irs-drop/rp-25-32.pdf</a></p>
+<p><strong>Note:</strong> Idaho uses the federal standard deduction (2025 instructions, <a class="reference external" href="https://tax.idaho.gov/document-mngr/forms_EIN00046">https://tax.idaho.gov/document-mngr/forms_EIN00046</a>: 15,750 / 31,500 for 2025, conformity to the IRC as of 2026-01-01); the 2026 federal amounts 16,100 / 32,200 are from IRS Rev. Proc. 2025-32 and IR-2025-103 (read 2026-10-24). Brackets: the 0% band (4,811 / 9,622) is the 2025 figure; Idaho Code 63-3024 indexes it to the CPI each year, so using it for 2026 is an approximation (the 2026 figure, about 3% higher, is not yet published; about 7 dollars of tax a year) while the file keeps the brackets legislated. Not modelled: HB 559 (signed 2026-02-10) adopts the federal enhanced senior deduction, tips, overtime and car loan interest deductions (<a class="reference external" href="https://tax.idaho.gov/?p=217967">https://tax.idaho.gov/?p=217967</a>, validation run 2, 2026-10-22); the model’s state calculation starts before federal deductions, so the 6,000 senior deduction is left out.</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-id-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-even"><td><p>Per person 65 or older</p></td>
+<td><p>$1,650</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per dependent</p></td>
+<td><p>$0</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -510,14 +623,18 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Idaho’s personal exemption is 0; senior is the federal additional standard deduction for 65 or older (1,650 married, 2,050 single; the married figure is used for both).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/pub/irs-drop/rp-25-32.pdf">https://www.irs.gov/pub/irs-drop/rp-25-32.pdf</a></p>
+<p><strong>Note:</strong> Idaho’s personal exemption is 0 (it follows the federal return, which has none); senior is the federal additional standard deduction for 65 or older, which the Idaho standard deduction worksheet adds (2025: 1,600 married, 2,000 single; 2026: 1,650 married, 2,050 single per IRS Rev. Proc. 2025-32, read 2026-10-24; the married figure is used for both).</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-id-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>No estate tax.</p>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -551,9 +668,11 @@
 </section>
 <section id="social-security-benefits-social-security">
 <span id="law-id-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state does not tax Social Security benefits.</p>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -577,15 +696,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> Idaho Form 40 instructions (Social Security benefits are subtracted)</p>
-<p><strong>Note:</strong> Idaho does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (<a class="reference external" href="https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits">https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits</a>) and state-costs.csv column ss_taxed. Idaho taxes IRA and private pension income in full; its retirement benefits deduction covers only government and military pensions from 65 (not modelled). Not modelled either: the refundable grocery credit.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.idaho.gov/document-mngr/forms_EIN00046">https://tax.idaho.gov/document-mngr/forms_EIN00046</a></p>
+<p><strong>Note:</strong> Idaho does not tax Social Security benefits: Form 39R, Part B, line 7 subtracts the benefits included in federal income (2025 instructions, Idaho State Tax Commission, read 2026-10-24). Idaho taxes IRA and private pension income in full; its retirement benefits deduction (Form 39R line 8, up to 48,216 single / 72,324 joint for 2025, less Social Security received) covers only government, military and some other public pensions from 65 (not modelled; the model’s Traditional withdrawals do not qualify, so no retirement_exclusion section). Not modelled either: the refundable food tax credit.</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
 <span id="law-id-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -614,14 +735,16 @@
 </tbody>
 </table>
 <p><strong>Check at:</strong> Tax Foundation local income taxes primer</p>
-<p><strong>Note:</strong> Idaho cities and counties levy no income tax (Tax Foundation local income tax list and state-costs.csv local_income_tax agree).</p>
+<p><strong>Note:</strong> Idaho cities and counties levy no income tax: Idaho is not among the 16 states with local income taxes in Tax Foundation, Local Income Taxes (<a class="reference external" href="https://taxfoundation.org/research/all/state/local-income-taxes-2023/">https://taxfoundation.org/research/all/state/local-income-taxes-2023/</a>, updated 2024-06-13, read 2026-10-24); state-costs.csv local_income_tax agrees.</p>
 </div>
 </section>
 <section id="sales-tax-sales-tax">
 <span id="law-id-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 6%; local sales taxes add 0.03% on average (6.03% combined). A car purchase pays 6.03%; groceries pay 6.03%. Clothing taxed: yes.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -674,7 +797,9 @@
 <span id="law-id-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 0.433% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -707,7 +832,9 @@
 <span id="law-id-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $1,728 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -740,7 +867,9 @@
 <span id="law-id-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $1,284 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -774,7 +903,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $55 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -807,7 +938,9 @@
 <span id="law-id-fuel"></span><h2>Fuel (fuel)<a class="headerlink" href="#fuel-fuel" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.32 a gallon. Gas averages $3.35 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -844,7 +977,9 @@
 <span id="law-id-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.1296 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -877,7 +1012,9 @@
 <span id="law-id-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $476,754. The housing cost index is 98.4 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -915,7 +1052,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,041; Medigap Plan G at 65 $240; Part D $35.01; Medicare Advantage $12.18.</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -960,7 +1099,9 @@
 <span id="law-id-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 103.8; goods 96.3; services other than rent 99.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1001,7 +1142,9 @@
 <span id="law-id-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $6,387; assisted living $4,600; a private nursing home room $10,707.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

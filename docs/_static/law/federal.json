@@ -1,0 +1,306 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "federal",
+  "tax_year": 2026,
+  "source": "Ordinary income brackets, standard deduction and long-term capital gains limits checked on 2026-10-07 against IRS Rev. Proc. 2025-32 as quoted in IRS pages and search extracts (the PDF itself was not opened); Roth IRA ranges from IRS Notice 2025-67 as quoted; the 415(c) total-additions limit (72000) from Notice 2025-67; the HSA limits from Rev. Proc. 2025-19 (not opened; the hsa_contributions section names its page in check_at); and the irmaa, qcd, senior_deduction and charitable_non_itemizer sections from several secondary sources that agree (each names its primary page in check_at); the other sections are 2026 estimates carried over from the model and an old config file (since removed), to check against SSA and CMS 2026 announcements",
+  "as_of": "2026-10-07",
+  "status": "estimate",
+  "income_brackets": {
+    "indexed": true,
+    "SINGLE": [
+      { "threshold": 0, "rate": 0.1, "base": 0.0 },
+      { "threshold": 12400, "rate": 0.12, "base": 1240.0 },
+      { "threshold": 50400, "rate": 0.22, "base": 5800.0 },
+      { "threshold": 105700, "rate": 0.24, "base": 17966.0 },
+      { "threshold": 201775, "rate": 0.32, "base": 41024.0 },
+      { "threshold": 256225, "rate": 0.35, "base": 58448.0 },
+      { "threshold": 640600, "rate": 0.37, "base": 192979.25 }
+    ],
+    "JOINT": [
+      { "threshold": 0, "rate": 0.1, "base": 0.0 },
+      { "threshold": 24800, "rate": 0.12, "base": 2480.0 },
+      { "threshold": 100800, "rate": 0.22, "base": 11600.0 },
+      { "threshold": 211400, "rate": 0.24, "base": 35932.0 },
+      { "threshold": 403550, "rate": 0.32, "base": 82048.0 },
+      { "threshold": 512450, "rate": 0.35, "base": 116896.0 },
+      { "threshold": 768700, "rate": 0.37, "base": 206583.5 }
+    ],
+    "MFS": [
+      { "threshold": 0, "rate": 0.1, "base": 0.0 },
+      { "threshold": 12400, "rate": 0.12, "base": 1240.0 },
+      { "threshold": 50400, "rate": 0.22, "base": 5800.0 },
+      { "threshold": 105700, "rate": 0.24, "base": 17966.0 },
+      { "threshold": 201775, "rate": 0.32, "base": 41024.0 },
+      { "threshold": 256225, "rate": 0.35, "base": 58448.0 },
+      { "threshold": 384350, "rate": 0.37, "base": 103291.75 }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": true,
+    "additional_age": 65,
+    "SINGLE": { "amount": 16100.0, "additional": 2050.0 },
+    "JOINT": { "amount": 32200.0, "additional": 1650.0 },
+    "MFS": { "amount": 16100.0, "additional": 1650.0 }
+  },
+  "capital_gains_long_term": {
+    "indexed": true,
+    "middle_rate": 0.15,
+    "top_rate": 0.2,
+    "SINGLE": { "zero_rate_limit": 49450.0, "middle_rate_limit": 545500.0 },
+    "JOINT": { "zero_rate_limit": 98900.0, "middle_rate_limit": 613700.0 },
+    "MFS": { "zero_rate_limit": 49450.0, "middle_rate_limit": 306850.0 }
+  },
+  "social_security_benefits": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "provisional_benefit_rate": 0.5,
+    "lower_rate": 0.5,
+    "upper_rate": 0.85,
+    "SINGLE": { "lower_threshold": 25000.0, "upper_threshold": 34000.0, "lower_tier_max": 4500.0 },
+    "JOINT": { "lower_threshold": 32000.0, "upper_threshold": 44000.0, "lower_tier_max": 6000.0 }
+  },
+  "required_minimum_distributions": {
+    "indexed": false,
+    "start_age": 73,
+    "start_age_by_birth_year": [{ "born_from": 1960, "start_age": 75 }],
+    "period_after_table": 2.0,
+    "inherited_drawdown_years": 10,
+    "uniform_lifetime_table": {
+      "72": 27.4, "73": 26.5, "74": 25.5, "75": 24.6, "76": 23.7, "77": 22.9, "78": 22.0, "79": 21.1,
+      "80": 20.2, "81": 19.4, "82": 18.5, "83": 17.7, "84": 16.8, "85": 16.0, "86": 15.2, "87": 14.4,
+      "88": 13.7, "89": 12.9, "90": 12.2, "91": 11.5, "92": 10.8, "93": 10.1, "94": 9.5, "95": 8.9,
+      "96": 8.4, "97": 7.8, "98": 7.3, "99": 6.8, "100": 6.4, "101": 6.0, "102": 5.6, "103": 5.2,
+      "104": 4.9, "105": 4.6, "106": 4.3, "107": 4.1, "108": 3.9, "109": 3.7, "110": 3.5, "111": 3.4,
+      "112": 3.3, "113": 3.1, "114": 3.0, "115": 2.9, "116": 2.8, "117": 2.7, "118": 2.5, "119": 2.3,
+      "120": 2.0
+    }
+  },
+  "itemized_deductions": {
+    "indexed": false,
+    "medical_floor_rate": 0.075,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.congress.gov/bill/119th-congress/house-bill/1/text (P.L. 119-21 s.70120, IRC 164(b)(7)); https://farmlaw.ces.ncsu.edu/2025/07/the-one-big-beautiful-bill-act-salt-deduction/",
+    "note": "The SALT cap under P.L. 119-21 s.70120 (IRC 164(b)(7)): 40,000 in 2025, 40,400 in 2026, then 101% of the year before through 2029 (40,804.00 in 2027, 41,212.04 in 2028, 41,624.16 in 2029, compounded without rounding; practitioner tables round to whole dollars), with the phase-down threshold (505,000 in 2026) growing the same way; 30% of the modified AGI above the threshold is lost, never below 10,000. From 2030 the cap reverts to 10,000 (5,000 separate) with no phase-down. These are statute dollars, not indexed to inflation. Confirmed by secondary sources (NCSU farm law, TurboTax); the statute text was not read. The other itemized-deduction limits come from an old config file and are unconfirmed.",
+    "salt_cap": {
+      "indexed": false,
+      "adjustment": "legislated",
+      "annual_growth": 0.01,
+      "reverts_in": 2030,
+      "SINGLE": { "amount": 40400.0, "floor": 10000.0, "phase_down_threshold": 505000.0, "phase_down_rate": 0.3 },
+      "JOINT": { "amount": 40400.0, "floor": 10000.0, "phase_down_threshold": 505000.0, "phase_down_rate": 0.3 }
+    },
+    "mortgage_limit": { "SINGLE": 750000.0, "JOINT": 750000.0 },
+    "mortgage_limit_adjustment": "legislated",
+    "charitable_cash_limit_rate": 0.6,
+    "charitable_floor_rate": 0.005,
+    "high_income_reduction_rate": 0.054
+  },
+  "elective_deferrals": {
+    "indexed": true,
+    "limit": 24500.0,
+    "catch_up": 8000.0,
+    "catch_up_age": 50
+  },
+  "ira_contributions": {
+    "indexed": true,
+    "limit": 7500.0,
+    "catch_up": 1100.0,
+    "catch_up_age": 50,
+    "roth_phase_out": {
+      "SINGLE": { "start": 153000.0, "end": 168000.0 },
+      "JOINT": { "start": 242000.0, "end": 252000.0 },
+      "MFS": { "start": 0.0, "end": 10000.0 }
+    },
+    "roth_phase_out_mfs_adjustment": "legislated"
+  },
+  "total_additions": {
+    "indexed": true,
+    "limit": 72000.0
+  },
+  "hsa_contributions": {
+    "indexed": true,
+    "SINGLE": 4400.0,
+    "JOINT": 8750.0,
+    "catch_up": 1000.0,
+    "catch_up_adjustment": "legislated",
+    "catch_up_age": 55,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.irs.gov/pub/irs-drop/rp-25-19.pdf",
+    "note": "HSA contribution limits for 2026 from Rev. Proc. 2025-19 (self-only 4400, family 8750; the PDF was not opened). The catch-up from age 55 is set by statute and not indexed, so it is legislated (catch_up_adjustment): it follows the run's federal catch-up schedule while the limits follow inflation."
+  },
+  "medicare_part_b": {
+    "indexed": false,
+    "monthly_premium": 202.9,
+    "annual_deductible": 283.0,
+    "part_d_out_of_pocket_cap": 2100.0
+  },
+  "irmaa": {
+    "indexed": true,
+    "top_threshold_adjustment": "legislated",
+    "top_threshold_indexed_from": 2028,
+    "lookback_years": 2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.cms.gov/newsroom/fact-sheets/2026-medicare-parts-b-premiums-and-deductibles and https://www.ssa.gov/medicare/premiums",
+    "note": "2026 income-related monthly adjustments per person, over the standard Part B premium: each tier applies to modified AGI above its threshold (a figure equal to a threshold stays in the tier below), except the top tier, which applies at or above its threshold, using the AGI of two years before. The thresholds except the last are taken to be indexed; the last (500000 single, 750000 joint, 391000 separate) is not indexed until 2028 (recalled, unconfirmed): top_threshold_adjustment and top_threshold_indexed_from hold it at its nominal level through 2027 and index it from 2028, with no random catch-up. MFS is a separate filer who lived with the spouse.",
+    "SINGLE": [
+      { "threshold": 109000.0, "part_b": 81.20, "part_d": 14.50 },
+      { "threshold": 137000.0, "part_b": 202.90, "part_d": 37.50 },
+      { "threshold": 171000.0, "part_b": 324.60, "part_d": 60.40 },
+      { "threshold": 205000.0, "part_b": 446.30, "part_d": 83.30 },
+      { "threshold": 500000.0, "part_b": 487.00, "part_d": 91.00 }
+    ],
+    "JOINT": [
+      { "threshold": 218000.0, "part_b": 81.20, "part_d": 14.50 },
+      { "threshold": 274000.0, "part_b": 202.90, "part_d": 37.50 },
+      { "threshold": 342000.0, "part_b": 324.60, "part_d": 60.40 },
+      { "threshold": 410000.0, "part_b": 446.30, "part_d": 83.30 },
+      { "threshold": 750000.0, "part_b": 487.00, "part_d": 91.00 }
+    ],
+    "MFS": [
+      { "threshold": 109000.0, "part_b": 446.30, "part_d": 83.30 },
+      { "threshold": 391000.0, "part_b": 487.00, "part_d": 91.00 }
+    ]
+  },
+  "qcd": {
+    "indexed": true,
+    "annual_limit": 111000.0,
+    "min_age": 70.5,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill",
+    "note": "Qualified charitable distribution limit per person for 2026 (Rev. Proc. 2025-32 as quoted). It counts toward the required minimum distribution but not toward a Roth conversion."
+  },
+  "senior_deduction": {
+    "indexed": false,
+    "first_year": 2025,
+    "last_year": 2028,
+    "amount": 6000.0,
+    "min_age": 65,
+    "phase_out_rate": 0.06,
+    "phase_out_threshold": {
+      "SINGLE": 75000.0,
+      "JOINT": 150000.0
+    },
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.congress.gov/bill/119th-congress/house-bill/1/text; https://www.irs.gov/pub/irs-pdf/f1040s1a.pdf and its instructions (Part V worksheet)",
+    "note": "Deduction per person aged 65 or older at the end of the year, tax years 2025 to 2028 (P.L. 119-21, IRC 151(d)(5)(C), Schedule 1-A, as quoted). It lowers taxable income, not AGI, for itemizers and non-itemizers alike. Each person's amount falls by the rate times the modified AGI above the threshold (not indexed), so a joint couple with both 65 or older has none left at 250,000. The per-person phase-out rests on secondary sources; the Schedule 1-A instructions were not read. Separate filers get none."
+  },
+  "charitable_non_itemizer": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "first_year": 2026,
+    "limit": {
+      "SINGLE": 1000.0,
+      "JOINT": 2000.0,
+      "MFS": 1000.0
+    },
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.congress.gov/bill/119th-congress/house-bill/1/text",
+    "note": "Deduction for cash gifts to charity taken with the standard deduction, from 2026 (P.L. 119-21, as quoted); gifts of securities or property and gifts to a donor-advised fund do not count. It lowers taxable income, not AGI. Whether the limit is indexed and the separate-filer amount (1000 assumed) are unconfirmed."
+  },
+  "dependent_care_fsa": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "limit": {
+      "SINGLE": 7500.0,
+      "JOINT": 7500.0,
+      "MFS": 3750.0
+    },
+    "child_age_limit": 13,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.irs.gov/publications/p15b",
+    "note": "Dependent care assistance exclusion (IRC 129) for care of a qualifying child under 13 (IRC 21(b)(1)(A)). The limit of 7500 (3750 married filing separately) for tax years after 2025, raised from 5000 and 2500 by P.L. 119-21, and that it is not indexed, are from memory and unconfirmed; check IRS Publication 15-B and the Form 2441 instructions. The exclusion is also limited to the lower-earning spouse's earned income."
+  },
+  "home_sale_exclusion": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "amount": {
+      "SINGLE": 250000.0,
+      "JOINT": 500000.0,
+      "MFS": 250000.0
+    },
+    "min_years": 2,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.irs.gov/publications/p523",
+    "note": "Section 121 exclusion of the gain on the sale of a main home: up to 250000 (500000 married filing jointly, 250000 for each separate return) when the home was owned and used as the main home for 2 of the 5 years before the sale; not indexed. Confirmed against IRS Publication 523 on 2026-10-20. The model assumes the ownership and use test is met, except that a home bought during the run and sold fewer than min_years later gets no exclusion (the partial exclusion for a shorter stay, depreciation recapture and the net investment income tax are not modelled)."
+  },
+  "estate_tax": {
+    "indexed": true,
+    "basic_exclusion": 15000000.0,
+    "rate": 0.4,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.irs.gov/businesses/small-businesses-self-employed/estate-tax and IRS Rev. Proc. 2025-32",
+    "note": "Federal estate tax at death: the basic exclusion amount per person (IRC 2010(c)(3)) is 15,000,000 for 2026 under P.L. 119-21 s.70106, indexed for inflation after 2026, and the top rate (IRC 2001(c)) is 40% on the taxable estate above it. A surviving spouse may use the unused exclusion (portability, IRC 2010(c)(4)); the after-tax final worth doubles the exclusion for a joint return only. Checked 2026-10-22 against Rev. Proc. 2025-32 summaries (KPMG TaxNewsFlash 2025-10; Bowditch 2025-10-28): 2026 exclusion 15,000,000 (2025: 13,990,000), top rate 40%; portability needs a timely Form 706. State estate and inheritance taxes are in each state file's estate_inheritance section; the state death tax deduction (IRC 2058) is not modelled."
+  },
+  "early_withdrawal": {
+    "indexed": false,
+    "penalty_free_age": 59.5,
+    "penalty_rate": 0.1,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.irs.gov/taxtopics/tc558 (IRC 72(t))",
+    "note": "The additional tax on early distributions from qualified plans and IRAs (IRC 72(t)): 10% of a distribution taken before age 59 1/2, with exceptions; moved from the code on 2026-10-22, not checked against the page. The model does not charge it; the Strategies tab warns when Roth conversions start before penalty_free_age, since money taken out to pay their tax could owe it."
+  },
+  "aca_premium_credit": {
+    "indexed": true,
+    "cliff_multiple": 4.0,
+    "poverty_guideline": {
+      "guideline_year": 2025,
+      "first_person": 15650.0,
+      "each_additional": 5500.0
+    },
+    "confidence": "confirmed secondary",
+    "check_at": "https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines, IRS Rev. Proc. 2025-25 and 26 USC 36B",
+    "note": "Marketplace (ACA) premium tax credit, 2026 coverage: the enhanced credits expired after 2025, so the credit ends completely above 400% of the federal poverty level (cliff_multiple, from CRS R48290 as quoted in the 2026-10-19 tax policy audit). Coverage year Y uses the poverty guideline published in Y-1 (the 2025 contiguous-states guideline here). The guideline figures were read back from the audit's cliff figures (62,600 for one person, 84,600 for two) and the HHS page itself was not opened. The 2026 applicable percentages (2.10% to 9.96% of income) are deliberately not stored: the model does not charge the credit, it only warns where the cliff is."
+  },
+  "social_security_benefit_formula": {
+    "indexed": false,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.ssa.gov/oact/cola/AWI.html, https://www.ssa.gov/oact/cola/piaformula.html, https://www.ssa.gov/oact/cola/bendpoints.html, https://www.ssa.gov/benefits/retirement/planner/agereduction.html, https://www.ssa.gov/oact/quickcalc/earlyretire.html and https://www.ssa.gov/benefits/retirement/planner/delayret.html",
+    "note": "Figures for estimating a retirement benefit from the earnings record, read from the SSA pages in check_at on 2026-10-12: the national average wage index for every year from 1951 to the newest published (a new year is added each October; the one historical series in the law files), the 2026 PIA bend points and the 90%, 32% and 15% factors (PIA rounded down to the dime), full retirement age in months by birth year (born_from is the first birth year of each row; a person born on January 1 counts in the previous year), the early-claim reduction (5/9 of 1% a month for the first 36 months early, 5/12 of 1% after) and the delayed-retirement credit for birth years 1943 and later (2/3 of 1% a month, to age 70). The 35 highest years count, divided by 420 months. A benefit can be claimed from min_claim_age (62) to max_claim_age (70); min_earning_years (10) years with earnings stand in for the 40 work credits a benefit needs (an approximation: four credits a year).",
+    "average_wage_index": {
+      "1951": 2799.16, "1952": 2973.32, "1953": 3139.44, "1954": 3155.64, "1955": 3301.44, "1956": 3532.36, "1957": 3641.72, "1958": 3673.80,
+      "1959": 3855.80, "1960": 4007.12, "1961": 4086.76, "1962": 4291.40, "1963": 4396.64, "1964": 4576.32, "1965": 4658.72, "1966": 4938.36,
+      "1967": 5213.44, "1968": 5571.76, "1969": 5893.76, "1970": 6186.24, "1971": 6497.08, "1972": 7133.80, "1973": 7580.16, "1974": 8030.76,
+      "1975": 8630.92, "1976": 9226.48, "1977": 9779.44, "1978": 10556.03, "1979": 11479.46, "1980": 12513.46, "1981": 13773.10, "1982": 14531.34,
+      "1983": 15239.24, "1984": 16135.07, "1985": 16822.51, "1986": 17321.82, "1987": 18426.51, "1988": 19334.04, "1989": 20099.55, "1990": 21027.98,
+      "1991": 21811.60, "1992": 22935.42, "1993": 23132.67, "1994": 23753.53, "1995": 24705.66, "1996": 25913.90, "1997": 27426.00, "1998": 28861.44,
+      "1999": 30469.84, "2000": 32154.82, "2001": 32921.92, "2002": 33252.09, "2003": 34064.95, "2004": 35648.55, "2005": 36952.94, "2006": 38651.41,
+      "2007": 40405.48, "2008": 41334.97, "2009": 40711.61, "2010": 41673.83, "2011": 42979.61, "2012": 44321.67, "2013": 44888.16, "2014": 46481.52,
+      "2015": 48098.63, "2016": 48642.15, "2017": 50321.89, "2018": 52145.80, "2019": 54099.99, "2020": 55628.60, "2021": 60575.07, "2022": 63795.13,
+      "2023": 66621.80, "2024": 69846.57
+    },
+    "bend_points": [1286, 7749],
+    "bend_rates": [0.9, 0.32, 0.15],
+    "fra_by_birth_year": [
+      { "born_from": 1943, "months": 792 },
+      { "born_from": 1955, "months": 794 },
+      { "born_from": 1956, "months": 796 },
+      { "born_from": 1957, "months": 798 },
+      { "born_from": 1958, "months": 800 },
+      { "born_from": 1959, "months": 802 },
+      { "born_from": 1960, "months": 804 }
+    ],
+    "early_reduction": { "first_months": 36, "first_rate": 0.005555555555555556, "later_rate": 0.004166666666666667 },
+    "delayed_credit_rate": 0.006666666666666667,
+    "min_claim_age": 62,
+    "max_claim_age": 70,
+    "years_counted": 35,
+    "min_earning_years": 10
+  },
+  "social_security_wage_base": {
+    "indexed": true,
+    "amount": 184500.0
+  },
+  "payroll_rates": {
+    "indexed": false,
+    "social_security_rate": 0.062,
+    "medicare_rate": 0.0145,
+    "additional_medicare_rate": 0.009
+  },
+  "additional_medicare_thresholds": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": 200000.0,
+    "JOINT": 250000.0,
+    "MFS": 125000.0
+  }
+}

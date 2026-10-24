@@ -9,7 +9,7 @@
   <title>Pennsylvania &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -203,6 +203,35 @@
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/pa.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/pa.json">pa.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;ALL&quot;,
+    &quot;MFS&quot;: &quot;ALL&quot;,
+    &quot;JOINT&quot;: &quot;ALL&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [
+      &quot;traditional_deposit&quot;
+    ],
+    &quot;note&quot;: &quot;Pennsylvania taxes employee 401(k) deferrals as compensation, so they are added back to the income the state taxes; HSA deposits stay deductible (confirmed primary: https://www.pa.gov/agencies/revenue/forms-and-publications/pa-personal-income-tax-guide/gross-compensation, validation run 2, 2026-10-22).&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;adjustment&quot;: &quot;legislated&quot;,
+    &quot;ALL&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0307,
+        &quot;base&quot;: 0.0
+      }
+    ]
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -297,45 +326,39 @@
 <span id="law-pa-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span> (the state’s income tax confidence)</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<p>Every filing status uses the same bracket table.</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ALL</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>ALL</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;ALL&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ALL</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>ALL</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;ALL&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>ALL</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;ALL&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ALL</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-pa-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span> (the state’s income tax confidence)</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<p>The state adds back every Traditional deposit (401k deferrals and Traditional IRA deposits): the federal return lets you subtract them, this state does not.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -366,52 +389,41 @@
 <span id="law-pa-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span> (the state’s income tax confidence)</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<p>A flat tax: 3.07% of all taxable income, whatever the filing status.</p>
+<p>The thresholds are not indexed: only a new law changes them (<code class="docutils literal notranslate"><span class="pre">legislated</span></code>).</p>
+<p class="rubric">Single, married filing jointly and married filing separately (<code class="docutils literal notranslate"><span class="pre">ALL</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>legislated</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;legislated&quot;</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>and above</p></td>
+<td><p>3.07%</p></td>
+<td><p>$0</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">ALL</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>3.07% (0.0307)</p></td>
-<td><p>0</p></td>
-</tr>
-</tbody>
-</table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
 </div>
 </section>
 <section id="retirement-exclusion-retirement-exclusion">
 <span id="law-pa-retirement-exclusion"></span><h2>Retirement exclusion (retirement_exclusion)<a class="headerlink" href="#retirement-exclusion-retirement-exclusion" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap.</p>
+<p>From age 59.5, retirement income is left out of the income the state taxes in full.</p>
+<p><strong>How the model uses this:</strong> The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -445,7 +457,41 @@
 <span id="law-pa-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>No estate tax.</p>
+<p>Inheritance tax on each heir’s share above the class’s exemption (rates on the amount above it); the model’s default heir is <code class="docutils literal notranslate"><span class="pre">child</span></code>:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Heir class</p></th>
+<th class="head"><p>Exemption</p></th>
+<th class="head"><p>Rates</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">spouse</span></code></p></td>
+<td><p>$0</p></td>
+<td><p>0% over $0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">child</span></code></p></td>
+<td><p>$0</p></td>
+<td><p>4.5% over $0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sibling</span></code></p></td>
+<td><p>$0</p></td>
+<td><p>12% over $0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">other</span></code></p></td>
+<td><p>$0</p></td>
+<td><p>15% over $0</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -638,7 +684,9 @@
 <span id="law-pa-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<p>The state does not tax Social Security benefits.</p>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -670,7 +718,9 @@
 <span id="law-pa-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<p>Local (county, city and school-district) income taxes average 1% of wages.</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -706,7 +756,9 @@
 <span id="law-pa-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 6%; local sales taxes add 0.34% on average (6.34% combined). A car purchase pays 6.34%; groceries pay 0%. Clothing taxed: no.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -759,7 +811,9 @@
 <span id="law-pa-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 1.137% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -792,7 +846,9 @@
 <span id="law-pa-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $1,272 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -825,7 +881,9 @@
 <span id="law-pa-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $1,944 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -858,7 +916,9 @@
 <span id="law-pa-car-taxes"></span><h2>Car taxes (car_taxes)<a class="headerlink" href="#car-taxes-car-taxes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $48 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -891,7 +951,9 @@
 <span id="law-pa-fuel"></span><h2>Fuel (fuel)<a class="headerlink" href="#fuel-fuel" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.587 a gallon. Gas averages $3.40 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -928,7 +990,9 @@
 <span id="law-pa-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.2104 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -961,7 +1025,9 @@
 <span id="law-pa-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $287,078. The housing cost index is 84.8 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -999,7 +1065,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,215; Medigap Plan G at 65 $229; Part D $38.93; Medicare Advantage $25.89.</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1044,7 +1112,9 @@
 <span id="law-pa-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 98.7; goods 99.4; services other than rent 99.8.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1085,7 +1155,9 @@
 <span id="law-pa-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $6,483; assisted living $6,100; a private nursing home room $12,958.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

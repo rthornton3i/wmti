@@ -9,7 +9,7 @@
   <title>Virginia &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -192,19 +192,109 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
-<td><p>Code of Virginia 58.1-320 (rates, law.lis.virginia.gov, read 2026-10-22), Virginia Tax deductions page (standard deduction 8750 / 17500), exemptions page (930 per person and dependent, 800 per person aged 65 or older) and subtractions page (age deduction, Social Security), all read on tax.virginia.gov 2026-10-22; second sources EY Tax News 2025-1326 (HB 1600 standard deduction for 2025 and 2026), prosalarytax.com and ustax.tools 2026 Virginia brackets</p></td>
+<td><p>Primary, read 2026-10-24 (s359): Code of Virginia 58.1-320 (rates) and 58.1-322.03 (standard deduction by year, 930 / 800 exemptions, age deduction) on law.lis.virginia.gov; Virginia Tax 2025 Form 760 Resident Individual Income Tax Booklet (tax rate schedule page 35, Age 65 and Older Deduction Worksheet, standard deduction and exemptions, tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf); tax.virginia.gov deductions, exemptions, additions and subtractions pages. Earlier second sources: EY Tax News 2025-1326 (HB 1600), prosalarytax.com and ustax.tools 2026 Virginia brackets</p></td>
 </tr>
 <tr class="row-odd"><td><p>Schema version</p></td>
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>20 sections: 4 confirmed primary, 8 confirmed secondary, 7 unconfirmed, 1 not rated</p></td>
+<td><p>20 sections: 10 confirmed primary, 8 confirmed secondary, 2 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/va.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/va.json">va.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;SINGLE&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-320/&quot;,
+    &quot;note&quot;: &quot;Virginia has one rate schedule for every filing status (Code of Virginia 58.1-320; 2025 Form 760 booklet, tax rate schedule page 35, read 2026-10-24); separate filers use it on their own income, so MFS points at the single table. Not modelled: the Spouse Tax Adjustment, a credit of up to 259 for a joint return where both spouses have taxable income (Form 760 line 17), so a two-earner joint return&#x27;s tax is up to 259 too high.&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [],
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.tax.virginia.gov/additions&quot;,
+    &quot;note&quot;: &quot;Virginia starts from federal adjusted gross income (Form 760 line 1), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible as on the federal return; none of the additions on tax.virginia.gov/additions touches them (confirmed primary, read 2026-10-24).&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;adjustment&quot;: &quot;legislated&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf&quot;,
+    &quot;note&quot;: &quot;2% to 3,000, 3% to 5,000, 5% to 17,000, 5.75% above, bases 60 / 120 / 720, the same for single and joint (Code of Virginia 58.1-320 and the 2025 Form 760 tax rate schedule, read 2026-10-24); fixed in statute since 1990 (legislated, not indexed), so the 2026 figures are the same.&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.02,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 3000,
+        &quot;rate&quot;: 0.03,
+        &quot;base&quot;: 60.0
+      },
+      {
+        &quot;threshold&quot;: 5000,
+        &quot;rate&quot;: 0.05,
+        &quot;base&quot;: 120.0
+      },
+      {
+        &quot;threshold&quot;: 17000,
+        &quot;rate&quot;: 0.0575,
+        &quot;base&quot;: 720.0
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.02,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 3000,
+        &quot;rate&quot;: 0.03,
+        &quot;base&quot;: 60.0
+      },
+      {
+        &quot;threshold&quot;: 5000,
+        &quot;rate&quot;: 0.05,
+        &quot;base&quot;: 120.0
+      },
+      {
+        &quot;threshold&quot;: 17000,
+        &quot;rate&quot;: 0.0575,
+        &quot;base&quot;: 720.0
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 8750.0,
+    &quot;JOINT&quot;: 17500.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-322.03/&quot;,
+    &quot;note&quot;: &quot;8750 single and separate (half the married amount), 17500 joint for taxable years 2025 and 2026 (Code of Virginia 58.1-322.03(1)(b)(v), read 2026-10-24; same on tax.virginia.gov/deductions and the 2025 Form 760 booklet). Legislated, not indexed. The statute as read now sets 9200 / 18400 for 2027 and 9300 / 18600 for 2028 and 2029, then 3000 / 6000 from 2030 (the 2025 booklet, printed earlier, still says the amount reverts to 3000 / 6000 after 2026); later years are not modelled, the model keeps the 2026 amount. Single and joint returns use the same brackets (one table each so the deduction can differ).&quot;
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 930.0,
+    &quot;JOINT&quot;: 1860.0,
+    &quot;senior&quot;: 800.0,
+    &quot;dependent&quot;: 930.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-322.03/&quot;,
+    &quot;note&quot;: &quot;930 per personal exemption (taxpayer, spouse and each dependent) and 800 more per person aged 65 or older or blind (Code of Virginia 58.1-322.03(2), no year limit; tax.virginia.gov/exemptions and 2025 Form 760 booklet page 9; all read 2026-10-24). Legislated, not indexed.&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -222,27 +312,27 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-va-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-va-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-va-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-va-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-va-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-va-retirement-exclusion"><span class="std std-ref">Retirement exclusion</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">retirement_exclusion</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-va-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -305,49 +395,43 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-va-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-320/">https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-320/</a></p>
+<p><strong>Note:</strong> Virginia has one rate schedule for every filing status (Code of Virginia 58.1-320; 2025 Form 760 booklet, tax rate schedule page 35, read 2026-10-24); separate filers use it on their own income, so MFS points at the single table. Not modelled: the Spouse Tax Adjustment, a credit of up to 259 for a joint return where both spouses have taxable income (Form 760 line 17), so a two-earner joint return’s tax is up to 259 too high.</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-va-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back none of the federal deductions the model tracks (Traditional deposits, Traditional IRA deposits and HSA deposits): it starts from the same income as the federal return.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -371,100 +455,120 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Virginia starts from federal adjusted gross income, so 401(k) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible as on the federal return (confirmed primary: <a class="reference external" href="https://www.tax.virginia.gov/additions">https://www.tax.virginia.gov/additions</a>, validation run 3, 2026-10-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.tax.virginia.gov/additions">https://www.tax.virginia.gov/additions</a></p>
+<p><strong>Note:</strong> Virginia starts from federal adjusted gross income (Form 760 line 1), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible as on the federal return; none of the additions on tax.virginia.gov/additions touches them (confirmed primary, read 2026-10-24).</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-va-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Graduated rates from 2% to 5.75%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are not indexed: only a new law changes them (<code class="docutils literal notranslate"><span class="pre">legislated</span></code>).</p>
+<p class="rubric">Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$3,000</p></td>
+<td><p>2%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>legislated</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;legislated&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>$3,000</p></td>
+<td><p>$5,000</p></td>
+<td><p>3%</p></td>
+<td><p>$60</p></td>
+</tr>
+<tr class="row-even"><td><p>$5,000</p></td>
+<td><p>$17,000</p></td>
+<td><p>5%</p></td>
+<td><p>$120</p></td>
+</tr>
+<tr class="row-odd"><td><p>$17,000</p></td>
+<td><p>and above</p></td>
+<td><p>5.75%</p></td>
+<td><p>$720</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>2% (0.02)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$3,000</p></td>
+<td><p>2%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>3,000</p></td>
-<td><p>3% (0.03)</p></td>
-<td><p>60</p></td>
+<tr class="row-odd"><td><p>$3,000</p></td>
+<td><p>$5,000</p></td>
+<td><p>3%</p></td>
+<td><p>$60</p></td>
 </tr>
-<tr class="row-even"><td><p>5,000</p></td>
-<td><p>5% (0.05)</p></td>
-<td><p>120</p></td>
+<tr class="row-even"><td><p>$5,000</p></td>
+<td><p>$17,000</p></td>
+<td><p>5%</p></td>
+<td><p>$120</p></td>
 </tr>
-<tr class="row-odd"><td><p>17,000</p></td>
-<td><p>5.75% (0.0575)</p></td>
-<td><p>720</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>2% (0.02)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>3,000</p></td>
-<td><p>3% (0.03)</p></td>
-<td><p>60</p></td>
-</tr>
-<tr class="row-even"><td><p>5,000</p></td>
-<td><p>5% (0.05)</p></td>
-<td><p>120</p></td>
-</tr>
-<tr class="row-odd"><td><p>17,000</p></td>
-<td><p>5.75% (0.0575)</p></td>
-<td><p>720</p></td>
+<tr class="row-odd"><td><p>$17,000</p></td>
+<td><p>and above</p></td>
+<td><p>5.75%</p></td>
+<td><p>$720</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf">https://www.tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf</a></p>
+<p><strong>Note:</strong> 2% to 3,000, 3% to 5,000, 5% to 17,000, 5.75% above, bases 60 / 120 / 720, the same for single and joint (Code of Virginia 58.1-320 and the 2025 Form 760 tax rate schedule, read 2026-10-24); fixed in statute since 1990 (legislated, not indexed), so the 2026 figures are the same.</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-va-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The amount taken off the income the state taxes, per bracket table.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$8,750</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$17,500</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> The amount taken off the income the state taxes, per bracket table. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -492,15 +596,43 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> 8750 single and separate, 17500 joint for 2025 and 2026 (HB 1600, 2025; tax.virginia.gov/deductions). After 2026 the law reverts to 3000 / 6000 unless extended (HB 12 of 2026 pending), not modelled. Single and joint returns use the same brackets (one table each so the deduction can differ).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-322.03/">https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-322.03/</a></p>
+<p><strong>Note:</strong> 8750 single and separate (half the married amount), 17500 joint for taxable years 2025 and 2026 (Code of Virginia 58.1-322.03(1)(b)(v), read 2026-10-24; same on tax.virginia.gov/deductions and the 2025 Form 760 booklet). Legislated, not indexed. The statute as read now sets 9200 / 18400 for 2027 and 9300 / 18600 for 2028 and 2029, then 3000 / 6000 from 2030 (the 2025 booklet, printed earlier, still says the amount reverts to 3000 / 6000 after 2026); later years are not modelled, the model keeps the 2026 amount. Single and joint returns use the same brackets (one table each so the deduction can differ).</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-va-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$930</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$1,860</p></td>
+</tr>
+<tr class="row-even"><td><p>Per person 65 or older</p></td>
+<td><p>$800</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per dependent</p></td>
+<td><p>$930</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -536,14 +668,96 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> 930 per person and per dependent, 800 more per person aged 65 or older (tax.virginia.gov/exemptions).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-322.03/">https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-322.03/</a></p>
+<p><strong>Note:</strong> 930 per personal exemption (taxpayer, spouse and each dependent) and 800 more per person aged 65 or older or blind (Code of Virginia 58.1-322.03(2), no year limit; tax.virginia.gov/exemptions and 2025 Form 760 booklet page 9; all read 2026-10-24). Legislated, not indexed.</p>
 </div>
 </section>
 <section id="retirement-exclusion-retirement-exclusion">
 <span id="law-va-retirement-exclusion"></span><h2>Retirement exclusion (retirement_exclusion)<a class="headerlink" href="#retirement-exclusion-retirement-exclusion" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>From age 65, retirement income is left out of the income the state taxes, up to a cap per person who has reached the age:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 60.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Cap</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p>$12,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p>$24,000</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p>$12,000</p></td>
+</tr>
+</tbody>
+</table>
+<p>The share left out falls as income rises (income before the exclusion); above the last tier nothing is left out:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Income up to</p></th>
+<th class="head"><p>Single</p></th>
+<th class="head"><p>Married filing jointly</p></th>
+<th class="head"><p>Married filing separately</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>$50,000</p></td>
+<td><p>100%</p></td>
+<td><p>100%</p></td>
+<td><p>100%</p></td>
+</tr>
+<tr class="row-odd"><td><p>$54,000</p></td>
+<td><p>19%</p></td>
+<td><p>100%</p></td>
+<td><p>19%</p></td>
+</tr>
+<tr class="row-even"><td><p>$58,000</p></td>
+<td><p>11%</p></td>
+<td><p>100%</p></td>
+<td><p>11%</p></td>
+</tr>
+<tr class="row-odd"><td><p>$62,000</p></td>
+<td><p>3%</p></td>
+<td><p>100%</p></td>
+<td><p>3%</p></td>
+</tr>
+<tr class="row-even"><td><p>$75,000</p></td>
+<td><p>0%</p></td>
+<td><p>100%</p></td>
+<td><p>0%</p></td>
+</tr>
+<tr class="row-odd"><td><p>$81,000</p></td>
+<td><p>0%</p></td>
+<td><p>27%</p></td>
+<td><p>0%</p></td>
+</tr>
+<tr class="row-even"><td><p>$87,000</p></td>
+<td><p>0%</p></td>
+<td><p>18%</p></td>
+<td><p>0%</p></td>
+</tr>
+<tr class="row-odd"><td><p>$93,000</p></td>
+<td><p>0%</p></td>
+<td><p>10%</p></td>
+<td><p>0%</p></td>
+</tr>
+<tr class="row-even"><td><p>$99,000</p></td>
+<td><p>0%</p></td>
+<td><p>3%</p></td>
+<td><p>0%</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -616,14 +830,18 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Approximation (unconfirmed) of the age deduction: up to 12000 per person aged 65 or older, reduced by 1 for every 1 of adjusted federal AGI (federal AGI less taxable Social Security) above 50000 single or 75000 married, so gone at 62000 single and 99000 for a joint couple both 65 or older (tax.virginia.gov/subtractions; people born on or before 1939-01-01 get the full 12000, not modelled). Virginia allows it against any income, the model only against retirement income; the income-based reduction is turned into shares of the retirement income at the middle of each 4000 (single) or 6000 (joint) step, assuming nearly all income is retirement income; a joint return with one person 65 or older is treated like two (slightly too generous between 75000 and 99000). Separate filers test the couple’s combined income in Virginia; the model tests the return’s own.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf">https://www.tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf</a> (Age 65 and Older Deduction Worksheet, page 10)</p>
+<p><strong>Note:</strong> Figures confirmed primary (Code of Virginia 58.1-322.03(5); 2025 Form 760 booklet, Age 65 and Older Deduction Worksheet; tax.virginia.gov/subtractions; all read 2026-10-24): up to 12000 per person aged 65 or older, reduced by 1 for every 1 of adjusted federal AGI (federal AGI less taxable Social Security and Tier 1) above 50000 single or 75000 married; a married couple both claiming it computes one joint deduction (24000 less the excess) and splits it in half, so it is gone at 62000 single and 99000 for a couple both 65 or older (people born on or before 1939-01-01 get the full 12000, not modelled). Legislated, not indexed. Approximation of the rule: Virginia allows it against any income, the model only against retirement income; the income-based reduction is turned into shares of the retirement income at the middle of each 4000 (single) or 6000 (joint) step, assuming nearly all income is retirement income; a joint return with one person 65 or older is treated like two (slightly too generous between 75000 and 99000). Separate filers test the couple’s combined income in Virginia; the model tests the return’s own.</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-va-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>No estate tax.</p>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -659,7 +877,9 @@
 <span id="law-va-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<p>The state does not tax Social Security benefits.</p>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -684,14 +904,16 @@
 </tbody>
 </table>
 <p><strong>Check at:</strong> <a class="reference external" href="https://www.tax.virginia.gov/subtractions">https://www.tax.virginia.gov/subtractions</a> (Social Security and Tier 1 Railroad benefits)</p>
-<p><strong>Note:</strong> Virginia law exempts Social Security and Tier 1 Railroad Retirement benefits; the part in federal AGI is subtracted (tax.virginia.gov/subtractions, read 2026-10-22; Kiplinger 2026 and AARP agree).</p>
+<p><strong>Note:</strong> Virginia law exempts Social Security and Tier 1 Railroad Retirement benefits; the part in federal AGI is subtracted (tax.virginia.gov/subtractions, read 2026-10-22 and again 2026-10-24; Form 760 Schedule ADJ subtraction; Kiplinger 2026 and AARP agree).</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
 <span id="law-va-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -720,14 +942,16 @@
 </tbody>
 </table>
 <p><strong>Check at:</strong> <a class="reference external" href="https://www.tax.virginia.gov">https://www.tax.virginia.gov</a> (localities levy no income tax)</p>
-<p><strong>Note:</strong> Virginia counties and cities levy no income tax (state-costs.csv local_income_tax ‘none’; Tax Foundation local income tax list).</p>
+<p><strong>Note:</strong> Virginia counties and cities levy no income tax (state-costs.csv local_income_tax ‘none’; Tax Foundation local income tax list). The 2025 Form 760 booklet (read 2026-10-24) has no local income tax line, but no Virginia Tax page states the absence outright, so it stays secondary.</p>
 </div>
 </section>
 <section id="sales-tax-sales-tax">
 <span id="law-va-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 5.3%; local sales taxes add 0.47% on average (5.77% combined). A car purchase pays 4.15%; groceries pay 1%. Clothing taxed: yes.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -780,7 +1004,9 @@
 <span id="law-va-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 0.754% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -813,7 +1039,9 @@
 <span id="law-va-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $1,656 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -846,7 +1074,9 @@
 <span id="law-va-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $2,484 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -880,7 +1110,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $1,156 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -913,7 +1145,9 @@
 <span id="law-va-fuel"></span><h2>Fuel (fuel)<a class="headerlink" href="#fuel-fuel" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.326 a gallon. Gas averages $3.09 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -950,7 +1184,9 @@
 <span id="law-va-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.1683 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -983,7 +1219,9 @@
 <span id="law-va-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $412,252. The housing cost index is 99.3 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1021,7 +1259,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $966; Medigap Plan G at 65 $189; Part D $39.70; Medicare Advantage $12.32.</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1066,7 +1306,9 @@
 <span id="law-va-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 100.4; goods 100.4; services other than rent 100.2.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1107,7 +1349,9 @@
 <span id="law-va-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $6,292; assisted living $6,512; a private nursing home room $9,825.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

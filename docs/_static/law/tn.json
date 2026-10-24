@@ -1,0 +1,164 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "tn",
+  "name": "Tennessee",
+  "tax_year": 2026,
+  "source": "Tennessee levies no personal income tax: the Hall income tax on interest and dividends was cut to 1% for 2020 and repealed for tax years beginning January 1, 2021 (Department of Revenue, Hall Income Tax due date and tax rates page, https://www.tn.gov/revenue/taxes/hall-income-tax/due-date-and-tax-rates.html, read 2026-10-24 in s359); wages were never taxed, and Tennessee Constitution Art. II sec. 28 (2014 amendment) bars any state or local tax on payroll or earned personal income (text read on https://law.justia.com/constitution/tennessee/article-ii/section-28/); second sources: HIT-3 (https://revenue.support.tn.gov/hc/en-us/articles/360057828631, refuses fetches), UT MTAS Hall income tax page and Tax Foundation, State Individual Income Tax Rates and Brackets 2026",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "ALL",
+    "MFS": "ALL",
+    "JOINT": "ALL",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tn.gov/revenue/taxes/hall-income-tax/due-date-and-tax-rates.html",
+    "note": "No income tax, so every filing status uses the one zero-rate table (Department of Revenue: Hall income tax repealed from 2021, read 2026-10-24)."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Tennessee has no state income tax: no wage tax, and the Hall tax on interest and dividends was repealed for tax years from January 1, 2021 (Department of Revenue, read 2026-10-24), so nothing is added back.",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tn.gov/revenue/taxes/hall-income-tax/due-date-and-tax-rates.html"
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tn.gov/revenue/taxes/hall-income-tax/due-date-and-tax-rates.html",
+    "note": "A single 0% bracket: no tax on wages, and the Hall tax (1% in 2020) repealed from 2021 (Department of Revenue, read 2026-10-24). Legislated: a repeal, nothing to index.",
+    "ALL": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      }
+    ]
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Tennessee Code title 67, chapter 8 (inheritance tax repealed for deaths from 2016)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Tennessee levies no estate tax and no inheritance tax: its inheritance tax was repealed for deaths on or after January 1, 2016 and its gift tax in 2012 (state-costs.csv columns estate_tax and inheritance_tax; Tax Foundation and Kiplinger state death-tax lists). Triage 2026-10-23 (category A): TN estate/inheritance tax repealed from 2016."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tn.gov/revenue/taxes/hall-income-tax/due-date-and-tax-rates.html",
+    "note": "Tennessee has no personal income tax since the Hall tax repeal of 2021 (Department of Revenue, read 2026-10-24), so Social Security benefits are not taxed."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "Tennessee city and county tax codes (no local income tax is authorised)",
+    "note": "Tennessee counties and cities levy no income tax (state-costs.csv local_income_tax 'none'; no agency page read). Triage 2026-10-23 (category A): Tennessee has no local income tax. Re-checked 2026-10-24 (s359): Tennessee Constitution Art. II sec. 28 bars any local tax on payroll or earned personal income (read on Justia, not an official state copy), so it stays confirmed secondary."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.07,
+    "avg_local_rate": 0.0261,
+    "combined_rate": 0.0961,
+    "vehicle_rate": 0.073,
+    "grocery_rate": 0.0661,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Tennessee revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://www.avalara.com/us/en/blog/2026/02/will-tennessee-exempt-groceries-from-sales-tax and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.073 from the state's own source (Tennessee 7% state tax on the full price plus local tax on the first 1,600 and the 2.75% single-article tax on 1,600 to 3,200, about 7.3% on a 29,100 car (secondary: MTAS local option sales tax page, https://www.mtas.tennessee.edu/reference/local-option-sales-tax, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.04) plus the average local rate where locals tax them (locals: yes); research note: Reduced state food rate 4% plus full local option; 2026 repeal bills stalled; HB 2186 lets metro counties cut local food rate from 2026-10-01. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00462,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 3096.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1584.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 75.0,
+    "confidence": "unconfirmed",
+    "check_at": "Tennessee county clerk registration pages and the CTAS wheel tax list",
+    "source": "carregistrationfee.com Tennessee guide and feecalculator.us, 2026 (state fee 26.50; county wheel tax 0 to about 75, Davidson 55 to 74, Shelby 75)",
+    "note": "Tennessee: state registration of 26.50 plus a county wheel tax of 0 to about 75; about 75 a year for a typical car in a populous county. No vehicle property tax. Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand after the import: rerunning importStateCosts.py resets it to 0. Accepted: low impact (triage 2026-10-23): Blended wheel tax plus registration."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.274,
+    "average_price_per_gallon": 3.08,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.eia.gov/petroleum/marketing/monthly/xls/fueltaxes.xlsx",
+    "source": "Excise: https://www.eia.gov/petroleum/marketing/monthly/xls/fueltaxes.xlsx (validation run 3, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Gas excise confirmed primary: 0.274 (0.26 excise + 0.014: Special Privilege Tax 0.0100 + Environmental Assurance fee 0.0040), July 2026 revised sheet (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1387,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 330844.0,
+    "cost_index": 80.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1510.0,
+    "medigap_g_monthly": 181.0,
+    "part_d_monthly": 42.22,
+    "medicare_advantage_monthly": 11.9,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Tennessee insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 96.3,
+    "bea_goods": 96.2,
+    "bea_services": 95.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 5911.0,
+    "assisted_living_monthly": 5358.0,
+    "nursing_home_private_monthly": 9855.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

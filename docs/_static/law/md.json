@@ -1,0 +1,343 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "md",
+  "name": "Maryland",
+  "tax_year": 2026,
+  "source": "Comptroller of Maryland documents read directly on 2026-10-24 (s359): 2026 Maryland State and Local Income Tax Withholding Information memo of 2026-02-04 (https://www.marylandcomptroller.gov/content/dam/mdcomp/md/state-payroll/memos/2026/2026-maryland-state-and-local-withholding-information.pdf: the 2026 brackets and county rates), the 2025 Resident Tax Booklet (Tax Rate Schedules I and II, pension exclusion, Social Security subtraction), the 2026 withholding guide (standard deduction 3,400) and the 2026 Form MW507 instructions (exemptions); Md. Code Tax-General 10-105 and 10-217 (https://mgaleg.maryland.gov). Also: Tax Alert revised 2025-12-22 (Budget Reconciliation and Financing Act of 2025, chapter 604): county maximum 3.30% from 2026 and the 2% tax on net capital gains above a federal AGI of 350,000 (not modelled); the 2026 pension exclusion from Bloomberg Tax's report of the Comptroller's guidance of 2026-04-08",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Maryland starts from federal AGI (Form 502 line 1 copies federal Form 1040 line 11a), so 401(k) and 403(b) deferrals and HSA deposits stay deductible as on the federal return; no add-back. Confirmed primary on the Comptroller's 2025 Resident Tax Booklet, read 2026-10-24 (s359).",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/resident-booklet.pdf"
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.marylandcomptroller.gov/content/dam/mdcomp/md/state-payroll/memos/2026/2026-maryland-state-and-local-withholding-information.pdf",
+    "note": "Every threshold and rate of both schedules matches the 2026 withholding memo, the 2025 Resident Tax Booklet and Tax-General 10-105, and the bases match the booklet (read 2026-10-24). Fixed in statute, not indexed, so the 2026 figures equal 2025.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 1000,
+        "rate": 0.03,
+        "base": 20.0
+      },
+      {
+        "threshold": 2000,
+        "rate": 0.04,
+        "base": 50.0
+      },
+      {
+        "threshold": 3000,
+        "rate": 0.0475,
+        "base": 90.0
+      },
+      {
+        "threshold": 100000,
+        "rate": 0.05,
+        "base": 4697.5
+      },
+      {
+        "threshold": 125000,
+        "rate": 0.0525,
+        "base": 5947.5
+      },
+      {
+        "threshold": 150000,
+        "rate": 0.055,
+        "base": 7260.0
+      },
+      {
+        "threshold": 250000,
+        "rate": 0.0575,
+        "base": 12760.0
+      },
+      {
+        "threshold": 500000,
+        "rate": 0.0625,
+        "base": 27135.0
+      },
+      {
+        "threshold": 1000000,
+        "rate": 0.065,
+        "base": 58385.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 1000,
+        "rate": 0.03,
+        "base": 20.0
+      },
+      {
+        "threshold": 2000,
+        "rate": 0.04,
+        "base": 50.0
+      },
+      {
+        "threshold": 3000,
+        "rate": 0.0475,
+        "base": 90.0
+      },
+      {
+        "threshold": 150000,
+        "rate": 0.05,
+        "base": 7072.5
+      },
+      {
+        "threshold": 175000,
+        "rate": 0.0525,
+        "base": 8322.5
+      },
+      {
+        "threshold": 225000,
+        "rate": 0.055,
+        "base": 10947.5
+      },
+      {
+        "threshold": 300000,
+        "rate": 0.0575,
+        "base": 15072.5
+      },
+      {
+        "threshold": 600000,
+        "rate": 0.0625,
+        "base": 32322.5
+      },
+      {
+        "threshold": 1200000,
+        "rate": 0.065,
+        "base": 69822.5
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 3400.0,
+    "JOINT": 6700.0,
+    "note": "Single 3,400 for 2026 (Comptroller 2026 withholding guide and 2026 Form MW507 instructions). Joint 6,700 is the 2025 figure (2025 Resident Tax Booklet; Md. Code Tax-General 10-217(b)): the 2026 joint amount is not yet published. Approximation: from 2026 the statute (10-217(c)) indexes both amounts by the IRC 1(f)(3) cost-of-living adjustment over a 2024 base, rounded down to a multiple of 50; that rule (chained CPI up 2.42%) reproduces the published 3,400 and gives 6,850 joint for 2026, so the stored joint amount is 150 low (about 12 a year of state and county tax). The section's indexed flag is false although the statute indexes it from 2026. HB 411 (2026 session, 4,100 / 8,200) was not enacted. Not modelled: the 2% tax on net capital gains for a federal AGI above 350,000 (from 2025). Read 2026-10-24 (s359).",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/withholding/2026/pm330.pdf and https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/resident-booklet.pdf"
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 3200.0,
+    "JOINT": 6400.0,
+    "senior": 1000.0,
+    "dependent": 3200.0,
+    "note": "Personal exemption 3,200 per person and dependent, and an additional 1,000 for each person 65 or older (Comptroller 2026 Form MW507 instructions, read 2026-10-24, s359; amounts set by statute, not indexed). Not modelled: the exemption falls to 1,600, 800 and 0 as federal AGI passes 100,000, 125,000 and 150,000 single (150,000, 175,000, 200,000 joint), and the extra exemption for a dependent 65 or older.",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.marylandcomptroller.gov/content/dam/mdcomp/md/state-payroll/forms/withholding/2026-instructions-mw507.pdf"
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 65,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 40600.0,
+      "JOINT": 81200.0,
+      "MFS": 40600.0
+    },
+    "note": "Pension exclusion of up to 40,600 per person 65 or older (or totally disabled) for 2026: Bloomberg Tax report of the Comptroller's guidance of 2026-04-08 (secondary; the Comptroller has not yet published 2026 forms). The 2025 figure 41,200, the age 65 and the rule that 401(k) and 403(b) plans qualify but an IRA does not are confirmed primary on the 2025 Resident Tax Booklet (read 2026-10-24, s359); HB 707 (2026 session, IRA extension) was not enacted. Approximations: it covers employer plan distributions (pension, 401(k), 403(b), 457) but not IRA withdrawals, which the model cannot tell apart; and it is reduced by the Social Security benefits received (not modelled).",
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/resident-booklet.pdf"
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://registers.maryland.gov/main/publications/Maryland%20Estate%20Tax%20Tip%2042.pdf",
+    "estate_tax": {
+      "exemption": 5000000.0,
+      "brackets": [
+        {
+          "threshold": 0.0,
+          "rate": 0.16,
+          "base": 0.0
+        }
+      ]
+    },
+    "inheritance_tax": {
+      "default_class": "child",
+      "classes": {
+        "spouse": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.0,
+              "base": 0.0
+            }
+          ]
+        },
+        "child": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.0,
+              "base": 0.0
+            }
+          ]
+        },
+        "sibling": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.0,
+              "base": 0.0
+            }
+          ]
+        },
+        "other": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.1,
+              "base": 0.0
+            }
+          ]
+        }
+      }
+    },
+    "note": "Maryland estate tax: exemption 5,000,000 (not indexed), 16% on the estate above it. The law charges the lesser of 16% of the excess and the federal state-death-tax-credit amount (so rates from 0.8% to 16%, AARP 2026); 16% of the excess is the smaller for estates up to well past 10,000,000, so the credit-table cap is not modelled. Inheritance tax of 10% on what non-lineal heirs (nieces, nephews, cousins, friends) receive; spouse, children and other lineal descendants, parents, grandparents, siblings, stepchildren and stepparents, and children's spouses pay nothing (AARP 2026; Mercer Advisors; Downs law firm). Not modelled: the exemption for an heir receiving 1,000 or less, and the credit of the inheritance tax against the estate tax. Confirmed primary on https://registers.maryland.gov/main/publications/Maryland%20Estate%20Tax%20Tip%2042.pdf and https://registers.maryland.gov/main/taxes.html (validation run 2, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/resident-booklet.pdf",
+    "note": "Maryland subtracts the Social Security and Railroad Retirement benefits taxed federally (Form 502 line 11: they are exempt from state tax). Confirmed primary on the Comptroller's 2025 Resident Tax Booklet, read 2026-10-24 (s359)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.031,
+    "applies_to": "all income",
+    "confidence": "unconfirmed",
+    "check_at": "https://www.marylandcomptroller.gov/content/dam/mdcomp/md/state-payroll/memos/2026/2026-maryland-state-and-local-withholding-information.pdf",
+    "note": "County (and Baltimore City) income tax on Maryland taxable income, 2026 rates confirmed primary on the Comptroller's 2026 withholding memo (read 2026-10-24, s359): 3.20% in Montgomery, Prince George's, Baltimore County, Baltimore City, Howard and most others; 3.30% Dorchester and Kent; 3.06% Harford, 3.03% Carroll and Charles, 2.95% Washington, 2.74% Cecil, 2.65% Garrett, 2.40% Talbot, 2.25% Worcester; Anne Arundel progressive (2.70%, 2.94%, 3.20%) and Frederick progressive (2.25% to 3.20%, 2.96% in the middle band). The 3.1% stored is a population-weighted average (3.12% with county populations from memory), so the average itself is unconfirmed."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.06,
+    "vehicle_rate": 0.065,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Maryland revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.065 from the state's own source (Maryland titling excise 6.5% from 2025-07-01 (https://mva.maryland.gov/title-registration/fees-payment-options/excise-tax, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food for home consumption exempt; no local sales tax. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00902,
+    "confidence": "confirmed primary",
+    "check_at": "https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US24",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Confirmed primary on the Census ACS 2024 1-year tables (https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US24, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1944.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 3624.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 145.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://mva.maryland.gov/title-registration/fees-payment-options",
+    "source": "Maryland MVA fee listing, effective 2025-09-01, read 2026-10-22 (Class A per year, EMS surcharge of 40 included: 120.50 to 3,500 lb, 125.50 to 3,700 lb, 191.50 above)",
+    "note": "Maryland: registration 120.50 to 191.50 a year by weight, the EMS surcharge included; about 145 for a typical mix. No annual vehicle property tax (the 6.5% excise is paid once at titling). Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand after the import: rerunning importStateCosts.py resets it to 0. Confirmed primary on https://mva.maryland.gov/title-registration/fees-payment-options (validation run 2, 2026-10-22)."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.466,
+    "average_price_per_gallon": 3.32,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/legal-publications/alerts/tax-alert-maryland-motor-fuel-tax-rate-changes-fy27.pdf",
+    "source": "Excise: https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/legal-publications/alerts/tax-alert-maryland-motor-fuel-tax-rate-changes-fy27.pdf (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.466 from 2026-07-01 (about 0.46 from January to June 2026); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.213,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 424890.0,
+    "cost_index": 144.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 879.0,
+    "medigap_g_monthly": 239.0,
+    "part_d_monthly": 44.33,
+    "medicare_advantage_monthly": 18.3,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Maryland insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 108.2,
+    "bea_goods": 102.5,
+    "bea_services": 101.6,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6673.0,
+    "assisted_living_monthly": 7082.0,
+    "nursing_home_private_monthly": 14448.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

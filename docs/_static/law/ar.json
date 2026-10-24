@@ -1,0 +1,235 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ar",
+  "name": "Arkansas",
+  "tax_year": 2026,
+  "source": "Arkansas Department of Finance and Administration 2026 withholding formula (brackets, standard deduction 2,470, personal credit 29) and 2025 indexed tax brackets; top rate cut from 3.9% to 3.7% retroactive to 1 January 2026 by HB 1001 and SB 1 (special session, signed 2026-05-06; Tax Foundation and Talk Business); second source: TaxAct 2025 Arkansas guide",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Arkansas follows the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits (confirmed primary: https://www.dfa.arkansas.gov/wp-content/uploads/2025_AR1000F_and_AR1000NR_Instructions.pdf, validation run 3, 2026-10-22). Approximations: the 2026 brackets are the DFA 2026 withholding brackets with the top rate lowered to 3.7% (the DFA had not republished them after the May 2026 cut); the extra tax Arkansas recaptures from net income of 94,701 to 97,800 (up to about 330) and its low-income tables are not modelled; one table serves single and joint returns, as in Arkansas law."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 5600,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 11200,
+        "rate": 0.03,
+        "base": 112.0
+      },
+      {
+        "threshold": 16000,
+        "rate": 0.034,
+        "base": 256.0
+      },
+      {
+        "threshold": 26400,
+        "rate": 0.037,
+        "base": 609.6
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 5600,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 11200,
+        "rate": 0.03,
+        "base": 112.0
+      },
+      {
+        "threshold": 16000,
+        "rate": 0.034,
+        "base": 256.0
+      },
+      {
+        "threshold": 26400,
+        "rate": 0.037,
+        "base": 609.6
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 2470.0,
+    "JOINT": 4940.0
+  },
+  "exemption_credits": {
+    "indexed": false,
+    "personal": {
+      "SINGLE": 29.0,
+      "JOINT": 58.0
+    },
+    "senior": 29.0,
+    "dependent": 29.0,
+    "note": "Personal tax credit of 29 per taxpayer (58 joint) and per dependent (DFA 2026 withholding formula), plus the 29 special credit for each person aged 65 or older (2025 AR1000F instructions, https://taxsim.nber.org/historical_state_tax_forms/AR/2025/2025_AR1000F_FullYearResidentIndividualIncomeTaxReturn.pdf, confirmed primary, validation run 2, 2026-10-22)."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 59.5,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 6000.0,
+      "JOINT": 12000.0,
+      "MFS": 6000.0
+    },
+    "note": "Each taxpayer excludes up to 6,000 of employer pension and Traditional IRA distributions taken after age 59 1/2 (DFA Subject 206; Drake and TaxAct support notes). Approximation: the 59 1/2 age test applies to Traditional IRA distributions only; employer-plan income has no age test (2025 AR1000F instructions, https://taxsim.nber.org/historical_state_tax_forms/AR/2025/2025_AR1000F_and_AR1000NR_Instructions.pdf, validation run 2, 2026-10-22); the file has one minimum age, so employer-plan income before 59 1/2 is overtaxed (law-backlog)."
+  },
+  "capital_gains_exclusion": {
+    "indexed": false,
+    "share": 0.5,
+    "note": "Arkansas taxes half of net long-term capital gains (and none of the part of a gain above 10,000,000, not modelled); https://taxsim.nber.org/historical_state_tax_forms/AR/2025/2025_AR1000D_CapitalGains.pdf, confirmed primary, validation run 2, 2026-10-22."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Arkansas Code 26-59 (estate tax tied to the federal state death tax credit)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Arkansas levies no estate tax and no inheritance tax: its estate tax was the federal state death tax credit, which ended in 2005."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://taxsim.nber.org/historical_state_tax_forms/AR/2025/2025_AR1000F_and_AR1000NR_Instructions.pdf",
+    "note": "Arkansas does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://taxsim.nber.org/historical_state_tax_forms/AR/2025/2025_AR1000F_and_AR1000NR_Instructions.pdf (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "unconfirmed",
+    "check_at": "Arkansas DFA local sales and use tax page",
+    "note": "Arkansas cities and counties levy no income tax (state-costs.csv local_income_tax, from memory)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.065,
+    "avg_local_rate": 0.0298,
+    "combined_rate": 0.0948,
+    "vehicle_rate": 0.0676,
+    "grocery_rate": 0.0298,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Arkansas revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://taxcloud.com/sales-tax-radar/arkansas-state-grocery-sales-tax-elimination-2026/ and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0676 from the state's own source (Arkansas: state tax 6.5% of the full price (3.5% on used cars of 4,000 to 9,999, none under 4,000) and local tax on the first 2,500 only, so 0.065 + 0.0298 x 2,500 / 29,100 on a 29,100 car (DFA motor vehicle FAQ, https://www.dfa.arkansas.gov/office/motor-vehicle/faqs-for-dsmv/, and Ark. Code R. GR-91, https://www.law.cornell.edu/regulations/arkansas/006-05-06-Ark-Code-R-005-GR-91, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: yes); research note: Grocery Tax Relief Act: state 0.125% food rate eliminated 2026-01-01; city and county taxes still apply at full local rate. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00541,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 3552.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1800.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 25.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://dfa.arkansas.gov/wp-content/uploads/schedule_fee1.pdf",
+    "source": "Arkansas DFA registration fee schedule: passenger car 3,001 to 4,500 lb 25.00 a year (17.00 up to 3,000 lb, 30.00 above 4,500 lb) (search extract, 2026-10-23)",
+    "note": "Floor: the registration fee of a mid-weight passenger car. The county personal property tax on cars is not included, so the real cost is higher. Set by hand (s328, 2026-10-23, owner decision C4: no 0 that only means unknown); a move changes the entered car tax by the dollar difference of the two states' figures, and the importer keeps a non-zero figure."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.247,
+    "average_price_per_gallon": 2.92,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.dfa.arkansas.gov/wp-content/uploads/2026MotorFuelsTaxRateAnnouncement.pdf",
+    "source": "Excise: https://www.dfa.arkansas.gov/wp-content/uploads/2026MotorFuelsTaxRateAnnouncement.pdf (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.247 total gasoline tax from October 2026 to September 2027 (plus a 0.003 environmental fee, left out); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1361,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 224158.0,
+    "cost_index": 76.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1644.0,
+    "medigap_g_monthly": 216.0,
+    "part_d_monthly": 36.88,
+    "medicare_advantage_monthly": 8.42,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Arkansas insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 94.6,
+    "bea_goods": 93.6,
+    "bea_services": 95.3,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 4957.0,
+    "assisted_living_monthly": 4724.0,
+    "nursing_home_private_monthly": 7711.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

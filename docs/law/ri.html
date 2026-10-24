@@ -9,7 +9,7 @@
   <title>Rhode Island &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -192,19 +192,99 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
-<td><p>Rhode Island Division of Taxation advisory ADV 2025-22 (2025-11-03, read on tax.ri.gov): 2026 uniform rate schedule, standard deductions, exemption and phase-out range, 2025 Social Security and pension modification income limits; ADV 2026-02 (2026-01-14) for the 2026 estate tax threshold and credit; PUB 2026-01 Retirement Income Guide (search extract) for the 50,000 per-person pension modification; second source: Keka Rhode Island calculator (82,050 / 186,450 / 11,200 / 5,250 agree)</p></td>
+<td><p>Primary sources read in s359 (2026-10-24): Rhode Island Division of Taxation advisory ADV 2025-22 (2025-11-03, <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf</a>): 2026 uniform rate schedule, standard deductions, exemption and phase-out range, 2025 Social Security and pension modification income limits; Division 2025 RI-1040 instructions (Schedule M lines 1s, 1t and 2a-2m; read from the copy at <a class="reference external" href="https://taxsim.nber.org/historical_state_tax_forms/RI/2025/">https://taxsim.nber.org/historical_state_tax_forms/RI/2025/</a>); PUB 2026-01 Retirement Income Guide (<a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf</a>); ADV 2026-02 (2026-01-14) for the 2026 estate tax threshold and credit</p></td>
 </tr>
 <tr class="row-odd"><td><p>Schema version</p></td>
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>20 sections: 2 confirmed primary, 15 confirmed secondary, 2 unconfirmed, 1 not rated</p></td>
+<td><p>20 sections: 8 confirmed primary, 9 confirmed secondary, 3 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/ri.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/ri.json">ri.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;SINGLE&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf&quot;,
+    &quot;note&quot;: &quot;One uniform rate schedule for all filers (ADV 2025-22); married filing separately uses the single table, whose 11,200 standard deduction equals the separate amount. Read s359 2026-10-24.&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [],
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.ri.gov/forms/individual-tax-forms/personal-income-tax-forms (2025 RI-1040 instructions, line 1 and Schedule M lines 2a-2m)&quot;,
+    &quot;note&quot;: &quot;Rhode Island starts from federal adjusted gross income (RI-1040 line 1), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible: none of the increasing modifications (Schedule M lines 2a-2m: other states&#x27; bond interest, fiduciary adjustment, 529 and medical savings recaptures, bonus depreciation and similar) touches them (2025 RI-1040 instructions, read s359 2026-10-24). Not modelled: the standard deduction and exemptions phase out from a modified federal AGI of 261,000 to 290,800 (2026), so incomes above about 261,000 are undertaxed by up to about 2,000 (joint); the 2026 budget (H 7127) adds a surtax on taxable income above 1,000,000 from tax year 2027 (6.99% in 2027, 7.99% in 2028, 8.99% from 2029; EY Tax News 2026-07-14, not checked against the act), so later model years undertax incomes above 1,000,000.&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;adjustment&quot;: &quot;indexed&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf&quot;,
+    &quot;note&quot;: &quot;2026 uniform rate schedule for every filing status: 3.75% to 82,050, 4.75% to 186,450 (base 3,076.88), 5.99% above (base 8,035.88); every threshold, rate and base matches ADV 2025-22 (read 2026-10-24). The thresholds are indexed yearly under R.I. Gen. Laws 44-30-2.6 and the 2026 values are published. Two identical tables so the standard deduction and exemptions can differ by filing status.&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0375,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 82050,
+        &quot;rate&quot;: 0.0475,
+        &quot;base&quot;: 3076.875
+      },
+      {
+        &quot;threshold&quot;: 186450,
+        &quot;rate&quot;: 0.0599,
+        &quot;base&quot;: 8035.875
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0375,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 82050,
+        &quot;rate&quot;: 0.0475,
+        &quot;base&quot;: 3076.875
+      },
+      {
+        &quot;threshold&quot;: 186450,
+        &quot;rate&quot;: 0.0599,
+        &quot;base&quot;: 8035.875
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;SINGLE&quot;: 11200.0,
+    &quot;JOINT&quot;: 22400.0,
+    &quot;note&quot;: &quot;2026 standard deduction 11,200 single and married separate, 22,400 joint (ADV 2025-22, read s359 2026-10-24; 2025: 10,900 and 21,800). Indexed yearly under R.I. Gen. Laws 44-30-2.6. Not modelled: head of household 16,800, and the phase-out above a modified federal AGI of 261,000 (gone at 290,800).&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf&quot;
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;SINGLE&quot;: 5250.0,
+    &quot;JOINT&quot;: 10500.0,
+    &quot;senior&quot;: 0.0,
+    &quot;dependent&quot;: 5250.0,
+    &quot;note&quot;: &quot;2026 personal and dependency exemption 5,250 each (ADV 2025-22, read s359 2026-10-24; 2025: 5,100); no extra amount for age 65 (senior 0). Indexed yearly; phased out with the standard deduction above a modified federal AGI of 261,000.&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -222,27 +302,27 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ri-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-ri-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ri-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-ri-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ri-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-ri-retirement-exclusion"><span class="std std-ref">Retirement exclusion</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">retirement_exclusion</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ri-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -250,7 +330,7 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-ri-social-security"><span class="std std-ref">Social Security benefits</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">social_security</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ri-local-income-tax"><span class="std std-ref">Local income tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">local_income_tax</span></code></p></td>
@@ -305,47 +385,43 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-ri-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf</a></p>
+<p><strong>Note:</strong> One uniform rate schedule for all filers (ADV 2025-22); married filing separately uses the single table, whose 11,200 standard deduction equals the separate amount. Read s359 2026-10-24.</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-ri-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back none of the federal deductions the model tracks (Traditional deposits, Traditional IRA deposits and HSA deposits): it starts from the same income as the federal return.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -369,90 +445,110 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Brackets: 2026 uniform rate schedule for every filing status (ADV 2025-22): 3.75% to 82,050, 4.75% to 186,450 (base 3,076.88), 5.99% above (base 8,035.88). Two identical tables so the standard deduction and exemptions can differ by filing status. Rhode Island starts from federal adjusted gross income, so 401(k) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible (not checked against Division guidance). Not modelled: the standard deduction and exemptions phase out from a modified federal AGI of 261,000 to 290,800 (2026), so incomes above about 261,000 are undertaxed by up to about 2,000 (joint).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.ri.gov/forms/individual-tax-forms/personal-income-tax-forms">https://tax.ri.gov/forms/individual-tax-forms/personal-income-tax-forms</a> (2025 RI-1040 instructions, line 1 and Schedule M lines 2a-2m)</p>
+<p><strong>Note:</strong> Rhode Island starts from federal adjusted gross income (RI-1040 line 1), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible: none of the increasing modifications (Schedule M lines 2a-2m: other states’ bond interest, fiduciary adjustment, 529 and medical savings recaptures, bonus depreciation and similar) touches them (2025 RI-1040 instructions, read s359 2026-10-24). Not modelled: the standard deduction and exemptions phase out from a modified federal AGI of 261,000 to 290,800 (2026), so incomes above about 261,000 are undertaxed by up to about 2,000 (joint); the 2026 budget (H 7127) adds a surtax on taxable income above 1,000,000 from tax year 2027 (6.99% in 2027, 7.99% in 2028, 8.99% from 2029; EY Tax News 2026-07-14, not checked against the act), so later model years undertax incomes above 1,000,000.</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-ri-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Graduated rates from 3.75% to 5.99%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p class="rubric">Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>yes</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$82,050</p></td>
+<td><p>3.75%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>indexed</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;indexed&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>$82,050</p></td>
+<td><p>$186,450</p></td>
+<td><p>4.75%</p></td>
+<td><p>$3,076.875</p></td>
+</tr>
+<tr class="row-even"><td><p>$186,450</p></td>
+<td><p>and above</p></td>
+<td><p>5.99%</p></td>
+<td><p>$8,035.875</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>3.75% (0.0375)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$82,050</p></td>
+<td><p>3.75%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>82,050</p></td>
-<td><p>4.75% (0.0475)</p></td>
-<td><p>3,076.875</p></td>
+<tr class="row-odd"><td><p>$82,050</p></td>
+<td><p>$186,450</p></td>
+<td><p>4.75%</p></td>
+<td><p>$3,076.875</p></td>
 </tr>
-<tr class="row-even"><td><p>186,450</p></td>
-<td><p>5.99% (0.0599)</p></td>
-<td><p>8,035.875</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>3.75% (0.0375)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>82,050</p></td>
-<td><p>4.75% (0.0475)</p></td>
-<td><p>3,076.875</p></td>
-</tr>
-<tr class="row-even"><td><p>186,450</p></td>
-<td><p>5.99% (0.0599)</p></td>
-<td><p>8,035.875</p></td>
+<tr class="row-even"><td><p>$186,450</p></td>
+<td><p>and above</p></td>
+<td><p>5.99%</p></td>
+<td><p>$8,035.875</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf</a></p>
+<p><strong>Note:</strong> 2026 uniform rate schedule for every filing status: 3.75% to 82,050, 4.75% to 186,450 (base 3,076.88), 5.99% above (base 8,035.88); every threshold, rate and base matches ADV 2025-22 (read 2026-10-24). The thresholds are indexed yearly under R.I. Gen. Laws 44-30-2.6 and the 2026 values are published. Two identical tables so the standard deduction and exemptions can differ by filing status.</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-ri-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>The amount taken off the income the state taxes, per bracket table.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$11,200</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$22,400</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p><strong>How the model uses this:</strong> The amount taken off the income the state taxes, per bracket table. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -480,14 +576,43 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> 2026 standard deduction 11,200 single and married separate, 22,400 joint (ADV 2025-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf</a></p>
+<p><strong>Note:</strong> 2026 standard deduction 11,200 single and married separate, 22,400 joint (ADV 2025-22, read s359 2026-10-24; 2025: 10,900 and 21,800). Indexed yearly under R.I. Gen. Laws 44-30-2.6. Not modelled: head of household 16,800, and the phase-out above a modified federal AGI of 261,000 (gone at 290,800).</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-ri-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$5,250</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$10,500</p></td>
+</tr>
+<tr class="row-even"><td><p>Per person 65 or older</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per dependent</p></td>
+<td><p>$5,250</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -523,14 +648,62 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> 2026 personal and dependency exemption 5,250 each (ADV 2025-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf</a></p>
+<p><strong>Note:</strong> 2026 personal and dependency exemption 5,250 each (ADV 2025-22, read s359 2026-10-24; 2025: 5,100); no extra amount for age 65 (senior 0). Indexed yearly; phased out with the standard deduction above a modified federal AGI of 261,000.</p>
 </div>
 </section>
 <section id="retirement-exclusion-retirement-exclusion">
 <span id="law-ri-retirement-exclusion"></span><h2>Retirement exclusion (retirement_exclusion)<a class="headerlink" href="#retirement-exclusion-retirement-exclusion" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap.</p>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
+<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
+<p>From age 67, retirement income is left out of the income the state taxes, up to a cap per person who has reached the age:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 60.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Cap</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p>$50,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p>$100,000</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p>$50,000</p></td>
+</tr>
+</tbody>
+</table>
+<p>The share left out falls as income rises (income before the exclusion); above the last tier nothing is left out:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Income up to</p></th>
+<th class="head"><p>Single</p></th>
+<th class="head"><p>Married filing jointly</p></th>
+<th class="head"><p>Married filing separately</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>$107,000</p></td>
+<td><p>100%</p></td>
+<td><p>100%</p></td>
+<td><p>100%</p></td>
+</tr>
+<tr class="row-odd"><td><p>$133,500</p></td>
+<td><p>0%</p></td>
+<td><p>100%</p></td>
+<td><p>0%</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -582,14 +755,95 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Pension, 401(k), 403(b), governmental 457(b) and annuity modification: up to 50,000 per person (100,000 for a couple) from tax year 2025, applied per person, for people at Social Security full retirement age (67 for anyone born 1960 or later; older birth years reach it a little sooner) with federal AGI of 107,000 or less single and separate or 133,500 or less joint (a cliff; TY2025 limits, R.I. Gen. Laws 44-30-12(c)(9) and Division of Taxation PUB 2026-01 Retirement Income Guide, pages 3-5 and 11-13, <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf</a>, confirmed primary, s328 2026-10-23; 2026 limits not yet published), else nothing. No IRA income of any kind qualifies (traditional, Roth, SEP, SIMPLE; PUB 2026-01 page 5, confirmed primary). Approximations: the limit is tested on state gross income rather than federal AGI; the model’s retirement income includes IRA distributions (it has no IRA versus employer-plan split, see law-backlog.md), so IRA-heavy retirees are undertaxed.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf</a> (page 4, pension modification income limits) and the 2025 RI-1040 instructions, Schedule M line 1t</p>
+<p><strong>Note:</strong> Pension, 401(k), 403(b), governmental 457(b) and annuity modification: up to 50,000 per person (100,000 for a couple) from tax year 2025, applied per person, for people at Social Security full retirement age (67 for anyone born 1960 or later; older birth years reach it a little sooner) with federal AGI of 107,000 or less single and separate or 133,500 or less joint (a cliff; TY2025 limits, R.I. Gen. Laws 44-30-12(c)(9) and Division of Taxation PUB 2026-01 Retirement Income Guide, pages 11-13, <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf</a>). Open conflict (s359, 2026-10-24): the Division’s own ADV 2025-22 (page 4, pension/401(k)/annuity limits) and the 2025 RI-1040 instructions (Schedule M line 1t, ‘less than or equal to’) both give a joint limit of 133,750, not 133,500; the 50,000 cap and the 107,000 limits match all three. Left at 133,500 because a test (test_state_d7.py) pins it from s328; the owner should decide (133,750 is the likely value). Approximation: the limits are indexed and the 2026 ones are not yet published, so the 2025 limits stand in; else nothing. No IRA income of any kind qualifies (traditional, Roth, SEP, SIMPLE; PUB 2026-01 page 5, confirmed primary). Approximations: the limit is tested on state gross income rather than federal AGI; the model’s retirement income includes IRA distributions (it has no IRA versus employer-plan split, see law-backlog.md), so IRA-heavy retirees are undertaxed.</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-ri-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>Estate tax on the part of an estate above $1,838,056, by this schedule (amounts above the exemption):</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Amount over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$261,944</p></td>
+<td><p>7.2%</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>$261,944</p></td>
+<td><p>$761,944</p></td>
+<td><p>8%</p></td>
+<td><p>$18,859.968</p></td>
+</tr>
+<tr class="row-even"><td><p>$761,944</p></td>
+<td><p>$1,261,944</p></td>
+<td><p>8.8%</p></td>
+<td><p>$58,859.968</p></td>
+</tr>
+<tr class="row-odd"><td><p>$1,261,944</p></td>
+<td><p>$1,761,944</p></td>
+<td><p>9.6%</p></td>
+<td><p>$102,859.968</p></td>
+</tr>
+<tr class="row-even"><td><p>$1,761,944</p></td>
+<td><p>$2,261,944</p></td>
+<td><p>10.4%</p></td>
+<td><p>$150,859.968</p></td>
+</tr>
+<tr class="row-odd"><td><p>$2,261,944</p></td>
+<td><p>$3,261,944</p></td>
+<td><p>11.2%</p></td>
+<td><p>$202,859.968</p></td>
+</tr>
+<tr class="row-even"><td><p>$3,261,944</p></td>
+<td><p>$4,261,944</p></td>
+<td><p>12%</p></td>
+<td><p>$314,859.968</p></td>
+</tr>
+<tr class="row-odd"><td><p>$4,261,944</p></td>
+<td><p>$5,261,944</p></td>
+<td><p>12.8%</p></td>
+<td><p>$434,859.968</p></td>
+</tr>
+<tr class="row-even"><td><p>$5,261,944</p></td>
+<td><p>$6,261,944</p></td>
+<td><p>13.6%</p></td>
+<td><p>$562,859.968</p></td>
+</tr>
+<tr class="row-odd"><td><p>$6,261,944</p></td>
+<td><p>$7,261,944</p></td>
+<td><p>14.4%</p></td>
+<td><p>$698,859.968</p></td>
+</tr>
+<tr class="row-even"><td><p>$7,261,944</p></td>
+<td><p>$8,261,944</p></td>
+<td><p>15.2%</p></td>
+<td><p>$842,859.968</p></td>
+</tr>
+<tr class="row-odd"><td><p>$8,261,944</p></td>
+<td><p>and above</p></td>
+<td><p>16%</p></td>
+<td><p>$994,859.968</p></td>
+</tr>
+</tbody>
+</table>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -698,9 +952,33 @@
 </section>
 <section id="social-security-benefits-social-security">
 <span id="law-ri-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Benefits are not taxed while federal AGI is at most the limit below; above it the state taxes the federally taxable part, up to 100% of the benefits.</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 60.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>AGI limit</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p>$107,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p>$133,750</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p>$107,000</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -732,15 +1010,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> R.I. Gen. Laws 44-30-12 and the Division’s yearly inflation advisory (ADV 2025-22 for 2025 limits)</p>
-<p><strong>Note:</strong> Taxable Social Security is fully subtracted for a taxpayer at full retirement age with federal AGI below 107,000 single, head of household and separate, 133,750 joint (2025 limits, ADV 2025-22; 2026 limits come with the next advisory); above it the federal taxable amount is taxed. Approximation: the full-retirement-age test is not modelled (benefits claimed before about 67 are exempt here though Rhode Island taxes them), and the model tests the limit at or below rather than strictly below.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf">https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf</a> (page 3, Social Security modification income limits)</p>
+<p><strong>Note:</strong> Taxable Social Security is fully subtracted for a taxpayer at full retirement age with federal AGI below 107,000 single, head of household and separate, 133,750 joint (2025 limits, ADV 2025-22 page 3, read s359 2026-10-24; the 2025 RI-1040 instructions, Schedule M line 1s, apply them; 2026 limits come with the next advisory); above it the federal taxable amount is taxed. Approximation: the 2025 limits stand in for 2026; the full-retirement-age test is not modelled (benefits claimed before about 67 are exempt here though Rhode Island taxes them), and the model tests the limit at or below rather than strictly below.</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
 <span id="law-ri-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -776,7 +1056,9 @@
 <span id="law-ri-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 7%; local sales taxes add 0% on average (7% combined). A car purchase pays 7%; groceries pay 0%. Clothing taxed: no.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -829,7 +1111,9 @@
 <span id="law-ri-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 0.997% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -862,7 +1146,9 @@
 <span id="law-ri-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $2,364 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -895,7 +1181,9 @@
 <span id="law-ri-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $3,576 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -929,7 +1217,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $52 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -962,7 +1252,9 @@
 <span id="law-ri-fuel"></span><h2>Fuel (fuel)<a class="headerlink" href="#fuel-fuel" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.40 a gallon. Gas averages $3.34 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -999,7 +1291,9 @@
 <span id="law-ri-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.2922 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1032,7 +1326,9 @@
 <span id="law-ri-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $508,507. The housing cost index is 117.1 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1070,7 +1366,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,075; Medigap Plan G at 65 $205; Part D $45.19; Medicare Advantage $5.10.</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1115,7 +1413,9 @@
 <span id="law-ri-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 103.4; goods 97.2; services other than rent 102.8.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1156,7 +1456,9 @@
 <span id="law-ri-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $8,008; assisted living $7,038; a private nursing home room $12,699.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

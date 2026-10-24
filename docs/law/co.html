@@ -9,7 +9,7 @@
   <title>Colorado &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -192,19 +192,76 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
-<td><p>Colorado Department of Revenue: flat 4.40% of federal taxable income (Tax Foundation 2026 table and state-costs.csv agree; a TABOR temporary cut can lower it in some years); Income Tax Topics: Social Security, Pensions and Annuities (revised January 2025, read 2026-10-22) for the subtraction</p></td>
+<td><p>Colorado Department of Revenue, Individual Income Tax Guide (revised January 2026, <a class="reference external" href="https://tax.colorado.gov/individual-income-tax-guide">https://tax.colorado.gov/individual-income-tax-guide</a>, read 2026-10-24): flat 4.40% of federal taxable income (rate table to 2025; C.R.S. 39-22-104(1.7)(c) imposes 4.40% from 2022 unless a TABOR temporary cut under 39-22-627 applies, and Legislative Council Staff’s TABOR memo of 2026-08-06 expects the next refunds only in tax year 2028); Income Tax Topics: Social Security, Pensions and Annuities (January 2025, read 2026-10-24) for the subtraction; IRS Rev. Proc. 2025-32 for the federal standard deduction Colorado inherits</p></td>
 </tr>
 <tr class="row-odd"><td><p>Schema version</p></td>
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>20 sections: 2 confirmed primary, 8 confirmed secondary, 9 unconfirmed, 1 not rated</p></td>
+<td><p>20 sections: 8 confirmed primary, 8 confirmed secondary, 4 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/co.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/co.json">co.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;SINGLE&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.colorado.gov/individual-income-tax-guide&quot;,
+    &quot;add_back&quot;: [],
+    &quot;note&quot;: &quot;Colorado taxes federal taxable income with the additions and subtractions listed in the CDOR Individual Income Tax Guide (revised January 2026, read 2026-10-24): no addition for 401(k)/403(b) deferrals, Traditional IRA deposits or HSA deposits, so they keep their federal treatment (no add-back). Not modelled: the 2026 add-back of the federal overtime deduction (Schedule 1-A; tips need none) and the QBI add-back above 500,000 / 1,000,000 of AGI.&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;adjustment&quot;: &quot;legislated&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.colorado.gov/individual-income-tax-guide&quot;,
+    &quot;note&quot;: &quot;Flat 4.40% of federal taxable income: C.R.S. 39-22-104(1.7)(c) and the CDOR Individual Income Tax Guide (revised January 2026, rate table to 2025), read 2026-10-24; Legislative Council Staff&#x27;s TABOR memo of 2026-08-06 expects no temporary rate cut before tax year 2028.&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.044,
+        &quot;base&quot;: 0.0
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.044,
+        &quot;base&quot;: 0.0
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.irs.gov/pub/irs-drop/rp-25-32.pdf&quot;,
+    &quot;SINGLE&quot;: 16100.0,
+    &quot;JOINT&quot;: 32200.0,
+    &quot;note&quot;: &quot;Colorado taxes federal taxable income (CDOR Individual Income Tax Guide, January 2026), so the federal 2026 standard deduction applies: 16,100 single and separate, 32,200 joint (IRS Rev. Proc. 2025-32 section 4.14, read 2026-10-24). Not modelled: the add-back, above 300,000 of AGI, of the standard or itemized deduction over 1,000 single / 2,000 joint from 2026 (12,000 / 16,000 in 2023-2025). The guide lists no add-back of the federal 6,000 senior deduction.&quot;
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.irs.gov/pub/irs-drop/rp-25-32.pdf&quot;,
+    &quot;SINGLE&quot;: 0.0,
+    &quot;JOINT&quot;: 0.0,
+    &quot;senior&quot;: 1650.0,
+    &quot;dependent&quot;: 0.0,
+    &quot;note&quot;: &quot;No Colorado personal or dependent exemptions (CDOR Individual Income Tax Guide, January 2026). senior is the federal additional standard deduction for 65 or older carried in through federal taxable income: 1,650 married, 2,050 unmarried (IRS Rev. Proc. 2025-32 section 4.14(3), read 2026-10-24); the married 1,650 is used for single filers too (approximation, 400 low for a single person 65 or older).&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -226,23 +283,23 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-co-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-co-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-co-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-co-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-co-retirement-exclusion"><span class="std std-ref">Retirement exclusion</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">retirement_exclusion</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-co-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -254,7 +311,7 @@
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-co-local-income-tax"><span class="std std-ref">Local income tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">local_income_tax</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-co-sales-tax"><span class="std std-ref">Sales tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sales_tax</span></code></p></td>
@@ -308,46 +365,39 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
 <p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-co-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back none of the federal deductions the model tracks (Traditional deposits, Traditional IRA deposits and HSA deposits): it starts from the same income as the federal return.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -371,76 +421,90 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Colorado starts from federal adjusted (or taxable) income and keeps the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits (no add-back; only California and New Jersey tax HSA deposits). Not checked against a state ruling.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.colorado.gov/individual-income-tax-guide">https://tax.colorado.gov/individual-income-tax-guide</a></p>
+<p><strong>Note:</strong> Colorado taxes federal taxable income with the additions and subtractions listed in the CDOR Individual Income Tax Guide (revised January 2026, read 2026-10-24): no addition for 401(k)/403(b) deferrals, Traditional IRA deposits or HSA deposits, so they keep their federal treatment (no add-back). Not modelled: the 2026 add-back of the federal overtime deduction (Schedule 1-A; tips need none) and the QBI add-back above 500,000 / 1,000,000 of AGI.</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-co-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>A flat tax: 4.4% of all taxable income, whatever the filing status.</p>
+<p>The thresholds are not indexed: only a new law changes them (<code class="docutils literal notranslate"><span class="pre">legislated</span></code>).</p>
+<p class="rubric">Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>legislated</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;legislated&quot;</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>and above</p></td>
+<td><p>4.4%</p></td>
+<td><p>$0</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>4.4% (0.044)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>and above</p></td>
+<td><p>4.4%</p></td>
+<td><p>$0</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>4.4% (0.044)</p></td>
-<td><p>0</p></td>
-</tr>
-</tbody>
-</table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.colorado.gov/individual-income-tax-guide">https://tax.colorado.gov/individual-income-tax-guide</a></p>
+<p><strong>Note:</strong> Flat 4.40% of federal taxable income: C.R.S. 39-22-104(1.7)(c) and the CDOR Individual Income Tax Guide (revised January 2026, rate table to 2025), read 2026-10-24; Legislative Council Staff’s TABOR memo of 2026-08-06 expects no temporary rate cut before tax year 2028.</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-co-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The amount taken off the income the state taxes, per bracket table.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$16,100</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$32,200</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> The amount taken off the income the state taxes, per bracket table. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -468,15 +532,43 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Colorado taxes federal taxable income, so the federal 2026 standard deduction applies (16,100 / 32,200; Tax Foundation 2026 table, confirmed secondary). Not modelled: the add-back of itemized or standard deductions above 300,000 of AGI, the federal 6,000 senior deduction (2025-2028) and any Colorado decoupling from it.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/pub/irs-drop/rp-25-32.pdf">https://www.irs.gov/pub/irs-drop/rp-25-32.pdf</a></p>
+<p><strong>Note:</strong> Colorado taxes federal taxable income (CDOR Individual Income Tax Guide, January 2026), so the federal 2026 standard deduction applies: 16,100 single and separate, 32,200 joint (IRS Rev. Proc. 2025-32 section 4.14, read 2026-10-24). Not modelled: the add-back, above 300,000 of AGI, of the standard or itemized deduction over 1,000 single / 2,000 joint from 2026 (12,000 / 16,000 in 2023-2025). The guide lists no add-back of the federal 6,000 senior deduction.</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-co-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-even"><td><p>Per person 65 or older</p></td>
+<td><p>$1,650</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per dependent</p></td>
+<td><p>$0</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -512,14 +604,39 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> No state exemptions; senior is the federal additional standard deduction for 65 or older (1,650 married, 2,050 single; the married figure is used for both) carried in through federal taxable income.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/pub/irs-drop/rp-25-32.pdf">https://www.irs.gov/pub/irs-drop/rp-25-32.pdf</a></p>
+<p><strong>Note:</strong> No Colorado personal or dependent exemptions (CDOR Individual Income Tax Guide, January 2026). senior is the federal additional standard deduction for 65 or older carried in through federal taxable income: 1,650 married, 2,050 unmarried (IRS Rev. Proc. 2025-32 section 4.14(3), read 2026-10-24); the married 1,650 is used for single filers too (approximation, 400 low for a single person 65 or older).</p>
 </div>
 </section>
 <section id="retirement-exclusion-retirement-exclusion">
 <span id="law-co-retirement-exclusion"></span><h2>Retirement exclusion (retirement_exclusion)<a class="headerlink" href="#retirement-exclusion-retirement-exclusion" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>From age 55, retirement income is left out of the income the state taxes, up to a cap per person who has reached the age:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 60.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Cap</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p>$24,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p>$48,000</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p>$24,000</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -555,14 +672,18 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Pension and annuity subtraction (C.R.S. 39-22-104(4)(f); CDOR publication, primary): per person, 20,000 at 55-64 and 24,000 at 65 or older; pensions, annuities, non-premature IRA distributions and taxable Social Security share the cap. Approximated as 24,000 per person from 55 (overstates ages 55-64 by 4,000). Unconfirmed approximation.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.colorado.gov/income-tax-topics-social-security-pensions-and-annuities">https://tax.colorado.gov/income-tax-topics-social-security-pensions-and-annuities</a></p>
+<p><strong>Note:</strong> Pension and annuity subtraction (C.R.S. 39-22-104(4)(f); CDOR Income Tax Topics: Social Security, Pensions and Annuities, January 2025, read 2026-10-24): per person, 20,000 at 55-64 and 24,000 at 65 or older; pensions, annuities, IRA distributions not subject to the early-withdrawal penalty and taxable Social Security share the cap, and one spouse’s unused room cannot go to the other. The figures are confirmed primary; the model approximates them as 24,000 per person from 55 (overstates ages 55-64 by 4,000).</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-co-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>No estate tax.</p>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -599,7 +720,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<p>The state taxes Social Security benefits as the federal return does (the federally taxable part).</p>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -623,16 +746,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> <a class="reference external" href="https://tax.colorado.gov/sites/tax/files/documents/ITT_Social_Security_Pensions_and_Annuities_Jan_2025.pdf">https://tax.colorado.gov/sites/tax/files/documents/ITT_Social_Security_Pensions_and_Annuities_Jan_2025.pdf</a></p>
-<p><strong>Note:</strong> Colorado lets people 65 or older (and 55-64 under 75,000 / 95,000 AGI from 2025) subtract all federally taxed Social Security, but that subtraction uses up the pension subtraction (per person, the larger of the taxed benefits or the 24,000 cap). Approximated as: benefits taxed as on the federal return and retirement income excluded up to 24,000 per person, which is exact while the taxed benefits stay under the cap and the retirement income fills it, and overtaxes benefits above it. Approximation, flagged unconfirmed (owner ruling 2026-10-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.colorado.gov/income-tax-topics-social-security-pensions-and-annuities">https://tax.colorado.gov/income-tax-topics-social-security-pensions-and-annuities</a></p>
+<p><strong>Note:</strong> Colorado lets people 65 or older (and 55-64 under 75,000 single / 95,000 joint AGI from 2025) subtract all federally taxed Social Security, but that subtraction uses up the pension subtraction (per person, the larger of the taxed benefits or the 24,000 cap); rules confirmed on the CDOR page in check_at (read 2026-10-24). Approximated as: benefits taxed as on the federal return and retirement income excluded up to 24,000 per person, which is exact while the taxed benefits stay under the cap and the retirement income fills it, and overtaxes benefits above it. The label stays unconfirmed because the treatment is an approximation (owner ruling 2026-10-22).</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
 <span id="law-co-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
-<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -660,15 +784,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> City and County of Denver Occupational Privilege Tax page</p>
-<p><strong>Note:</strong> Denver (5.75 a month), Aurora (2 a month), Greenwood Village, Glendale and Sheridan charge flat monthly occupational privilege taxes on wages only, not a rate on income; under 70 a year, so the average rate is 0 (state-costs.csv local_income_tax, from memory).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information">https://denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Department-of-Finance/Our-Divisions/Treasury/Business-Tax-Information</a></p>
+<p><strong>Note:</strong> Colorado’s constitution (TABOR) forbids a local income tax (Legislative Council Staff TABOR memo, 2026-08-06). Denver (5.75 a month from employees earning 500 or more a month, Denver Treasury business tax page read 2026-10-24), Aurora, Greenwood Village, Glendale and Sheridan charge flat monthly occupational privilege taxes on wages only, not a rate on income; under 70 a year, so the average rate is 0.</p>
 </div>
 </section>
 <section id="sales-tax-sales-tax">
 <span id="law-co-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 2.9%; local sales taxes add 4.99% on average (7.89% combined). A car purchase pays 7.89%; groceries pay 4.99%. Clothing taxed: yes.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -721,7 +847,9 @@
 <span id="law-co-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 0.519% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -754,7 +882,9 @@
 <span id="law-co-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $3,240 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -787,7 +917,9 @@
 <span id="law-co-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $2,604 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -821,7 +953,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $60 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -854,7 +988,9 @@
 <span id="law-co-fuel"></span><h2>Fuel (fuel)<a class="headerlink" href="#fuel-fuel" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.28 a gallon. Gas averages $3.06 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -891,7 +1027,9 @@
 <span id="law-co-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.1672 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -924,7 +1062,9 @@
 <span id="law-co-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $529,013. The housing cost index is 108.6 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -962,7 +1102,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,183; Medigap Plan G at 65 $218; Part D $41.76; Medicare Advantage $13.79.</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1007,7 +1149,9 @@
 <span id="law-co-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 101.1; goods 98.7; services other than rent 99.6.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1048,7 +1192,9 @@
 <span id="law-co-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $8,008; assisted living $5,877; a private nursing home room $11,650.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

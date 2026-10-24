@@ -9,7 +9,7 @@
   <title>Federal &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -209,6 +209,141 @@
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/federal.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/federal.json">federal.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.1,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 12400,
+        &quot;rate&quot;: 0.12,
+        &quot;base&quot;: 1240.0
+      },
+      {
+        &quot;threshold&quot;: 50400,
+        &quot;rate&quot;: 0.22,
+        &quot;base&quot;: 5800.0
+      },
+      {
+        &quot;threshold&quot;: 105700,
+        &quot;rate&quot;: 0.24,
+        &quot;base&quot;: 17966.0
+      },
+      {
+        &quot;threshold&quot;: 201775,
+        &quot;rate&quot;: 0.32,
+        &quot;base&quot;: 41024.0
+      },
+      {
+        &quot;threshold&quot;: 256225,
+        &quot;rate&quot;: 0.35,
+        &quot;base&quot;: 58448.0
+      },
+      {
+        &quot;threshold&quot;: 640600,
+        &quot;rate&quot;: 0.37,
+        &quot;base&quot;: 192979.25
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.1,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 24800,
+        &quot;rate&quot;: 0.12,
+        &quot;base&quot;: 2480.0
+      },
+      {
+        &quot;threshold&quot;: 100800,
+        &quot;rate&quot;: 0.22,
+        &quot;base&quot;: 11600.0
+      },
+      {
+        &quot;threshold&quot;: 211400,
+        &quot;rate&quot;: 0.24,
+        &quot;base&quot;: 35932.0
+      },
+      {
+        &quot;threshold&quot;: 403550,
+        &quot;rate&quot;: 0.32,
+        &quot;base&quot;: 82048.0
+      },
+      {
+        &quot;threshold&quot;: 512450,
+        &quot;rate&quot;: 0.35,
+        &quot;base&quot;: 116896.0
+      },
+      {
+        &quot;threshold&quot;: 768700,
+        &quot;rate&quot;: 0.37,
+        &quot;base&quot;: 206583.5
+      }
+    ],
+    &quot;MFS&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.1,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 12400,
+        &quot;rate&quot;: 0.12,
+        &quot;base&quot;: 1240.0
+      },
+      {
+        &quot;threshold&quot;: 50400,
+        &quot;rate&quot;: 0.22,
+        &quot;base&quot;: 5800.0
+      },
+      {
+        &quot;threshold&quot;: 105700,
+        &quot;rate&quot;: 0.24,
+        &quot;base&quot;: 17966.0
+      },
+      {
+        &quot;threshold&quot;: 201775,
+        &quot;rate&quot;: 0.32,
+        &quot;base&quot;: 41024.0
+      },
+      {
+        &quot;threshold&quot;: 256225,
+        &quot;rate&quot;: 0.35,
+        &quot;base&quot;: 58448.0
+      },
+      {
+        &quot;threshold&quot;: 384350,
+        &quot;rate&quot;: 0.37,
+        &quot;base&quot;: 103291.75
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;additional_age&quot;: 65,
+    &quot;SINGLE&quot;: {
+      &quot;amount&quot;: 16100.0,
+      &quot;additional&quot;: 2050.0
+    },
+    &quot;JOINT&quot;: {
+      &quot;amount&quot;: 32200.0,
+      &quot;additional&quot;: 1650.0
+    },
+    &quot;MFS&quot;: {
+      &quot;amount&quot;: 16100.0,
+      &quot;additional&quot;: 1650.0
+    }
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -327,150 +462,200 @@
 <span id="law-federal-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The federal income tax brackets per filing status: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<p>Graduated rates from 10% to 37%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p class="rubric">Single (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>yes</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$12,400</p></td>
+<td><p>10%</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>$12,400</p></td>
+<td><p>$50,400</p></td>
+<td><p>12%</p></td>
+<td><p>$1,240</p></td>
+</tr>
+<tr class="row-even"><td><p>$50,400</p></td>
+<td><p>$105,700</p></td>
+<td><p>22%</p></td>
+<td><p>$5,800</p></td>
+</tr>
+<tr class="row-odd"><td><p>$105,700</p></td>
+<td><p>$201,775</p></td>
+<td><p>24%</p></td>
+<td><p>$17,966</p></td>
+</tr>
+<tr class="row-even"><td><p>$201,775</p></td>
+<td><p>$256,225</p></td>
+<td><p>32%</p></td>
+<td><p>$41,024</p></td>
+</tr>
+<tr class="row-odd"><td><p>$256,225</p></td>
+<td><p>$640,600</p></td>
+<td><p>35%</p></td>
+<td><p>$58,448</p></td>
+</tr>
+<tr class="row-even"><td><p>$640,600</p></td>
+<td><p>and above</p></td>
+<td><p>37%</p></td>
+<td><p>$192,979.25</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>10% (0.1)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$24,800</p></td>
+<td><p>10%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>12,400</p></td>
-<td><p>12% (0.12)</p></td>
-<td><p>1,240</p></td>
+<tr class="row-odd"><td><p>$24,800</p></td>
+<td><p>$100,800</p></td>
+<td><p>12%</p></td>
+<td><p>$2,480</p></td>
 </tr>
-<tr class="row-even"><td><p>50,400</p></td>
-<td><p>22% (0.22)</p></td>
-<td><p>5,800</p></td>
+<tr class="row-even"><td><p>$100,800</p></td>
+<td><p>$211,400</p></td>
+<td><p>22%</p></td>
+<td><p>$11,600</p></td>
 </tr>
-<tr class="row-odd"><td><p>105,700</p></td>
-<td><p>24% (0.24)</p></td>
-<td><p>17,966</p></td>
+<tr class="row-odd"><td><p>$211,400</p></td>
+<td><p>$403,550</p></td>
+<td><p>24%</p></td>
+<td><p>$35,932</p></td>
 </tr>
-<tr class="row-even"><td><p>201,775</p></td>
-<td><p>32% (0.32)</p></td>
-<td><p>41,024</p></td>
+<tr class="row-even"><td><p>$403,550</p></td>
+<td><p>$512,450</p></td>
+<td><p>32%</p></td>
+<td><p>$82,048</p></td>
 </tr>
-<tr class="row-odd"><td><p>256,225</p></td>
-<td><p>35% (0.35)</p></td>
-<td><p>58,448</p></td>
+<tr class="row-odd"><td><p>$512,450</p></td>
+<td><p>$768,700</p></td>
+<td><p>35%</p></td>
+<td><p>$116,896</p></td>
 </tr>
-<tr class="row-even"><td><p>640,600</p></td>
-<td><p>37% (0.37)</p></td>
-<td><p>192,979.25</p></td>
+<tr class="row-even"><td><p>$768,700</p></td>
+<td><p>and above</p></td>
+<td><p>37%</p></td>
+<td><p>$206,583.50</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
+<p class="rubric">Married filing separately (<code class="docutils literal notranslate"><span class="pre">MFS</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>10% (0.1)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$12,400</p></td>
+<td><p>10%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>24,800</p></td>
-<td><p>12% (0.12)</p></td>
-<td><p>2,480</p></td>
+<tr class="row-odd"><td><p>$12,400</p></td>
+<td><p>$50,400</p></td>
+<td><p>12%</p></td>
+<td><p>$1,240</p></td>
 </tr>
-<tr class="row-even"><td><p>100,800</p></td>
-<td><p>22% (0.22)</p></td>
-<td><p>11,600</p></td>
+<tr class="row-even"><td><p>$50,400</p></td>
+<td><p>$105,700</p></td>
+<td><p>22%</p></td>
+<td><p>$5,800</p></td>
 </tr>
-<tr class="row-odd"><td><p>211,400</p></td>
-<td><p>24% (0.24)</p></td>
-<td><p>35,932</p></td>
+<tr class="row-odd"><td><p>$105,700</p></td>
+<td><p>$201,775</p></td>
+<td><p>24%</p></td>
+<td><p>$17,966</p></td>
 </tr>
-<tr class="row-even"><td><p>403,550</p></td>
-<td><p>32% (0.32)</p></td>
-<td><p>82,048</p></td>
+<tr class="row-even"><td><p>$201,775</p></td>
+<td><p>$256,225</p></td>
+<td><p>32%</p></td>
+<td><p>$41,024</p></td>
 </tr>
-<tr class="row-odd"><td><p>512,450</p></td>
-<td><p>35% (0.35)</p></td>
-<td><p>116,896</p></td>
+<tr class="row-odd"><td><p>$256,225</p></td>
+<td><p>$384,350</p></td>
+<td><p>35%</p></td>
+<td><p>$58,448</p></td>
 </tr>
-<tr class="row-even"><td><p>768,700</p></td>
-<td><p>37% (0.37)</p></td>
-<td><p>206,583.5</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>10% (0.1)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>12,400</p></td>
-<td><p>12% (0.12)</p></td>
-<td><p>1,240</p></td>
-</tr>
-<tr class="row-even"><td><p>50,400</p></td>
-<td><p>22% (0.22)</p></td>
-<td><p>5,800</p></td>
-</tr>
-<tr class="row-odd"><td><p>105,700</p></td>
-<td><p>24% (0.24)</p></td>
-<td><p>17,966</p></td>
-</tr>
-<tr class="row-even"><td><p>201,775</p></td>
-<td><p>32% (0.32)</p></td>
-<td><p>41,024</p></td>
-</tr>
-<tr class="row-odd"><td><p>256,225</p></td>
-<td><p>35% (0.35)</p></td>
-<td><p>58,448</p></td>
-</tr>
-<tr class="row-even"><td><p>384,350</p></td>
-<td><p>37% (0.37)</p></td>
-<td><p>103,291.75</p></td>
+<tr class="row-even"><td><p>$384,350</p></td>
+<td><p>and above</p></td>
+<td><p>37%</p></td>
+<td><p>$103,291.75</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The federal income tax brackets per filing status: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-federal-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The standard deduction per filing status, and the extra amount per person at 65 or older (additional_age).</p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+<th class="head"><p>Extra per person 65 or older</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$16,100</p></td>
+<td><p>$2,050</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$32,200</p></td>
+<td><p>$1,650</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing separately (<code class="docutils literal notranslate"><span class="pre">MFS</span></code>)</p></td>
+<td><p>$16,100</p></td>
+<td><p>$1,650</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p><strong>How the model uses this:</strong> The standard deduction per filing status, and the extra amount per person at 65 or older (additional_age). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -512,7 +697,36 @@
 <span id="law-federal-capital-gains-long-term"></span><h2>Long-term capital gains rates (capital_gains_long_term)<a class="headerlink" href="#long-term-capital-gains-rates-capital-gains-long-term" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>Where long-term capital gains and qualified dividends move from the 0% rate to the middle rate and from the middle to the top rate, per filing status.</p>
+<p>Long-term gains and qualified dividends are taxed at 0% up to the first limit (taxable income), 15% up to the second and 20% above it.</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>0% up to</p></th>
+<th class="head"><p>15% up to</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p>$49,450</p></td>
+<td><p>$545,500</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p>$98,900</p></td>
+<td><p>$613,700</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p>$49,450</p></td>
+<td><p>$306,850</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> Where long-term capital gains and qualified dividends move from the 0% rate to the middle rate and from the middle to the top rate, per filing status. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -558,7 +772,32 @@
 <span id="law-federal-social-security-benefits"></span><h2>Taxable Social Security (social_security_benefits)<a class="headerlink" href="#taxable-social-security-social-security-benefits" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>How much of the Social Security benefit the federal return taxes, from the provisional income thresholds per filing status.</p>
+<p>Provisional income counts 50% of the benefits; up to 50% of the benefits is taxed above the lower threshold and up to 85% above the upper one.</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 30.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Lower threshold</p></th>
+<th class="head"><p>Upper threshold</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p>$25,000</p></td>
+<td><p>$34,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p>$32,000</p></td>
+<td><p>$44,000</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> How much of the Social Security benefit the federal return taxes, from the provisional income thresholds per filing status. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -608,7 +847,9 @@
 <span id="law-federal-required-minimum-distributions"></span><h2>Required minimum distributions (RMDs) (required_minimum_distributions)<a class="headerlink" href="#required-minimum-distributions-rmds-required-minimum-distributions" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>When required minimum distributions start and the divisor of each age (uniform lifetime table); an inherited account is drawn down over inherited_drawdown_years.</p>
+<p>Required withdrawals start at age 73 (later for later birth years, in the table below); an inherited account is emptied within 10 years.</p>
+<p><strong>How the model uses this:</strong> When required minimum distributions start and the divisor of each age (uniform lifetime table); an inherited account is drawn down over inherited_drawdown_years. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -871,7 +1112,9 @@
 <span id="law-federal-itemized-deductions"></span><h2>Itemized deductions (itemized_deductions)<a class="headerlink" href="#itemized-deductions-itemized-deductions" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The limits on itemized deductions: the medical floor, the SALT cap, the mortgage limit and the charitable limits.</p>
+<p>Medical costs count above 7.5% of AGI.</p>
+<p><strong>How the model uses this:</strong> The limits on itemized deductions: the medical floor, the SALT cap, the mortgage limit and the charitable limits. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -963,7 +1206,9 @@
 <span id="law-federal-elective-deferrals"></span><h2>Elective deferrals (elective_deferrals)<a class="headerlink" href="#elective-deferrals-elective-deferrals" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The yearly 401k deposit limit and its catch-up amount.</p>
+<p>Up to $24,500 a year into a 401k, plus $8,000 from age 50.</p>
+<p><strong>How the model uses this:</strong> The yearly 401k deposit limit and its catch-up amount. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1001,7 +1246,9 @@
 <span id="law-federal-ira-contributions"></span><h2>IRA contributions (ira_contributions)<a class="headerlink" href="#ira-contributions-ira-contributions" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The yearly IRA deposit limit, its catch-up amount and the Roth IRA income phase-out.</p>
+<p>Up to $7,500 a year into IRAs, plus $1,100 from age 50.</p>
+<p><strong>How the model uses this:</strong> The yearly IRA deposit limit, its catch-up amount and the Roth IRA income phase-out. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1071,7 +1318,9 @@
 <span id="law-federal-total-additions"></span><h2>Total additions (total_additions)<a class="headerlink" href="#total-additions-total-additions" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The yearly limit on all deposits into one employer plan.</p>
+<p>All deposits into one employer plan: at most $72,000 a year.</p>
+<p><strong>How the model uses this:</strong> The yearly limit on all deposits into one employer plan. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1102,7 +1351,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The yearly HSA deposit limit per coverage type and its catch-up amount.</p>
+<p>Up to $4,400 a year with self-only cover and $8,750 with family cover, plus $1,000 from age 55.</p>
+<p><strong>How the model uses this:</strong> The yearly HSA deposit limit per coverage type and its catch-up amount. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1150,7 +1401,9 @@
 <span id="law-federal-medicare-part-b"></span><h2>Medicare Part B (medicare_part_b)<a class="headerlink" href="#medicare-part-b-medicare-part-b" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The standard Part B premium and deductible and the Part D out-of-pocket cap.</p>
+<p>The standard Part B premium is $202.90 a month; the yearly deductible is $283; Part D out-of-pocket costs stop at $2,100 a year.</p>
+<p><strong>How the model uses this:</strong> The standard Part B premium and deductible and the Part D out-of-pocket cap. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1188,7 +1441,9 @@
 <span id="law-federal-irmaa"></span><h2>IRMAA (Medicare surcharges) (irmaa)<a class="headerlink" href="#irmaa-medicare-surcharges-irmaa" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The Medicare income surcharges per person by income tier, read from the income of lookback_years before.</p>
+<p>The surcharges are read from the income of 2 years before.</p>
+<p><strong>How the model uses this:</strong> The Medicare income surcharges per person by income tier, read from the income of lookback_years before. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1309,7 +1564,9 @@
 <span id="law-federal-qcd"></span><h2>Qualified charitable distributions (QCDs) (qcd)<a class="headerlink" href="#qualified-charitable-distributions-qcds-qcd" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The yearly limit and minimum age of a qualified charitable distribution.</p>
+<p>Up to $111,000 a year, from age 70.5.</p>
+<p><strong>How the model uses this:</strong> The yearly limit and minimum age of a qualified charitable distribution. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1345,7 +1602,9 @@
 <span id="law-federal-senior-deduction"></span><h2>Senior deduction (senior_deduction)<a class="headerlink" href="#senior-deduction-senior-deduction" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The extra deduction per person at min_age or older in the years it applies, reduced above an income threshold.</p>
+<p>$6,000 per person at 65 or older, from 2,025 to 2,028, reduced by 6% of income above single $75,000; joint $150,000.</p>
+<p><strong>How the model uses this:</strong> The extra deduction per person at min_age or older in the years it applies, reduced above an income threshold. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1397,7 +1656,9 @@
 <span id="law-federal-charitable-non-itemizer"></span><h2>Charitable non itemizer (charitable_non_itemizer)<a class="headerlink" href="#charitable-non-itemizer-charitable-non-itemizer" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The charitable deduction allowed without itemizing, from first_year.</p>
+<p>From 2,026, up to single $1,000; joint $2,000; separate $1,000 of gifts to charity without itemizing.</p>
+<p><strong>How the model uses this:</strong> The charitable deduction allowed without itemizing, from first_year. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1438,7 +1699,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The yearly limit of a dependent care FSA and the age the child must be under.</p>
+<p>Up to single $7,500; joint $7,500; separate $3,750 a year, for a child under 13.</p>
+<p><strong>How the model uses this:</strong> The yearly limit of a dependent care FSA and the age the child must be under. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1478,7 +1741,9 @@
 <span id="law-federal-home-sale-exclusion"></span><h2>Home sale exclusion (home_sale_exclusion)<a class="headerlink" href="#home-sale-exclusion-home-sale-exclusion" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The gain on selling a main home left out of income, and the years it must have been lived in.</p>
+<p>Up to single $250,000; joint $500,000; separate $250,000 of the gain on a main home lived in for 2 years.</p>
+<p><strong>How the model uses this:</strong> The gain on selling a main home left out of income, and the years it must have been lived in. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1518,7 +1783,9 @@
 <span id="law-federal-estate-tax"></span><h2>Estate tax (estate_tax)<a class="headerlink" href="#estate-tax-estate-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The federal estate tax: the basic exclusion and the rate above it, used for what beneficiaries keep.</p>
+<p>Estates above $15,000,000 per person are taxed at 40% on the amount above it.</p>
+<p><strong>How the model uses this:</strong> The federal estate tax: the basic exclusion and the rate above it, used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1555,7 +1822,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The age from which retirement accounts can be drawn without the penalty, and the penalty rate before it.</p>
+<p>Before age 59.5, a withdrawal from a retirement account pays a 10% penalty.</p>
+<p><strong>How the model uses this:</strong> The age from which retirement accounts can be drawn without the penalty, and the penalty rate before it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1591,7 +1860,9 @@
 <span id="law-federal-aca-premium-credit"></span><h2>ACA premium credit (aca_premium_credit)<a class="headerlink" href="#aca-premium-credit-aca-premium-credit" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The income limit (a multiple of the poverty guideline) above which the marketplace premium credit stops, for the Strategies tab’s warning.</p>
+<p>The premium credit stops above 4 times the poverty guideline.</p>
+<p><strong>How the model uses this:</strong> The income limit (a multiple of the poverty guideline) above which the marketplace premium credit stops, for the Strategies tab’s warning. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1628,7 +1899,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The figures for estimating a retirement benefit from the earnings record: the average wage index, the bend points and rates, full retirement age by birth year, and the early and delayed claiming adjustments.</p>
+<p>A benefit can be claimed from age 62 to 70; it is figured from the best 35 years of earnings.</p>
+<p><strong>How the model uses this:</strong> The figures for estimating a retirement benefit from the earnings record: the average wage index, the bend points and rates, full retirement age by birth year, and the early and delayed claiming adjustments. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -2031,7 +2304,9 @@
 <span id="law-federal-social-security-wage-base"></span><h2>Social Security wage base (social_security_wage_base)<a class="headerlink" href="#social-security-wage-base-social-security-wage-base" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The most earnings the Social Security payroll tax applies to.</p>
+<p>The Social Security payroll tax applies to earnings up to $184,500.</p>
+<p><strong>How the model uses this:</strong> The most earnings the Social Security payroll tax applies to. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -2061,7 +2336,9 @@
 <span id="law-federal-payroll-rates"></span><h2>Payroll rates (payroll_rates)<a class="headerlink" href="#payroll-rates-payroll-rates" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The Social Security, Medicare and Additional Medicare payroll tax rates paid by the employee.</p>
+<p>The employee pays 6.2% Social Security tax and 1.45% Medicare tax, plus 0.9% Additional Medicare tax above the thresholds.</p>
+<p><strong>How the model uses this:</strong> The Social Security, Medicare and Additional Medicare payroll tax rates paid by the employee. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -2099,7 +2376,9 @@
 <span id="law-federal-additional-medicare-thresholds"></span><h2>Additional Medicare tax thresholds (additional_medicare_thresholds)<a class="headerlink" href="#additional-medicare-tax-thresholds-additional-medicare-thresholds" title="Link to this heading"></a></h2>
 <div class="law-section law-none docutils container">
 <p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The wages above which the Additional Medicare tax applies, per filing status.</p>
+<p>Wages above $200,000 (single), $250,000 (joint) or $125,000 (separate).</p>
+<p><strong>How the model uses this:</strong> The wages above which the Additional Medicare tax applies, per filing status. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

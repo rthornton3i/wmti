@@ -9,7 +9,7 @@
   <title>Maine &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -193,19 +193,116 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
-<td><p>Maine Revenue Services 2026 individual income tax rate schedules (revised May 2026, <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf</a>, read in search extracts because the fetch was refused): 5.8%, 6.75% from 27,400 (54,850 joint), 7.15% from 64,850 (129,750 joint), standard deduction 15,700 / 31,400, personal exemption 5,300, and the 2% surcharge above 1,000,000 single and 1,500,000 joint (L.D. 2212, approved 2026-04-09, EY tax news); second source Tax Foundation, State Individual Income Tax Rates and Brackets 2026 (<a class="reference external" href="https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/">https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/</a>) (thresholds 27,399 / 64,849 agree to the dollar; its standard deduction 8,350 / 16,700 predates the revision)</p></td>
+<td><p>Maine Revenue Services, 2026 Individual Income Tax Rates (revised 2026-05-20, <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf</a>, read in full 2026-10-24): 5.8%, 6.75% from 27,400 (54,850 joint), 7.15% from 64,850 (129,750 joint), the 2% surcharge above 1,000,000 single, 750,000 separate and 1,500,000 joint, standard deduction 15,700 / 31,400, personal exemption 5,300; 2025 Schedule 1A (<a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf</a>); 36 M.R.S. 5122, 5219-SS and 5403 (<a class="reference external" href="https://legislature.maine.gov/statutes/36/">https://legislature.maine.gov/statutes/36/</a>, text current through 2026-10-01), all read 2026-10-24 (s359)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Schema version</p></td>
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>21 sections: 5 confirmed primary, 6 confirmed secondary, 8 unconfirmed, 2 not rated</p></td>
+<td><p>21 sections: 10 confirmed primary, 7 confirmed secondary, 4 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/me.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/me.json">me.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;SINGLE&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf&quot;,
+    &quot;note&quot;: &quot;Maine Revenue Services 2026 rate schedule (revised 2026-05-20, read 2026-10-24): single and married filing separately share one table; joint filers and surviving spouses have their own. Heads of household have a third table (41,100 / 97,300), not modelled (no head-of-household status in the model).&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [],
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf&quot;,
+    &quot;note&quot;: &quot;Maine starts from federal AGI, so 401(k) and 403(b) deferrals and HSA deposits stay deductible as on the federal return: the 2025 Schedule 1A additions (Maine Revenue Services, read 2026-10-24) hold no 401(k), 403(b), IRA or HSA line. Its only retirement addition is Maine Public Employees Retirement System pick-up contributions (line 3), not modelled.&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;adjustment&quot;: &quot;indexed&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf&quot;,
+    &quot;note&quot;: &quot;Every threshold and rate matches the 2026 MRS rate schedule (read 2026-10-24): 5.8%, 6.75% from 27,400 (54,850 joint), 7.15% from 64,850 (129,750 joint), and 9.15% (the 2% surcharge) above 1,000,000 single / 1,500,000 joint. 36 M.R.S. 5403 indexes the thresholds yearly.&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.058,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 27400,
+        &quot;rate&quot;: 0.0675,
+        &quot;base&quot;: 1589.2
+      },
+      {
+        &quot;threshold&quot;: 64850,
+        &quot;rate&quot;: 0.0715,
+        &quot;base&quot;: 4117.07
+      },
+      {
+        &quot;threshold&quot;: 1000000,
+        &quot;rate&quot;: 0.0915,
+        &quot;base&quot;: 70980.3
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.058,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 54850,
+        &quot;rate&quot;: 0.0675,
+        &quot;base&quot;: 3181.3
+      },
+      {
+        &quot;threshold&quot;: 129750,
+        &quot;rate&quot;: 0.0715,
+        &quot;base&quot;: 8237.05
+      },
+      {
+        &quot;threshold&quot;: 1500000,
+        &quot;rate&quot;: 0.0915,
+        &quot;base&quot;: 106209.92
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;SINGLE&quot;: 15700.0,
+    &quot;JOINT&quot;: 31400.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf&quot;,
+    &quot;note&quot;: &quot;2026 amounts of the Maine Revenue Services rate schedule (revised 2026-05-20, read 2026-10-24); married filing separately 15,700. The same page confirms every bracket figure: 5.8% to 27,400 (54,850 joint), 6.75% to 64,850 (129,750 joint), then 7.15%; the bases 1,589.20 / 4,117.07 (3,181.30 / 8,237.05 joint) are the cumulative tax of the lower brackets (the schedule rounds them to 1,589 / 4,117 and 3,181 / 8,237). The 9.15% bracket is the 7.15% rate plus the 2% surcharge from 2026 above 1,000,000 single and 1,500,000 joint; married filing separately uses the single table, so its surcharge start (750,000) is not modelled. Brackets, standard deduction, exemption and surcharge thresholds are all indexed every year by statute (36 M.R.S. 5403, chained CPI; the surcharge from 2027), so these sections are marked indexed (s359; the brackets were marked legislated before).&quot;
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;SINGLE&quot;: 5300.0,
+    &quot;JOINT&quot;: 10600.0,
+    &quot;senior&quot;: 0.0,
+    &quot;dependent&quot;: 0.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf&quot;,
+    &quot;note&quot;: &quot;Personal exemption 5,300 for the taxpayer and the spouse on a joint return (2026 rate schedule, read 2026-10-24; indexed by 36 M.R.S. 5403(7)); phased out at high incomes, not modelled. Dependents get a credit instead (below). The additional amount at 65 (2,050 unmarried, 1,650 per married person in 2026, same page) is not modelled.&quot;
+  },
+  &quot;exemption_credits&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;dependent&quot;: 305.0,
+    &quot;confidence&quot;: &quot;unconfirmed&quot;,
+    &quot;check_at&quot;: &quot;https://legislature.maine.gov/statutes/36/title36sec5219-SS.html&quot;,
+    &quot;note&quot;: &quot;Dependent exemption tax credit: 300 per dependent in 36 M.R.S. 5219-SS (doubled under age 6), indexed from 2024 by 5403(9) and rounded down to a multiple of 5 (statutes read 2026-10-24). 305 is the 2025 indexed amount (MRS 2025 worksheet, https://taxsim.nber.org/historical_state_tax_forms/ME/2025/25_dependent_exemption_tx_cr_fillable.pdf, validation run 2, 2026-10-22); Maine Revenue Services has not yet published the 2026 amount, so 305 stands in as an approximation. Unconfirmed until the 2026 amount is published. Also not modelled: the credit is refundable for residents from 2024 and phases out by 20 per 500 of income above 100,000 single / 150,000 joint, but the model treats every state credit as non-refundable and does not phase it out (law-backlog).&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -223,31 +320,31 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-me-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-me-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-me-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-me-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-me-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-me-exemption-credits"><span class="std std-ref">Exemption credits</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemption_credits</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-me-retirement-exclusion"><span class="std std-ref">Retirement exclusion</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">retirement_exclusion</span></code></p></td>
-<td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
+<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-me-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -310,49 +407,43 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-me-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf</a></p>
+<p><strong>Note:</strong> Maine Revenue Services 2026 rate schedule (revised 2026-05-20, read 2026-10-24): single and married filing separately share one table; joint filers and surviving spouses have their own. Heads of household have a third table (41,100 / 97,300), not modelled (no head-of-household status in the model).</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-me-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back none of the federal deductions the model tracks (Traditional deposits, Traditional IRA deposits and HSA deposits): it starts from the same income as the federal return.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -376,100 +467,120 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Maine starts from federal AGI, so 401(k) deferrals and HSA deposits stay deductible as on the federal return (confirmed primary: <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf</a>, validation run 3, 2026-10-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf</a></p>
+<p><strong>Note:</strong> Maine starts from federal AGI, so 401(k) and 403(b) deferrals and HSA deposits stay deductible as on the federal return: the 2025 Schedule 1A additions (Maine Revenue Services, read 2026-10-24) hold no 401(k), 403(b), IRA or HSA line. Its only retirement addition is Maine Public Employees Retirement System pick-up contributions (line 3), not modelled.</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-me-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Graduated rates from 5.8% to 9.15%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p class="rubric">Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$27,400</p></td>
+<td><p>5.8%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>legislated</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;legislated&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>$27,400</p></td>
+<td><p>$64,850</p></td>
+<td><p>6.75%</p></td>
+<td><p>$1,589.20</p></td>
+</tr>
+<tr class="row-even"><td><p>$64,850</p></td>
+<td><p>$1,000,000</p></td>
+<td><p>7.15%</p></td>
+<td><p>$4,117.07</p></td>
+</tr>
+<tr class="row-odd"><td><p>$1,000,000</p></td>
+<td><p>and above</p></td>
+<td><p>9.15%</p></td>
+<td><p>$70,980.30</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>5.8% (0.058)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$54,850</p></td>
+<td><p>5.8%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>27,400</p></td>
-<td><p>6.75% (0.0675)</p></td>
-<td><p>1,589.2</p></td>
+<tr class="row-odd"><td><p>$54,850</p></td>
+<td><p>$129,750</p></td>
+<td><p>6.75%</p></td>
+<td><p>$3,181.30</p></td>
 </tr>
-<tr class="row-even"><td><p>64,850</p></td>
-<td><p>7.15% (0.0715)</p></td>
-<td><p>4,117.07</p></td>
+<tr class="row-even"><td><p>$129,750</p></td>
+<td><p>$1,500,000</p></td>
+<td><p>7.15%</p></td>
+<td><p>$8,237.05</p></td>
 </tr>
-<tr class="row-odd"><td><p>1,000,000</p></td>
-<td><p>9.15% (0.0915)</p></td>
-<td><p>70,980.3</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>5.8% (0.058)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>54,850</p></td>
-<td><p>6.75% (0.0675)</p></td>
-<td><p>3,181.3</p></td>
-</tr>
-<tr class="row-even"><td><p>129,750</p></td>
-<td><p>7.15% (0.0715)</p></td>
-<td><p>8,237.05</p></td>
-</tr>
-<tr class="row-odd"><td><p>1,500,000</p></td>
-<td><p>9.15% (0.0915)</p></td>
-<td><p>106,209.92</p></td>
+<tr class="row-odd"><td><p>$1,500,000</p></td>
+<td><p>and above</p></td>
+<td><p>9.15%</p></td>
+<td><p>$106,209.92</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf</a></p>
+<p><strong>Note:</strong> Every threshold and rate matches the 2026 MRS rate schedule (read 2026-10-24): 5.8%, 6.75% from 27,400 (54,850 joint), 7.15% from 64,850 (129,750 joint), and 9.15% (the 2% surcharge) above 1,000,000 single / 1,500,000 joint. 36 M.R.S. 5403 indexes the thresholds yearly.</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-me-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The amount taken off the income the state taxes, per bracket table.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$15,700</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$31,400</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p><strong>How the model uses this:</strong> The amount taken off the income the state taxes, per bracket table. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -484,8 +595,8 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>yes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 <td><p>15,700</p></td>
@@ -497,15 +608,43 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> 2026 amounts of the revised May 2026 schedule. In the brackets, 9.15% is the 7.15% rate plus the 2% surcharge from 2026; married filing separately uses the single table (its surcharge starts at 750,000). Maine indexes its brackets each year; the model keeps the 2026 ones under the legislated schedule.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf</a></p>
+<p><strong>Note:</strong> 2026 amounts of the Maine Revenue Services rate schedule (revised 2026-05-20, read 2026-10-24); married filing separately 15,700. The same page confirms every bracket figure: 5.8% to 27,400 (54,850 joint), 6.75% to 64,850 (129,750 joint), then 7.15%; the bases 1,589.20 / 4,117.07 (3,181.30 / 8,237.05 joint) are the cumulative tax of the lower brackets (the schedule rounds them to 1,589 / 4,117 and 3,181 / 8,237). The 9.15% bracket is the 7.15% rate plus the 2% surcharge from 2026 above 1,000,000 single and 1,500,000 joint; married filing separately uses the single table, so its surcharge start (750,000) is not modelled. Brackets, standard deduction, exemption and surcharge thresholds are all indexed every year by statute (36 M.R.S. 5403, chained CPI; the surcharge from 2027), so these sections are marked indexed (s359; the brackets were marked legislated before).</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-me-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$5,300</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$10,600</p></td>
+</tr>
+<tr class="row-even"><td><p>Per person 65 or older</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per dependent</p></td>
+<td><p>$0</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -520,8 +659,8 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>yes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 <td><p>5,300</p></td>
@@ -541,14 +680,35 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Personal exemption 5,300 per person (phased out at high incomes: not modelled). Dependents get a credit instead (below). The federal additional standard deduction at 65, which Maine follows, is not modelled.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf</a></p>
+<p><strong>Note:</strong> Personal exemption 5,300 for the taxpayer and the spouse on a joint return (2026 rate schedule, read 2026-10-24; indexed by 36 M.R.S. 5403(7)); phased out at high incomes, not modelled. Dependents get a credit instead (below). The additional amount at 65 (2,050 unmarried, 1,650 per married person in 2026, same page) is not modelled.</p>
 </div>
 </section>
 <section id="exemption-credits-exemption-credits">
 <span id="law-me-exemption-credits"></span><h2>Exemption credits (exemption_credits)<a class="headerlink" href="#exemption-credits-exemption-credits" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>Credits taken off the bracket tax (never below zero): a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
+<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
+<p>Credits taken off the tax itself (never below zero):</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Credit</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Per dependent</p></td>
+<td><p>$305</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p><strong>How the model uses this:</strong> Credits taken off the bracket tax (never below zero): a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -563,8 +723,8 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>yes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dependent</span></code></p></td>
 <td><p>305</p></td>
@@ -572,14 +732,39 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Dependent exemption tax credit of 305 per dependent (2025 indexed amount, 610 under age 6; MRS 2025 worksheet, <a class="reference external" href="https://taxsim.nber.org/historical_state_tax_forms/ME/2025/25_dependent_exemption_tx_cr_fillable.pdf">https://taxsim.nber.org/historical_state_tax_forms/ME/2025/25_dependent_exemption_tx_cr_fillable.pdf</a>, validation run 2, 2026-10-22). Approximation: the credit is refundable for residents from 2024 and phases out by 20 per 500 of income above 100,000 single / 150,000 joint, but the model treats every state credit as non-refundable and does not phase it out (law-backlog).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://legislature.maine.gov/statutes/36/title36sec5219-SS.html">https://legislature.maine.gov/statutes/36/title36sec5219-SS.html</a></p>
+<p><strong>Note:</strong> Dependent exemption tax credit: 300 per dependent in 36 M.R.S. 5219-SS (doubled under age 6), indexed from 2024 by 5403(9) and rounded down to a multiple of 5 (statutes read 2026-10-24). 305 is the 2025 indexed amount (MRS 2025 worksheet, <a class="reference external" href="https://taxsim.nber.org/historical_state_tax_forms/ME/2025/25_dependent_exemption_tx_cr_fillable.pdf">https://taxsim.nber.org/historical_state_tax_forms/ME/2025/25_dependent_exemption_tx_cr_fillable.pdf</a>, validation run 2, 2026-10-22); Maine Revenue Services has not yet published the 2026 amount, so 305 stands in as an approximation. Unconfirmed until the 2026 amount is published. Also not modelled: the credit is refundable for residents from 2024 and phases out by 20 per 500 of income above 100,000 single / 150,000 joint, but the model treats every state credit as non-refundable and does not phase it out (law-backlog).</p>
 </div>
 </section>
 <section id="retirement-exclusion-retirement-exclusion">
 <span id="law-me-retirement-exclusion"></span><h2>Retirement exclusion (retirement_exclusion)<a class="headerlink" href="#retirement-exclusion-retirement-exclusion" title="Link to this heading"></a></h2>
-<div class="law-section law-none docutils container">
-<p>Confidence: <span class="law-chip law-chip-none">Not rated</span></p>
-<p>The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap.</p>
+<div class="law-section law-secondary docutils container">
+<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
+<p>From age 59.5, retirement income is left out of the income the state taxes, up to a cap per person who has reached the age:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 60.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Cap</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p>$49,824</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p>$99,648</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p>$49,824</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> The part of retirement income the state leaves out of its income from a minimum age, in full or up to a cap. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -615,14 +800,50 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Pension income deduction of up to 49,824 per person for 2026: 36 M.R.S. 5122 sets it at the Social Security maximum annual benefit at full retirement age on 1 January of the tax year, 4,152 x 12 (<a class="reference external" href="https://legislature.maine.gov/statutes/36/title36sec5122.html">https://legislature.maine.gov/statutes/36/title36sec5122.html</a> and <a class="reference external" href="https://www.ssa.gov/faqs/en/questions/KA-01897.html">https://www.ssa.gov/faqs/en/questions/KA-01897.html</a>, validation run 2, 2026-10-22), covering pensions and retirement plan distributions included in federal AGI. Approximations: the deduction is reduced by all Social Security and Railroad Retirement benefits received (not modelled, so the exclusion is too large for a person drawing benefits); it phases out above a federal AGI of about 125,000 single / 250,000 joint from 2025 (not modelled); Maine has no age test but distributions that pay the federal 10% early-withdrawal tax do not qualify, so 59.5 stands in. Confidence: unconfirmed.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://legislature.maine.gov/statutes/36/title36sec5122.html">https://legislature.maine.gov/statutes/36/title36sec5122.html</a></p>
+<p><strong>Note:</strong> Pension income deduction of up to 49,824 per person for 2026: 36 M.R.S. 5122(2)(M-2) (read 2026-10-24) sets the pension deduction amount at the maximum annual Social Security benefit at full retirement age on 1 January of the tax year, covering employer plan and IRA distributions included in federal AGI; 4,152 x 12 = 49,824 uses the SSA 2026 maximum from secondary sources (ssa.gov refused the fetch), and Maine Revenue Services has not yet published its 2026 figure (2025: 48,216). Approximations: the deduction is reduced by all Social Security and Railroad Retirement benefits received (not modelled, so the exclusion is too large for a person drawing benefits); it phases out over 100,000 of federal AGI above 125,000 single / 250,000 joint from 2025 (M-3, indexed; not modelled); Maine has no age test but distributions that pay the federal 10% early-withdrawal tax do not qualify, so 59.5 stands in. The cap follows the Social Security maximum (which grows each year with the cost-of-living adjustment and wages) ; the model scales it with the indexed brackets (CPI), an approximation.</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-me-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>Estate tax on the part of an estate above $7,160,000, by this schedule (amounts above the exemption):</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Amount over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$3,000,000</p></td>
+<td><p>8%</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>$3,000,000</p></td>
+<td><p>$6,000,000</p></td>
+<td><p>10%</p></td>
+<td><p>$240,000</p></td>
+</tr>
+<tr class="row-even"><td><p>$6,000,000</p></td>
+<td><p>and above</p></td>
+<td><p>12%</p></td>
+<td><p>$540,000</p></td>
+</tr>
+</tbody>
+</table>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -697,7 +918,9 @@
 <span id="law-me-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<p>The state does not tax Social Security benefits.</p>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -721,8 +944,8 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_gen_instr_w_cover_pg.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_gen_instr_w_cover_pg.pdf</a></p>
-<p><strong>Note:</strong> Maine subtracts the Social Security and Railroad Retirement benefits taxed federally (Schedule 1S; state-costs.csv ss_taxed N; countrytaxcalc pension deduction guide). Confirmed primary on <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_gen_instr_w_cover_pg.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_gen_instr_w_cover_pg.pdf</a> (validation run 2, 2026-10-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://legislature.maine.gov/statutes/36/title36sec5122.html">https://legislature.maine.gov/statutes/36/title36sec5122.html</a></p>
+<p><strong>Note:</strong> Maine subtracts the Social Security and Railroad Retirement benefits taxed federally: 36 M.R.S. 5122(2)(C) (read 2026-10-24, s359) reduces federal AGI by them to the extent included in it (Schedule 1S; also on the 2025 1040ME instructions, <a class="reference external" href="https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_gen_instr_w_cover_pg.pdf">https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_gen_instr_w_cover_pg.pdf</a>, validation run 2, 2026-10-22).</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
@@ -730,7 +953,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -766,7 +991,9 @@
 <span id="law-me-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 5.5%; local sales taxes add 0% on average (5.5% combined). A car purchase pays 5.5%; groceries pay 0%. Clothing taxed: yes.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -819,7 +1046,9 @@
 <span id="law-me-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 0.903% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -852,7 +1081,9 @@
 <span id="law-me-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $1,200 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -885,7 +1116,9 @@
 <span id="law-me-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $1,672 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -918,7 +1151,9 @@
 <span id="law-me-car-taxes"></span><h2>Car taxes (car_taxes)<a class="headerlink" href="#car-taxes-car-taxes" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $400 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -952,7 +1187,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.30 a gallon. Gas averages $3.35 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -989,7 +1226,9 @@
 <span id="law-me-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.2999 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1022,7 +1261,9 @@
 <span id="law-me-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $412,002. The housing cost index is 128.5 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1060,7 +1301,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,506; Medigap Plan G at 65 $291; Part D $45.23; Medicare Advantage $12.96.</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1105,7 +1348,9 @@
 <span id="law-me-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 101.1; goods 97.2; services other than rent 103.2.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1146,7 +1391,9 @@
 <span id="law-me-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $8,199; assisted living $7,988; a private nursing home room $13,885.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

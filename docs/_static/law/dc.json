@@ -1,0 +1,268 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "dc",
+  "name": "District of Columbia",
+  "tax_year": 2026,
+  "source": "DC Office of Tax and Revenue, individual and fiduciary income tax rates (https://otr.cfo.dc.gov/page/dc-individual-and-fiduciary-income-tax-rates, read in a search extract 2026-10-22: 4% to 10.75%, same for every filing status, tax years after 2021); second source Tax Foundation, State Individual Income Tax Rates and Brackets 2026 (https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/) (same brackets; standard deduction 16,100 / 32,200). The standard deduction follows the federal one; DC's attempt to keep the lower TCJA amounts was nullified by H.J.Res. 142 (Public Law 119-78, 2026-02-18), whose effect the DC Attorney General disputes",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "DC starts from federal AGI, so 401(k) deferrals and HSA deposits stay deductible as on the federal return (confirmed primary: https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2024_D40_Booklet_011525.pdf, validation run 2, 2026-10-22)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.04,
+        "base": 0.0
+      },
+      {
+        "threshold": 10000,
+        "rate": 0.06,
+        "base": 400.0
+      },
+      {
+        "threshold": 40000,
+        "rate": 0.065,
+        "base": 2200.0
+      },
+      {
+        "threshold": 60000,
+        "rate": 0.085,
+        "base": 3500.0
+      },
+      {
+        "threshold": 250000,
+        "rate": 0.0925,
+        "base": 19650.0
+      },
+      {
+        "threshold": 500000,
+        "rate": 0.0975,
+        "base": 42775.0
+      },
+      {
+        "threshold": 1000000,
+        "rate": 0.1075,
+        "base": 91525.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.04,
+        "base": 0.0
+      },
+      {
+        "threshold": 10000,
+        "rate": 0.06,
+        "base": 400.0
+      },
+      {
+        "threshold": 40000,
+        "rate": 0.065,
+        "base": 2200.0
+      },
+      {
+        "threshold": 60000,
+        "rate": 0.085,
+        "base": 3500.0
+      },
+      {
+        "threshold": 250000,
+        "rate": 0.0925,
+        "base": 19650.0
+      },
+      {
+        "threshold": 500000,
+        "rate": 0.0975,
+        "base": 42775.0
+      },
+      {
+        "threshold": 1000000,
+        "rate": 0.1075,
+        "base": 91525.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 16100.0,
+    "JOINT": 32200.0,
+    "note": "The 2026 federal standard deduction (Tax Foundation 2026); confirmed primary on https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2026_D40ES_Book_wLinks04012026.pdf (validation run 2, 2026-10-22) despite the dispute over H.J.Res. 142 (BDO and AFS Law alerts, 2026). Not modelled: the federal additional deduction at 65, which DC also follows, and DC has no personal exemption."
+  },
+  "estate_inheritance": {
+    "indexed": true,
+    "confidence": "unconfirmed",
+    "check_at": "https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2023_D-76%20-%20Final.pdf",
+    "estate_tax": {
+      "exemption": 4988400.0,
+      "brackets": [
+        {
+          "threshold": 0,
+          "rate": 0.112,
+          "base": 0.0
+        },
+        {
+          "threshold": 11600,
+          "rate": 0.12,
+          "base": 1299.2
+        },
+        {
+          "threshold": 1011600,
+          "rate": 0.128,
+          "base": 121299.2
+        },
+        {
+          "threshold": 2011600,
+          "rate": 0.136,
+          "base": 249299.2
+        },
+        {
+          "threshold": 3011600,
+          "rate": 0.144,
+          "base": 385299.2
+        },
+        {
+          "threshold": 4011600,
+          "rate": 0.152,
+          "base": 529299.2
+        },
+        {
+          "threshold": 5011600,
+          "rate": 0.16,
+          "base": 681299.2
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "DC estate tax: 2026 exclusion 4,988,400 (AARP 2026; SimplyTrust citing DC Code 47-3702, unconfirmed), rates 11.2% to 16% (DC Code 47-3702(a-1), primary). The brackets tax the estate above the exclusion: the statute and the OTR D-76 worksheet break at a taxable estate of 5,000,000, 6,000,000 ... 10,000,000, so the thresholds are those points less the exclusion (11,600, 1,011,600 ... 5,011,600; 2023 D-76 worksheet, https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2023_D-76%20-%20Final.pdf, validation run 2, 2026-10-22). Approximation: the section is marked indexed, so the thresholds grow with the exclusion, while in law they are fixed dollar points and a higher exclusion shrinks them (law-backlog). No inheritance tax."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2024_D40_Booklet_011525.pdf",
+    "note": "DC does not tax Social Security benefits (state-costs.csv ss_taxed N; Kiplinger 2026 states that tax Social Security does not list DC). Confirmed primary on https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2024_D40_Booklet_011525.pdf (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed primary",
+    "check_at": "https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2024_D40_Booklet_011525.pdf",
+    "note": "DC is the city: its income tax is the only one (state-costs.csv local_income_tax n/a). Confirmed primary on https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2024_D40_Booklet_011525.pdf (validation run 2, 2026-10-22)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.06,
+    "vehicle_rate": 0.06,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "District of Columbia revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.06 from the state's own source (District of Columbia excise tax at titling, 1% to 11% of the NADA value by weight and city mileage; 6.0% for a 3,500-4,999 lb car at 21-25 mpg, taken as typical (schedule from 2025-02-17, https://dmv.dc.gov/book/dmv-fees/vehicle-registration-fees, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food for home consumption exempt. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.0063,
+    "confidence": "confirmed primary",
+    "check_at": "https://api.censusreporter.org/1.0/data/show/acs2024_1yr?table_ids=B25090,B25082&geo_ids=04000US11",
+    "source": "Census ACS 2024 1-year B25090 aggregate taxes 778,233,300 / B25082 aggregate value 123,204,690,000 = 0.00632 (Census Reporter copy of the Census tables) (https://api.censusreporter.org/1.0/data/show/acs2024_1yr?table_ids=B25090,B25082&geo_ids=04000US11, validation run 3, 2026-10-22)",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Research note: prop_tax_eff_pct unconfirmed (not in ACS-compiled table). Set by hand from the primary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1200.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2844.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 150.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://dmv.dc.gov/book/dmv-fees/vehicle-registration-fees",
+    "source": "DC DMV vehicle registration fees page, schedule effective 2026-03-30, read 2026-10-22",
+    "note": "District of Columbia: 70 a year for a car up to 3,499 lb and 175 for 3,500 to 4,999 lb, plus a 30 a year registration card fee; about 150 for a typical mix. The vehicle excise tax is paid once at titling (not annual). Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand after the import: rerunning importStateCosts.py resets it to 0. Accepted: low impact (triage 2026-10-23): DMV fee components confirmed; weight mix assumed."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.357,
+    "average_price_per_gallon": 3.48,
+    "confidence": "confirmed secondary",
+    "check_at": "https://otr.cfo.dc.gov/page/motor-vehicle-fuel-tax",
+    "source": "Excise: https://otr.cfo.dc.gov/page/motor-vehicle-fuel-tax (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.357 (0.235 tax plus a 0.122 transportation surcharge) from 2025-10-01; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2466,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 567271.0,
+    "cost_index": 186.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1295.0,
+    "medigap_g_monthly": null,
+    "part_d_monthly": 45.26,
+    "medicare_advantage_monthly": 20.49,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, District of Columbia insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Research note: ACA state age curve: age-60 value uses federal curve (approx); no Medigap figure in source. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 108.0,
+    "bea_goods": 106.5,
+    "bea_services": 103.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7245.0,
+    "assisted_living_monthly": 9640.0,
+    "nursing_home_private_monthly": 16699.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

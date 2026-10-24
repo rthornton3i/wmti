@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -55,7 +55,7 @@
   const SAVED_LIMIT = 50;
   const NO_EARNINGS_HINT = "Enter past earnings on the Income tab to use this.";  // wmti.dashboard.settings.NO_EARNINGS_HINT
   const NULL_LABELS = { owner: "Usual owner", account529: "None (the 529s together)" };  // what a blank select choice means for these fields
-  const LONG_SELECT_CHOICES = 12;  // a select with more choices than this (the states) gets a search box on the phone
+  const LONG_SELECT_CHOICES = 12;  // a select with more choices than this (the states) is a combobox (stateCombobox)
   const RUN_DELAY_MS = 400;
   const SETTLE_MS = 400;  // a pause in editing this long makes one undo step (and, with Auto-save on, one save)
   const UNDO_LIMIT = 10;  // input states of the open scenario that Undo can step back through
@@ -170,7 +170,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.f44abd4cec.js");
+      worker = new Worker("worker.656c7c17c8.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -3237,13 +3237,13 @@
 
   // ---- Settings ----
   function renderSettingsError() {
-    for (const banner of [$("settings-error"), $("household-error")]) {  // Inputs, and Household & run on Setup
+    for (const banner of [$("settings-error"), $("household-error")]) {  // Inputs, and Household on Setup
       banner.hidden = !state.error;
       if (state.error) banner.innerHTML = "<strong>Settings need a fix.</strong> " + escapeText(state.error);
     }
   }
 
-  // Inputs shows every panel but Household & run as a chip; that panel's fields are drawn on Setup.
+  // Inputs shows every panel but Household as a chip; that panel's fields are drawn on Setup.
   // The one summary at the bottom of the Expenses chip (`expenseTotals`), per month: each monthly category, Major
   // Spending and Charity paid this year (per year / 12), one Bills - Other row for the costs other tabs already charge
   // (from the settings notes, when there are any) and the one total of all ("n/a" until the notes arrive).
@@ -3338,7 +3338,7 @@
     renderEarningsReturn();
   }
 
-  // The Household & run panel on Setup: the partner switch and the panel's fields (the seed, runs and the
+  // The Household panel on Setup: the partner switch and the panel's fields (the seed, runs and the
   // inflation adjusted switch and range are in the Loaded config and Inflation cards below it).
   function renderHousehold() {
     const panel = state.schema.panels.find((item) => item.id === SETUP_PANEL);
@@ -4405,6 +4405,7 @@
       mark(select, name);
       shell.append(select);
       resettable(select, field, name, (start) => { select.value = start == null ? "" : String(start); });
+      if (choices.length > LONG_SELECT_CHOICES) stateCombobox(select);  // the state: one box that filters as you type
       card.append(shell);
     }
     return card;
@@ -4944,6 +4945,181 @@
     if (text != null) button.title = "Reset to default (" + text + ")";
   }
 
+  // ---- State combobox: one box over a long select (the states) that filters its list as you type ----
+  // `select` stays in place as the value: hidden, its options, value, change event, `.is-default` and reset button
+  // work as before, and setting `select.value` updates the box. Call it once the select sits in its field (after its
+  // reset button): the field's label moves to the box. Focus or a click opens the list; typing filters it by name or
+  // code (comboOptions); the arrows, Home and End move the highlight; Enter or a tap picks; Escape or leaving puts the
+  // chosen state's name back. A cleared box with Enter picks the blank choice where the select has one.
+  let comboCount = 0;
+  const SELECT_VALUE = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
+
+  function stateCombobox(select) {
+    comboCount += 1;
+    const box = document.createElement("div");
+    box.className = "combo";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = (select.id || "combo-" + comboCount) + "-combo";
+    input.className = select.className + " combo-input";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    input.setAttribute("autocapitalize", "off");
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-autocomplete", "list");
+    input.setAttribute("aria-expanded", "false");
+    const list = document.createElement("ul");
+    list.className = "combo-list";
+    list.id = input.id + "-list";
+    list.setAttribute("role", "listbox");
+    list.hidden = true;
+    input.setAttribute("aria-controls", list.id);
+    const root = select.getRootNode();
+    const labels = select.id && root.querySelectorAll
+      ? Array.from(root.querySelectorAll("label[for=\"" + CSS.escape(select.id) + "\"]")) : [];
+    labels.forEach((label, index) => {
+      label.htmlFor = input.id;
+      if (!label.id) label.id = input.id + "-label" + (index || "");
+    });
+    const labelledBy = select.getAttribute("aria-labelledby") || labels.map((label) => label.id).join(" ");
+    if (labelledBy) {
+      input.setAttribute("aria-labelledby", labelledBy);
+      list.setAttribute("aria-labelledby", labelledBy);
+    }
+    if (select.hasAttribute("aria-describedby")) input.setAttribute("aria-describedby", select.getAttribute("aria-describedby"));
+    box.append(input, list);
+    select.before(box);
+    select.classList.add("combo-native");
+    select.tabIndex = -1;
+    select.setAttribute("aria-hidden", "true");
+
+    let listed = [];
+    let active = -1;
+    const options = () => Array.from(select.options).map((option) => ({ value: option.value, label: option.textContent }));
+    const show = () => {  // the box shows the chosen choice's name, in gray while it is the default
+      const chosen = select.options[select.selectedIndex];
+      input.value = chosen ? chosen.textContent : "";
+      input.classList.toggle("is-default", select.classList.contains("is-default"));
+      input.disabled = select.disabled;
+    };
+    const highlight = (index) => {
+      active = index;
+      Array.from(list.children).forEach((item, at) => item.classList.toggle("active", at === active));
+      const item = list.children[active];
+      if (item) {
+        input.setAttribute("aria-activedescendant", item.id);
+        item.scrollIntoView({ block: "nearest" });
+      } else {
+        input.removeAttribute("aria-activedescendant");
+      }
+    };
+    const draw = (query) => {
+      listed = comboOptions(options(), query);
+      list.replaceChildren(...listed.map((option, at) => {
+        const item = document.createElement("li");
+        item.id = list.id + "-" + at;
+        item.className = "combo-option";
+        item.setAttribute("role", "option");
+        item.setAttribute("aria-selected", String(option.value === select.value));
+        item.textContent = option.label;
+        return item;
+      }));
+      if (!listed.length) {
+        const empty = document.createElement("li");
+        empty.className = "combo-empty";
+        empty.textContent = "No match";
+        list.append(empty);
+      }
+    };
+    const open = () => {
+      if (input.disabled) return;
+      draw("");
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      highlight(listed.findIndex((option) => option.value === select.value));
+    };
+    const close = () => {
+      list.hidden = true;
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+      active = -1;
+    };
+    const choose = (value) => {
+      close();
+      if (value != null && value !== select.value) {
+        SELECT_VALUE.set.call(select, value);
+        select.dispatchEvent(new Event("input", { bubbles: true }));
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      if (select.isConnected) show();
+    };
+
+    let quiet = false;  // focused from code (the reset button): the list stays shut
+    let keepSelection = false;  // the click that focused the box keeps its text selected, so typing replaces it
+    input.addEventListener("focus", () => {
+      if (!quiet) open();
+      input.select();
+      keepSelection = true;
+    });
+    input.addEventListener("mouseup", (event) => {
+      if (keepSelection) event.preventDefault();
+      keepSelection = false;
+    });
+    input.addEventListener("click", () => { if (list.hidden) open(); });
+    input.addEventListener("blur", () => {
+      close();
+      show();
+    });
+    input.addEventListener("input", () => {
+      keepSelection = false;
+      draw(input.value);
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      highlight(input.value.trim() && listed.length ? 0 : -1);
+    });
+    input.addEventListener("keydown", (event) => {
+      const key = event.key;
+      if (key === "ArrowDown" || key === "ArrowUp" || ((key === "Home" || key === "End") && !list.hidden)) {
+        event.preventDefault();
+        if (list.hidden) open();
+        else highlight(comboMove(listed.length, active, key));
+      } else if (key === "Enter" && !list.hidden) {
+        event.preventDefault();
+        choose(comboPick(listed, active, input.value));
+      } else if (key === "Escape" && !list.hidden) {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        show();
+        input.select();
+      }
+    });
+    list.addEventListener("mousedown", (event) => event.preventDefault());  // the box keeps the focus
+    list.addEventListener("click", (event) => {
+      const item = event.target.closest(".combo-option");
+      if (item) choose(listed[Array.from(list.children).indexOf(item)].value);
+    });
+    // The select stays the value: setting it in code, a change made on it, its gray default class and its disabled
+    // state all show in the box; focusing it focuses the box (the reset button does).
+    Object.defineProperty(select, "value", {
+      configurable: true,
+      get() { return SELECT_VALUE.get.call(select); },
+      set(value) {
+        SELECT_VALUE.set.call(select, value);
+        show();
+      },
+    });
+    select.addEventListener("change", show);
+    select.focus = (focusOptions) => {
+      quiet = true;
+      input.focus(focusOptions);
+      quiet = false;
+    };
+    new MutationObserver(show).observe(select, { attributes: true, attributeFilter: ["class", "disabled"] });
+    show();
+    return input;
+  }
+
   // A blank sheet figure whose source shows nothing yet (sheetPrompt): {text, blank}, or null.
   function sheetPromptOf(path) {
     const at = sheetItemOf(path);
@@ -4993,36 +5169,13 @@
         const offered = fallback ? choices.filter((choice) => choice !== fallback.blank) : choices;
         const options = (field.nullable ? [null] : []).concat(offered);
         const labelled = { choiceLabels };
-        const fill = (shownChoices) => {
-          select.replaceChildren(...shownChoices.map((choice) => {
-            const option = document.createElement("option");
-            option.value = choice == null ? "" : String(choice);
-            option.textContent = choiceLabel(labelled, choice, NULL_LABELS[field.name]);
-            return option;
-          }));
-        };
-        fill(options);
+        select.replaceChildren(...options.map((choice) => {
+          const option = document.createElement("option");
+          option.value = choice == null ? "" : String(choice);
+          option.textContent = choiceLabel(labelled, choice, NULL_LABELS[field.name]);
+          return option;
+        }));
         select.value = value == null ? "" : String(value);
-        // A long list (the 51 states) gets a search box above it, shown on the phone layout only (styles.css): the
-        // list keeps the choices that match and the chosen one, so typing never changes the value.
-        if (offered.length > LONG_SELECT_CHOICES) {
-          const search = document.createElement("input");
-          search.className = "input select-search";
-          search.type = "search";
-          search.autocomplete = "off";
-          search.placeholder = "Search";
-          search.setAttribute("aria-label", "Search " + field.label);
-          search.setAttribute("aria-controls", id);
-          search.addEventListener("input", () => {
-            const current = select.value;
-            const matches = filterChoices(labelled, offered, search.value);
-            const kept = options.filter((choice) => matches.includes(choice)
-              || (choice == null ? "" : String(choice)) === current || (choice == null && !search.value.trim()));
-            fill(kept);
-            select.value = current;
-          });
-          wrap.append(search);
-        }
         select.addEventListener("change", () => {
           const raw = select.value;
           let choice = options.find((item) => (item == null ? "" : String(item)) === raw);
@@ -5053,6 +5206,8 @@
           }, () => atResetTarget(path));
         }
         if (LAW_STATE_PATHS.includes(path)) wrap.append(stateRulesLink(select));
+        // A long list (the 51 states) is one box that filters its list as you type (stateCombobox).
+        if (offered.length > LONG_SELECT_CHOICES) stateCombobox(select);
         return wrap;
       }
       case "text": {
@@ -5326,7 +5481,7 @@
       const note = document.createElement("p");
       note.className = "note";
       note.textContent = path === "partner"
-        ? "No partner in this household. Turn on “Include a partner” under Setup, Household & run to add one."
+        ? "No partner in this household. Turn on “Include a partner” under Setup, Household to add one."
         : "Not set.";
       group.append(note);
       if (optional) group.append(optionalButton("Add " + field.label.toLowerCase(), "button-quiet", () => {
@@ -6705,6 +6860,7 @@
     select.addEventListener("change", sync);
     sync();
     wrap.append(caption, select, note);
+    stateCombobox(select);  // one box that filters the states as you type
     wrap.input = select;
     wrap.value = () => select.value || null;
     return wrap;
@@ -8016,6 +8172,7 @@
         walkSet(field.path, options.find((choice) => (choice == null ? "" : String(choice)) === select.value) ?? null);
       });
       wrap.append(select);
+      if (options.length > LONG_SELECT_CHOICES) stateCombobox(select);  // the state: one box that filters as you type
     } else if (field.kind === "map") {
       const scratch = { value: clone(current || {}) };
       const draw = () => mapField(field, "value", scratch.value, "walk-" + node.id + "-" + index, scratch, (redraw) => {
@@ -8471,58 +8628,169 @@
   }
 
   // ---- The tour of the controls (the ? button in the top bar) ----
-  // One step per control: `place` (a tab and view, or null to stay put) opens where the control shows, `target` finds
-  // it and `when` (optional) says whether the step applies now. A step whose control is not drawn is skipped. Done,
-  // the close button and Escape put back the tab, view and scroll the tour started from.
+  // One step per control, in the order the eye meets them: the pages in bottom-bar order (Setup, Inputs, Outputs), then
+  // the menu's items and the ? button (TOUR_PAGES); on a page top to bottom, left to right (a unit test checks `page`
+  // and where `target`, a selector, sits in index.html). `view` is the Outputs view a step shows and `when` (optional)
+  // whether the step applies now. Before the first step on another page or view the tour rings the button that goes
+  // there with "Next: ..." in the card, then slides the page in as a swipe does; only then does the step show. A step
+  // whose control is not drawn is skipped. Done, the close button and Escape put back the tab, view and scroll the
+  // tour started from.
+  const TOUR_PAGES = ["setup", "inputs", "outputs", "menu", "help"];
+  const TOUR_PRESS_MS = 720;  // how long the ring stays on the button pressed before the page moves
   const TOUR_STEPS = [
-    { title: "Setup, Inputs and Outputs", when: () => !wide.on, target: () => document.querySelector(".tabbar"),
-      text: "The bar at the bottom moves between the three parts of the app. Setup holds your saved plans (scenarios) "
-        + "and how many times the plan is simulated, Inputs your settings and Outputs the results." },
-    { title: "Headline figures", target: () => $("pinned"),
+    { title: "Undo", page: "setup", target: "#undoButton",
+      text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
+    { title: "Headline figures", page: "setup", target: "#pinned",
       text: "The figures across the top sum up your plan: the median final worth over the runs and the same after tax, "
         + "then two yearly averages such as net withdrawal and expense. They update after every change." },
-    { title: "Groups of settings", place: ["inputs"], when: () => state.schema != null,
-      target: () => $("chips-settings"),
-      text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more. "
-        + "Swipe sideways to move between tabs." },
-    { title: "Pin the tabs", place: ["inputs"], when: () => state.schema != null && !wide.on, target: () => $("chipsPin"),
-      text: "The pin keeps the bubbles under the top bar while you scroll. Tap it to let them scroll away with the page." },
-    { title: "Outputs views", place: ["outputs"], target: () => $("views-outputs"),
-      text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
-    { title: "Summary", place: ["outputs", "summary"], target: () => $("sub-summary"),
-      text: "Summary shows the results over all the runs: final worth before and after tax with its range, warnings "
-        + "and opportunities for your plan, final worth by percentile and a summary table." },
-    { title: "Plots", place: ["outputs", "plots"], target: () => $("sub-plots"),
-      text: "Plots draws the plan year by year: the total balance over the runs, each account's balance, cash flow, "
-        + "deposits and withdrawals, taxes and expenses." },
-    { title: "Optimize", place: ["outputs", "optimize"], target: () => $("sub-optimize"),
-      text: "Optimize tries other choices for you (when to claim Social Security, which state to retire in, how to "
-        + "draw down) and shows what each would be worth. Tick what you would consider and tap Find best settings." },
-    { title: "Compare", place: ["outputs", "compare"], target: () => $("sub-compare"),
-      text: "Compare runs two saved scenarios side by side: duplicate your plan on Setup, change one thing, then "
-        + "compare." },
-    { title: "Undo", target: () => $("undoButton"),
-      text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
-    { title: "Your scenarios", place: ["setup"], target: () => $("savedCard"),
+    { title: "Your scenarios", page: "setup", target: "#savedCard",
       text: "Setup shows the scenario you are working on: save, rename, duplicate, clear or export it. Below it you "
         + "can open another scenario, start a new one or import a file." },
-    { title: "Your household", place: ["setup"], target: () => $("householdCard").querySelector("legend"),
-      text: "Household & run on Setup holds the basics: whether there is a partner, your ages, filing status and home "
+    { title: "Your household", page: "setup", target: "#householdCard legend",
+      text: "Household on Setup holds the basics: whether there is a partner, your ages, filing status and home "
         + "state." },
-    { title: "Runs", place: ["setup"], target: () => $("runCard"),
+    { title: "Runs", page: "setup", target: "#runCard",
       text: "Runs sets how many possible futures (Monte Carlo runs) sit behind every result: more runs are steadier "
         + "but slower. The same seed gives the same random draws each time." },
-    { title: "Walk me through it", menu: true, target: () => $("menuWalk"),
-      text: "The menu's Walk me through it asks one question at a time and fills in your settings. Where a topic "
-        + "has more detail, Go deeper adds its extra questions." },
-    { title: "The menu", menu: true, target: () => $("menu"),
-      text: "The menu also holds Documentation, the user guide with the tax law and costs of every state, Final report "
-        + "(PDF), a printable summary of this plan, Appearance (the color "
-        + "schemes), Help and tips, About and Legal." },
-    { title: "This tour", target: () => $("helpButton"),
+    { title: "Setup, Inputs and Outputs", page: "setup", when: () => !wide.on, target: ".tabbar",
+      text: "The bar at the bottom moves between the three parts of the app: Setup (your scenarios and runs), Inputs "
+        + "(your settings) and Outputs (the results). Next, Inputs." },
+    { title: "Groups of settings", page: "inputs", when: () => state.schema != null, target: "#chips-settings",
+      text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more. "
+        + "Swipe sideways to move between tabs." },
+    { title: "Pin the tabs", page: "inputs", when: () => state.schema != null && !wide.on, target: "#chipsPin",
+      text: "The pin keeps the bubbles under the top bar while you scroll. Tap it to let them scroll away with the page." },
+    { title: "Outputs views", page: "outputs", view: "summary", target: "#views-outputs",
+      text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
+    { title: "Summary", page: "outputs", view: "summary", target: "#sub-summary",
+      text: "Summary shows the results over all the runs: final worth before and after tax with its range, warnings "
+        + "and opportunities for your plan, final worth by percentile and a summary table." },
+    { title: "Plots", page: "outputs", view: "plots", target: "#sub-plots",
+      text: "Plots draws the plan year by year: the total balance over the runs, each account's balance, cash flow, "
+        + "deposits and withdrawals, taxes and expenses." },
+    { title: "Compare", page: "outputs", view: "compare", target: "#sub-compare",
+      text: "Compare runs two saved scenarios side by side: duplicate your plan on Setup, change one thing, then "
+        + "compare." },
+    { title: "Optimize", page: "outputs", view: "optimize", target: "#sub-optimize",
+      text: "Optimize tries other choices for you (when to claim Social Security, which state to retire in, how to "
+        + "draw down) and shows what each would be worth. Tick what you would consider and tap Find best settings." },
+    { title: "Walk me through it", page: "menu", target: "#menuWalk",
+      text: "Walk me through it asks one question at a time and fills in your settings. Where a topic has more "
+        + "detail, Go deeper adds its extra questions." },
+    { title: "Documentation", page: "menu", target: "#menuDocs",
+      text: "Documentation opens the user guide, with the tax law and costs of every state." },
+    { title: "Appearance", page: "menu", target: "#menuScheme",
+      text: "Appearance picks the app's color scheme." },
+    { title: "Final report (PDF)", page: "menu", target: "#menuReport",
+      text: "Final report (PDF) makes a printable summary of this plan." },
+    { title: "This tour", page: "help", target: "#helpButton",
       text: "Tap ? any time to see this tour again." },
   ];
-  const tour = { steps: [], at: 0, from: null, direction: 1, token: 0 };
+  const tour = { steps: [], at: 0, from: null, direction: 1, token: 0, busy: false, timers: [] };
+
+  const tourTarget = (step) => document.querySelector(step.target);
+
+  // Where a step shows: its tab and Outputs view (the menu and ? stay on the page the tour is on), and whether the
+  // menu is open.
+  function tourPlace(step) {
+    if (step.page === "menu" || step.page === "help") {
+      return { tab: state.tab, view: state.view, menu: step.page === "menu" };
+    }
+    return { tab: step.page, view: step.view || state.view, menu: false };
+  }
+
+  // A place's rank along the bottom bar and the Outputs views, for the side a page slides in from.
+  const tourRank = (tab, view) => TABS.indexOf(tab) * 10 + (tab === "outputs" ? VIEWS.indexOf(view) : 0);
+
+  // Run `then` after `ms`, unless the tour has closed or moved on since (its token changed).
+  function tourLater(token, ms, then) {
+    tour.timers.push(setTimeout(() => { if (token === tour.token && !$("tour").hidden) then(); }, ms));
+  }
+
+  // Cancel a move under way: its timers, the press on the ring and any page caught mid-slide.
+  function tourStop() {
+    for (const timer of tour.timers) clearTimeout(timer);
+    tour.timers = [];
+    $("tourRing").classList.remove("tour-press");
+    for (const panel of document.querySelectorAll(".panel.tour-sliding")) {
+      panel.classList.remove("tour-sliding");
+      slideTo(panel, null, false);
+      panel.style.transition = "";
+    }
+  }
+
+  // The card back from the caption to the step's title and text.
+  function tourCaptionOff() {
+    tour.busy = false;
+    $("tourNav").hidden = true;
+    $("tourNav").textContent = "";
+    $("tourTitle").hidden = false;
+    $("tourText").hidden = false;
+  }
+
+  // Open `to` (a tab and view) at its top, sliding as a swipe does: the shown page out to one side, the new one in
+  // from the other (`direction` 1 forward, -1 back); with reduced motion, or in the wide layout when no column changes,
+  // it just opens. Then `done`.
+  function tourSlide(to, token, done) {
+    const direction = tourRank(to.tab, to.view) >= tourRank(state.tab, state.view) ? 1 : -1;
+    const open = () => {
+      goTo(to.tab, to.view);
+      state.scroll[scrollKey()] = 0;
+      scrollPlaceTop(to.tab);
+    };
+    const moving = wide.on ? (to.view !== state.view ? $("panel-outputs") : null) : shownPanel();
+    if (!moving || reducedMotion()) { open(); done(); return; }
+    const width = window.innerWidth;
+    moving.classList.add("tour-sliding");
+    moving.style.transition = "transform 140ms ease-in";
+    moving.style.transform = "translateX(" + (-direction * width) + "px)";
+    tourLater(token, 140, () => {
+      moving.classList.remove("tour-sliding");
+      slideTo(moving, null, false);  // back at rest (hidden when the tab changed)
+      moving.style.transition = "";
+      open();
+      const shown = wide.on ? $("panel-outputs") : shownPanel();
+      shown.classList.add("tour-sliding");
+      slideTo(shown, direction * width * 0.35, false);
+      void shown.offsetWidth;  // start the slide in from the far side
+      slideTo(shown, null, true);
+      tourLater(token, BUBBLE_MS, () => {
+        shown.classList.remove("tour-sliding");
+        shown.style.transition = "";
+        done();
+      });
+    });
+  }
+
+  // Move to `step`'s page, then `done`. On the same page at once (closing the menu when the step is not in it);
+  // otherwise the card shows only "Next: <page>" while the ring presses the button that goes there (a bottom tab, an
+  // Outputs view or the menu button; no ring when that button is not drawn), then the page slides in or the menu opens.
+  function tourMove(step, token, done) {
+    const to = tourPlace(step);
+    if (!to.menu) tourMenu(false);
+    const pageMoves = to.tab !== state.tab || to.view !== state.view;
+    const menuOpens = to.menu && $("menu").hidden;
+    if (!pageMoves && !menuOpens) { done(); return; }
+    tour.busy = true;
+    const button = !pageMoves ? $("menuButton") : to.tab !== state.tab ? $("tab-" + to.tab) : $("sub-" + to.view);
+    $("tourTitle").hidden = true;
+    $("tourText").hidden = true;
+    $("tourNav").hidden = false;
+    $("tourNav").textContent = "Next: " + (pageMoves ? button.textContent.trim() : "the menu");
+    const ring = $("tourRing");
+    if (tourShown(button) && ringOver(button)) ring.classList.add("tour-press");
+    else ring.hidden = true;
+    tourLater(token, TOUR_PRESS_MS, () => {
+      ring.classList.remove("tour-press");
+      const finish = () => {
+        tourCaptionOff();
+        done();
+      };
+      if (pageMoves) { tourSlide(to, token, finish); return; }
+      tourMenu(true);
+      finish();
+    });
+  }
 
   function tourShown(element) {
     return element != null && element.getClientRects().length > 0;
@@ -8573,11 +8841,11 @@
   // Bring the shown step's control into view (the page, its column and its chips row), wait for the scroll to settle,
   // then place the ring; a control still not visible is skipped in the tour's direction rather than ringed over nothing.
   function tourFocusTarget() {
-    if ($("tour").hidden) return;
+    if ($("tour").hidden || tour.busy) return;  // a move to another page places the ring itself
     const token = ++tour.token;
     delete $("tour").dataset.ready;
     const step = tour.steps[tour.at];
-    const target = step && step.target();
+    const target = step && tourTarget(step);
     if (!tourShown(target)) { showTourStep(tour.at + tour.direction, tour.direction); return; }
     const seen = tourVisibleBox(target);
     if (!seen || !seen.whole) {
@@ -8628,6 +8896,11 @@
 
   function closeTour() {
     if ($("tour").hidden) return;
+    tour.token += 1;  // a move under way stops here
+    tourStop();
+    tourCaptionOff();
+    $("tourRing").hidden = false;
+    delete $("tour").dataset.ready;
     tourMenu(false);
     $("tour").hidden = true;
     $("app").inert = false;
@@ -8638,38 +8911,42 @@
     $("helpButton").focus();
   }
 
-  // Show step `at`, or the next one in `direction` (1 or -1) whose control is drawn; past either end the tour closes.
+  // Show step `at` once its page shows, or the next one in `direction` (1 or -1) whose control is drawn; past either
+  // end the tour closes.
   function showTourStep(at, direction) {
-    while (at >= 0 && at < tour.steps.length) {
-      const step = tour.steps[at];
-      if (step.place && (step.place[0] !== state.tab || (step.place[1] && step.place[1] !== state.view))) {
-        goTo(step.place[0], step.place[1] || state.view);
-      }
-      tourMenu(Boolean(step.menu));
-      if (tourShown(step.target())) break;
-      at += direction;
-    }
     if (at < 0 && tour.at >= 0 && direction < 0) { showTourStep(tour.at, 1); return; }  // nothing drawn before it
     if (at < 0 || at >= tour.steps.length) { closeTour(); return; }
-    tour.at = at;
-    tour.direction = direction;
-    const step = tour.steps[at];
+    const token = ++tour.token;
+    tourStop();
+    delete $("tour").dataset.ready;
     $("tourCount").textContent = (at + 1) + " of " + tour.steps.length;
-    $("tourTitle").textContent = step.title;
-    $("tourText").textContent = step.text;
-    $("tourBack").disabled = at === 0;
-    $("tourNext").textContent = at === tour.steps.length - 1 ? "Done" : "Next";
-    tourFocusTarget();
+    const step = tour.steps[at];
+    tourMove(step, token, () => {
+      if (!tourShown(tourTarget(step))) { showTourStep(at + direction, direction); return; }
+      tour.at = at;
+      tour.direction = direction;
+      $("tourCount").textContent = (at + 1) + " of " + tour.steps.length;
+      $("tourTitle").textContent = step.title;
+      $("tourText").textContent = step.text;
+      $("tourBack").disabled = at === 0;
+      $("tourNext").textContent = at === tour.steps.length - 1 ? "Done" : "Next";
+      tourFocusTarget();
+    });
   }
 
   // The ring over the visible part of the shown control (kept inside the screen), and the card on the half of the
-  // screen it leaves free.
+  // screen it leaves free; left alone while a move to another page holds it on the button pressed.
   function placeTourRing() {
-    if ($("tour").hidden) return;
+    if ($("tour").hidden || tour.busy) return;
     const step = tour.steps[tour.at];
-    const target = step && step.target();
-    const box = tourShown(target) ? tourVisibleBox(target) : null;
-    if (!box) return;
+    const target = step && tourTarget(step);
+    if (tourShown(target)) ringOver(target);
+  }
+
+  // Put the ring over the visible part of `element`; false (the ring left as it is) when nothing of it shows.
+  function ringOver(element) {
+    const box = tourVisibleBox(element);
+    if (!box) return false;
     const pad = 6;
     const top = Math.max(4, box.top - pad);
     const bottom = Math.min(window.innerHeight - 4, box.bottom + pad);
@@ -8680,15 +8957,19 @@
     ring.style.left = left + "px";
     ring.style.width = Math.max(0, right - left) + "px";
     ring.style.height = Math.max(0, bottom - top) + "px";
+    ring.hidden = false;
     $("tourCard").dataset.place = (top + bottom) / 2 < window.innerHeight / 2 ? "bottom" : "top";
+    return true;
   }
 
   function wireTour() {
     $("helpButton").setAttribute("aria-expanded", "false");
     $("helpButton").addEventListener("click", openTour);
     $("tourClose").addEventListener("click", closeTour);
-    $("tourBack").addEventListener("click", () => showTourStep(tour.at - 1, -1));
+    // Back and Next wait while the tour moves to another page (the caption shows), so no tip shows before its page.
+    $("tourBack").addEventListener("click", () => { if (!tour.busy) showTourStep(tour.at - 1, -1); });
     $("tourNext").addEventListener("click", () => {
+      if (tour.busy) return;
       if (tour.at >= tour.steps.length - 1) closeTour();
       else showTourStep(tour.at + 1, 1);
     });

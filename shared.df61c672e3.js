@@ -486,6 +486,37 @@
     });
   }
 
+  // The choices a state combobox lists for what is typed in it (`options`: {value, label} in the select's order, the
+  // blank choice's value ""): every choice for a blank box, else the matches of `filterChoices` (the blank choice is
+  // offered to a blank box only).
+  function comboOptions(options, query) {
+    if (!String(query || "").trim()) return options.slice();
+    const field = { choiceLabels: Object.fromEntries(options.map((option) => [option.value, option.label])) };
+    const kept = new Set(filterChoices(field, options.filter((option) => option.value !== "")
+      .map((option) => option.value), query));
+    return options.filter((option) => kept.has(option.value));
+  }
+
+  // Where a key moves a combobox's highlight in a list of `count` choices (-1: none): the arrows go round the list,
+  // Home and End jump to its ends, any other key leaves it.
+  function comboMove(count, active, key) {
+    if (!count) return -1;
+    if (key === "ArrowDown") return active < 0 || active >= count - 1 ? 0 : active + 1;
+    if (key === "ArrowUp") return active <= 0 ? count - 1 : active - 1;
+    if (key === "Home") return 0;
+    if (key === "End") return count - 1;
+    return active;
+  }
+
+  // The value Enter picks in a combobox listing `listed` with `active` highlighted after `query` was typed: the
+  // highlighted choice, else the only match, else for a cleared box the blank choice where the list has one; null
+  // keeps the value it had.
+  function comboPick(listed, active, query) {
+    if (active >= 0 && active < listed.length) return listed[active].value;
+    if (!String(query || "").trim()) return listed.some((option) => option.value === "") ? "" : null;
+    return listed.length === 1 ? listed[0].value : null;
+  }
+
   // The fields of an item type whose change redraws an open sheet: the sources of the blank figures and the
   // replacement rules, which decide what the sheet shows.
   function sheetSources(typeName) {
@@ -638,7 +669,7 @@
   // Where a tab name from the URL hash or saved prefs leads: {tab, view} with the bottom-bar tab (setup, inputs or
   // outputs) and, for Outputs, the view (summary, plots or compare; null keeps the current view). Takes the names of
   // the older five-tab page too (results, plots, settings, compare, more). Household and settings lead to Setup,
-  // where the Household & run settings are. Savings and benefits lead to the Benefits chip of Inputs (`chip`);
+  // where the Household settings are. Savings and benefits lead to the Benefits chip of Inputs (`chip`);
   // healthcare to the Healthcare chip; retirement, medicare and the Social Security names to the Retirement chip, which
   // holds Social Security and Medicare. Unknown names give null.
   const ROUTES = {
@@ -1583,7 +1614,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,

@@ -9,7 +9,7 @@
   <title>Massachusetts &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -190,19 +190,80 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
-<td><p>Massachusetts Department of Revenue: 5% Part B income rate and the 4% surtax on taxable income over 1,107,750 for tax year 2026 (DOR surtax certification of 2025-11-20, Massachusetts Tax Rates page and 2026 Form 1-ES instructions, read through search extracts); personal exemptions from the Form 1 instructions; second sources: Bloomberg Tax (draft 2026 withholding methods) and breakeven.tax 2026</p></td>
+<td><p>Massachusetts Department of Revenue pages read directly on 2026-10-24 (s359): Tax Rates (<a class="reference external" href="https://www.mass.gov/info-details/tax-rates">https://www.mass.gov/info-details/tax-rates</a>, updated 2025-12-30) and Massachusetts 4% Surtax on Taxable Income (<a class="reference external" href="https://www.mass.gov/info-details/massachusetts-4-surtax-on-taxable-income">https://www.mass.gov/info-details/massachusetts-4-surtax-on-taxable-income</a>, updated 2026-06-01): 5% Part B rate and the 4% surtax on taxable income over 1,107,750 for tax year 2026, one threshold per return whatever the filing status; Personal Income Tax Exemptions (<a class="reference external" href="https://www.mass.gov/info-details/personal-income-tax-exemptions">https://www.mass.gov/info-details/personal-income-tax-exemptions</a>, updated 2026-10-14); Differences Between MA and Federal Tax Law for Personal Income (<a class="reference external" href="https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income">https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income</a>, updated 2026-10-22); 2025 Form 1 instructions and Schedule Y (DOR)</p></td>
 </tr>
 <tr class="row-odd"><td><p>Schema version</p></td>
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>18 sections: 5 confirmed primary, 11 confirmed secondary, 2 unconfirmed</p></td>
+<td><p>18 sections: 11 confirmed primary, 6 confirmed secondary, 1 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/ma.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/ma.json">ma.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;SINGLE&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [
+      &quot;traditional_ira_deposit&quot;
+    ],
+    &quot;note&quot;: &quot;Massachusetts allows no deduction for Traditional IRA deposits, so they are added back; 401(k) and 403(b) deferrals are left out of Massachusetts wages (Form 1 line 3 takes the W-2 state wages, generally the federal Form 1040 line 1z amount) and HSA deposits are deductible (Schedule Y line 8 takes the federal amount), as on the federal return. Not modelled: the deduction of up to 2,000 per person of Social Security, Medicare and public pension contributions. Confirmed primary on the DOR page Differences Between MA and Federal Tax Law for Personal Income (updated 2026-10-22) and the DOR 2025 Form 1 instructions and Schedule Y, read 2026-10-24 (s359).&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;adjustment&quot;: &quot;legislated&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.mass.gov/info-details/massachusetts-4-surtax-on-taxable-income&quot;,
+    &quot;note&quot;: &quot;5% on all taxable income plus the 4% surtax above 1,107,750 for 2026, one threshold for every filing status (DOR Tax Rates and 4% Surtax pages, read 2026-10-24); base 55,387.50 is 5% of the threshold.&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.05,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 1107750,
+        &quot;rate&quot;: 0.09,
+        &quot;base&quot;: 55387.5
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.05,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 1107750,
+        &quot;rate&quot;: 0.09,
+        &quot;base&quot;: 55387.5
+      }
+    ]
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: 4400.0,
+    &quot;JOINT&quot;: 8800.0,
+    &quot;senior&quot;: 700.0,
+    &quot;dependent&quot;: 1000.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://www.mass.gov/info-details/personal-income-tax-exemptions&quot;,
+    &quot;note&quot;: &quot;Personal exemption 4,400 single or married filing separately and 8,800 joint (head of household 6,800, not modelled), 700 more for each person 65 or older by 31 December, 1,000 per dependent; amounts fixed by statute, not indexed. Confirmed primary on the DOR Personal Income Tax Exemptions page (updated 2026-10-14), read 2026-10-24 (s359).&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -220,19 +281,19 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ma-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-ma-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ma-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-ma-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ma-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -240,11 +301,11 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-ma-social-security"><span class="std std-ref">Social Security benefits</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">social_security</span></code></p></td>
-<td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-ma-local-income-tax"><span class="std std-ref">Local income tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">local_income_tax</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-ma-sales-tax"><span class="std std-ref">Sales tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sales_tax</span></code></p></td>
@@ -295,47 +356,41 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-ma-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span> (the state’s income tax confidence)</p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-ma-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back Traditional IRA deposits: the federal return lets you subtract them, this state does not.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -359,82 +414,110 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Massachusetts allows no deduction for Traditional IRA deposits, so they are added back; 401(k) deferrals are left out of Massachusetts wages and HSA deposits are deductible, as on the federal return (confirmed primary: <a class="reference external" href="https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income">https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income</a>, validation run 3, 2026-10-22).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income">https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income</a></p>
+<p><strong>Note:</strong> Massachusetts allows no deduction for Traditional IRA deposits, so they are added back; 401(k) and 403(b) deferrals are left out of Massachusetts wages (Form 1 line 3 takes the W-2 state wages, generally the federal Form 1040 line 1z amount) and HSA deposits are deductible (Schedule Y line 8 takes the federal amount), as on the federal return. Not modelled: the deduction of up to 2,000 per person of Social Security, Medicare and public pension contributions. Confirmed primary on the DOR page Differences Between MA and Federal Tax Law for Personal Income (updated 2026-10-22) and the DOR 2025 Form 1 instructions and Schedule Y, read 2026-10-24 (s359).</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-ma-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Graduated rates from 5% to 9%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are not indexed: only a new law changes them (<code class="docutils literal notranslate"><span class="pre">legislated</span></code>).</p>
+<p class="rubric">Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$1,107,750</p></td>
+<td><p>5%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>legislated</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;legislated&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>$1,107,750</p></td>
+<td><p>and above</p></td>
+<td><p>9%</p></td>
+<td><p>$55,387.50</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>5% (0.05)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$1,107,750</p></td>
+<td><p>5%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>1,107,750</p></td>
-<td><p>9% (0.09)</p></td>
-<td><p>55,387.5</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>5% (0.05)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>1,107,750</p></td>
-<td><p>9% (0.09)</p></td>
-<td><p>55,387.5</p></td>
+<tr class="row-odd"><td><p>$1,107,750</p></td>
+<td><p>and above</p></td>
+<td><p>9%</p></td>
+<td><p>$55,387.50</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.mass.gov/info-details/massachusetts-4-surtax-on-taxable-income">https://www.mass.gov/info-details/massachusetts-4-surtax-on-taxable-income</a></p>
+<p><strong>Note:</strong> 5% on all taxable income plus the 4% surtax above 1,107,750 for 2026, one threshold for every filing status (DOR Tax Rates and 4% Surtax pages, read 2026-10-24); base 55,387.50 is 5% of the threshold.</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-ma-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span> (the state’s income tax confidence)</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single and married filing separately (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$4,400</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$8,800</p></td>
+</tr>
+<tr class="row-even"><td><p>Per person 65 or older</p></td>
+<td><p>$700</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per dependent</p></td>
+<td><p>$1,000</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are not indexed.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -470,13 +553,95 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.mass.gov/info-details/personal-income-tax-exemptions">https://www.mass.gov/info-details/personal-income-tax-exemptions</a></p>
+<p><strong>Note:</strong> Personal exemption 4,400 single or married filing separately and 8,800 joint (head of household 6,800, not modelled), 700 more for each person 65 or older by 31 December, 1,000 per dependent; amounts fixed by statute, not indexed. Confirmed primary on the DOR Personal Income Tax Exemptions page (updated 2026-10-14), read 2026-10-24 (s359).</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-ma-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>Estate tax on the part of an estate above $2,000,000, by this schedule (amounts above the exemption):</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Amount over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$100,000</p></td>
+<td><p>7.2%</p></td>
+<td><p>$0</p></td>
+</tr>
+<tr class="row-odd"><td><p>$100,000</p></td>
+<td><p>$600,000</p></td>
+<td><p>8%</p></td>
+<td><p>$7,200</p></td>
+</tr>
+<tr class="row-even"><td><p>$600,000</p></td>
+<td><p>$1,100,000</p></td>
+<td><p>8.8%</p></td>
+<td><p>$47,200</p></td>
+</tr>
+<tr class="row-odd"><td><p>$1,100,000</p></td>
+<td><p>$1,600,000</p></td>
+<td><p>9.6%</p></td>
+<td><p>$91,200</p></td>
+</tr>
+<tr class="row-even"><td><p>$1,600,000</p></td>
+<td><p>$2,100,000</p></td>
+<td><p>10.4%</p></td>
+<td><p>$139,200</p></td>
+</tr>
+<tr class="row-odd"><td><p>$2,100,000</p></td>
+<td><p>$3,100,000</p></td>
+<td><p>11.2%</p></td>
+<td><p>$191,200</p></td>
+</tr>
+<tr class="row-even"><td><p>$3,100,000</p></td>
+<td><p>$4,100,000</p></td>
+<td><p>12%</p></td>
+<td><p>$303,200</p></td>
+</tr>
+<tr class="row-odd"><td><p>$4,100,000</p></td>
+<td><p>$5,100,000</p></td>
+<td><p>12.8%</p></td>
+<td><p>$423,200</p></td>
+</tr>
+<tr class="row-even"><td><p>$5,100,000</p></td>
+<td><p>$6,100,000</p></td>
+<td><p>13.6%</p></td>
+<td><p>$551,200</p></td>
+</tr>
+<tr class="row-odd"><td><p>$6,100,000</p></td>
+<td><p>$7,100,000</p></td>
+<td><p>14.4%</p></td>
+<td><p>$687,200</p></td>
+</tr>
+<tr class="row-even"><td><p>$7,100,000</p></td>
+<td><p>$8,100,000</p></td>
+<td><p>15.2%</p></td>
+<td><p>$831,200</p></td>
+</tr>
+<tr class="row-odd"><td><p>$8,100,000</p></td>
+<td><p>and above</p></td>
+<td><p>16%</p></td>
+<td><p>$983,200</p></td>
+</tr>
+</tbody>
+</table>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -585,9 +750,11 @@
 </section>
 <section id="social-security-benefits-social-security">
 <span id="law-ma-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
-<div class="law-section law-secondary docutils container">
-<p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state does not tax Social Security benefits.</p>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -611,16 +778,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> Massachusetts Form 1 instructions (Social Security is not taxed)</p>
-<p><strong>Note:</strong> Massachusetts does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (<a class="reference external" href="https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits">https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits</a>) and AARP, as listed in .claude/state/research/state-costs.md.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income">https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income</a></p>
+<p><strong>Note:</strong> Massachusetts does not include Social Security benefits in Massachusetts income (DOR, Differences Between MA and Federal Tax Law for Personal Income, updated 2026-10-22, read 2026-10-24, s359).</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
 <span id="law-ma-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
-<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -648,15 +816,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> Massachusetts DOR Division of Local Services</p>
-<p><strong>Note:</strong> Massachusetts cities and towns levy no income tax (state-costs.csv local_income_tax, from memory).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.mass.gov/info-details/tax-rates">https://www.mass.gov/info-details/tax-rates</a></p>
+<p><strong>Note:</strong> Massachusetts cities and towns levy no income tax: the DOR Tax Rates page (updated 2025-12-30, read 2026-10-24, s359) lists the personal income tax as a state tax only, and the local options it names are on room occupancy, restaurant meals and marijuana sales.</p>
 </div>
 </section>
 <section id="sales-tax-sales-tax">
 <span id="law-ma-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 6.25%; local sales taxes add 0% on average (6.25% combined). A car purchase pays 6.25%; groceries pay 0%. Clothing taxed: no.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -709,7 +879,9 @@
 <span id="law-ma-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 0.948% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -742,7 +914,9 @@
 <span id="law-ma-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $1,956 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -775,7 +949,9 @@
 <span id="law-ma-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $1,644 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -808,7 +984,9 @@
 <span id="law-ma-car-taxes"></span><h2>Car taxes (car_taxes)<a class="headerlink" href="#car-taxes-car-taxes" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $200 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -841,7 +1019,9 @@
 <span id="law-ma-fuel"></span><h2>Fuel (fuel)<a class="headerlink" href="#fuel-fuel" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.24 a gallon. Gas averages $3.234 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -878,7 +1058,9 @@
 <span id="law-ma-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.3014 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -911,7 +1093,9 @@
 <span id="law-ma-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $655,219. The housing cost index is 213.2 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -949,7 +1133,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,049; Medigap Plan G at 65 $235; Part D $46.13;</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -994,7 +1180,9 @@
 <span id="law-ma-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 105.3; goods 98.8; services other than rent 102.9.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1035,7 +1223,9 @@
 <span id="law-ma-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $7,245; assisted living $9,058; a private nursing home room $15,543.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />

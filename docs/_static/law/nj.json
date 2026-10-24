@@ -1,0 +1,276 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "nj",
+  "name": "New Jersey",
+  "tax_year": 2026,
+  "source": "NJ Division of Taxation 2025 Form NJ-1040 instructions (https://www.nj.gov/treasury/taxation/pdf/current/1040i.pdf, the newest published; the 2026 forms are not out yet; read 2026-10-24): tax rate schedules (page 63: every threshold, rate and subtraction amount matches, and the bases are the cumulative tax of the lower brackets), exemptions (lines 6 to 12), pension exclusion (line 28a) and exempt income (Social Security, 401(k) contributions); the rates, exemptions and exclusion caps are set by statute (N.J.S.A. 54A), not indexed, so the 2025 figures apply to 2026 unless the legislature acts. Also GIT-2 (Rev. 12/18) and the Division pages on the exclusion (https://www.nj.gov/treasury/taxation/njit7.shtml) and exemptions (https://www.nj.gov/treasury/taxation/njit13.shtml), confirmed primary in validation run 2 (2026-10-22)",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE_MFS",
+    "MFS": "SINGLE_MFS",
+    "JOINT": "MFJ",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.nj.gov/treasury/taxation/pdf/current/1040i.pdf",
+    "note": "Table A covers single and married filing separately, Table B married filing jointly (also head of household and qualifying widow(er), not modelled) (2025 NJ-1040 instructions page 63, read 2026-10-24)."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": ["traditional_ira_deposit", "hsa"],
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.nj.gov/treasury/taxation/pdf/current/1040i.pdf",
+    "note": "New Jersey excludes 401(k) elective deferrals from wages (N.J.S.A. 54A:6-21; 2025 NJ-1040 instructions list employer and employee 401(k) contributions up to the federal limit as exempt, read 2026-10-24) but taxes 403(b), 457, SEP and TSP deferrals (same instructions, 'Certain contributions to pensions') and does not allow a deduction for Traditional IRA contributions (GIT-2, Rev. 12/18: contributions to an IRA are subject to New Jersey tax, read 2026-10-24), so the Traditional IRA deposit is added back to the income the state taxes. HSA deposits are not deductible either and are added back too: the instructions exempt only Archer MSA contributions and say nothing of HSAs, and secondary sources (Newfront, Cooper Levenson; failed HSA-deduction bills S474, S526, S1415, A2142) agree; no Division page states it outright. The model treats every Traditional 401k deposit as a 401(k) deferral, so a 403(b), 457 or TSP deposit is undertaxed here; the after-tax basis New Jersey gives a Traditional IRA deposit is not tracked, so its withdrawals are taxed in full."
+  },
+  "state_strategies": {
+    "indexed": false,
+    "qcd": {
+      "taxable": true,
+      "retirement_income": true,
+      "confidence": "confirmed secondary",
+      "check_at": "https://www.nj.gov/treasury/taxation/pdf/pubs/tgi-ee/git2.pdf",
+      "note": "New Jersey does not follow the federal exclusion of a qualified charitable distribution: it keeps taxing it as pension income, so it counts in the 100000 and 150000 income tests and may be covered by the retirement income exclusion (a 2006 Division of Taxation position read through secondary sources; GIT-2, Rev. 12/18, read 2026-10-24, does not mention it, nor do the 2025 NJ-1040 instructions). A Roth conversion needs no entry: GIT-2 taxes the converted amount that would be taxable if withdrawn, as Traditional withdrawals are taxed; that it counts in the income tests is an inference. Line 28b of the NJ-1040 is not modelled."
+    }
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.nj.gov/treasury/taxation/pdf/current/1040i.pdf",
+    "note": "Every threshold and rate matches the 2025 NJ-1040 tax rate schedules (page 63, read 2026-10-24); each base equals the threshold times the rate less the subtraction amount, the cumulative tax of the lower brackets. Rates set by statute (N.J.S.A. 54A:2-1), not indexed, so the 2025 schedules apply to 2026.",
+    "SINGLE_MFS": [
+      { "threshold": 0, "over": 0.0, "rate": 0.014, "base": 0.0 },
+      { "threshold": 20000, "over": 20000.01, "rate": 0.0175, "base": 280.0 },
+      { "threshold": 35000, "over": 35000.01, "rate": 0.035, "base": 542.5 },
+      { "threshold": 40000, "over": 40000.01, "rate": 0.05525, "base": 717.5 },
+      { "threshold": 75000, "over": 75000.01, "rate": 0.0637, "base": 2651.25 },
+      { "threshold": 500000, "over": 500000.01, "rate": 0.0897, "base": 29723.75 },
+      { "threshold": 1000000, "over": 1000000.01, "rate": 0.1075, "base": 74573.75 }
+    ],
+    "MFJ": [
+      { "threshold": 0, "over": 0.0, "rate": 0.014, "base": 0.0 },
+      { "threshold": 20000, "over": 20000.01, "rate": 0.0175, "base": 280.0 },
+      { "threshold": 50000, "over": 50000.01, "rate": 0.0245, "base": 805.0 },
+      { "threshold": 70000, "over": 70000.01, "rate": 0.035, "base": 1295.0 },
+      { "threshold": 80000, "over": 80000.01, "rate": 0.05525, "base": 1645.0 },
+      { "threshold": 150000, "over": 150000.01, "rate": 0.0637, "base": 5512.5 },
+      { "threshold": 500000, "over": 500000.01, "rate": 0.0897, "base": 27807.5 },
+      { "threshold": 1000000, "over": 1000000.01, "rate": 0.1075, "base": 72657.5 }
+    ]
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE_MFS": 1000.0,
+    "MFJ": 2000.0,
+    "senior": 1000.0,
+    "dependent": 1500.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.nj.gov/treasury/taxation/pdf/current/1040i.pdf",
+    "note": "1,000 for the taxpayer and the spouse on a joint return, 1,000 more for each who is 65 or older, 1,500 for each dependent (2025 NJ-1040 instructions lines 6, 7, 10 and 11, read 2026-10-24; set by statute, not indexed). Not modelled: the blind or disabled, veteran and college-student exemptions."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 62,
+    "full": false,
+    "cap": { "SINGLE": 75000.0, "JOINT": 100000.0, "MFS": 50000.0 },
+    "income_limit": 150000.0,
+    "income_tiers": [
+      { "up_to": 100000.0, "percent": { "SINGLE": 1.0, "JOINT": 1.0, "MFS": 1.0 } },
+      { "up_to": 125000.0, "percent": { "SINGLE": 0.375, "JOINT": 0.5, "MFS": 0.25 } },
+      { "up_to": 150000.0, "percent": { "SINGLE": 0.1875, "JOINT": 0.25, "MFS": 0.125 } }
+    ],
+    "per_person_cap": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.nj.gov/treasury/taxation/pdf/current/1040i.pdf",
+    "note": "Pension, annuity and IRA income only (Social Security is already outside NJ income). Age 62, the 150,000 income limit, the caps (100,000 joint, 75,000 single, 50,000 separate) and the tier percentages (50% and 25% joint, 37.5% and 18.75% single, 25% and 12.5% separate) match the 2025 NJ-1040 instructions, line 28a (read 2026-10-24). Confirmed primary on the Division of Taxation page (https://www.nj.gov/treasury/taxation/njit7.shtml, validation run 2, 2026-10-22): the tier percentage multiplies the taxable pension income, the cap applies at 100000 of income or less, the income test is total income before the exclusion, and on a joint return only a spouse who is 62 or older (or disabled) has their pension excluded, with the full joint cap still available. Not modelled: the disability test, and who owns which account (a joint return counts each person as owning an equal share of the withdrawal)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.nj.gov/treasury/taxation/inheritance-estate/tax-rates.shtml and the NJ inheritance tax calculation sheet (IT-CALCSHEET)",
+    "estate_tax": null,
+    "inheritance_tax": {
+      "default_class": "child",
+      "classes": {
+        "spouse": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.0,
+              "base": 0.0
+            }
+          ]
+        },
+        "child": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.0,
+              "base": 0.0
+            }
+          ]
+        },
+        "sibling": {
+          "exemption": 25000.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.11,
+              "base": 0.0
+            },
+            {
+              "threshold": 1075000.0,
+              "rate": 0.13,
+              "base": 118250.0
+            },
+            {
+              "threshold": 1375000.0,
+              "rate": 0.14,
+              "base": 157250.0
+            },
+            {
+              "threshold": 1675000.0,
+              "rate": 0.16,
+              "base": 199250.0
+            }
+          ]
+        },
+        "other": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.15,
+              "base": 0.0
+            },
+            {
+              "threshold": 700000.0,
+              "rate": 0.16,
+              "base": 105000.0
+            }
+          ]
+        }
+      }
+    },
+    "note": "New Jersey repealed its estate tax for deaths from 1 January 2018; its transfer inheritance tax remains. Class A (spouse, civil union or domestic partner, children, grandchildren, parents) pays nothing; Class C (siblings, children's spouses) has the first 25,000 exempt, then 11% to 1,100,000, 13% to 1,400,000, 14% to 1,700,000 and 16% above (thresholds stored above the exemption); Class D (everyone else) pays 15% on the first 700,000 and 16% above. Checked 2026-10-22 against search extracts of the Division of Taxation rate page and calculation sheet (the pages were not opened). Children are the default class, so the default heir pays nothing. Not modelled: life insurance and other exempt transfers, Class E (charities). Confirmed primary on https://www.nj.gov/treasury/taxation/inheritance-estate/tax-rates.shtml (validation run 2, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.nj.gov/treasury/taxation/njit6.shtml",
+    "note": "New Jersey does not tax Social Security benefits: the 2025 NJ-1040 instructions list federal Social Security as exempt income (read 2026-10-24); it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://www.nj.gov/treasury/taxation/njit6.shtml (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.newarknj.gov/647/Payroll-Tax and N.J.S.A. 40:48C-15",
+    "note": "New Jersey towns levy no income tax on residents (the 2025 NJ-1040 instructions have no local income tax). N.J.S.A. 40:48C-15 lets a town impose an employer payroll tax of up to 1% of the employer's payroll; Newark's 1% payroll tax is paid by employers, not employees (City of Newark payroll tax page and 2026 booklet, read through search results on 2026-10-24 because newarknj.gov refused the fetch)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06625,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.066,
+    "vehicle_rate": 0.06625,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "New Jersey revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.06625 from the state's own source (New Jersey sales tax 6.625% (https://www.nj.gov/treasury/taxation/businesses/salestax/index.shtml, validation run 2; the half rate of urban enterprise zones is assumed not to apply to cars)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt. clothing_taxable is false (research: no; General clothing exempt; fur accessories sports taxable). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01675,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1224.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 3084.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 65.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.nj.gov/mvc/vehicles/regfees.htm",
+    "source": "https://www.nj.gov/mvc/vehicles/regfees.htm (validation run 2, 2026-10-22)",
+    "note": "New Jersey registration 46.50 to 84 a year by weight and age, about 65 in the middle (unconfirmed midpoint); no vehicle property tax. Zero-emission cars pay a fee of 250 more from July 2024 (not modelled). Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.492,
+    "average_price_per_gallon": 3.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.nj.gov/treasury/taxation/excisetaxrate.shtml (motor fuels tax 0.105 only) and EIA gasoline prices (https://www.eia.gov/petroleum/gasdiesel/)",
+    "source": "Excise: USGasGauge/EIA July 2026 (https://usgasgauge.com/gas-tax, validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.492 (0.105 motor fuels tax plus 0.387 petroleum products gross receipts tax, EIA July 2026; the Treasury page shows only the 0.105 part); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from a secondary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2398,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 575123.0,
+    "cost_index": 145.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1157.0,
+    "medigap_g_monthly": 201.0,
+    "part_d_monthly": 47.72,
+    "medicare_advantage_monthly": 34.21,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, New Jersey insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 107.6,
+    "bea_goods": 107.1,
+    "bea_services": 103.5,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7055.0,
+    "assisted_living_monthly": 8548.0,
+    "nursing_home_private_monthly": 14357.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

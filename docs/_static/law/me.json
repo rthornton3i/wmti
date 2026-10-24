@@ -1,0 +1,259 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "me",
+  "name": "Maine",
+  "tax_year": 2026,
+  "source": "Maine Revenue Services, 2026 Individual Income Tax Rates (revised 2026-05-20, https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf, read in full 2026-10-24): 5.8%, 6.75% from 27,400 (54,850 joint), 7.15% from 64,850 (129,750 joint), the 2% surcharge above 1,000,000 single, 750,000 separate and 1,500,000 joint, standard deduction 15,700 / 31,400, personal exemption 5,300; 2025 Schedule 1A (https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf); 36 M.R.S. 5122, 5219-SS and 5403 (https://legislature.maine.gov/statutes/36/, text current through 2026-10-01), all read 2026-10-24 (s359)",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf",
+    "note": "Maine Revenue Services 2026 rate schedule (revised 2026-05-20, read 2026-10-24): single and married filing separately share one table; joint filers and surviving spouses have their own. Heads of household have a third table (41,100 / 97,300), not modelled (no head-of-household status in the model)."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_sch_1a_fillable_0.pdf",
+    "note": "Maine starts from federal AGI, so 401(k) and 403(b) deferrals and HSA deposits stay deductible as on the federal return: the 2025 Schedule 1A additions (Maine Revenue Services, read 2026-10-24) hold no 401(k), 403(b), IRA or HSA line. Its only retirement addition is Maine Public Employees Retirement System pick-up contributions (line 3), not modelled."
+  },
+  "income_brackets": {
+    "indexed": true,
+    "adjustment": "indexed",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf",
+    "note": "Every threshold and rate matches the 2026 MRS rate schedule (read 2026-10-24): 5.8%, 6.75% from 27,400 (54,850 joint), 7.15% from 64,850 (129,750 joint), and 9.15% (the 2% surcharge) above 1,000,000 single / 1,500,000 joint. 36 M.R.S. 5403 indexes the thresholds yearly.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.058,
+        "base": 0.0
+      },
+      {
+        "threshold": 27400,
+        "rate": 0.0675,
+        "base": 1589.2
+      },
+      {
+        "threshold": 64850,
+        "rate": 0.0715,
+        "base": 4117.07
+      },
+      {
+        "threshold": 1000000,
+        "rate": 0.0915,
+        "base": 70980.3
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.058,
+        "base": 0.0
+      },
+      {
+        "threshold": 54850,
+        "rate": 0.0675,
+        "base": 3181.3
+      },
+      {
+        "threshold": 129750,
+        "rate": 0.0715,
+        "base": 8237.05
+      },
+      {
+        "threshold": 1500000,
+        "rate": 0.0915,
+        "base": 106209.92
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": true,
+    "SINGLE": 15700.0,
+    "JOINT": 31400.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf",
+    "note": "2026 amounts of the Maine Revenue Services rate schedule (revised 2026-05-20, read 2026-10-24); married filing separately 15,700. The same page confirms every bracket figure: 5.8% to 27,400 (54,850 joint), 6.75% to 64,850 (129,750 joint), then 7.15%; the bases 1,589.20 / 4,117.07 (3,181.30 / 8,237.05 joint) are the cumulative tax of the lower brackets (the schedule rounds them to 1,589 / 4,117 and 3,181 / 8,237). The 9.15% bracket is the 7.15% rate plus the 2% surcharge from 2026 above 1,000,000 single and 1,500,000 joint; married filing separately uses the single table, so its surcharge start (750,000) is not modelled. Brackets, standard deduction, exemption and surcharge thresholds are all indexed every year by statute (36 M.R.S. 5403, chained CPI; the surcharge from 2027), so these sections are marked indexed (s359; the brackets were marked legislated before)."
+  },
+  "exemptions": {
+    "indexed": true,
+    "SINGLE": 5300.0,
+    "JOINT": 10600.0,
+    "senior": 0.0,
+    "dependent": 0.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/2026-05/ind_tax_rate_sched_2026_rev.pdf",
+    "note": "Personal exemption 5,300 for the taxpayer and the spouse on a joint return (2026 rate schedule, read 2026-10-24; indexed by 36 M.R.S. 5403(7)); phased out at high incomes, not modelled. Dependents get a credit instead (below). The additional amount at 65 (2,050 unmarried, 1,650 per married person in 2026, same page) is not modelled."
+  },
+  "exemption_credits": {
+    "indexed": true,
+    "dependent": 305.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://legislature.maine.gov/statutes/36/title36sec5219-SS.html",
+    "note": "Dependent exemption tax credit: 300 per dependent in 36 M.R.S. 5219-SS (doubled under age 6), indexed from 2024 by 5403(9) and rounded down to a multiple of 5 (statutes read 2026-10-24). 305 is the 2025 indexed amount (MRS 2025 worksheet, https://taxsim.nber.org/historical_state_tax_forms/ME/2025/25_dependent_exemption_tx_cr_fillable.pdf, validation run 2, 2026-10-22); Maine Revenue Services has not yet published the 2026 amount, so 305 stands in as an approximation. Unconfirmed until the 2026 amount is published. Also not modelled: the credit is refundable for residents from 2024 and phases out by 20 per 500 of income above 100,000 single / 150,000 joint, but the model treats every state credit as non-refundable and does not phase it out (law-backlog)."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "https://legislature.maine.gov/statutes/36/title36sec5122.html",
+    "min_age": 59.5,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 49824.0,
+      "JOINT": 99648.0,
+      "MFS": 49824.0
+    },
+    "note": "Pension income deduction of up to 49,824 per person for 2026: 36 M.R.S. 5122(2)(M-2) (read 2026-10-24) sets the pension deduction amount at the maximum annual Social Security benefit at full retirement age on 1 January of the tax year, covering employer plan and IRA distributions included in federal AGI; 4,152 x 12 = 49,824 uses the SSA 2026 maximum from secondary sources (ssa.gov refused the fetch), and Maine Revenue Services has not yet published its 2026 figure (2025: 48,216). Approximations: the deduction is reduced by all Social Security and Railroad Retirement benefits received (not modelled, so the exclusion is too large for a person drawing benefits); it phases out over 100,000 of federal AGI above 125,000 single / 250,000 joint from 2025 (M-3, indexed; not modelled); Maine has no age test but distributions that pay the federal 10% early-withdrawal tax do not qualify, so 59.5 stands in. The cap follows the Social Security maximum (which grows each year with the cost-of-living adjustment and wages) ; the model scales it with the indexed brackets (CPI), an approximation."
+  },
+  "estate_inheritance": {
+    "indexed": true,
+    "confidence": "confirmed primary",
+    "check_at": "https://www1.maine.gov/revenue/taxes/income-estate-tax/estate-tax-706me",
+    "estate_tax": {
+      "exemption": 7160000.0,
+      "brackets": [
+        {
+          "threshold": 0,
+          "rate": 0.08,
+          "base": 0.0
+        },
+        {
+          "threshold": 3000000,
+          "rate": 0.1,
+          "base": 240000.0
+        },
+        {
+          "threshold": 6000000,
+          "rate": 0.12,
+          "base": 540000.0
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "Maine estate tax for deaths in 2026: exclusion 7,160,000, then 8% on the first 3,000,000 above it, 10% (base 240,000) on the next 3,000,000 and 12% (base 540,000) above (Maine Revenue Services 706ME page, read in a search extract 2026-10-22; AARP 2026 agrees). The exclusion is indexed yearly; the section is marked indexed, so the bracket widths grow too. No inheritance tax."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://legislature.maine.gov/statutes/36/title36sec5122.html",
+    "note": "Maine subtracts the Social Security and Railroad Retirement benefits taxed federally: 36 M.R.S. 5122(2)(C) (read 2026-10-24, s359) reduces federal AGI by them to the extent included in it (Schedule 1S; also on the 2025 1040ME instructions, https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1040me_gen_instr_w_cover_pg.pdf, validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "unconfirmed",
+    "check_at": "Maine municipal tax pages (no local income tax is authorised)",
+    "note": "Maine towns levy no income tax (state-costs.csv local_income_tax none)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.055,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.055,
+    "vehicle_rate": 0.055,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Maine revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.055 from the state's own source (Maine sales tax 5.5% of the purchase price (https://www.maine.gov/sos/bmv/vehicles/register-a-passenger-vehicle, validation run 3)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Grocery staples exempt; no local sales tax. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00903,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1200.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1672.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify Maine page, about 139 a month or 1,672 a year for full coverage (https://insurify.com/car-insurance/maine/average-cost, validation run 3, 2026-10-22)",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Set by hand from a secondary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 400.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://legislature.maine.gov/statutes/29-a/title29-Asec501.html",
+    "source": "Maine Revenue Services excise tax page (mill rates 24, 17.5, 13.5, 10, 6.5 and 4 from the sixth year, times MSRP) and Town of Gorham (state registration fee 35)",
+    "note": "Maine: municipal excise tax on MSRP (a 40,000 car pays 960, 700, 540, 400, 260 and 160 a year from the sixth year: 3,660 over ten years) plus the 35 state registration fee: about 400 a year. Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand after the import: rerunning importStateCosts.py resets it to 0. Confirmed primary on https://legislature.maine.gov/statutes/29-a/title29-Asec501.html and https://legislature.maine.gov/statutes/36/title36sec1482.html (validation run 2, 2026-10-22)."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.3,
+    "average_price_per_gallon": 3.35,
+    "confidence": "unconfirmed",
+    "check_at": "Maine motor fuel tax page and EIA gasoline prices (https://www.eia.gov/petroleum/gasdiesel/)",
+    "source": "Excise: USGasGauge/EIA (https://usgasgauge.com/gas-tax) and Kiplinger 2026 for some states, memory for the rest; price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2999,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 412002.0,
+    "cost_index": 128.5,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1506.0,
+    "medigap_g_monthly": 291.0,
+    "part_d_monthly": 45.23,
+    "medicare_advantage_monthly": 12.96,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Maine insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 101.1,
+    "bea_goods": 97.2,
+    "bea_services": 103.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 8199.0,
+    "assisted_living_monthly": 7988.0,
+    "nursing_home_private_monthly": 13885.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

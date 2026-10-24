@@ -1,0 +1,307 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "va",
+  "name": "Virginia",
+  "tax_year": 2026,
+  "source": "Primary, read 2026-10-24 (s359): Code of Virginia 58.1-320 (rates) and 58.1-322.03 (standard deduction by year, 930 / 800 exemptions, age deduction) on law.lis.virginia.gov; Virginia Tax 2025 Form 760 Resident Individual Income Tax Booklet (tax rate schedule page 35, Age 65 and Older Deduction Worksheet, standard deduction and exemptions, tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf); tax.virginia.gov deductions, exemptions, additions and subtractions pages. Earlier second sources: EY Tax News 2025-1326 (HB 1600), prosalarytax.com and ustax.tools 2026 Virginia brackets",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-320/",
+    "note": "Virginia has one rate schedule for every filing status (Code of Virginia 58.1-320; 2025 Form 760 booklet, tax rate schedule page 35, read 2026-10-24); separate filers use it on their own income, so MFS points at the single table. Not modelled: the Spouse Tax Adjustment, a credit of up to 259 for a joint return where both spouses have taxable income (Form 760 line 17), so a two-earner joint return's tax is up to 259 too high."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.virginia.gov/additions",
+    "note": "Virginia starts from federal adjusted gross income (Form 760 line 1), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible as on the federal return; none of the additions on tax.virginia.gov/additions touches them (confirmed primary, read 2026-10-24)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf",
+    "note": "2% to 3,000, 3% to 5,000, 5% to 17,000, 5.75% above, bases 60 / 120 / 720, the same for single and joint (Code of Virginia 58.1-320 and the 2025 Form 760 tax rate schedule, read 2026-10-24); fixed in statute since 1990 (legislated, not indexed), so the 2026 figures are the same.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 3000,
+        "rate": 0.03,
+        "base": 60.0
+      },
+      {
+        "threshold": 5000,
+        "rate": 0.05,
+        "base": 120.0
+      },
+      {
+        "threshold": 17000,
+        "rate": 0.0575,
+        "base": 720.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 3000,
+        "rate": 0.03,
+        "base": 60.0
+      },
+      {
+        "threshold": 5000,
+        "rate": 0.05,
+        "base": 120.0
+      },
+      {
+        "threshold": 17000,
+        "rate": 0.0575,
+        "base": 720.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 8750.0,
+    "JOINT": 17500.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-322.03/",
+    "note": "8750 single and separate (half the married amount), 17500 joint for taxable years 2025 and 2026 (Code of Virginia 58.1-322.03(1)(b)(v), read 2026-10-24; same on tax.virginia.gov/deductions and the 2025 Form 760 booklet). Legislated, not indexed. The statute as read now sets 9200 / 18400 for 2027 and 9300 / 18600 for 2028 and 2029, then 3000 / 6000 from 2030 (the 2025 booklet, printed earlier, still says the amount reverts to 3000 / 6000 after 2026); later years are not modelled, the model keeps the 2026 amount. Single and joint returns use the same brackets (one table each so the deduction can differ)."
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 930.0,
+    "JOINT": 1860.0,
+    "senior": 800.0,
+    "dependent": 930.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-322.03/",
+    "note": "930 per personal exemption (taxpayer, spouse and each dependent) and 800 more per person aged 65 or older or blind (Code of Virginia 58.1-322.03(2), no year limit; tax.virginia.gov/exemptions and 2025 Form 760 booklet page 9; all read 2026-10-24). Legislated, not indexed."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 65,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 12000.0,
+      "JOINT": 24000.0,
+      "MFS": 12000.0
+    },
+    "income_tiers": [
+      {
+        "up_to": 50000.0,
+        "percent": {
+          "SINGLE": 1.0,
+          "JOINT": 1.0,
+          "MFS": 1.0
+        }
+      },
+      {
+        "up_to": 54000.0,
+        "percent": {
+          "SINGLE": 0.19,
+          "JOINT": 1.0,
+          "MFS": 0.19
+        }
+      },
+      {
+        "up_to": 58000.0,
+        "percent": {
+          "SINGLE": 0.11,
+          "JOINT": 1.0,
+          "MFS": 0.11
+        }
+      },
+      {
+        "up_to": 62000.0,
+        "percent": {
+          "SINGLE": 0.03,
+          "JOINT": 1.0,
+          "MFS": 0.03
+        }
+      },
+      {
+        "up_to": 75000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 1.0,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 81000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.27,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 87000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.18,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 93000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.1,
+          "MFS": 0.0
+        }
+      },
+      {
+        "up_to": 99000.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 0.03,
+          "MFS": 0.0
+        }
+      }
+    ],
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.virginia.gov/sites/default/files/vatax-pdf/2025-760-instructions.pdf (Age 65 and Older Deduction Worksheet, page 10)",
+    "note": "Figures confirmed primary (Code of Virginia 58.1-322.03(5); 2025 Form 760 booklet, Age 65 and Older Deduction Worksheet; tax.virginia.gov/subtractions; all read 2026-10-24): up to 12000 per person aged 65 or older, reduced by 1 for every 1 of adjusted federal AGI (federal AGI less taxable Social Security and Tier 1) above 50000 single or 75000 married; a married couple both claiming it computes one joint deduction (24000 less the excess) and splits it in half, so it is gone at 62000 single and 99000 for a couple both 65 or older (people born on or before 1939-01-01 get the full 12000, not modelled). Legislated, not indexed. Approximation of the rule: Virginia allows it against any income, the model only against retirement income; the income-based reduction is turned into shares of the retirement income at the middle of each 4000 (single) or 6000 (joint) step, assuming nearly all income is retirement income; a joint return with one person 65 or older is treated like two (slightly too generous between 75000 and 99000). Separate filers test the couple's combined income in Virginia; the model tests the return's own."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://law.lis.virginia.gov/vacode/title58.1/chapter9/section58.1-902/",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Virginia levies no estate tax (repealed for deaths on or after 2007-07-01) and no inheritance tax (state-costs.csv columns estate_tax and inheritance_tax; Tax Foundation and Kiplinger state death-tax lists). Confirmed primary on https://law.lis.virginia.gov/vacode/title58.1/chapter9/section58.1-902/ (validation run 3, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.virginia.gov/subtractions (Social Security and Tier 1 Railroad benefits)",
+    "note": "Virginia law exempts Social Security and Tier 1 Railroad Retirement benefits; the part in federal AGI is subtracted (tax.virginia.gov/subtractions, read 2026-10-22 and again 2026-10-24; Form 760 Schedule ADJ subtraction; Kiplinger 2026 and AARP agree)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.tax.virginia.gov (localities levy no income tax)",
+    "note": "Virginia counties and cities levy no income tax (state-costs.csv local_income_tax 'none'; Tax Foundation local income tax list). The 2025 Form 760 booklet (read 2026-10-24) has no local income tax line, but no Virginia Tax page states the absence outright, so it stays secondary."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.053,
+    "avg_local_rate": 0.0047,
+    "combined_rate": 0.0577,
+    "vehicle_rate": 0.0415,
+    "grocery_rate": 0.01,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Virginia revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://www.tax.virginia.gov/grocery-tax and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0415 from the state's own source (Virginia motor vehicle sales and use tax, 4.15% of the sale price from 2016-07-01, no local tax (Code of Virginia 58.1-2402, law.lis.virginia.gov, fetched 2026-10-22; Virginia DMV sales and use tax page, dmv.virginia.gov/vehicles/taxes-fees/sut, search extract)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: yes); research note: State portion 0 since 2023-01-01; 1% local remains statewide on food and hygiene products; 2026 bills to repeal local 1% not confirmed enacted. clothing_taxable is true (research: yes; Protective workwear exempt only). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00754,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1656.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2484.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 1156.0,
+    "confidence": "unconfirmed",
+    "check_at": "Virginia motor vehicle registration and vehicle property tax pages",
+    "source": "WalletHub, 2026's Property Taxes by State, vehicle tax table (https://wallethub.com/edu/t/states-with-the-highest-and-lowest-property-taxes/11585/), read 2026-10-22",
+    "note": "Annual vehicle tax on a 29100 car (2026 Toyota Camry LE): local personal property tax on vehicles, population-weighted (WalletHub effective rate 3.97%, the highest in the US). One source, so unconfirmed; the state's PPTRA relief on the first 20000 of value may not be netted out, and flat registration fees are not in it. Set by hand after .claude/state/scratch/importStateCosts.py (which writes 0); rerunning the importer resets it."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.326,
+    "average_price_per_gallon": 3.09,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.dmv.virginia.gov/businesses/tax-act/fuels/tax-rates",
+    "source": "Excise: https://www.dmv.virginia.gov/businesses/tax-act/fuels/tax-rates (validation run 3, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Gas excise: 0.326 from 2026-07-01 to 2027-06-30 (0.317 before) (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1683,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 412252.0,
+    "cost_index": 99.3,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 966.0,
+    "medigap_g_monthly": 189.0,
+    "part_d_monthly": 39.7,
+    "medicare_advantage_monthly": 12.32,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Virginia insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 100.4,
+    "bea_goods": 100.4,
+    "bea_services": 100.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6292.0,
+    "assisted_living_monthly": 6512.0,
+    "nursing_home_private_monthly": 9825.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

@@ -9,7 +9,7 @@
   <title>Vermont &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -191,19 +191,133 @@
 <td><p>estimate</p></td>
 </tr>
 <tr class="row-odd"><td><p>As of</p></td>
-<td><p>2026-10-22</p></td>
+<td><p>2026-10-24</p></td>
 </tr>
 <tr class="row-even"><td><p>Source</p></td>
-<td><p>Vermont Department of Taxes 2025 Vermont Tax Rate Schedules (Schedules X, Y-1, Y-2, read through the taxsim.nber.org copy of the department’s PDF) and the department’s filing-season FAQ (standard deduction, 65+ addition and 5,300 personal exemption, read on tax.vermont.gov); Social Security exemption table from tax.vermont.gov (search extract); S.51 (2025) summary by the Joint Fiscal Office (legislature.vermont.gov, read); 2026 amounts not yet published; second sources: TaxAct Vermont guide (49,400 single, 7,650 / 15,300, 5,300) and the IN-114 2025 instructions (82,500 / 199,450 joint)</p></td>
+<td><p>Primary, read 2026-10-24 (s359): Vermont Department of Taxes 2025 Vermont Tax Rate Schedules (Schedules X, Y-1, Y-2, Z, tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf), 2025 Form IN-111 Instructions (standard deduction chart, 1,250 addition, 5,300 personal exemption, IN-111-Instr-2025.pdf), 2025 Schedule IN-112 Instructions (additions and subtractions, Retirement Income Exemption Worksheet, IN-112-Instr-2025.pdf), 32 V.S.A. 5822 (rates, CPI indexing, 3% of AGI minimum) and 5811(21) (standard deduction and exemption, CPI indexing) on legislature.vermont.gov; the department’s tax-rates list (2026 rate schedules not yet published, 2026-10-24). Earlier: S.51 (2025) summary by the Joint Fiscal Office; second sources TaxAct Vermont guide and the IN-114 2025 instructions</p></td>
 </tr>
 <tr class="row-odd"><td><p>Schema version</p></td>
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>19 sections: 4 confirmed primary, 7 confirmed secondary, 8 unconfirmed</p></td>
+<td><p>19 sections: 10 confirmed primary, 7 confirmed secondary, 2 unconfirmed</p></td>
 </tr>
 </tbody>
 </table>
+<div class="law-file docutils container">
+<p><strong>The law file:</strong> <code class="docutils literal notranslate"><span class="pre">.config/law/vt.json</span></code> holds every figure on this page; the model reads it as it stands. A copy ships with these pages: <a class="reference external" href="../_static/law/vt.json">vt.json</a>.</p>
+<details class="law-json"><summary>The income-tax sections as stored (JSON)</summary>
+<pre>{
+  &quot;filing_tables&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;SINGLE&quot;: &quot;SINGLE&quot;,
+    &quot;MFS&quot;: &quot;MFS&quot;,
+    &quot;JOINT&quot;: &quot;JOINT&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf&quot;,
+    &quot;note&quot;: &quot;One schedule per filing status: X single, Y-1 joint and surviving spouse, Y-2 married separate (Z head of household not modelled) (2025 Vermont Tax Rate Schedules, read 2026-10-24).&quot;
+  },
+  &quot;state_base&quot;: {
+    &quot;indexed&quot;: false,
+    &quot;add_back&quot;: [],
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.vermont.gov/sites/tax/files/documents/IN-112-Instr-2025.pdf&quot;,
+    &quot;note&quot;: &quot;Vermont starts from federal adjusted gross income (IN-111 line 1); the only additions are non-Vermont state and local bond interest and federal bonus depreciation (2025 IN-112 instructions, read 2026-10-24), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible (confirmed primary). Not modelled: above a federal AGI of 150,000 the tax is at least 3% of AGI (the rate schedules&#x27; note), which taxes high incomes with large deductions more; the capital gain exclusion (a flat 5,000, or 40% of gains on assets other than publicly traded stocks and bonds, capped); and the military retirement and CSRS exemptions. Vermont has no general pension or IRA exclusion (the research file&#x27;s &#x27;10k pension exclusion&#x27; is the CSRS and military one).&quot;
+  },
+  &quot;income_brackets&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;adjustment&quot;: &quot;indexed&quot;,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf&quot;,
+    &quot;note&quot;: &quot;Every threshold and rate matches the 2025 Vermont Tax Rate Schedules (read 2026-10-24): single 3.35% to 49,400, 6.6% to 119,700, 7.6% to 249,700, 8.75% above; married separate 41,250 / 99,725 / 152,000; joint 82,500 / 199,450 / 304,000. The schedule rounds the bases to whole dollars; the file keeps the exact cumulative bases. Indexed yearly by CPI (32 V.S.A. 5822(b)); the 2026 schedules are not yet published, so the 2025 figures stand in for 2026 (approximation).&quot;,
+    &quot;SINGLE&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0335,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 49400,
+        &quot;rate&quot;: 0.066,
+        &quot;base&quot;: 1654.9
+      },
+      {
+        &quot;threshold&quot;: 119700,
+        &quot;rate&quot;: 0.076,
+        &quot;base&quot;: 6294.7
+      },
+      {
+        &quot;threshold&quot;: 249700,
+        &quot;rate&quot;: 0.0875,
+        &quot;base&quot;: 16174.7
+      }
+    ],
+    &quot;MFS&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0335,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 41250,
+        &quot;rate&quot;: 0.066,
+        &quot;base&quot;: 1381.875
+      },
+      {
+        &quot;threshold&quot;: 99725,
+        &quot;rate&quot;: 0.076,
+        &quot;base&quot;: 5241.225
+      },
+      {
+        &quot;threshold&quot;: 152000,
+        &quot;rate&quot;: 0.0875,
+        &quot;base&quot;: 9214.125
+      }
+    ],
+    &quot;JOINT&quot;: [
+      {
+        &quot;threshold&quot;: 0,
+        &quot;rate&quot;: 0.0335,
+        &quot;base&quot;: 0.0
+      },
+      {
+        &quot;threshold&quot;: 82500,
+        &quot;rate&quot;: 0.066,
+        &quot;base&quot;: 2763.75
+      },
+      {
+        &quot;threshold&quot;: 199450,
+        &quot;rate&quot;: 0.076,
+        &quot;base&quot;: 10482.45
+      },
+      {
+        &quot;threshold&quot;: 304000,
+        &quot;rate&quot;: 0.0875,
+        &quot;base&quot;: 18428.25
+      }
+    ]
+  },
+  &quot;standard_deduction&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;SINGLE&quot;: 7650.0,
+    &quot;MFS&quot;: 7650.0,
+    &quot;JOINT&quot;: 15300.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf (Line 4 chart)&quot;,
+    &quot;note&quot;: &quot;2025 Vermont standard deduction 7,650 single and separate, 15,300 joint (11,450 head of household, not modelled) (2025 IN-111 instructions, Line 4 chart, read 2026-10-24). Indexed yearly by CPI from 2018 (32 V.S.A. 5811(21)(D)); 2026 amounts not yet published, so 2025 stands in (approximation).&quot;
+  },
+  &quot;exemptions&quot;: {
+    &quot;indexed&quot;: true,
+    &quot;SINGLE&quot;: 5300.0,
+    &quot;MFS&quot;: 5300.0,
+    &quot;JOINT&quot;: 10600.0,
+    &quot;senior&quot;: 1250.0,
+    &quot;dependent&quot;: 5300.0,
+    &quot;confidence&quot;: &quot;confirmed primary&quot;,
+    &quot;check_at&quot;: &quot;https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf (Lines 4 and 5)&quot;,
+    &quot;note&quot;: &quot;2025 personal exemption 5,300 per person and dependent (no spouse exemption on a separate return); the standard deduction rises by 1,250 for each federal 65-or-older or blind box, kept here as the senior amount (2025 IN-111 instructions, Lines 4 and 5e, read 2026-10-24). Indexed yearly by CPI (32 V.S.A. 5811(21)(D)); 2026 amounts not yet published, so 2025 stands in (approximation).&quot;
+  }
+}</pre></details></div>
 <section id="sections-at-a-glance">
 <h2>Sections at a glance<a class="headerlink" href="#sections-at-a-glance" title="Link to this heading"></a></h2>
 <table class="law-table docutils align-default">
@@ -221,23 +335,23 @@
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-vt-filing-tables"><span class="std std-ref">Filing tables</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">filing_tables</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-vt-state-base"><span class="std std-ref">Income base and add-backs</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-vt-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-vt-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-vt-exemptions"><span class="std std-ref">Exemptions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemptions</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-vt-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
@@ -245,7 +359,7 @@
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#law-vt-social-security"><span class="std std-ref">Social Security benefits</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">social_security</span></code></p></td>
-<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+<td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#law-vt-local-income-tax"><span class="std std-ref">Local income tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">local_income_tax</span></code></p></td>
@@ -300,49 +414,43 @@
 </section>
 <section id="filing-tables-filing-tables">
 <span id="law-vt-filing-tables"></span><h2>Filing tables (filing_tables)<a class="headerlink" href="#filing-tables-filing-tables" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Each filing status and the bracket table it uses:</p>
 <table class="law-table docutils align-default">
 <colgroup>
-<col style="width: 25.0%" />
+<col style="width: 60.0%" />
 <col style="width: 40.0%" />
-<col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>Bracket table</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>no</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p></td>
-<td><p>SINGLE</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;SINGLE&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
-<td><p>MFS</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;MFS&quot;</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p></td>
-<td><p>JOINT</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;JOINT&quot;</span></code></p></td>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> Which bracket table each federal filing status uses (SINGLE, JOINT, MFS); the tables themselves are in the brackets section. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf">https://tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf</a></p>
+<p><strong>Note:</strong> One schedule per filing status: X single, Y-1 joint and surviving spouse, Y-2 married separate (Z head of household not modelled) (2025 Vermont Tax Rate Schedules, read 2026-10-24).</p>
 </div>
 </section>
 <section id="income-base-and-add-backs-state-base">
 <span id="law-vt-state-base"></span><h2>Income base and add-backs (state_base)<a class="headerlink" href="#income-base-and-add-backs-state-base" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>The state adds back none of the federal deductions the model tracks (Traditional deposits, Traditional IRA deposits and HSA deposits): it starts from the same income as the federal return.</p>
+<p><strong>How the model uses this:</strong> The federal deductions the state adds back to the income it taxes (add_back), and how its income base differs from the federal one. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -366,127 +474,161 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Brackets: 2025 rate schedules (primary): single 3.35% to 49,400, 6.6% to 119,700, 7.6% to 249,700, 8.75% above; married separate 41,250 / 99,725 / 152,000; joint 82,500 / 199,450 / 304,000. The schedule’s bases are rounded to whole dollars (1,655, 6,295, 16,175 single); the file keeps the exact cumulative bases. Indexed yearly; 2026 schedules not yet published. Vermont starts from federal adjusted gross income, so 401(k) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible (not checked against department guidance). Not modelled: above a federal AGI of 150,000 the tax is at least 3% of AGI (the rate schedules’ note), which taxes high incomes with large deductions more; the capital gain exclusion (a flat 5,000, or 40% of gains on assets other than publicly traded stocks and bonds, capped); and the military retirement and CSRS exemptions. Vermont has no general pension or IRA exclusion (the research file’s ‘10k pension exclusion’ is the CSRS and military one).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.vermont.gov/sites/tax/files/documents/IN-112-Instr-2025.pdf">https://tax.vermont.gov/sites/tax/files/documents/IN-112-Instr-2025.pdf</a></p>
+<p><strong>Note:</strong> Vermont starts from federal adjusted gross income (IN-111 line 1); the only additions are non-Vermont state and local bond interest and federal bonus depreciation (2025 IN-112 instructions, read 2026-10-24), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible (confirmed primary). Not modelled: above a federal AGI of 150,000 the tax is at least 3% of AGI (the rate schedules’ note), which taxes high incomes with large deductions more; the capital gain exclusion (a flat 5,000, or 40% of gains on assets other than publicly traded stocks and bonds, capped); and the military retirement and CSRS exemptions. Vermont has no general pension or IRA exclusion (the research file’s ‘10k pension exclusion’ is the CSRS and military one).</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">
 <span id="law-vt-income-brackets"></span><h2>Income tax brackets (income_brackets)<a class="headerlink" href="#income-tax-brackets-income-brackets" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Graduated rates from 3.35% to 8.75%. Each rate applies to the taxable income between its threshold and the next; the base is the tax on all the brackets below, so the tax is the base plus the rate times the income over the threshold.</p>
+<p>The thresholds are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p class="rubric">Single (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p>
 <table class="law-table docutils align-default">
 <colgroup>
+<col style="width: 30.0%" />
 <col style="width: 25.0%" />
-<col style="width: 40.0%" />
-<col style="width: 35.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Value</p></th>
-<th class="head"><p>As stored</p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
-<td><p>yes</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$49,400</p></td>
+<td><p>3.35%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adjustment</span></code></p></td>
-<td><p>indexed</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;indexed&quot;</span></code></p></td>
+<tr class="row-odd"><td><p>$49,400</p></td>
+<td><p>$119,700</p></td>
+<td><p>6.6%</p></td>
+<td><p>$1,654.90</p></td>
+</tr>
+<tr class="row-even"><td><p>$119,700</p></td>
+<td><p>$249,700</p></td>
+<td><p>7.6%</p></td>
+<td><p>$6,294.70</p></td>
+</tr>
+<tr class="row-odd"><td><p>$249,700</p></td>
+<td><p>and above</p></td>
+<td><p>8.75%</p></td>
+<td><p>$16,174.70</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">SINGLE</span></code></p>
+<p class="rubric">Married filing separately (<code class="docutils literal notranslate"><span class="pre">MFS</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>3.35% (0.0335)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$41,250</p></td>
+<td><p>3.35%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>49,400</p></td>
-<td><p>6.6% (0.066)</p></td>
-<td><p>1,654.9</p></td>
+<tr class="row-odd"><td><p>$41,250</p></td>
+<td><p>$99,725</p></td>
+<td><p>6.6%</p></td>
+<td><p>$1,381.875</p></td>
 </tr>
-<tr class="row-even"><td><p>119,700</p></td>
-<td><p>7.6% (0.076)</p></td>
-<td><p>6,294.7</p></td>
+<tr class="row-even"><td><p>$99,725</p></td>
+<td><p>$152,000</p></td>
+<td><p>7.6%</p></td>
+<td><p>$5,241.225</p></td>
 </tr>
-<tr class="row-odd"><td><p>249,700</p></td>
-<td><p>8.75% (0.0875)</p></td>
-<td><p>16,174.7</p></td>
+<tr class="row-odd"><td><p>$152,000</p></td>
+<td><p>and above</p></td>
+<td><p>8.75%</p></td>
+<td><p>$9,214.125</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">MFS</span></code></p>
+<p class="rubric">Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p>
 <table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
+<tr class="row-odd"><th class="head"><p>Taxable income over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>3.35% (0.0335)</p></td>
-<td><p>0</p></td>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>$82,500</p></td>
+<td><p>3.35%</p></td>
+<td><p>$0</p></td>
 </tr>
-<tr class="row-odd"><td><p>41,250</p></td>
-<td><p>6.6% (0.066)</p></td>
-<td><p>1,381.875</p></td>
+<tr class="row-odd"><td><p>$82,500</p></td>
+<td><p>$199,450</p></td>
+<td><p>6.6%</p></td>
+<td><p>$2,763.75</p></td>
 </tr>
-<tr class="row-even"><td><p>99,725</p></td>
-<td><p>7.6% (0.076)</p></td>
-<td><p>5,241.225</p></td>
+<tr class="row-even"><td><p>$199,450</p></td>
+<td><p>$304,000</p></td>
+<td><p>7.6%</p></td>
+<td><p>$10,482.45</p></td>
 </tr>
-<tr class="row-odd"><td><p>152,000</p></td>
-<td><p>8.75% (0.0875)</p></td>
-<td><p>9,214.125</p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric"><code class="docutils literal notranslate"><span class="pre">JOINT</span></code></p>
-<table class="law-table docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">threshold</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">base</span></code></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>0</p></td>
-<td><p>3.35% (0.0335)</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p>82,500</p></td>
-<td><p>6.6% (0.066)</p></td>
-<td><p>2,763.75</p></td>
-</tr>
-<tr class="row-even"><td><p>199,450</p></td>
-<td><p>7.6% (0.076)</p></td>
-<td><p>10,482.45</p></td>
-</tr>
-<tr class="row-odd"><td><p>304,000</p></td>
-<td><p>8.75% (0.0875)</p></td>
-<td><p>18,428.25</p></td>
+<tr class="row-odd"><td><p>$304,000</p></td>
+<td><p>and above</p></td>
+<td><p>8.75%</p></td>
+<td><p>$18,428.25</p></td>
 </tr>
 </tbody>
 </table>
+<p><strong>How the model uses this:</strong> The state’s income tax brackets, one table per bracket table name: each bracket’s rate applies to the taxable income above its threshold, and base is the tax of the brackets below it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf">https://tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf</a></p>
+<p><strong>Note:</strong> Every threshold and rate matches the 2025 Vermont Tax Rate Schedules (read 2026-10-24): single 3.35% to 49,400, 6.6% to 119,700, 7.6% to 249,700, 8.75% above; married separate 41,250 / 99,725 / 152,000; joint 82,500 / 199,450 / 304,000. The schedule rounds the bases to whole dollars; the file keeps the exact cumulative bases. Indexed yearly by CPI (32 V.S.A. 5822(b)); the 2026 schedules are not yet published, so the 2025 figures stand in for 2026 (approximation).</p>
 </div>
 </section>
 <section id="standard-deduction-standard-deduction">
 <span id="law-vt-standard-deduction"></span><h2>Standard deduction (standard_deduction)<a class="headerlink" href="#standard-deduction-standard-deduction" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>The amount taken off the income the state taxes, per bracket table.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Taken off the income before the brackets apply:</p>
+<table class="law-table docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$7,650</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing separately (<code class="docutils literal notranslate"><span class="pre">MFS</span></code>)</p></td>
+<td><p>$7,650</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$15,300</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p><strong>How the model uses this:</strong> The amount taken off the income the state taxes, per bracket table. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -518,15 +660,46 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> 2025 Vermont standard deduction 7,650 single and separate, 15,300 joint (department filing-season FAQ, primary).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf">https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf</a> (Line 4 chart)</p>
+<p><strong>Note:</strong> 2025 Vermont standard deduction 7,650 single and separate, 15,300 joint (11,450 head of household, not modelled) (2025 IN-111 instructions, Line 4 chart, read 2026-10-24). Indexed yearly by CPI from 2018 (32 V.S.A. 5811(21)(D)); 2026 amounts not yet published, so 2025 stands in (approximation).</p>
 </div>
 </section>
 <section id="exemptions-exemptions">
 <span id="law-vt-exemptions"></span><h2>Exemptions (exemptions)<a class="headerlink" href="#exemptions-exemptions" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span> (the state’s income tax confidence)</p>
-<p><strong>Unconfirmed:</strong> the file marks part of the state’s income tax as not checked against a source; treat its figures with care.</p>
-<p>Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed.</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Amounts taken off the income the state taxes:</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 70.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Who</p></th>
+<th class="head"><p>Amount</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Personal: Single (<code class="docutils literal notranslate"><span class="pre">SINGLE</span></code>)</p></td>
+<td><p>$5,300</p></td>
+</tr>
+<tr class="row-odd"><td><p>Personal: Married filing separately (<code class="docutils literal notranslate"><span class="pre">MFS</span></code>)</p></td>
+<td><p>$5,300</p></td>
+</tr>
+<tr class="row-even"><td><p>Personal: Married filing jointly (<code class="docutils literal notranslate"><span class="pre">JOINT</span></code>)</p></td>
+<td><p>$10,600</p></td>
+</tr>
+<tr class="row-odd"><td><p>Per person 65 or older</p></td>
+<td><p>$1,250</p></td>
+</tr>
+<tr class="row-even"><td><p>Per dependent</p></td>
+<td><p>$5,300</p></td>
+</tr>
+</tbody>
+</table>
+<p>The amounts are indexed: the law grows them with inflation each year, and so does the model.</p>
+<p><strong>How the model uses this:</strong> Amounts taken off the income the state taxes: a personal amount per bracket table, and per dependent and per senior where listed. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -566,14 +739,40 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> 2025 personal exemption 5,300 per person and dependent; the standard deduction rises by 1,250 for each person 65 or older or blind, kept here as the senior amount (department filing-season FAQ, primary).</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf">https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf</a> (Lines 4 and 5)</p>
+<p><strong>Note:</strong> 2025 personal exemption 5,300 per person and dependent (no spouse exemption on a separate return); the standard deduction rises by 1,250 for each federal 65-or-older or blind box, kept here as the senior amount (2025 IN-111 instructions, Lines 4 and 5e, read 2026-10-24). Indexed yearly by CPI (32 V.S.A. 5811(21)(D)); 2026 amounts not yet published, so 2025 stands in (approximation).</p>
 </div>
 </section>
 <section id="estate-and-inheritance-tax-estate-inheritance">
 <span id="law-vt-estate-inheritance"></span><h2>Estate and inheritance tax (estate_inheritance)<a class="headerlink" href="#estate-and-inheritance-tax-estate-inheritance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep.</p>
+<p>Estate tax on the part of an estate above $5,000,000, by this schedule (amounts above the exemption):</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Amount over</p></th>
+<th class="head"><p>Up to</p></th>
+<th class="head"><p>Rate</p></th>
+<th class="head"><p>Base (tax below)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>$0</p></td>
+<td><p>and above</p></td>
+<td><p>16%</p></td>
+<td><p>$0</p></td>
+</tr>
+</tbody>
+</table>
+<p>No inheritance tax.</p>
+<p><strong>How the model uses this:</strong> The state’s estate tax and its inheritance tax by heir class (none: the state has no such tax), used for what beneficiaries keep. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -638,10 +837,33 @@
 </section>
 <section id="social-security-benefits-social-security">
 <span id="law-vt-social-security"></span><h2>Social Security benefits (social_security)<a class="headerlink" href="#social-security-benefits-social-security" title="Link to this heading"></a></h2>
-<div class="law-section law-unconfirmed docutils container">
-<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
-<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold).</p>
+<div class="law-section law-primary docutils container">
+<p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
+<p>Benefits are not taxed while federal AGI is at most the limit below; above it the state taxes the federally taxable part, up to 100% of the benefits.</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 60.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filing status</p></th>
+<th class="head"><p>AGI limit</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Single</p></td>
+<td><p>$60,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Married filing jointly</p></td>
+<td><p>$75,000</p></td>
+</tr>
+<tr class="row-even"><td><p>Married filing separately</p></td>
+<td><p>$60,000</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How the model uses this:</strong> How the state taxes Social Security benefits: exempt, as the federal return does (federal), or exempt below an income limit (threshold). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -673,15 +895,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> Vermont Schedule IN-112 Social Security exemption worksheet (<a class="reference external" href="https://tax.vermont.gov/individuals/income-tax-returns/social-security-exemption">https://tax.vermont.gov/individuals/income-tax-returns/social-security-exemption</a>)</p>
-<p><strong>Note:</strong> Vermont exempts all federally taxable Social Security at an AGI up to 55,000 (single, separate, head of household) or 70,000 (joint), part of it up to 65,000 / 80,000 (the share falls in a straight line over 10,000), none above (tax.vermont.gov exemption table for 2025, search extract; S.51 of 2025 raised the limits by 5,000). Approximation, unconfirmed: the phase-out is replaced by a cliff at its midpoint, 60,000 / 75,000, so the tax is off by up to half the benefit tax inside the band.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://tax.vermont.gov/sites/tax/files/documents/IN-112-Instr-2025.pdf">https://tax.vermont.gov/sites/tax/files/documents/IN-112-Instr-2025.pdf</a> (Retirement Income Exemption Worksheet)</p>
+<p><strong>Note:</strong> Figures confirmed primary (2025 Schedule IN-112 instructions, Retirement Income Exemption Worksheet, read 2026-10-24): Vermont exempts all federally taxable Social Security at a federal AGI below 55,000 (single, separate, head of household, surviving spouse) or 70,000 (joint), a share (80,000 or 65,000 less AGI, divided by 10,000) up to 80,000 / 65,000, none above; S.51 of 2025 raised the limits by 5,000. The exemption is an election: a filer may instead exempt up to 10,000 of CSRS-type pension income (not modelled). The limits change by legislation (as S.51 did), so the file keeps them unindexed. Approximation: the phase-out is replaced by a cliff at its midpoint, 60,000 / 75,000, so the tax is off by up to half the benefit tax inside the band.</p>
 </div>
 </section>
 <section id="local-income-tax-local-income-tax">
 <span id="law-vt-local-income-tax"></span><h2>Local income tax (local_income_tax)<a class="headerlink" href="#local-income-tax-local-income-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The average local (county, city and school-district) income tax across the state, charged on what applies_to names.</p>
+<p>No local income tax (an average of 0%).</p>
+<p><strong>How the model uses this:</strong> The average local (county, city and school-district) income tax across the state, charged on what applies_to names. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -717,7 +941,9 @@
 <span id="law-vt-sales-tax"></span><h2>Sales tax (sales_tax)<a class="headerlink" href="#sales-tax-sales-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates.</p>
+<p>State sales tax 6%; local sales taxes add 0.43% on average (6.43% combined). A car purchase pays 6%; groceries pay 0%. Clothing taxed: no.</p>
+<p><strong>How the model uses this:</strong> The sales tax on taxable spending and on a car purchase (vehicle_rate), the rate on groceries and whether clothing is taxed; a move to another state changes the spending by the ratio of one plus each state’s rate, and a car purchase by the difference of the two vehicle rates. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -770,7 +996,9 @@
 <span id="law-vt-property-tax"></span><h2>Property tax (property_tax)<a class="headerlink" href="#property-tax-property-tax" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states.</p>
+<p>Property taxes average 1.399% of the home’s value a year.</p>
+<p><strong>How the model uses this:</strong> Property taxes paid over home value; a move scales the home’s property tax by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -803,7 +1031,9 @@
 <span id="law-vt-home-insurance"></span><h2>Home insurance (home_insurance)<a class="headerlink" href="#home-insurance-home-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly home insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average home insurance premium is $984 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly home insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -836,7 +1066,9 @@
 <span id="law-vt-car-insurance"></span><h2>Car insurance (car_insurance)<a class="headerlink" href="#car-insurance-car-insurance" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The average yearly car insurance premium; a move scales your premium by the ratio between the two states.</p>
+<p>The average full-coverage car insurance premium is $1,680 a year.</p>
+<p><strong>How the model uses this:</strong> The average yearly car insurance premium; a move scales your premium by the ratio between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -869,7 +1101,9 @@
 <span id="law-vt-car-taxes"></span><h2>Car taxes (car_taxes)<a class="headerlink" href="#car-taxes-car-taxes" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states.</p>
+<p>Registration and vehicle taxes average $91 per car a year.</p>
+<p><strong>How the model uses this:</strong> Registration and vehicle taxes per car and year; a move changes each car’s cost by the difference between the two states. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -903,7 +1137,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon.</p>
+<p>The state gas tax is $0.32 a gallon. Gas averages $3.36 a gallon.</p>
+<p><strong>How the model uses this:</strong> The state gas tax and the average pump price per gallon; a move changes fuel spending by the difference per gallon. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -940,7 +1176,9 @@
 <span id="law-vt-utilities"></span><h2>Utilities (utilities)<a class="headerlink" href="#utilities-utilities" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them).</p>
+<p>Residential electricity averages $0.2395 per kWh.</p>
+<p><strong>How the model uses this:</strong> The model checks this figure when it loads the file; a move does not use it (utilities stay as you enter them). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -973,7 +1211,9 @@
 <span id="law-vt-housing"></span><h2>Housing (housing)<a class="headerlink" href="#housing-housing" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio.</p>
+<p>The typical home value is $391,900. The housing cost index is 128.2 (US = 100).</p>
+<p><strong>How the model uses this:</strong> The typical home value and the housing cost index; a move scales rent by the cost index ratio and a home that follows the move by the home value ratio. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1011,7 +1251,9 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged).</p>
+<p>Monthly premiums per person: benchmark silver plan at 60 $1,299; Medigap Plan G at 65 $271; Part D $43.31;</p>
+<p><strong>How the model uses this:</strong> Monthly premiums per person; a move scales the health premium before Medicare, the Medicare supplement and the Part D premium by the ratio between the two states (a blank figure leaves that premium unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1056,7 +1298,9 @@
 <span id="law-vt-price-indexes"></span><h2>Price indexes (price_indexes)<a class="headerlink" href="#price-indexes-price-indexes" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged).</p>
+<p>Price levels with the US at 100: groceries 100.1; goods 97.3; services other than rent 101.6.</p>
+<p><strong>How the model uses this:</strong> Price levels with the US at 100; a move scales food, goods and services other than rent by the ratio between the two states (a blank figure leaves that cost unchanged). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -1097,7 +1341,9 @@
 <span id="law-vt-long-term-care"></span><h2>Long term care (long_term_care)<a class="headerlink" href="#long-term-care-long-term-care" title="Link to this heading"></a></h2>
 <div class="law-section law-primary docutils container">
 <p>Confidence: <span class="law-chip law-chip-primary">Confirmed primary</span></p>
-<p>The model checks these figures when it loads the file but does not use them.</p>
+<p>Monthly costs: a home health aide $8,294; assisted living $7,872; a private nursing home room $15,208.</p>
+<p><strong>How the model uses this:</strong> The model checks these figures when it loads the file but does not use them. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
