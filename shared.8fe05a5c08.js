@@ -140,7 +140,7 @@
       order: ["name", "driver", "valueToday", "depreciationRate", "payMethod", "hasLoan", "loanBalance", "loanRate",
         "loanMonthsLeft", "loanExtraMonthly", "commutes", "commuteMilesOneWay", "commuteDaysPerYear", "commuteTollsPerDay",
         "otherMilesPerYear", "milesPerGallon", "insurancePerYear", "registrationPerYear", "maintenancePerYear",
-        "replaceEveryYears", "replaceInYears", "replaceEveryMiles", "odometerToday", "replacementPrice",
+        "replaceBy", "replaceEveryYears", "replaceInYears", "replaceEveryMiles", "odometerToday", "replacementPrice",
         "replacementPayMethod", "replacementLoanRate", "replacementLoanMonths", "replacementDownPaymentRate",
         "replacementLeaseMonthly", "replacementLeaseMonths", "replacementLeaseFee", "leases", "leaseMonthly", "buysLater",
         "purchaseAge", "purchasePrice",
@@ -199,6 +199,7 @@
       }
       if (name === "retirementChange") return "set on the Retirement page";  // Spending in retirement, Per expense
       if (name === "priceType") return "set on the suggested rows";
+      if (name === "taxable" && item.category === rules.charityCategory) return "not for " + rules.charityCategory + " rows";
       if (name === "deduction" && item.category === rules.charityCategory) {
         return "always " + rules.charityCategory + " for " + rules.charityCategory + " rows";
       }
@@ -206,12 +207,17 @@
     return null;
   }
 
-  // Why a car's pay figure is left off its sheet: null when shown, undefined when the general rules decide. A car owned
-  // today shows its purchase price (the Price paid, which a blank replacement price follows) and its replacement pay
+  // Why a car's pay or replacement rule figure is left off its sheet: null when shown, undefined when the general rules
+  // decide. A rule's figures show only while Replace by selects that rule (`carReplaceRules`). A car owned today shows its purchase price (the Price paid, which a blank replacement price follows) and its replacement pay
   // figures only while a replacement rule is on and it is not leased; the loan figures of a replacement only while
   // the replacements are financed, the lease figures only while they are leased (`carReplacementPayFields`).
   function carHiddenReason(name, item, rules) {
-    const ruleOn = item.replaceEveryYears > 0 || item.replaceEveryMiles > 0;
+    for (const [rule, entry] of Object.entries(rules.carReplaceRules || {})) {
+      if (entry.fields.includes(name) && !item.leases && !carReplaceRulesOf(item)[rule]) {
+        return "shown while Replace by is " + (rule === "years" ? "Years" : "Miles") + " or Both";
+      }
+    }
+    const ruleOn = carReplaceRuleOn(item);
     if (name === "purchasePrice" && !item.buysLater) {
       return ruleOn && !item.leases ? null : "shown for a car owned today while a replacement rule is on";
     }
@@ -228,6 +234,29 @@
     return undefined;
   }
 
+  // Which replacement rules count for a car (wmti Car.replaceBy): {years, miles}; a car without the setting replaces
+  // by years.
+  function carReplaceRulesOf(car) {
+    const by = car.replaceBy || "years";
+    return { years: by === "years" || by === "both", miles: by === "miles" || by === "both" };
+  }
+
+  // Whether a rule that counts for the car has a figure above 0, so the car is replaced (given a price).
+  function carReplaceRuleOn(car) {
+    const on = carReplaceRulesOf(car);
+    return (on.years && car.replaceEveryYears > 0) || (on.miles && car.replaceEveryMiles > 0);
+  }
+
+  // The group of a car's replacement rule field on its sheet: "replaceRule" for Replace by, "replaceRule.<rule>" for a
+  // rule's figures (`carReplaceRules`), else null.
+  function carRuleGroup(name, rules) {
+    if (name === "replaceBy") return "replaceRule";
+    for (const [rule, entry] of Object.entries(rules.carReplaceRules || {})) {
+      if (entry.fields.includes(name)) return "replaceRule." + rule;
+    }
+    return null;
+  }
+
   // How a car is paid and how its replacements are (wmti payMethodOf and replacementMethodOf): a blank pay method
   // follows the Lease and Loan switches; a blank replacement pay method follows the car's.
   function carPayMethodOf(car) {
@@ -242,6 +271,7 @@
 
   // The blank sheet figures that show another figure's value until edited, by item type: each field's source and the
   // value it holds while blank (wmti.cars.cars falls back the same way, so what is shown is what the model uses).
+  // `shown` may read the sheet rules (an expense row's sales tax default by its name, `rules.taxableDefaults`).
   const SHEET_DEFAULTS = {
     Car: {
       replacementPrice: { blank: 0, shown: (car) => (car.purchasePrice > 0 ? car.purchasePrice : null) },
@@ -254,6 +284,9 @@
     // A suggested row not filled in yet shows its amount 0 as a default until a figure is typed.
     ExpenseItem: {
       amount: { blank: 0, shown: (item) => (unfilledSuggestion(item) ? 0 : null) },
+      // A blank Taxable shows the row's default (wmti salesTaxClass): its suggested row's, or taxable for a row added
+      // by hand; a row taxed by the state's own rule (Groceries, Clothing) shows Default.
+      taxable: { blank: null, shown: (item, rules) => taxableDefaultOf(item, rules) },
     },
   };
 
@@ -265,18 +298,26 @@
 
   // What a sheet field shows while it is blank: {value, blank} with the source's value and the stored blank value, or
   // null when the field has no source or holds a value of its own (an edit sticks; clearing it shows the source again).
-  function sheetDefault(typeName, name, item) {
+  function sheetDefault(typeName, name, item, rules) {
     const rule = (SHEET_DEFAULTS[typeName] || {})[name];
     if (!rule || !item) return null;
     const stored = item[name];
     if (!(stored === rule.blank || stored == null)) return null;
-    const value = rule.shown(item);
+    const value = rule.shown(item, rules || {});
     return value == null ? null : { value, blank: rule.blank };
   }
 
   // Whether a sheet field shows its source's value (styled as a default, `.is-default`) rather than one entered.
-  function showsDefault(typeName, name, item) {
-    return sheetDefault(typeName, name, item) !== null;
+  function showsDefault(typeName, name, item, rules) {
+    return sheetDefault(typeName, name, item, rules) !== null;
+  }
+
+  // An expense row's sales tax default: true or false, or null for a row taxed by its state's own rule.
+  function taxableDefaultOf(item, rules) {
+    const defaults = (rules && rules.taxableDefaults) || {};
+    const key = String(item.name || "").trim().toLowerCase();
+    const value = Object.prototype.hasOwnProperty.call(defaults, key) ? defaults[key] : true;
+    return typeof value === "boolean" ? value : null;
   }
 
   // The blank panel figures that show the value the model uses until edited, by path: the move age of
@@ -368,7 +409,7 @@
   // replacement rules, which decide what the sheet shows.
   function sheetSources(typeName) {
     return typeName === "Car" ? ["purchasePrice", "loanRate", "loanMonthsLeft", "downPaymentRate", "replaceEveryYears",
-      "replaceEveryMiles"] : [];
+      "replaceEveryMiles", "replaceBy"] : [];
   }
 
   // The label a field takes on an item's sheet instead of its schema label, or null: a commuting car's miles per year
@@ -406,7 +447,7 @@
     for (const name of ordered) {
       const reason = hiddenReason(typeName, name, item, rules);
       if (reason) hidden[name] = reason;
-      else shown.push({ name, group: layout.groups[name] || null });
+      else shown.push({ name, group: layout.groups[name] || (typeName === "Car" ? carRuleGroup(name, rules) : null) });
     }
     return { shown, hidden, sections: Boolean(layout.sections) };
   }
@@ -771,14 +812,15 @@
   }
 
   // A car's card on the Cars chip: its name, the driver, "loan" while it charges one, the replacement cycle when one is
-  // on (every so many years or miles, and a price above 0: the purchase price of a car bought later when blank), when
+  // on (every so many years or miles, each only while Replace by selects it, and a price above 0: the purchase price of a car bought later when blank), when
   // it is bought and sold (`spanText`), and its value today (its price when bought later).
   function carSummary(car, currentAge) {
     const price = car.replacementPrice > 0 ? car.replacementPrice : (car.purchasePrice || 0);
     const method = carReplacementMethodOf(car);
     const rules = [];
-    if (car.replaceEveryYears > 0) rules.push(car.replaceEveryYears + " years");
-    if (car.replaceEveryMiles > 0) rules.push(Number(car.replaceEveryMiles).toLocaleString("en-US") + " miles");
+    const on = carReplaceRulesOf(car);
+    if (on.years && car.replaceEveryYears > 0) rules.push(car.replaceEveryYears + " years");
+    if (on.miles && car.replaceEveryMiles > 0) rules.push(Number(car.replaceEveryMiles).toLocaleString("en-US") + " miles");
     const replaced = !car.leases && (price > 0 || method === "lease") && rules.length > 0;
     const how = { finance: ", financed", lease: ", leased" }[method] || "";
     const span = spanText(car, currentAge);
@@ -1318,31 +1360,31 @@
       + (left == null ? "" : "; about " + Math.round(left) + " s left") + ".";
   }
 
-  // An upper bound on the search's seconds left: the measured time per run times the planned runs left, held under the
-  // time cap while it searches; null before the first run.
+  // The search's seconds left (as wmti.dashboard.optimizing.secondsLeft): the time per run measured so far times the
+  // runs the remaining steps are expected to take (`expected`), the search's part held under the time cap while it
+  // searches; null before the first run.
   function optimizeSecondsLeft(detail) {
     if (!detail || !detail.runs) return null;
     const perRun = detail.elapsed / detail.runs;
-    let left = perRun * Math.max(0, detail.planned - detail.runs);
+    let left = perRun * Math.max(0, detail.expected - detail.runs);
     if (detail.timeCap != null && detail.phase === "search") {
-      left = Math.min(left, Math.max(0, detail.timeCap - detail.elapsed) + perRun * (detail.planned - detail.budget));
+      left = Math.min(left, Math.max(0, detail.timeCap - detail.elapsed) + perRun * detail.expectedRecheck);
     }
     return isFinite(left) ? left : null;
   }
 
-  // How long a search with `count` picked states may take on a device (as wmti.dashboard.optimizing.statesEstimateText):
-  // the effort's budget plus each state's runs, and their seconds, said as "about 2,500 runs, about 8 minutes" with
-  // "; may stop at the N minute cap" when they pass the time cap raised for the states. `effort` is an
-  // `optimizeInfo` effort.
-  function optimizeStatesEstimate(effort, count, device) {
-    const costs = effort.stateCosts;
-    const runs = effort.budget + count * costs.runs;
-    const seconds = effort.seconds[device] + count * costs.seconds[device];
-    const timeCap = effort.timeCap == null ? null : effort.timeCap + count * costs.timeCap;
-    let text = seconds < 90 ? "about " + roundHalfEven(seconds) + " s"
-      : "about " + roundHalfEven(seconds / 60) + " minutes";
-    if (timeCap != null && seconds > timeCap) text += "; may stop at the " + roundHalfEven(timeCap / 60) + " minute cap";
-    return "about " + runs.toLocaleString("en-US") + " runs, " + text;
+  // What `count` picked states add to a search (as wmti.dashboard.optimizing.statesEstimateText): the most runs and,
+  // with the seconds per run measured on this device (null until known), their time, said as "up to 672 more runs, up
+  // to 2 minutes more (estimate)". `effort` is an `optimizeInfo` effort.
+  function optimizeStatesEstimate(effort, count, secondsPerRun) {
+    const runs = effort.stateCosts.runs * count;
+    let text = "up to " + runs.toLocaleString("en-US") + " more runs";
+    if (secondsPerRun != null) {
+      const seconds = runs * secondsPerRun;
+      text += ", up to " + (seconds < 90 ? roundHalfEven(seconds) + " s" : roundHalfEven(seconds / 60) + " minutes")
+        + " more (estimate)";
+    }
+    return text;
   }
 
   // Round as Python's round does: a half goes to the even neighbour (2.5 to 2, 3.5 to 4).
@@ -1365,128 +1407,24 @@
     return hash.toString(16).padStart(8, "0");
   }
 
-  // ---- The law viewer (menu, Tax law and costs): how one law file (wmti.dashboard.web.lawFile) is shown ----
-  // The header fields every law file starts with; the viewer shows them as facts, not sections.
-  const LAW_HEADER_FIELDS = ["schema_version", "jurisdiction", "name", "tax_year", "source", "as_of", "status"];
-  // The text fields shown under a section's rows instead of as rows.
-  const LAW_TEXT_FIELDS = ["note", "source", "check_at"];
-  const LAW_CONFIDENCE_ORDER = ["unconfirmed", "secondary", "primary"];  // weakest first
-  const LAW_CONFIDENCE_LABELS = { primary: "Confirmed primary", secondary: "Confirmed secondary",
-    unconfirmed: "Unconfirmed", none: "Not rated" };
-  const LAW_RATE_WORD = /(^|_)(rate|rates|percent|pct|share)(_|$)/i;
-
-  // Whether a law-file key names a rate, percent or share (its figures from -1 to 1 show as percents).
-  function lawIsRateKey(key) {
-    return LAW_RATE_WORD.test(String(key));
-  }
-
-  // The percent a rate shows ("6.625%"), or null when the figure is not a rate: a number from -1 to 1 whose key (or
-  // the key of the object it sits in, `inRate`) names a rate, percent or share.
-  function lawPercentText(key, value, inRate) {
-    if (typeof value !== "number" || !isFinite(value) || Math.abs(value) > 1) return null;
-    if (!inRate && !lawIsRateKey(key)) return null;
-    return String(Number((value * 100).toFixed(4))) + "%";
-  }
-
-  // Whether an array is a list of rows (plain objects) to draw as a table.
-  function lawIsRowArray(value) {
-    return Array.isArray(value) && value.length > 0
-      && value.every((item) => item !== null && typeof item === "object" && !Array.isArray(item));
-  }
-
-  // The columns of a row array: every key of every row, in the order first met.
-  function lawRowColumns(rows) {
-    const columns = [];
-    for (const row of rows) for (const key of Object.keys(row)) if (!columns.includes(key)) columns.push(key);
-    return columns;
-  }
-
-  // The class of a confidence text: "primary" (confirmed primary), "secondary" (confirmed secondary), "unconfirmed",
-  // or "none" when the text is missing or unknown.
-  function lawConfidenceClass(confidence) {
-    const text = String(confidence == null ? "" : confidence).trim().toLowerCase();
-    if (text.startsWith("unconfirmed")) return "unconfirmed";
-    if (text.startsWith("confirmed primary")) return "primary";
-    if (text.startsWith("confirmed secondary")) return "secondary";
-    return "none";
-  }
-
-  // A section's confidence: its own, else the weakest of its sub-sections' (such as state_strategies.qcd), else none.
-  function lawSectionConfidence(section) {
-    if (section === null || typeof section !== "object" || Array.isArray(section)) return "none";
-    if ("confidence" in section) return lawConfidenceClass(section.confidence);
-    const found = Object.values(section).filter((item) => item && typeof item === "object" && !Array.isArray(item)
-      && "confidence" in item).map((item) => lawConfidenceClass(item.confidence)).filter((level) => level !== "none");
-    return LAW_CONFIDENCE_ORDER.find((level) => found.includes(level)) || "none";
-  }
-
-  // The sections of a law file to draw: every field but the header ones, as {name, value, confidence}; unconfirmed
-  // sections first (so they are seen), the rest in file order.
-  function lawSections(law) {
-    const sections = Object.keys(law || {}).filter((name) => !LAW_HEADER_FIELDS.includes(name))
-      .map((name) => ({ name, value: law[name], confidence: lawSectionConfidence(law[name]) }));
-    return sections.filter((item) => item.confidence === "unconfirmed")
-      .concat(sections.filter((item) => item.confidence !== "unconfirmed"));
-  }
-
-  // How many sections have each confidence: {primary, secondary, unconfirmed, none}.
-  function lawConfidenceCounts(sections) {
-    const counts = { primary: 0, secondary: 0, unconfirmed: 0, none: 0 };
-    for (const item of sections) counts[item.confidence] += 1;
-    return counts;
-  }
-
-  // The summary line at the top: "Last reviewed 2026-10-07. 20 sections: 5 confirmed primary, ...".
-  function lawSummaryText(law, sections) {
-    const counts = lawConfidenceCounts(sections);
-    const parts = ["primary", "secondary", "unconfirmed", "none"].filter((level) => counts[level])
-      .map((level) => counts[level] + " " + LAW_CONFIDENCE_LABELS[level].toLowerCase());
-    const reviewed = law && law.as_of ? "Last reviewed " + law.as_of + ". " : "";
-    return reviewed + sections.length + (sections.length === 1 ? " section" : " sections")
-      + (parts.length ? ": " + parts.join(", ") : "") + ".";
-  }
-
-  // Whether a section matches the filter text: a blank filter, or the text (any case) in its name or in any key or
-  // value inside it.
-  function lawSectionMatches(name, value, text) {
-    const wanted = String(text == null ? "" : text).trim().toLowerCase();
-    if (!wanted) return true;
-    const seen = (item) => String(item).toLowerCase().includes(wanted);
-    const inside = (item) => {
-      if (item === null || item === undefined) return false;
-      if (Array.isArray(item)) return item.some(inside);
-      if (typeof item === "object") return Object.keys(item).some((key) => seen(key) || inside(item[key]));
-      return seen(item);
-    };
-    return seen(name) || inside(value);
-  }
-
-  // A plain figure as text: a rate as "6.625% (0.06625)", other numbers grouped, true/false as yes/no, null as none.
-  function lawValueText(key, value, inRate) {
-    if (value === null || value === undefined) return "none";
-    if (typeof value === "boolean") return value ? "yes" : "no";
-    if (typeof value === "number") {
-      const shown = lawPercentText(key, value, inRate);
-      return shown ? shown + " (" + value + ")" : value.toLocaleString("en-US", { maximumFractionDigits: 6 });
-    }
-    if (Array.isArray(value)) return value.map((item) => lawValueText(key, item, inRate)).join(", ");
-    if (typeof value === "object") {
-      const rate = inRate || lawIsRateKey(key);
-      return Object.keys(value).map((name) => name + ": " + lawValueText(name, value[name], rate)).join("; ");
-    }
-    return String(value);
+  // ---- The user documentation (menu, Documentation; the "See this state's rules" links) ----
+  // The address of one docs page from the build's docs location (window.WMTI_BUILD.docs): a folder ending in "/" gets
+  // the page appended ("./docs/" + "law/nj.html"); any other address (the docs artifact) is the docs home for every
+  // page, since its pages cannot be linked one by one. A blank location gives "".
+  function docsLink(base, page) {
+    const text = String(base == null ? "" : base);
+    if (!text.endsWith("/")) return text;
+    return text + String(page == null ? "" : page).replace(/^\/+/, "");
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, sheetDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
-    LAW_HEADER_FIELDS, LAW_TEXT_FIELDS, LAW_CONFIDENCE_LABELS, lawIsRateKey, lawPercentText, lawIsRowArray, lawRowColumns,
-    lawConfidenceClass, lawSectionConfidence, lawSections, lawConfidenceCounts, lawSummaryText, lawSectionMatches,
-    lawValueText };
+    docsLink };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

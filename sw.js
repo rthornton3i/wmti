@@ -4,14 +4,20 @@
 // answered from that cache first, then the network, and a page load that fails offline gets the cached index.html.
 // A new build installs beside the old one and waits: the page shows "New version ready" and its Reload button asks
 // this worker to take over (message {type: "skipWaiting"}); on activate the older builds' caches are deleted.
+// The user documentation under docs/ (published beside the app by publish_pages.py) is never in the file list: each
+// docs file is stored the first time it is fetched, in a cache of its own that outlives builds, and then answered
+// from there while a fresh copy is fetched for next time (stale-while-revalidate), so a page once read works offline.
+// A docs page never read fails offline as any page would; it is never answered with the app's index.html.
 "use strict";
 
-const BUILD_ID = "05ce8f8efec7";
+const BUILD_ID = "9683c0da38cc";
 const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
+const DOCS_CACHE = "wmti-docs:" + self.registration.scope;
+const DOCS_PATH = new URL("docs/", self.registration.scope).pathname;
 const FILES = [
  "./",
- "app.60913cdeb9.js",
+ "app.c00d05880d.js",
  "charts.54d59a7eb6.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
@@ -39,9 +45,9 @@ const FILES = [
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
  "report.ad13ed448d.js",
- "shared.87e48eb529.js",
- "wmti.8b7f1e7482.wasm",
- "worker.68ad0ad2f2.js"
+ "shared.8fe05a5c08.js",
+ "wmti.a1eae9b2cb.wasm",
+ "worker.48c09a2019.js"
 ];
 
 self.addEventListener("install", (event) => {
@@ -58,9 +64,27 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "skipWaiting") self.skipWaiting();
 });
 
+// A docs file: the stored copy at once (refreshed in the background), else the network (stored when it answers).
+async function docsResponse(event) {
+  const cache = await caches.open(DOCS_CACHE);
+  const stored = await cache.match(event.request, { ignoreSearch: true });
+  const fresh = fetch(event.request).then((response) => {
+    if (response.ok) return cache.put(event.request, response.clone()).then(() => response);
+    return response;
+  });
+  if (!stored) return fresh;
+  event.waitUntil(fresh.catch(() => null));
+  return stored;
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;
+  const url = new URL(request.url);
+  if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith(DOCS_PATH)) {
+    event.respondWith(docsResponse(event));
+    return;
+  }
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const stored = await cache.match(request, { ignoreSearch: true });

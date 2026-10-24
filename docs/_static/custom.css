@@ -1,0 +1,51 @@
+/* Project overrides for the Read the Docs theme. */
+.wy-nav-content {
+    max-width: 1180px;
+}
+
+/* Phone screenshots: side by side, wrapping on a narrow page (docs/guides/app.rst). */
+.screen-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.screen-grid figure {
+    width: 260px;
+    margin: 0;
+}
+.screen-grid img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Tax law pages (docs/law, written by docs/generate_law_pages.py): confidence chips and the box around a section.
+   The colors keep their contrast on the light theme and under a dark color scheme. */
+.law-chip {
+    display: inline-block;
+    padding: 0 8px;
+    border-radius: 10px;
+    border: 1px solid currentColor;
+    font-size: 85%;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+.law-chip-primary { color: #1b6e3a; background: #e3f4e8; }
+.law-chip-secondary { color: #8a5a00; background: #fff1d6; }
+.law-chip-unconfirmed { color: #a8241b; background: #fde5e2; }
+.law-chip-none { color: #4f5b66; background: #eceff2; }
+.law-section {
+    border-left: 4px solid #d0d6dc;
+    padding-left: 14px;
+    margin-bottom: 24px;
+}
+.law-section.law-primary { border-left-color: #2e9e57; }
+.law-section.law-secondary { border-left-color: #d99a1e; }
+.law-section.law-unconfirmed { border-left-color: #d0453a; background: rgba(208, 69, 58, 0.05); }
+table.law-table td, table.law-table th { white-space: normal; }
+@media (prefers-color-scheme: dark) {
+    .law-chip-primary { color: #8fe0aa; background: #163a24; }
+    .law-chip-secondary { color: #f4c56a; background: #3d2e0d; }
+    .law-chip-unconfirmed { color: #ff9b91; background: #45191a; }
+    .law-chip-none { color: #c4ccd4; background: #2b3138; }
+}

@@ -13,8 +13,7 @@
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
     mergeUndoPop, changedPaths, optimizeStepText, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
-    spendingChangePreview, LAW_TEXT_FIELDS, LAW_CONFIDENCE_LABELS, lawIsRowArray, lawRowColumns, lawConfidenceClass,
-    lawIsRateKey, lawSections, lawSummaryText, lawSectionMatches, lawValueText } = window.WmtiShared;
+    spendingChangePreview, docsLink } = window.WmtiShared;
   const charts = window.WmtiCharts;
   const report = window.WmtiReport;
   const insightRules = window.WmtiInsights;
@@ -41,12 +40,12 @@
       + "minimum. Social Security, pay and the Roth conversion are not bars." },
     { id: "taxes", label: "Taxes", intro: "The taxes charged each year, by kind; the middle half average of the runs. The "
       + "hatched bar is the sales tax inside your spending: already in expenses, shown for records, never added to the "
-      + "taxes. The deductions are under Outputs, Summary." },
+      + "taxes. The same figures by year, and the deductions, are in tables under Outputs, Summary, Taxes." },
     { id: "expenses", label: "Expenses", intro: "What the household spends each year, by category; the middle half "
       + "average of the runs. Categories never charged are left out; taxes are in Taxes." },
   ];
   const RESULT_VIEWS = [{ id: "summary", label: "Summary" }, { id: "accounts", label: "Accounts" },
-    { id: "deductions", label: "Deductions" }];
+    { id: "taxes", label: "Taxes" }];
   // What Compare does, behind the "i" beside the Compare card's heading.
   const COMPARE_HELP = "Pick two configs to compare. Both run on the same random draws (same seed), "
     + "so the differences come from the settings, not from luck. Save scenarios under Setup to compare them "
@@ -85,7 +84,7 @@
   // An interrupted strategy search: {key (optimizeCheckpointKey), inputsText, optionsText, checkpoint}.
   const OPTIMIZE_CHECKPOINT_KEY = "wmti.optimizeCheckpoint.v1";
   const TABS_PIN_KEY = "wmti.tabsPin.v1";  // whether Inputs' tabs stay pinned under the top bar: "on" or "off"
-  const LAW_KEY = "wmti.lawState.v1";  // the jurisdiction the law viewer last showed: "federal" or a state code
+  const LAW_KEY = "wmti.lawState.v1";  // kept by the removed law viewer; listed so Clear all data still removes it
   const LAW_STATE_PATHS = ["homeState", "strategies.relocation.state"];  // state selects with a "See this state's rules" link
   const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
     OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY];
@@ -170,7 +169,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.68ad0ad2f2.js");
+      worker = new Worker("worker.48c09a2019.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -924,9 +923,9 @@
   }
 
   // Where a swipe `direction` (1 forward, -1 back) leads from the shown place: the neighbouring Inputs panel (`chip`,
-  // in the bubble's `row`), or on Outputs the neighbouring sub-tab (`sub`), past a view's last sub-tab the next view at
-  // its first (before the first, the previous view at its last; `chip` is then the view's chip); null at an end and
-  // on Setup, so a swipe never changes the bottom tab.
+  // in the bubble's `row`), or on Outputs the neighbouring sub-tab (`sub`), past either end of a view's sub-tabs the
+  // neighbouring view, always at its first sub-tab (`chip` is then the view's chip); null at an end and on Setup, so a
+  // swipe never changes the bottom tab.
   function swipeTarget(direction) {
     if (state.tab === "inputs") {
       const chip = neighbourChip(direction);
@@ -937,8 +936,10 @@
       const at = steps.findIndex((step) => step.view === state.view && step.sub === shownSubtab(state.view));
       const next = at < 0 ? null : steps[at + direction];
       if (!next) return null;
-      return { tab: "outputs", view: next.view, sub: next.sub, row: $("views-outputs"),
-        chip: next.view === state.view ? null : $("sub-" + next.view) };
+      const row = $("views-outputs");
+      if (next.view === state.view) return { tab: "outputs", view: next.view, sub: next.sub, row, chip: null };
+      const sub = OUTPUT_SUBTABS[next.view];
+      return { tab: "outputs", view: next.view, sub: sub ? sub.list[0].id : null, row, chip: $("sub-" + next.view) };
     }
     return null;
   }
@@ -954,7 +955,7 @@
   }
 
   // Open a swipe's target and return what a screen reader hears: the Inputs panel's name, or the Outputs sub-tab's,
-  // led by the view's name when the view changed.
+  // led by the view's name when the view changed. A new Inputs group or Outputs view opens at the top of the page.
   function openSwipeTarget(target) {
     if (target.tab === "inputs") {
       const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
@@ -962,6 +963,7 @@
       state.chips.settings = chosen.id;
       savePrefs();
       renderSettings();
+      scrollPlaceTop("inputs");
       centerSwipedChips();
       return chosen.label;
     }
@@ -973,7 +975,11 @@
       if (target.view === "summary") renderResults();
       else renderPlots();
     }
-    if (viewChanged) goTo("outputs", target.view);
+    if (viewChanged) {
+      goTo("outputs", target.view);
+      state.scroll[scrollKey()] = 0;
+      scrollPlaceTop("outputs");
+    }
     centerSwipedChips();
     const subLabel = sub ? sub.list.find((item) => item.id === target.sub).label : "";
     const viewLabel = $("sub-" + target.view).textContent.trim();
@@ -1281,8 +1287,8 @@
       + about.text + charts.renderFrame(frame, Object.assign({ title }, options)) + "</div>";
   }
 
-  // Summary: Summary (tiles, insights, percentiles, the middle half average summary table), Accounts and Deductions, all
-  // from the last Monte Carlo; the single-run headline tiles follow the Monte Carlo ones.
+  // Summary: Summary (tiles, insights, percentiles, the middle half average summary table), Accounts and Taxes (taxes paid
+  // and the deductions by year), all from the last Monte Carlo; the single-run headline tiles follow the Monte Carlo ones.
   function renderResults() {
     const chip = RESULT_VIEWS.some((view) => view.id === state.chips.results) ? state.chips.results : "summary";
     renderChips("chips-results", RESULT_VIEWS, chip, (id) => {
@@ -1315,6 +1321,10 @@
     } else if (chip === "accounts") {
       html += tableCard("Accounts table", AVERAGE_HELP, tables.accounts, { indexLabel: "Row" }, stale, tables.dollars);
     } else {
+      if (tables.taxesByYear) {
+        html += tableCard("Taxes paid by year", TAXES_HELP, tables.taxesByYear, { indexLabel: "Your age" }, stale,
+          tables.dollars);
+      }
       html += tableCard("Deductions by year", DEDUCTIONS_HELP, tables.deductions, { indexLabel: "Your age" }, stale, tables.dollars);
     }
     body.innerHTML = html;
@@ -1344,9 +1354,17 @@
   const AVERAGE_HELP = "Each number is the middle half average for that year: the mean of the Monte Carlo runs whose "
     + "final worth lies between the 25th and 75th percentile, so the best and worst cases are left out (runs that ran "
     + "out count when they fall in it). Deduction type is the most common value among those runs that year.";
-  const DEDUCTIONS_HELP = "Read-only: the federal deductions taken each year, the middle half average of the runs. Itemized parts "
+  const TAXES_HELP = "Read-only: the taxes charged each year, by kind, the middle half average of the runs; the same "
+    + "figures as the Taxes plot. State is the state income tax without the local tax; Local Tax is the average local "
+    + "income tax charged with it. Total adds the kinds. The sales tax column is the sales tax inside your spending: "
+    + "already in expenses, shown for records and not added to Total. State Deduction, State Exemptions and State "
+    + "Credits are what lowered the state tax, as in Deductions by year; they are not taxes and not in Total.";
+  const DEDUCTIONS_HELP = "Read-only: the deductions taken each year, the middle half average of the runs. Itemized parts "
     + "are before the high-income reduction; Itemized is after it. Deduction is the standard or itemized deduction "
-    + "taken plus the senior deduction. Dependents counts the children claimed; only the state exemption uses it.";
+    + "taken plus the senior deduction. Dependents counts the children claimed; only the state exemption uses it. "
+    + "The state columns are your home state's: State Deduction and State Exemptions come off its taxable income and "
+    + "State Credits (only what the tax could use) off its tax. Local Tax is part of the state tax paid, so it counts "
+    + "in Itemized SALT. The four state columns show the same figures in Taxes paid by year.";
 
   function listHtml(items) {
     return "<ul class=\"notes\">" + items.map((item) => "<li>" + escapeText(item) + "</li>").join("") + "</ul>";
@@ -1836,8 +1854,14 @@
     const reply = await ask("optimizeAvailability", [JSON.stringify(state.inputs), state.seed]);
     if (optimize.availabilityPending === key) optimize.availabilityPending = null;
     if (!reply || !reply.ok || key !== JSON.stringify([state.inputs, state.seed])) return;
-    optimize.availability = { key, options: reply.options };
+    optimize.availability = { key, options: reply.options, estimate: reply.estimate };
     if (optimizeShown() && !optimize.job) renderOptimize();
+  }
+
+  // Each effort's estimate on this device for the settings now (`searchEstimates`), or null until it comes.
+  function optimizeEstimate() {
+    const availability = state.optimize.availability;
+    return availability && availability.key === JSON.stringify([state.inputs, state.seed]) ? availability.estimate : null;
   }
 
   // The search option as the settings now allow it: {available, reason}; available until the answer comes.
@@ -1870,7 +1894,9 @@
     const about = titleHelp("h2", "Find the best settings", OPTIMIZE_HELP);
     const options = optimize.options;
     const presets = info.presets.map((preset) => [preset.id, preset.label]);
-    const efforts = info.efforts.map((effort) => [effort.id, effort.label + " (" + effort.text.phone + ")"]);
+    const estimate = optimizeEstimate();
+    const efforts = info.efforts.map((effort) => [effort.id, effort.label + " ("
+      + (estimate ? estimate.efforts[effort.id].text : effort.text) + ")"]);
     const presetText = (info.presets.find((preset) => preset.id === options.preset) || {}).text || "";
     // What the chosen risk preference weighs, behind an "i" (its text follows the select).
     const presetHelp = noteHelp("What the risk preference weighs", presetText, "field-help", "optimizePresetText");
@@ -2025,7 +2051,7 @@
     const count = options.states.length;
     line.textContent = !count ? "Tick the states you would consider; staying where you are is always compared."
       : count + (count === 1 ? " state" : " states") + " and staying put: "
-        + (effort ? optimizeStatesEstimate(effort, count, "phone") : "") + " on a phone.";
+        + (effort ? optimizeStatesEstimate(effort, count, (optimizeEstimate() || {}).secondsPerRun) : "") + ".";
   }
 
   function optimizeProgressHtml(job) {
@@ -2048,7 +2074,7 @@
     const bar = $("optimizeBar");
     if (!bar || !job) return;
     const detail = job.detail;
-    const planned = detail ? detail.planned : 1;
+    const planned = detail ? detail.expected : 1;
     const runs = detail ? detail.runs : 0;
     bar.querySelector("span").style.width = Math.min(1, runs / planned) * 100 + "%";
     bar.setAttribute("aria-valuemax", String(planned));
@@ -2162,6 +2188,23 @@
     return null;
   }
 
+  // The recommended changes, one card each (setting, now → best, its gain), the total, and the settings kept folded
+  // into one line that opens on a tap.
+  function optimizeImprovementsHtml(result) {
+    const cards = result.improvements.map((item) => "<li class=\"optimize-improvement\">"
+      + "<div class=\"optimize-improvement-head\"><strong>" + escapeText(item.label) + "</strong><span class=\"optimize-gain\">" + escapeText(item.gainText)
+      + "</span></div>" + item.changes.map((change) => "<p class=\"optimize-change\">"
+        + (change.label !== item.label ? escapeText(change.label) + ": " : "") + "<span class=\"optimize-now\">"
+        + escapeText(change.now) + "</span> → <span class=\"optimize-best\">" + escapeText(change.best)
+        + "</span></p>").join("") + "</li>").join("");
+    return (cards ? "<h3>Recommended changes</h3><ul class=\"optimize-improvements\" id=\"optimizeImprovements\">"
+      + cards + "</ul><p class=\"field-help optimize-total\" id=\"optimizeTotal\">" + escapeText(result.totalText)
+      + "</p>" : "")
+      + (result.kept.length ? "<details class=\"optimize-kept\" id=\"optimizeKept\"><summary>"
+        + escapeText(result.keptText) + "</summary><ul>" + result.kept.map((row) => "<li>" + escapeText(row[0])
+          + ": " + escapeText(row[1]) + "</li>").join("") + "</ul></details>" : "");
+  }
+
   function optimizeResult(entry) {
     const result = entry.value;
     const applied = optimizeApplied(entry);
@@ -2177,7 +2220,7 @@
       : "") + "<div class=\"card-head\"><h2>Best settings found</h2><span class=\"chart-note\">" + result.runs
       + " runs · " + secondsText(entry.ms) + "</span></div>"
       + "<p class=\"field-help\">" + escapeText(result.stopText) + "</p>"
-      + textTable("Best settings", result.columns, result.rows)
+      + optimizeImprovementsHtml(result)
       + "<h3>Score breakdown</h3>" + textTable("Score breakdown", ["Part", "Now", "Best", "Change"], result.breakdown)
       + "<p class=\"field-help\">" + escapeText(result.footnote) + "</p>"
       + banner(result.recheck.text, held === false ? "warn" : null)
@@ -4592,7 +4635,37 @@
   function specialField(field, path, value) {
     if (/^(you|partner)\.socialSecurityBasis$/.test(path)) return basisToggle(field, path, value);
     if (/^(you|partner)\.employerMatch\.percent$/.test(path)) return matchPercentField(field, path);
+    const at = sheetItemOf(path);
+    if (at && at.type === "Car" && at.name === "replaceBy") return segmentedField(field, path, value);
     return null;
+  }
+
+  // A sheet choice of a few options as a segmented toggle (a car's Replace by: Years, Miles, Both): picking one stores
+  // it and redraws the sheet, which shows the figures it selects.
+  function segmentedField(field, path, value) {
+    const wrap = fieldShell(field.label, field.help, null);
+    const group = document.createElement("div");
+    group.className = "segmented";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", field.label);
+    group.id = fieldId(path);
+    for (const choice of field.choices) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.choice = choice;
+      button.textContent = choiceLabel(field, choice);
+      button.setAttribute("aria-pressed", String(choice === value));
+      button.addEventListener("click", () => {
+        if (choice === getPath(state.inputs, path)) return;
+        setValue(path, choice);
+        refreshForm();
+        const redrawn = document.querySelector("#" + CSS.escape(group.id) + " [data-choice=\"" + choice + "\"]");
+        if (redrawn) redrawn.focus();
+      });
+      group.append(button);
+    }
+    wrap.append(group);
+    return wrap;
   }
 
   // A person's employer match as one share of pay (the schema's derived field): shown as rate x cap, and an entered
@@ -4748,12 +4821,12 @@
   // each edit (showsDefault).
   function sheetDefaultOf(path) {
     const at = sheetItemOf(path);
-    return at ? sheetDefault(at.type, at.name, at.item) : panelDefault(path, state.inputs);
+    return at ? sheetDefault(at.type, at.name, at.item, state.info.sheetRules) : panelDefault(path, state.inputs);
   }
 
   function markDefault(element, path) {
     const at = sheetItemOf(path);
-    element.classList.toggle("is-default", at ? showsDefault(at.type, at.name, at.item)
+    element.classList.toggle("is-default", at ? showsDefault(at.type, at.name, at.item, state.info.sheetRules)
       : panelDefault(path, state.inputs) !== null);
   }
 
@@ -4840,7 +4913,7 @@
         });
         markDefault(select, path);
         wrap.append(select);
-        if (LAW_STATE_PATHS.includes(path)) wrap.append(lawLink(select));
+        if (LAW_STATE_PATHS.includes(path)) wrap.append(stateRulesLink(select));
         return wrap;
       }
       case "text": {
@@ -5812,6 +5885,7 @@
     const intro = sheetIntro(field.type, items[position]);
     if (intro) parts.push(intro);
     let returns = null;
+    let ruleBox = null;
     let section = null;
     // The type's titled sections (a child's Daycare and College) follow its other fields, each below a divider.
     const sections = ((state.schema.sheetSections || {})[field.type] || []).map((section) => ({ section, fields: [] }));
@@ -5826,6 +5900,11 @@
       const element = fieldElement(child, path + "." + position + "." + child.name);
       const holder = sections.find((item) => item.section.fields.includes(entry.name));
       if (holder) { holder.fields.push(element); continue; }
+      if (entry.group && entry.group.startsWith("replaceRule")) {  // a car's replacement rule: one bordered block
+        if (!ruleBox) parts.push(ruleBox = replaceRuleBox());
+        placeInReplaceRule(ruleBox, entry.group, element);
+        continue;
+      }
       if (entry.group !== "returns") { parts.push(element); continue; }
       if (!returns) {
         returns = returnsGroup(items[position], path + "." + position);
@@ -5886,6 +5965,42 @@
     $("app").classList.remove("typing");
     const first = body.querySelector("input, select");
     if (first && !keepFocus) first.focus({ preventScroll: true });
+  }
+
+  // A car's replacement rule on its sheet: a bordered block titled by `carReplaceRuleTitle` holding Replace by, the note
+  // that Both replaces at the first rule reached, then each selected rule's figures under its sub-label
+  // (`carReplaceRules`); the price and pay figures follow below the block.
+  function replaceRuleBox() {
+    const group = document.createElement("fieldset");
+    group.className = "group replace-rule";
+    const legend = document.createElement("legend");
+    legend.textContent = state.info.sheetRules.carReplaceRuleTitle;
+    group.append(legend);
+    return group;
+  }
+
+  function placeInReplaceRule(box, group, element) {
+    const rules = state.info.sheetRules;
+    const rule = group.split(".")[1];
+    if (!rule) {
+      const note = document.createElement("p");
+      note.className = "field-help replace-rule-note";
+      note.textContent = rules.carReplaceBothNote;
+      box.append(element, note);
+      return;
+    }
+    let part = box.querySelector("[data-rule=\"" + rule + "\"]");
+    if (!part) {
+      part = document.createElement("div");
+      part.className = "replace-rule-part";
+      part.dataset.rule = rule;
+      const label = document.createElement("p");
+      label.className = "field-label replace-rule-label";
+      label.textContent = rules.carReplaceRules[rule].label;
+      part.append(label);
+      box.append(part);
+    }
+    part.append(element);
   }
 
   // A section title inside a sheet (a car's Value, Loan, Commute, Running costs and Replacement), styled as a pane's
@@ -7946,22 +8061,23 @@
     { title: "Setup, Inputs and Outputs", when: () => !wide.on, target: () => document.querySelector(".tabbar"),
       text: "The bar at the bottom moves between the three parts of the app. Setup holds your saved plans (scenarios) "
         + "and how many times the plan is simulated, Inputs your settings and Outputs the results." },
+    { title: "Headline figures", target: () => $("pinned"),
+      text: "The figures across the top sum up your plan: the median final worth over the runs and the same after tax, "
+        + "then two yearly averages such as net withdrawal and expense. They update after every change." },
     { title: "Groups of settings", place: ["inputs"], when: () => state.schema != null,
       target: () => $("chips-settings"),
       text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more. "
         + "Swipe sideways to move between tabs." },
     { title: "Pin the tabs", place: ["inputs"], when: () => state.schema != null && !wide.on, target: () => $("chipsPin"),
       text: "The pin keeps the bubbles under the top bar while you scroll. Tap it to let them scroll away with the page." },
-    { title: "Moving in retirement", place: ["inputs"], when: () => state.schema != null,
-      target: () => settingsChip("strategies"),
-      text: "Strategies holds Relocation: a move to another state at a chosen age, whose taxes and living costs then "
-        + "apply. It also holds Roth conversions and gifts to charity." },
-    { title: "Beneficiaries", place: ["inputs"], when: () => state.schema != null,
-      target: () => settingsChip("savings"),
-      text: "Benefits ends with Beneficiaries: who inherits what is left and how they are taxed. They change only how "
-        + "the final value after tax is measured, not the plan itself." },
     { title: "Outputs views", place: ["outputs"], target: () => $("views-outputs"),
       text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
+    { title: "Summary", place: ["outputs", "summary"], target: () => $("sub-summary"),
+      text: "Summary shows the results over all the runs: final worth before and after tax with its range, warnings "
+        + "and opportunities for your plan, final worth by percentile and a summary table." },
+    { title: "Plots", place: ["outputs", "plots"], target: () => $("sub-plots"),
+      text: "Plots draws the plan year by year: the total balance over the runs, each account's balance, cash flow, "
+        + "deposits and withdrawals, taxes and expenses." },
     { title: "Optimize", place: ["outputs", "optimize"], target: () => $("sub-optimize"),
       text: "Optimize tries other choices for you (when to claim Social Security, which state to retire in, how to "
         + "draw down) and shows what each would be worth. Tick what you would consider and tap Find best settings." },
@@ -7973,25 +8089,93 @@
     { title: "Your scenarios", place: ["setup"], target: () => $("savedCard"),
       text: "Setup shows the scenario you are working on: save, rename, duplicate, clear or export it. Below it you "
         + "can open another scenario, start a new one or import a file." },
+    { title: "Your household", place: ["setup"], target: () => $("householdCard").querySelector("legend"),
+      text: "Household & run on Setup holds the basics: whether there is a partner, your ages, filing status and home "
+        + "state." },
+    { title: "Runs", place: ["setup"], target: () => $("runCard"),
+      text: "Runs sets how many possible futures (Monte Carlo runs) sit behind every result: more runs are steadier "
+        + "but slower. The same seed gives the same random draws each time." },
     { title: "Walk me through it", menu: true, target: () => $("menuWalk"),
       text: "The menu's Walk me through it asks one question at a time and fills in your settings. Where a topic "
         + "has more detail, Go deeper adds its extra questions." },
     { title: "The menu", menu: true, target: () => $("menu"),
-      text: "The menu also holds Tax law and costs, the law and cost figures behind each state, Final report "
+      text: "The menu also holds Documentation, the user guide with the tax law and costs of every state, Final report "
         + "(PDF), a printable summary of this plan, Appearance (the color "
         + "schemes), Help and tips, About and Legal." },
     { title: "This tour", target: () => $("helpButton"),
       text: "Tap ? any time to see this tour again." },
   ];
-  const tour = { steps: [], at: 0, from: null };
-
-  // The bubble of one settings panel on Inputs (null before the chips are drawn).
-  function settingsChip(panelId) {
-    return $("chips-settings").querySelector(".chip[data-id=\"" + panelId + "\"]");
-  }
+  const tour = { steps: [], at: 0, from: null, direction: 1, token: 0 };
 
   function tourShown(element) {
     return element != null && element.getClientRects().length > 0;
+  }
+
+  // The part of a control the eye can see: its box cut to the window and to every box that clips it on the way up
+  // (a sideways chips row, a wide layout column), stopping at a fixed box; null when nothing of it shows.
+  function tourVisibleBox(element) {
+    const box = element.getBoundingClientRect();
+    let left = Math.max(0, box.left);
+    let top = Math.max(0, box.top);
+    let right = Math.min(window.innerWidth, box.right);
+    let bottom = Math.min(window.innerHeight, box.bottom);
+    for (let node = element; node && node !== document.body && node !== document.documentElement;
+      node = node.parentElement) {
+      const style = getComputedStyle(node);
+      if (node !== element && (style.overflowX !== "visible" || style.overflowY !== "visible")) {
+        const clip = node.getBoundingClientRect();
+        left = Math.max(left, clip.left);
+        top = Math.max(top, clip.top);
+        right = Math.min(right, clip.right);
+        bottom = Math.min(bottom, clip.bottom);
+      }
+      if (style.position === "fixed") break;
+    }
+    if (right - left < 1 || bottom - top < 1) return null;
+    return { left, top, right, bottom, whole: left <= box.left + 1 && right >= box.right - 1
+      && top <= box.top + 1 && bottom >= box.bottom - 1, box };
+  }
+
+  // Call `done` once a control's box has held still for a few frames (a scroll has settled), or after about a second.
+  function tourSettle(target, done) {
+    let last = "";
+    let still = 0;
+    let frames = 0;
+    const tick = () => {
+      const box = target.getBoundingClientRect();
+      const key = [box.left, box.top, box.width, box.height].join(",");
+      still = key === last ? still + 1 : 0;
+      last = key;
+      frames += 1;
+      if (still >= 2 || frames > 60) done();
+      else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // Bring the shown step's control into view (the page, its column and its chips row), wait for the scroll to settle,
+  // then place the ring; a control still not visible is skipped in the tour's direction rather than ringed over nothing.
+  function tourFocusTarget() {
+    if ($("tour").hidden) return;
+    const token = ++tour.token;
+    delete $("tour").dataset.ready;
+    const step = tour.steps[tour.at];
+    const target = step && step.target();
+    if (!tourShown(target)) { showTourStep(tour.at + tour.direction, tour.direction); return; }
+    const seen = tourVisibleBox(target);
+    if (!seen || !seen.whole) {
+      const box = target.getBoundingClientRect();
+      const across = !seen || seen.left > box.left + 1 || seen.right < box.right - 1;
+      const down = !seen || seen.top > box.top + 1 || seen.bottom < box.bottom - 1;
+      target.scrollIntoView({ block: down ? "center" : "nearest", inline: across ? "center" : "nearest" });
+    }
+    placeTourRing();  // where it shows now; placed again once any scroll has settled
+    tourSettle(target, () => {
+      if (token !== tour.token || $("tour").hidden) return;
+      if (!tourVisibleBox(target)) { showTourStep(tour.at + tour.direction, tour.direction); return; }
+      placeTourRing();
+      $("tour").dataset.ready = "true";
+    });
   }
 
   function openTour() {
@@ -8051,30 +8235,24 @@
     if (at < 0 && tour.at >= 0 && direction < 0) { showTourStep(tour.at, 1); return; }  // nothing drawn before it
     if (at < 0 || at >= tour.steps.length) { closeTour(); return; }
     tour.at = at;
+    tour.direction = direction;
     const step = tour.steps[at];
     $("tourCount").textContent = (at + 1) + " of " + tour.steps.length;
     $("tourTitle").textContent = step.title;
     $("tourText").textContent = step.text;
     $("tourBack").disabled = at === 0;
     $("tourNext").textContent = at === tour.steps.length - 1 ? "Done" : "Next";
-    const target = step.target();
-    const box = target.getBoundingClientRect();
-    if (box.top < 0 || box.bottom > window.innerHeight) {
-      target.scrollIntoView({ block: "center" });
-    }
-    if (box.left < 0 || box.right > window.innerWidth) {  // a bubble scrolled out of its row
-      target.scrollIntoView({ block: "nearest", inline: "center" });
-    }
-    placeTourRing();
+    tourFocusTarget();
   }
 
-  // The ring over the shown control (kept inside the screen), and the card on the half of the screen it leaves free.
+  // The ring over the visible part of the shown control (kept inside the screen), and the card on the half of the
+  // screen it leaves free.
   function placeTourRing() {
     if ($("tour").hidden) return;
     const step = tour.steps[tour.at];
     const target = step && step.target();
-    if (!tourShown(target)) return;
-    const box = target.getBoundingClientRect();
+    const box = tourShown(target) ? tourVisibleBox(target) : null;
+    if (!box) return;
     const pad = 6;
     const top = Math.max(4, box.top - pad);
     const bottom = Math.min(window.innerHeight - 4, box.bottom + pad);
@@ -8108,7 +8286,8 @@
       }
       trapFocus(event, $("tourCard"));
     }, true);
-    window.addEventListener("resize", placeTourRing);
+    window.addEventListener("resize", tourFocusTarget);  // a turned or resized screen: bring the control back in view
+    window.addEventListener("orientationchange", tourFocusTarget);
     window.addEventListener("scroll", placeTourRing, { passive: true });
     document.addEventListener("scroll", placeTourRing, { passive: true, capture: true });  // a wide layout column
   }
@@ -8206,222 +8385,39 @@
     $("bootRetry").addEventListener("click", () => location.reload());
   }
 
-  // ---- Tax law and costs (menu): the law viewer ----
-  // One jurisdiction's law file at a time, from wmti.dashboard.web.lawFile (the law files ship inside the model zip, so
-  // it works offline): a state picker, a filter, Expand all, the file's facts, a summary line counting the sections by
-  // confidence and one collapsible section per law-file section, unconfirmed ones first. The chosen jurisdiction is
-  // kept under LAW_KEY. Close, Escape and the back button leave it; focus goes back to what opened it.
-  const lawView = { code: null, law: null, sections: [], opener: null, request: 0 };
-
-  function lawElement(tag, className, text) {
-    const element = document.createElement(tag);
-    if (className) element.className = className;
-    if (text != null) element.textContent = text;
-    return element;
+  // ---- Documentation (menu) and the "See this state's rules" links ----
+  // Both open the user documentation in a new tab. Its address comes from the build (window.WMTI_BUILD.docs, set by
+  // build.py from DOCS_LOCATIONS): the Pages build's docs/ folder, where a state's own law page can be linked, or the
+  // docs artifact of the artifact build, which every link opens at its home.
+  function docsUrl(page) {
+    return docsLink((window.WMTI_BUILD || {}).docs, page);
   }
 
-  // A small link under a state select that opens the viewer on the chosen state (the home state when it is blank).
-  function lawLink(select) {
-    const link = lawElement("button", "law-link", "See this state's rules");
-    link.type = "button";
-    link.setAttribute("aria-haspopup", "dialog");
-    link.addEventListener("click", () => openLawViewer(select.value || state.inputs.homeState || null, link));
+  // A small link under a state select to the chosen state's law page (the home state's when the select is blank).
+  function stateRulesLink(select) {
+    const link = document.createElement("a");
+    link.className = "state-rules-link";
+    link.textContent = "See this state's rules";
+    link.target = "_blank";
+    link.rel = "noopener";
+    const point = () => {
+      const code = select.value || (state.inputs && state.inputs.homeState) || "";
+      link.href = docsUrl(code ? "law/" + String(code).toLowerCase() + ".html" : "law/index.html");
+    };
+    point();
+    select.addEventListener("change", point);
+    link.addEventListener("click", point);  // before the browser follows it, so it names the state shown now
     return link;
   }
 
-  function openLawViewer(code, opener) {
-    closeMenu();
-    lawView.opener = opener || $("menuButton");
-    $("law").hidden = false;
-    $("app").inert = true;
-    try {
-      if (!(history.state && history.state.wmtiLaw)) history.pushState({ wmtiLaw: true }, "");
-    } catch (error) { /* a sandboxed frame: Close and Escape still work */ }
-    loadLawState(code || load(LAW_KEY) || (state.inputs && state.inputs.homeState) || "federal");
-    $("lawState").focus();
-  }
-
-  function closeLawViewer(fromHistory) {
-    if ($("law").hidden) return;
-    $("law").hidden = true;
-    $("app").inert = false;
-    if (!fromHistory) {
-      try { if (history.state && history.state.wmtiLaw) history.back(); } catch (error) { /* no history */ }
-    }
-    const opener = lawView.opener && lawView.opener.isConnected ? lawView.opener : $("menuButton");
-    opener.focus();
-  }
-
-  async function loadLawState(code) {
-    const request = ++lawView.request;
-    $("lawSummary").textContent = "Loading...";
-    $("lawSummary").classList.remove("banner-error");
-    const answer = await ask("lawFile", [code], "law");
-    if (request !== lawView.request || !answer) return;
-    if (!answer.ok) {
-      if (code !== "federal" && lawView.code === null) { loadLawState("federal"); return; }  // a stale saved code
-      $("lawSummary").textContent = "The law file did not load: " + answer.error;
-      $("lawSummary").classList.add("banner-error");
-      return;
-    }
-    lawView.code = answer.code;
-    lawView.law = answer.law;
-    lawView.sections = lawSections(answer.law);
-    store(LAW_KEY, answer.code);
-    fillLawPicker(answer.states, answer.code);
-    renderLawViewer();
-  }
-
-  function fillLawPicker(states, code) {
-    const select = $("lawState");
-    if (select.options.length !== states.length + 1) {
-      const option = (value, label) => { const item = lawElement("option", null, label); item.value = value; return item; };
-      select.replaceChildren(option("federal", "Federal"),
-        ...states.map((item) => option(item.code, item.code + " - " + item.name)));
-    }
-    select.value = code;
-  }
-
-  function renderLawViewer() {
-    const law = lawView.law;
-    $("lawSummary").textContent = lawSummaryText(law, lawView.sections);
-    const facts = [["Jurisdiction", lawView.code === "federal" ? "Federal" : $("lawState").selectedOptions[0].textContent],
-      ["Tax year", law.tax_year], ["As of", law.as_of], ["Status", law.status], ["Source", law.source]];
-    $("lawFacts").replaceChildren(...facts.filter(([, value]) => value != null && value !== "").flatMap(([label, value]) =>
-      [lawElement("dt", null, label), lawElement("dd", null, String(value))]));
-    $("lawSections").replaceChildren(...lawView.sections.map(lawSectionElement));
-    filterLawSections();
-  }
-
-  function lawChip(level) {
-    const chip = lawElement("span", "law-chip", LAW_CONFIDENCE_LABELS[level]);
-    chip.dataset.level = level;
-    return chip;
-  }
-
-  function lawSectionElement(item) {
-    const section = lawElement("details", "law-section");
-    section.dataset.section = item.name;
-    section.dataset.confidence = item.confidence;
-    const head = lawElement("summary", "law-section-head");
-    head.append(lawElement("span", "law-section-name", item.name), lawChip(item.confidence));
-    section.append(head, lawBlock(item.name, item.value, false));
-    return section;
-  }
-
-  // The body of a section or sub-section: plain figures as rows, row lists as tables, sub-sections nested, then
-  // the note, source and check_at texts.
-  function lawBlock(key, value, inRate) {
-    const block = lawElement("div", "law-block");
-    if (lawIsRowArray(value)) {
-      block.append(lawTable(key, value, inRate));
-      return block;
-    }
-    if (value === null || typeof value !== "object" || Array.isArray(value)) {
-      const rows = lawElement("dl", "law-rows");
-      rows.append(lawElement("dt", null, key), lawElement("dd", null, lawValueText(key, value, inRate)));
-      block.append(rows);
-      return block;
-    }
-    const rate = inRate || lawIsRateKey(key);
-    let rows = null;
-    for (const name of Object.keys(value)) {
-      if (LAW_TEXT_FIELDS.includes(name) || name === "confidence") continue;
-      const item = value[name];
-      if (lawIsRowArray(item)) {
-        rows = null;
-        block.append(lawElement("p", "law-key", name), lawTable(name, item, rate));
-      } else if (item !== null && typeof item === "object" && !Array.isArray(item)) {
-        rows = null;
-        const group = lawElement("div", "law-group");
-        const title = lawElement("p", "law-key", name);
-        if ("confidence" in item) title.append(" ", lawChip(lawConfidenceClass(item.confidence)));
-        group.append(title, lawBlock(name, item, rate));
-        block.append(group);
-      } else {
-        if (!rows) { rows = lawElement("dl", "law-rows"); block.append(rows); }
-        rows.append(lawElement("dt", null, name), lawElement("dd", null, lawValueText(name, item, rate)));
-      }
-    }
-    for (const [name, label] of [["note", "Note"], ["source", "Source"], ["check_at", "Check at"]]) {
-      if (value[name] == null || value[name] === "") continue;
-      const text = lawElement("p", "law-note");
-      text.append(lawElement("strong", null, label + ": "), String(value[name]));
-      block.append(text);
-    }
-    return block;
-  }
-
-  function lawTable(key, rows, inRate) {
-    const columns = lawRowColumns(rows);
-    const scroll = lawElement("div", "table-scroll");
-    const table = lawElement("table", "data-table law-table");
-    table.setAttribute("aria-label", key);
-    const headRow = lawElement("tr");
-    headRow.append(...columns.map((column) => { const cell = lawElement("th", null, column); cell.scope = "col"; return cell; }));
-    const body = lawElement("tbody");
-    body.append(...rows.map((row) => {
-      const line = lawElement("tr");
-      line.append(...columns.map((column) => lawElement("td", null,
-        column in row ? lawValueText(column, row[column], inRate) : "")));
-      return line;
-    }));
-    const head = lawElement("thead");
-    head.append(headRow);
-    table.append(head, body);
-    scroll.append(table);
-    return scroll;
-  }
-
-  function filterLawSections() {
-    const text = $("lawFilter").value;
-    let shown = 0;
-    for (const section of $("lawSections").children) {
-      const item = lawView.sections.find((entry) => entry.name === section.dataset.section);
-      section.hidden = !lawSectionMatches(item.name, item.value, text);
-      if (!section.hidden) shown += 1;
-    }
-    $("lawEmpty").hidden = shown > 0 || !lawView.sections.length;
-    markLawExpand();
-  }
-
-  function lawShownSections() {
-    return [...$("lawSections").children].filter((section) => !section.hidden);
-  }
-
-  function markLawExpand() {
-    const shown = lawShownSections();
-    const allOpen = shown.length > 0 && shown.every((section) => section.open);
-    $("lawExpand").textContent = allOpen ? "Collapse all" : "Expand all";
-    $("lawExpand").setAttribute("aria-expanded", String(allOpen));
-  }
-
-  function toggleLawSections() {
-    const shown = lawShownSections();
-    const open = !(shown.length > 0 && shown.every((section) => section.open));
-    for (const section of shown) section.open = open;
-    markLawExpand();
-  }
-
-  function wireLawViewer() {
-    $("menuLaw").addEventListener("click", () => openLawViewer(null, $("menuButton")));
-    $("lawClose").addEventListener("click", () => closeLawViewer(false));
-    $("lawState").addEventListener("change", () => loadLawState($("lawState").value));
-    $("lawFilter").addEventListener("input", filterLawSections);
-    $("lawExpand").addEventListener("click", toggleLawSections);
-    $("lawSections").addEventListener("toggle", markLawExpand, true);  // toggle does not bubble; capture sees it
-    // Ahead of the page's own Escape handling (capture), so Escape closes only the viewer.
-    document.addEventListener("keydown", (event) => {
-      if ($("law").hidden || event.key !== "Escape") return;
-      event.stopPropagation();
-      closeLawViewer(false);
-    }, true);
-    window.addEventListener("popstate", () => closeLawViewer(true));
+  function wireDocs() {
+    $("menuDocs").href = docsUrl("index.html");
+    $("menuDocs").addEventListener("click", closeMenu);
   }
 
   renderBootSteps();
   wire();
-  wireLawViewer();
+  wireDocs();
   startTerms();
   engine.start();
 })();

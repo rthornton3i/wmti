@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Using the toolkit &mdash; Walk Me Through It  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7f41d439"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The app" href="app.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../user_index.html" class="icon icon-home">
+            Walk Me Through It
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Start here</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using the toolkit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#open-the-app">Open the app</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-case-1-a-retirement-projection">Use case 1: a retirement projection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-case-2-traditional-or-roth-savings">Use case 2: Traditional or Roth savings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-case-3-when-to-claim-social-security">Use case 3: when to claim Social Security</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-case-4-a-loan-and-an-extra-payment">Use case 4: a loan and an extra payment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-python-api">Using the Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-the-toolkit-does-not-model-yet">What the toolkit does not model yet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inflation">Inflation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using the app</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="app.html">The app</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-gallery.html">Sample results</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="model-rules.html">Model rules by group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States: taxes, living costs and moving</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tax law and legal</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tax-law.html">Tax law in the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../user_index.html">Walk Me Through It</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../user_index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Using the toolkit</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="using-the-toolkit">
+<h1>Using the toolkit<a class="headerlink" href="#using-the-toolkit" title="Link to this heading"></a></h1>
+<p>In short: open the app, let the walkthrough fill in the main settings, then
+change one thing at a time and compare. This page shows how to open it and
+walks through four worked examples: a retirement projection, Traditional or
+Roth saving, when to claim Social Security, and a loan with an extra payment.
+It ends with the same steps from Python.</p>
+<p>The app and the Python API give the same results: the app only edits a
+<code class="docutils literal notranslate"><span class="pre">RetirementInputs</span></code> and shows what <code class="docutils literal notranslate"><span class="pre">simulate</span></code> returns (see <a class="reference internal" href="app.html"><span class="doc">The app</span></a>).</p>
+<section id="open-the-app">
+<h2>Open the app<a class="headerlink" href="#open-the-app" title="Link to this heading"></a></h2>
+<p>The app is one web page hosted on GitHub Pages:
+<a class="reference external" href="https://rthornton3i.github.io/wmti/">https://rthornton3i.github.io/wmti/</a> . It runs the Python model inside the
+browser, so nothing is installed and nothing you enter leaves the device. The
+same page fits a phone and, from 1100 px wide, a laptop or monitor (Setup,
+Inputs and Outputs side by side). On a phone, open it once (about 20 MB), then
+install it from the menu’s <em>Install app</em> to use it offline. <a class="reference internal" href="app.html"><span class="doc">The app</span></a>
+describes every screen; <span>sharing the app</span> in <span>developing</span> says how it
+is built and published.</p>
+<p>On a first visit the walkthrough (Walkthrough in <a class="reference internal" href="app.html"><span class="doc">The app</span></a>) opens over the
+page and asks for the main settings one question at a time, starting from the
+example household; its first step offers to import a scenario file you already
+have; <strong>Skip for now</strong> closes it, and <em>Walk me through it…</em> in the menu opens
+it again at any time.</p>
+<p>The page has three tabs, Setup, Inputs and Outputs: <a class="reference internal" href="overview.html#tabs-overview"><span class="std std-ref">What each tab is for</span></a> lists
+what each is for, and <a class="reference internal" href="model-rules.html#model-rules"><span class="std std-ref">Model rules by group</span></a> gives the defaults and logic of each group.</p>
+<p>Every edit reruns the model. A figure marked <code class="docutils literal notranslate"><span class="pre">(%)</span></code> is a percent: type 3 for 3%.</p>
+</section>
+<section id="use-case-1-a-retirement-projection">
+<h2>Use case 1: a retirement projection<a class="headerlink" href="#use-case-1-a-retirement-projection" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>On <strong>Setup</strong>, enter each person’s current age. In <strong>Income</strong>, enter the salary
+and the age pay stops (<a class="reference internal" href="model-rules.html#tab-income"><span class="std std-ref">Income</span></a>). In <strong>Retirement</strong>, enter the
+Social Security benefit and claim age; the earnings history on Income can
+estimate the benefit (<a class="reference internal" href="model-rules.html#tab-social-security"><span class="std std-ref">Social Security</span></a>).</p></li>
+<li><p>In <strong>Expenses</strong>, fill in or remove the suggested monthly categories and add your own
+Bills, Planned and Other spending rows, the major one-off
+items by age, gifts to charity as Charity rows, a tax deduction on any row that is
+deductible (<em>Tax deduction</em>) (<a class="reference internal" href="model-rules.html#tab-expenses"><span class="std std-ref">Expenses</span></a>), and in
+<strong>Children</strong> the children’s years and costs (<a class="reference internal" href="model-rules.html#tab-children"><span class="std std-ref">Children</span></a>), and in
+<strong>Home</strong> the homes you own with their values, mortgages and property taxes and your
+primary residence, or the rent, and the utilities (<a class="reference internal" href="model-rules.html#tab-home"><span class="std std-ref">Home</span></a>).</p></li>
+<li><p>In <strong>Accounts</strong>, list every account with its kind, owner and starting value, and
+choose the withdrawal strategy and priority (<a class="reference internal" href="model-rules.html#tab-accounts"><span class="std std-ref">Accounts</span></a>).</p></li>
+<li><p>In <strong>Benefits</strong>, under <em>Retirement plan</em>, set each person’s employer match and either keep the household plan or set a
+yearly deposit for each 401k and IRA account (<a class="reference internal" href="model-rules.html#tab-savings"><span class="std std-ref">Retirement plan</span></a>).</p></li>
+<li><p>Read the pinned headline figures (the median final worth, its value after tax, the
+average net earnings and the average yearly expense) and, on Outputs, Summary, the
+chance of running out. Summary and the <strong>Balances</strong>, <strong>Deposits and withdrawals</strong> and
+<strong>Taxes</strong> charts under Plots show the year by year middle half average of the runs
+behind them (see <a class="reference internal" href="model-rules.html#tab-results-header"><span class="std std-ref">Headline figures</span></a> and Outputs in
+<a class="reference internal" href="app.html"><span class="doc">The app</span></a>).</p></li>
+</ol>
+</section>
+<section id="use-case-2-traditional-or-roth-savings">
+<h2>Use case 2: Traditional or Roth savings<a class="headerlink" href="#use-case-2-traditional-or-roth-savings" title="Link to this heading"></a></h2>
+<p>Save the open scenario under a name, change <strong>Benefits</strong> (for example, move the
+deferral into a Roth deposit), then <em>Duplicate</em> it under another name, and open
+<strong>Compare</strong> and pick one as <strong>Config A</strong> and the other as <strong>Config B</strong>. Both run on the
+same random draws, so the difference in final worth comes from the setting, not luck.
+<a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">How Compare judges</span></a> explains the table (after-tax final value, paired
+gain, break-even rate) and the terminal tax rate; Compare in <a class="reference internal" href="app.html"><span class="doc">The app</span></a> explains
+<em>Settings that differ</em>. To judge a strategy, save one
+scenario with it on in <strong>Strategies</strong> and one with it off, and compare the two.</p>
+</section>
+<section id="use-case-3-when-to-claim-social-security">
+<h2>Use case 3: when to claim Social Security<a class="headerlink" href="#use-case-3-when-to-claim-social-security" title="Link to this heading"></a></h2>
+<p>Enter the monthly benefit your Social Security statement shows for two or more claim
+ages in the benefit table on <strong>Retirement</strong>; the tool estimates the other ages from 62
+to 70, or can estimate them from your earnings history on <strong>Income</strong>
+(<a class="reference internal" href="model-rules.html#tab-social-security"><span class="std std-ref">Social Security</span></a> explains both, the simplified SSA method and
+its limits). Save the scenario, change the claim age and save it
+under another name, then open <strong>Compare</strong> and pick the two: they run on the same random
+draws (<a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">How Compare judges</span></a>).</p>
+</section>
+<section id="use-case-4-a-loan-and-an-extra-payment">
+<h2>Use case 4: a loan and an extra payment<a class="headerlink" href="#use-case-4-a-loan-and-an-extra-payment" title="Link to this heading"></a></h2>
+<p>In <strong>Loans</strong>, add a loan with its balance, rate in percent, months left and an extra
+monthly payment (a mortgage goes on its home on <strong>Home</strong>). Save the scenario without the
+extra payment as well and compare the two to see what it saves. When the payment is
+already a row on Expenses, tick <em>Payment in Expenses</em> so it is not charged twice
+(<a class="reference internal" href="model-rules.html#tab-loans"><span class="std std-ref">Loans</span></a>).</p>
+</section>
+<section id="using-the-python-api">
+<h2>Using the Python API<a class="headerlink" href="#using-the-python-api" title="Link to this heading"></a></h2>
+<p>The same run from Python (run it from the repository root after <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span>
+<span class="pre">-e</span> <span class="pre">.</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">wmti.retirement</span><span class="w"> </span><span class="kn">import</span> <span class="n">compareScenarios</span><span class="p">,</span> <span class="n">compareTable</span><span class="p">,</span> <span class="n">loadInputs</span><span class="p">,</span> <span class="n">runIterations</span><span class="p">,</span> <span class="n">runOnce</span>
+
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">loadInputs</span><span class="p">()</span>                       <span class="c1"># the shipped default profile</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">runOnce</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>            <span class="c1"># one seeded run</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s2">"Final Account Value"</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">summary</span><span class="p">[[</span><span class="s2">"Age (you)"</span><span class="p">,</span> <span class="s2">"Federal"</span><span class="p">,</span> <span class="s2">"State"</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="n">monteCarlo</span> <span class="o">=</span> <span class="n">runIterations</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">monteCarlo</span><span class="o">.</span><span class="n">median</span><span class="p">,</span> <span class="n">monteCarlo</span><span class="o">.</span><span class="n">typical</span><span class="p">,</span> <span class="n">monteCarlo</span><span class="o">.</span><span class="n">shareDepleted</span><span class="p">)</span>
+
+<span class="n">claimAt70</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">you</span><span class="o">=</span><span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">you</span><span class="p">,</span> <span class="n">socialSecurityAge</span><span class="o">=</span><span class="mi">70</span><span class="p">))</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">compareTable</span><span class="p">(</span><span class="n">compareScenarios</span><span class="p">({</span><span class="s2">"claim early"</span><span class="p">:</span> <span class="n">inputs</span><span class="p">,</span> <span class="s2">"claim at 70"</span><span class="p">:</span> <span class="n">claimAt70</span><span class="p">},</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Saved configs are JSON files; <code class="docutils literal notranslate"><span class="pre">saveInputs</span></code> and <code class="docutils literal notranslate"><span class="pre">loadInputs</span></code> write and read
+them, and a file from an older version of the toolkit is upgraded when it loads.
+<code class="docutils literal notranslate"><span class="pre">loadInputsWithVersion</span></code> also returns the file’s own <code class="docutils literal notranslate"><span class="pre">schemaVersion</span></code>, so a
+caller can tell an upgraded load. <code class="docutils literal notranslate"><span class="pre">loadScenarioUpgrading</span></code> (in
+<code class="docutils literal notranslate"><span class="pre">wmti.inputs.scenarios</span></code>) saves an upgraded config
+back at once in the current format after copying the original to
+<code class="docutils literal notranslate"><span class="pre">.backup/&lt;name&gt;.v&lt;old</span> <span class="pre">version&gt;.json</span></code> beside it (an existing backup is never
+replaced; a numbered copy is added instead). A config holds at most 50
+accounts, 50 loans, 20 cars, 20 homes, 20 children, 100 salary-history years,
+200 expense rows and 200 rows in any other list (<code class="docutils literal notranslate"><span class="pre">LIST_LIMITS</span></code> and
+<code class="docutils literal notranslate"><span class="pre">OTHER_LIST_LIMIT</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>), and every number in it
+must be finite (no <code class="docutils literal notranslate"><span class="pre">NaN</span></code> or <code class="docutils literal notranslate"><span class="pre">Infinity</span></code>); a file that breaks either is refused
+with a message naming the field. A config’s name follows the rule described
+under Scenarios on Setup in <a class="reference internal" href="app.html"><span class="doc">The app</span></a> (no <code class="docutils literal notranslate"><span class="pre">__proto__</span></code> and no Windows device
+name such as <code class="docutils literal notranslate"><span class="pre">CON</span></code>).</p>
+</section>
+<section id="what-the-toolkit-does-not-model-yet">
+<h2>What the toolkit does not model yet<a class="headerlink" href="#what-the-toolkit-does-not-model-yet" title="Link to this heading"></a></h2>
+<p>Roth conversions, the Roth backdoor deposit and qualified charitable distributions
+(Strategies), the Medicare IRMAA surcharge (Retirement), the senior deduction
+and the non-itemizer charity deduction are in the model; <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a> says how
+each works. What it still leaves out (the Net Investment Income Tax, the
+early-withdrawal penalty and Roth five-year rules, deaths and the survivor’s single
+brackets, the ACA premium credit, credits and the AMT, an exact Social Security
+benefit calculation (the earnings estimate is simplified), spousal and survivor benefits and the earnings test, the joint-life RMD table) is listed in the <a class="reference internal" href="tax-law.html#law-backlog"><span class="std std-ref">Law backlog</span></a> in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>.</p>
+</section>
+<section id="inflation">
+<span id="id1"></span><h2>Inflation<a class="headerlink" href="#inflation" title="Link to this heading"></a></h2>
+<p>The inflation range (low, most likely, high; in the Inflation card on Setup, under the
+inflation adjusted switch) is a triangular draw each year. With <em>Inflation-adjusted
+dollars</em> ticked, expenses, Social Security and the law’s indexed figures grow with each year’s
+drawn inflation and balances are in inflation-adjusted dollars. Unticked, the model runs in
+today’s value: returns and pay are deflated by the <em>mean</em> of the range (for 1%, 3%, 6% that
+is 3.33%, not the 3% most likely value), exactly as (1 + return) / (1 + inflation) - 1. The
+two ways therefore tell the same story; a plan that only works at a 3% inflation but not at
+the range’s 3.33% mean runs out of money in both.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="app.html" class="btn btn-neutral float-right" title="The app" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, [BRAND NAME].</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

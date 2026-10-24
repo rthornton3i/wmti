@@ -1,0 +1,1509 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The app &mdash; Walk Me Through It  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7f41d439"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Strategies" href="strategies.html" />
+    <link rel="prev" title="Using the toolkit" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../user_index.html" class="icon icon-home">
+            Walk Me Through It
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Start here</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the toolkit</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using the app</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The app</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-app-at-a-glance">The app at a glance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-the-page-does">What the page does</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scenarios-on-setup">Scenarios on Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#swapping-tabs">Swapping tabs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#look-and-color-scheme">Look and color scheme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#terms-and-agreement">Terms and agreement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#walkthrough">Walkthrough</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#help">Help</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#where-surplus-cash-goes">Where surplus cash goes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sheets">Sheets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deposit-per-account">Deposit per account</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#monte-carlo">Monte Carlo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compare">Compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimize">Optimize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#final-report-pdf">Final report (PDF)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#insights">Insights</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#app-limits">App limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-gallery.html">Sample results</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="model-rules.html">Model rules by group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States: taxes, living costs and moving</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tax law and legal</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tax-law.html">Tax law in the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../user_index.html">Walk Me Through It</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../user_index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The app</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-app">
+<h1>The app<a class="headerlink" href="#the-app" title="Link to this heading"></a></h1>
+<p>In short: the app is the whole planner in one web page. It runs the same
+Python model inside the browser, keeps your scenarios on the phone and sends
+nothing anywhere. Three tabs at the bottom hold everything: <strong>Setup</strong> (your
+scenarios and the household), <strong>Inputs</strong> (the settings, one chip per group) and
+<strong>Outputs</strong> (Summary, Plots, Compare and Optimize). The <strong>?</strong> button at the top
+right gives a short tour of the controls, and Undo at the top left takes back
+the last edits. This page is for anyone using the app: the pictures, then
+what every screen does and the final report. The rules behind each settings
+group are in <a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a>; how the app is built and shared is in
+<span>developing</span>.</p>
+<p>The app, Walk Me Through It (WMTI), runs the real <code class="docutils literal notranslate"><span class="pre">wmti</span></code> model in the
+browser with Pyodide, so its numbers are those of a native Python run. It is
+published as an installable web app on GitHub Pages and as a private claude.ai
+artifact (see <span>sharing the app</span>). It has the app frame, every settings
+group, the headline figures, the Monte Carlo behind every output (its tables,
+deductions, charts and RMD schedule), Compare, Optimize, the final report and
+saved scenarios on the device.</p>
+<section id="the-app-at-a-glance">
+<span id="app-at-a-glance"></span><h2>The app at a glance<a class="headerlink" href="#the-app-at-a-glance" title="Link to this heading"></a></h2>
+<p>The pictures below are the built page at 390 x 844 pixels on the example
+household, taken with Playwright (see <code class="docutils literal notranslate"><span class="pre">docs/images/README.txt</span></code>).</p>
+<div class="screen-grid docutils container">
+<figure class="align-default" id="id3">
+<a class="reference internal image-reference" href="../_images/setup.png"><img alt="The Setup tab: the open scenario card with its name, status and its strip of buttons, then the other saved scenarios." src="../_images/setup.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Setup: the open scenario, other scenarios and the household.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id4">
+<a class="reference internal image-reference" href="../_images/inputs.png"><img alt="The Inputs tab with its row of group chips and the cards of one settings group." src="../_images/inputs.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Inputs: one chip per settings group; swipe sideways to move between them.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id5">
+<a class="reference internal image-reference" href="../_images/outputs-summary.png"><img alt="The Outputs Summary view with the headline tiles from the Monte Carlo runs." src="../_images/outputs-summary.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Outputs, Summary: the headline figures from the Monte Carlo runs.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id6">
+<a class="reference internal image-reference" href="../_images/optimize-result.png"><img alt="The Outputs Optimize view after a search: a highlighted card per recommended change, its value now and recommended, and its gain." src="../_images/optimize-result.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Optimize: one card per change that improves the score (now → recommended and its gain), the total, and the
+settings kept folded into one line.</span><a class="headerlink" href="#id6" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id7">
+<a class="reference internal image-reference" href="../_images/timeline-add.png"><img alt="The timeline's Add screen asking What are you adding, with its choices and the fields below them." src="../_images/timeline-add.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The timeline’s one Add screen (it ends in <em>Save</em> and <em>Cancel</em>, below the fields).</span><a class="headerlink" href="#id7" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id8">
+<a class="reference internal image-reference" href="../_images/report-picker.png"><img alt="The Final report (PDF) dialog listing saved scenarios to tick for comparison, with Create report and Cancel." src="../_images/report-picker.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text"><em>Final report (PDF)</em>: tick up to four saved scenarios to compare.</span><a class="headerlink" href="#id8" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="what-the-page-does">
+<h2>What the page does<a class="headerlink" href="#what-the-page-does" title="Link to this heading"></a></h2>
+<p>The first load downloads about 20 MB (the calculation libraries and the
+model) and shows each start-up step with its time; on a phone it takes about
+20 seconds, later loads are faster. A bottom tab bar holds three tabs, Setup,
+Inputs and Outputs; chips and a switch inside pick a view. The look, the menu
+and the color schemes are under “Look and color scheme” below.</p>
+<p>On a window 1100 px wide or wider (a PC monitor) the page switches to a wide
+layout by itself, live as the window is resized: the top bar becomes one banner
+across the top with the pinned headline figures, Undo, ? and the menu, and
+Setup, Inputs and Outputs show side by side below it (one fifth, two fifths and
+two fifths of the width), each down to the bottom of the window and scrolling
+on its own under its chips rows. There is no bottom bar, pin button or sideways
+swipe between panels, and the tour skips its bottom-bar and pin steps. A
+narrower window is the phone layout (<code class="docutils literal notranslate"><span class="pre">wireWide</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18.0%" />
+<col style="width: 52.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tab</p></th>
+<th class="head"><p>What it shows</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">wmti.dashboard.web</span></code> call</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Setup</p></td>
+<td><p>The open scenario card at the top: its name in large type (the only place Setup shows it), whether it
+is saved, the Auto-save switch and one strip of Save, Rename, Duplicate, Clear and Export (the settings as a
+scenario file); then Other scenarios (the scenarios saved on this
+device, each with a “…” menu) and the New and Import buttons (see Scenarios on Setup below). Then
+Household &amp; run:
+the “Include a partner” switch, Your age
+and Partner age (the current ages; Partner age only with a partner),
+filing status, home state, the partner’s share of joint accounts and the years
+to simulate. Below it the Run card: the Seed (of the single run behind the headline figures
+and of the Monte Carlo, whose first run is that single run), the Runs
+(25, 50 or 100, default 25; the one run count for the Monte Carlo and
+Compare; its help gives the time on this device); then the Inflation card with the inflation adjusted switch
+(amounts in today’s value when off) and the Inflation range under it; load the example household
+(fictional figures);
+and Clear all data on this device (a second tap deletes every <code class="docutils literal notranslate"><span class="pre">wmti.*</span></code>
+key, the offline copy’s caches and the service worker, then reloads, so
+the page starts as on a first visit). About (build id, a “Version:” line,
+Check for updates in the GitHub Pages build, engine versions, start-up, run and per-run Monte Carlo times, and lines saying the planner is not
+financial advice, models US federal tax and the income taxes of the 50 states and DC for the stated tax year
+only, and that the example household’s figures are fictional) opens from the menu.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">exportScenario</span></code>, <code class="docutils literal notranslate"><span class="pre">importScenario</span></code>, <code class="docutils literal notranslate"><span class="pre">appInfo</span></code>, <code class="docutils literal notranslate"><span class="pre">setPartner</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Inputs</p></td>
+<td><p>Income, Children, Home, Cars, Loans, Accounts, Benefits, Healthcare, Expenses,
+Retirement and Strategies (Household &amp; run with the current ages, the Seed, the Runs, the
+inflation adjusted switch, the only inflation setting, and the Inflation range are on Setup). Labels, help, units and bounds come from the
+Python settings schema; Home, Loans and Expenses have notes
+behind the “i” beside the group heading (only Mortgage loans feed the
+deduction, a Mortgage loan plus a Mortgage Bills row charges the payment
+twice, Charity rows are gifts per year, any other row can be given a
+tax deduction).
+The Expenses note says only expenses no other tab enters go there and
+lists, one line each, where the others are entered: children, college,
+daycare and the dependent care FSA on Children and Benefits; home bills
+and loans on Home and Loans; car costs and car loans on Cars; healthcare on Healthcare, Medicare on Retirement;
+taxes, Social Security and savings deposits are worked out. A
+tax-deductible cost other than Charity, or a cost only in the child
+years, needs no row. A loan’s payment row may stay if
+Payment in Expenses is ticked on the loan. The
+expenses are two lists of the one saved list: “Monthly expenses” (Bills,
+Planned Spending, Other Spending) and “Major expenses” (Major Spending and
+Charity, amounts per year); each list’s sheet offers only its categories and
+a row added there starts in its first one. A new scenario and the example
+household start the monthly list with the suggested categories of
+<code class="docutils literal notranslate"><span class="pre">.config/expenseCategories.json</span></code> (Groceries, Dining out, Wi-Fi &amp; cable and
+so on; the settings schema’s <code class="docutils literal notranslate"><span class="pre">suggestedExpenses</span></code>), each with its amount
+blank: the card shows $0 in gray (<code class="docutils literal notranslate"><span class="pre">.is-default</span></code>, <code class="docutils literal notranslate"><span class="pre">unfilledSuggestion</span></code> in
+<code class="docutils literal notranslate"><span class="pre">shared.js</span></code>) and the sheet’s amount box shows 0 in gray until a figure is
+typed. Fill in the ones you spend on and remove the rest; a suggested row
+left at 0 counts for nothing and is left out of the PDF report’s Expenses
+table. Each suggested row carries a price type (<code class="docutils literal notranslate"><span class="pre">ExpenseItem.priceType</span></code>,
+never shown) that sets how its cost changes after a move (see
+<a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>); a row you add has none. A saved scenario keeps its
+own rows: loading it never adds the suggested ones.
+The panel opens with an “Already counted from other tabs”
+card: the read-only costs other tabs already charge, in one table under their
+one group, “Bills - Other”, and the taxes note under it (the <code class="docutils literal notranslate"><span class="pre">alreadyCounted</span></code>
+part of <code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code>, with its <code class="docutils literal notranslate"><span class="pre">groups</span></code> and <code class="docutils literal notranslate"><span class="pre">note</span></code>; the Expenses panel
+asks for the notes like Accounts and Cars do). The lists follow, and the panel
+ends with one “Total expenses” card, per month only: each monthly category, Major
+Spending and Charity paid at your age today (per year divided by 12;
+<code class="docutils literal notranslate"><span class="pre">expenseSummary</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>), one “Bills - Other” row (the
+costs other tabs charge, when there are any) and one “Total expenses” row, the
+entered rows plus the Bills - Other (<code class="docutils literal notranslate"><span class="pre">expenseTotals</span></code>, the app’s copy of
+<code class="docutils literal notranslate"><span class="pre">wmti.dashboard.breakdown.expenseTotals</span></code> in whole dollars, so the shown amounts
+add up). The total reads n/a until the notes arrive.
+Benefits holds, under a “Medical plan” heading, the health premium, the
+pre-tax switch and the plan’s cost sharing, and inside it an “HSA”
+sub-section (the section’s <code class="docutils literal notranslate"><span class="pre">subsections</span></code> in the schema) with its own
+switch and the HSA contribution, shown only while the medical plan is
+on; Healthcare holds how the costs are set (a flat amount, the
+default, or visit-based; healthcare always counts), the flat amount’s
+two ends or the visits, their price and the drugs, and
+ends with one “Reset to defaults” button for the
+visit figures (the schema’s <code class="docutils literal notranslate"><span class="pre">resetGroups</span></code>): editing one of them
+leaves the shipped defaults and the button puts them all back. Retirement holds, under a “Social Security” heading, each
+person’s benefit basis, benefit table and claim age (labelled Your and
+Partner; the partner’s only with a partner) under a “You” and a “Partner”
+sub-heading, the Partner one below a divider (the panel’s <cite>headings</cite>), then under a “Medicare”
+heading the Medicare age, the Medicare type, Part B, the Part D premium,
+the coinsurance and the out-of-pocket maximum, with the
+warning that the IRMAA tier of the first two years is estimated (from
+<code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code>’ <code class="docutils literal notranslate"><span class="pre">medicareWarnings</span></code>) when it applies, then a
+“Medicare supplement” section with its switch (its four figures while it
+is on), then a “Spending in retirement” section with its switch: the
+choice of Equal change or Per expense, the one percent (Equal change
+only, a <code class="docutils literal notranslate"><span class="pre">conditions</span></code> entry), the start age (blank: your Social
+Security claim age, or the age you stop working with no benefit
+entered, <code class="docutils literal notranslate"><span class="pre">defaultSpendingStartAge</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>; the blank box
+shows it as “Starts at your Social Security age, 67”) and, in Per expense, a list of every Expenses row with its own
+percent (stored in the row’s <code class="docutils literal notranslate"><span class="pre">retirementChange</span></code>, which the expense
+sheet leaves off) and the amount after it, then a caption with the
+monthly rows before and after the change (<code class="docutils literal notranslate"><span class="pre">spendingChangeRows</span></code> and
+<code class="docutils literal notranslate"><span class="pre">spendingChangePreview</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>). The panel’s <code class="docutils literal notranslate"><span class="pre">conditions</span></code> hide the supplement section on
+Medicare Advantage and the Medicare out-of-pocket maximum on Original
+Medicare; changing the Medicare type redraws the chip. A panel lists such a field as
+<code class="docutils literal notranslate"><span class="pre">premiums.medicareAge</span></code> or <code class="docutils literal notranslate"><span class="pre">you.socialSecurityAge</span></code> (one field of a
+split object). A <code class="docutils literal notranslate"><span class="pre">#retirement</span></code>, <code class="docutils literal notranslate"><span class="pre">#medicare</span></code>, <code class="docutils literal notranslate"><span class="pre">#socialsecurity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">#social-security</span></code> or <code class="docutils literal notranslate"><span class="pre">#ss</span></code> link, or a stored <code class="docutils literal notranslate"><span class="pre">retirement</span></code> chip
+(also the older Retirement expenses chip), opens the Retirement chip.
+Home opens with its <em>Timeline</em> pane (drawn once, the first pane of the
+panel, as on Cars), then four panes (the panel’s <code class="docutils literal notranslate"><span class="pre">sections</span></code>): Homes, one
+card per home you own (name, “primary residence” or “second home”,
+“mortgage” while its mortgage counts, “buys at 60” and “sells at 70” while
+those switches are on, and its value today, or its price when bought
+later), Rent, one card per rent period (its name, “per month” with its
+first and last years, “today” and “open” for renting today and to the end,
+and its monthly rent), Utilities, and Other mortgage loans, the Mortgage
+loans a home cannot hold (the panel’s <code class="docutils literal notranslate"><span class="pre">labels</span></code>) with an “Add mortgage
+loan” button. The <em>Timeline</em> pane draws one bar row per <a class="reference internal" href="overview.html#term-Lane"><span class="xref std std-term">lane</span></a> (owned
+filled, rent hatched; <code class="docutils literal notranslate"><span class="pre">timelineBars</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>, from
+the worker’s <code class="docutils literal notranslate"><span class="pre">timelineView</span></code>) and one card per stretch (“Elm St, owned
+2026-2035”, “Rent, rented 2036-2040”, “No home 2041-2045”) with <em>Edit</em>
+and <em>Delete</em> (a second tap confirms); the pane has no Add button of its
+own. <em>Add home</em> under the home cards opens the
+timeline’s one Add screen, “What are you adding?”: I currently own it
+(its name, optional sale year, value today and mortgage with the balance
+owed; beside a home owned today it is a second home), A future purchase
+(its name, purchase year, optional sale year, price, buying costs and
+mortgage) or Rent (a rent period: its name, first year, optional last
+year and monthly rent); the mortgage figures show only while its switch
+is ticked. <em>Add rent period</em> opens the same screen with Rent chosen.
+<em>Edit</em> plans a sale: its <em>Plan to sell it</em> tick shows the sale year
+(your age beside it), and unticked the home is kept. Every screen is
+final, in the bottom sheet with one <em>Save</em> (applies the edit and closes)
+and one <em>Cancel</em> (closes with nothing applied); the sheet’s own header
+Done is hidden while it shows (<code class="docutils literal notranslate"><span class="pre">timeline-sheet</span></code>).
+The words come from <code class="docutils literal notranslate"><span class="pre">timeline.flow</span></code> in the settings schema.
+Back to back stretches share a year and the new one counts for it (its
+bar fills that year). Adding a home or rent period
+between two others refits both: the one before ends in its first year,
+the one after starts in its last year. A refused step keeps
+what was typed on its screen. Each step is applied at once by
+<code class="docutils literal notranslate"><span class="pre">timelineApply</span></code> (the shared timeline edit rules: a refit
+or a fill is named in a note on the screen and under the block, a refused
+step shows its sentence and changes nothing), and the buttons stay
+disabled until the answer is back. A home’s sheet is drawn in titled
+groups, Basics, Mortgage and Property tax and insurance (each field’s
+schema <code class="docutils literal notranslate"><span class="pre">group</span></code>); the mortgage switch shows its figures only while it is
+on (<code class="docutils literal notranslate"><span class="pre">itemSwitches</span></code> in the sheet rules), and the purchase and sale
+switches and figures are left to the timeline (<code class="docutils literal notranslate"><span class="pre">timelineManaged</span></code>); a
+home bought later hides its value today and mortgage balance and labels
+the months <em>Mortgage term (months)</em>. With no purchase or sale, exactly one home is the primary
+residence: a first home added is primary and later ones are not (each
+gets its own name, Home 2 and so on), ticking another home’s switch makes
+it the only primary, unticking the only primary ticks it again, and
+removing or deleting the primary makes the first home left primary.
+Homes held in different years may each be primary (<code class="docutils literal notranslate"><span class="pre">choosePrimary</span></code>
+unticks only the primaries held in the same years; a sale and a purchase
+may share their year, <code class="docutils literal notranslate"><span class="pre">periodsOverlap</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>). Loans lists only the Student,
+Auto and Other loans (the panel’s <code class="docutils literal notranslate"><span class="pre">filters</span></code> in the schema), then each
+home’s mortgage as a read-only row titled with the home’s name (detail
+“&lt;home&gt; mortgage”, rate, months left and, bought or sold later, “starts
+at 60 · ends at 70 (sold)”) and each other Mortgage loan as
+a read-only “Mortgage” row, with an “Edit the mortgage
+on Home” button that opens the Home chip, and each car loan as a
+read-only row (only while the car charges a loan) titled with the car’s name (detail “&lt;car&gt; loan”, rate,
+months left and, for a car bought or sold later, “starts at 55 Â· ends at 62
+(sold)”; the amount is the price less the down payment for a car bought
+later) with an “Edit car loans on Cars” button that opens the
+Cars chip; a car loan cannot be edited on Loans. A loan’s sheet ends
+with its <em>Starts later</em> section (the switch, then <em>Starts in year</em> while
+it is on) and its <em>Pay off early</em> section (the switch, then <em>Payoff age</em>
+and <em>Prepayment penalty</em>), and its card adds “starts at 53” or “paid off
+at 58” (<code class="docutils literal notranslate"><span class="pre">spanText</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>). Each card
+keeps its place in the one saved loans list, a loan added on Home starts
+as a Mortgage and one added on Loans as Student, the Kind select offers
+only that panel’s kinds, and move up or down swaps a loan with the next
+one shown.
+Lists (accounts, expenses, loans, children, cars, and any list added later) show one card
+per item, edited in a sheet with move up, move down and remove. Every list is
+ordered: each card has a tick box at its left and a drag handle at its right,
+and a bar under the list (a toolbar) has Move up, Move down and Delete for the
+ticked cards, greyed out until one is ticked; the ticked cards move as a block
+and keep their ticks, Delete asks for a second tap, and the focus stays on the
+pressed button. Dragging a card’s handle drops it on the place of the card under
+the finger; with the handle focused, the up and down arrows move it one place.
+A filtered list (Home’s mortgages, the Loans list, the two expense lists) moves within
+the cards it shows. The account order is the withdrawal order (<code class="docutils literal notranslate"><span class="pre">moveSelected</span></code>,
+<code class="docutils literal notranslate"><span class="pre">deleteSelected</span></code> and <code class="docutils literal notranslate"><span class="pre">moveItem</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>). An
+optional part such as a loan’s refinance has Add and Remove buttons.
+Children has the child inflation factor (only while there is a child:
+the panel’s <code class="docutils literal notranslate"><span class="pre">conditions</span></code> with <code class="docutils literal notranslate"><span class="pre">notEmpty</span></code>) and one card per child, giving
+the child’s age today (or “not born yet”) and the age its child years
+end; Add child starts a child born this year (your age at birth set to
+your age today), in its child years up to age 21 (inclusive). A child’s sheet holds
+its name, your age at birth and its child years first, then a <em>Daycare</em>
+section (start age, end age, cost per year) and a <em>College</em> section
+(start age, years, cost per year, and <em>529 account</em>, a select of the
+household’s 529 accounts by name), each below a divider with an accent
+title and an “i” for its help (<code class="docutils literal notranslate"><span class="pre">sheetSections</span></code> in the settings
+schema, from <code class="docutils literal notranslate"><span class="pre">SHEET_SECTIONS</span></code> in <code class="docutils literal notranslate"><span class="pre">settings.py</span></code>).
+Cars has the fuel price (only while there is a car: <code class="docutils literal notranslate"><span class="pre">conditions</span></code> with
+<code class="docutils literal notranslate"><span class="pre">notEmpty</span></code>) and one card per car, giving its name, the driver, “loan”
+while it charges a loan, “replaced every N years or M miles” when
+a replacement rule <em>Replace by</em> selects and a price are set (only the
+selected rules are named) (”, financed” or “, leased” after
+it by the replacement pay method), “buys at 55” and “sells at 62” while
+the timeline has it bought or sold during the run, and its value today (its
+price when bought later); Add car opens the timeline’s Add screen, as
+for homes, and the car starts with the schema defaults (every switch off)
+apart from what that screen asks; a car’s sheet holds
+every field of a car under the section titles Value,
+Loan, Commute, Running costs, Replacement and Lease (each field’s schema
+<code class="docutils literal notranslate"><span class="pre">group</span></code>). The Lease section shows its <em>Lease</em> switch and, while it is
+on, the lease payment per month, and hides the value, the loan and the
+replacement figures; while the car is bought later the value today and
+the loan balance are hidden and the loan’s months read <em>Loan term
+(months)</em> (<code class="docutils literal notranslate"><span class="pre">itemSwitchReplaces</span></code> and <code class="docutils literal notranslate"><span class="pre">switchLabels</span></code>). The Loan
+section opens with <em>Pay method</em> (cash or finance; choosing one sets the
+<em>Car loan</em> switch, and turning the switch makes it follow the switch
+again). The Replacement section opens with a bordered <em>Replacement
+rule</em> block: the <em>Replace by</em> toggle (Years, Miles or Both), the note
+that with Both the first rule reached triggers the replacement, then
+the figures of each rule the toggle selects under its sub-label (<em>By
+age of car</em>: <em>Replace every (years)</em> and <em>First replacement in
+(years)</em>; <em>By miles</em>: <em>Replace every (miles)</em> and <em>Miles on it today</em>;
+<code class="docutils literal notranslate"><span class="pre">carReplaceRules</span></code>); the other rule’s figures are hidden but kept, and
+the model ignores them. The price and pay figures follow below the
+block. While a replacement rule is on, the Replacement section adds
+<em>Replacement paid by</em> with the loan figures of a financed replacement or
+the lease figures of a leased one (<code class="docutils literal notranslate"><span class="pre">carReplacementPayFields</span></code>), and a car
+owned today shows its <em>Price paid</em> (its purchase price). A blank figure
+that falls back on another (the replacement price, the two pay methods,
+the replacement loan rate, term and down payment) shows that figure’s
+value, in a muted colour (<code class="docutils literal notranslate"><span class="pre">.is-default</span></code>), and follows it until you
+change it; clearing it follows again (<code class="docutils literal notranslate"><span class="pre">sheetDefault</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>).
+The car’s
+purchase and sale are set on the Cars chip’s <em>Timeline</em> pane, at the top
+of the panel, which works as Home’s: one bar row per lane (a lease
+outlined), and <em>Add car</em> under the car cards opens its Add screen, which offers a
+car owned now, a future purchase (its <em>Pay method</em>: cash, finance with
+the loan figures, or lease, which turns the screen into the Lease case) or a Lease (name, lease start, optional end and monthly
+payment); a future purchase or a lease has an optional <em>Replaces</em>
+select (<a class="reference internal" href="overview.html#term-Replaces"><span class="xref std std-term">Replaces</span></a>) (“Nothing, a separate item”, or a car owned; for homes, a home on
+the first lane) that puts the new one in that car’s lane, starting in its
+sale year; a sale is planned, or the car kept, on <em>Edit</em>. The Loan section shows its <em>Car loan</em> switch and, while it is
+on, the loan figures; the Commute section shows its <em>Commutes to work</em>
+switch, the commute figures while it is on, and the miles per year,
+labelled <em>Miles per year</em> without a commute and <em>Extra miles per year (not
+commuting)</em> with one (<code class="docutils literal notranslate"><span class="pre">sheetRules</span></code>’ <code class="docutils literal notranslate"><span class="pre">itemSwitches</span></code> and
+<code class="docutils literal notranslate"><span class="pre">carExtraMilesLabel</span></code>). Flipping a switch redraws the sheet. A warnings box under the list names the Expenses rows that
+charge a cost a car already charges (<code class="docutils literal notranslate"><span class="pre">carWarnings</span></code> from
+<code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code>). Removing the partner makes a
+partner-driven car yours.
+Sheets follow the rules below. Accounts adds “Where surplus
+cash goes” (below). The account owner offers only the owners the
+household has. Benefits has, under a “Retirement plan” heading, the
+plan’s switch, each person’s employer match under its own sub-heading
+(“Your employer match”, “Partner employer match”; the panel’s
+<code class="docutils literal notranslate"><span class="pre">headings</span></code>), each opened by that person’s switch and holding one
+“Employer match (% of pay)” box (the schema’s <code class="docutils literal notranslate"><span class="pre">derivedFields</span></code>: shown
+as rate x cap, a new figure stored as rate 1 and that share as the cap,
+0% to 100%), the household plan
+in a disclosure and a deposit slider
+per account (below), then the “Medical plan” heading (with the HSA
+inside it) and the “Dependent care FSA” heading (the panel’s <code class="docutils literal notranslate"><span class="pre">sections</span></code> in the
+schema; Retirement has them too). Each Benefits section opens with a
+switch saying whether the household has that benefit (the section’s
+<code class="docutils literal notranslate"><span class="pre">switch</span></code> in the schema); while it is off the section shows only the
+switch. Benefits ends with the Beneficiaries section (no switch; the beneficiaries are
+not a strategy), its note on screen under its title: “Beneficiaries set how the after-tax
+final value is measured (the tax they pay when they inherit Traditional money); they do
+not change the plan itself.” It shows one card per beneficiary (<code class="docutils literal notranslate"><span class="pre">strategies.heirs</span></code>):
+<em>Name</em>, <em>Share of the estate</em>, <em>Other income</em>, <em>Filing status</em>, <em>State</em> (a plain list:
+<em>Same as household</em>, then the 51 labelled states, with no search box) and <em>Takes Traditional
+money</em> (<em>Over 10 years</em> or <em>All at once</em>), with <em>Remove</em> on each card (not on the last one)
+and <em>Add beneficiary</em> below (up to 20); Add and Remove split the shares equally again. A
+field still at its start value is grey (<code class="docutils literal notranslate"><span class="pre">.is-default</span></code>) until edited. While the shares do
+not total 100% an inline error says “The shares total 90%; change them to total 100%.”
+The beneficiaries’ tax rate box comes under the cards: blank taxes each payout at the
+beneficiary’s brackets (placeholder “Blank: beneficiaries’ payout”; the caption names the
+payouts and gives the model’s flat estimate as a guide, how it was found behind its “i”), a
+typed rate is charged flat instead, whichever the payouts, and Use the beneficiaries’ payout
+clears it; an edit reruns the outputs, and the box sets the final net worth after terminal
+tax. Strategies has
+one section per strategy (Roth conversion, Roth backdoor, QCD), each
+showing its switch and, only while the switch is on, its settings (the
+after-tax IRA basis is on each Traditional IRA’s account sheet). The Roth
+conversion section shows its rule on screen under its title (the
+section’s <code class="docutils literal notranslate"><span class="pre">lead</span></code> in the schema), then the <em>Yearly amount</em> and the ceiling
+categories (<em>Social Security taxation</em>, <em>Capital gains</em>, <em>Tax bracket</em>,
+<em>Medicare IRMAA</em>, <em>Custom AGI ceiling</em>) as sub-headings with an “i”, from the
+panel’s <code class="docutils literal notranslate"><span class="pre">headings</span></code> keyed by the full field path. The Roth
+conversion switch calls <code class="docutils literal notranslate"><span class="pre">syncRollover</span></code>, which adds or removes the
+<em>Rollover account</em> (a Roth IRA for an owner of Traditional money with no
+Roth account), and the account list shows the change at once; editing
+that account on its sheet makes it the user’s own, and its
+<code class="docutils literal notranslate"><span class="pre">autoCreated</span></code> flag is never shown on the sheet. The
+strategy warnings follow the QCD section. The Relocation section
+(<code class="docutils literal notranslate"><span class="pre">strategies.relocation</span></code>, see <a class="reference internal" href="strategies.html#relocation"><span class="std std-ref">Relocation: moving to another state</span></a> and <a class="reference internal" href="states.html"><span class="doc">States: taxes, living costs and moving</span></a>) comes last: the
+<em>Move to another state</em> switch and, only while it is on, <em>State you move to</em>, <em>Move at
+your age</em> (blank shows your Social Security claim age, or with no benefit the age your
+pay stops, in gray, <code class="docutils literal notranslate"><span class="pre">.is-default</span></code>, until a typed
+age replaces it; clearing it shows that age again) and <em>Homes follow</em> (on by default;
+its “i” says “Your primary home is treated as replaced by a comparable one; its value,
+property tax and insurance follow the state … Use Buy/Sell on the Home tab for a
+real move”).
+The section’s “i” lists what changes at the move: income and local tax, estate and
+inheritance tax, property tax and home insurance, car insurance and taxes, the gas
+price, health premiums, rent and the Expenses rows’ prices, with the price change and
+the sales tax difference together as <em>State Cost Change</em> (each dollar changed once).
+Every state select (home state, a beneficiary’s state, the state you move to) offers
+the 51 states (50 and DC) by code, each labelled like <em>NJ - New Jersey</em> (the field’s
+<code class="docutils literal notranslate"><span class="pre">choiceLabels</span></code> in the schema); on the phone layout a <em>Search</em> box above the list (but
+the beneficiary’s plain list) keeps
+the states whose name or code starts with what is typed. Income
+puts each person’s raise and promotion in a “Raises and promotions”
+disclosure: a mean slider (0% to 10%) and a standard deviation slider
+(0% to 5%) with a small curve that moves with them, the chance and the
+promotion raise, and a Reset that puts the shipped values back (any
+schema fields that share a group are drawn this way), and the
+earnings history in an “Earnings history” disclosure closed until
+opened. In it a two-button toggle (the same as the Social Security
+basis toggle) picks <em>Manual entry</em> (the year-by-year rows)
+or <em>Last salary</em> (the last salary, the last year it was paid, the
+backtrack note and the table of the filled-in years from
+<code class="docutils literal notranslate"><span class="pre">earningsPreview</span></code>, read-only until <em>Edit</em> makes each year a box: a year
+changed from the calculated one is typed over it and marked “edited”,
+<em>Done editing</em> closes the boxes and <em>Revert to calculated</em> clears every
+typed year; a raise, promotion or last salary edit refreshes the
+calculated years, also while the boxes are open, and a typed year keeps
+its typed amount); switching keeps the typed rows. Each person’s <em>I’m retired</em>
+switch, above the salary, hides the salary and the age it stops (kept,
+not used) and opens the earnings history. Every disclosure has one chevron at the right of its title that
+turns when it opens. Retirement
+draws each person’s benefit basis as a two-button toggle (<em>Earnings
+history</em>, <em>Manual entry</em>; a labelled group whose pressed button
+carries <code class="docutils literal notranslate"><span class="pre">aria-pressed</span></code>). Without an earnings history <em>Earnings
+history</em> is disabled and a hint under the toggle (tied to it by
+<code class="docutils literal notranslate"><span class="pre">aria-describedby</span></code>) says to enter past earnings on the Income tab
+(a last salary above 0 counts as an earnings history).
+Choosing <em>Earnings history</em> goes to that person’s earnings history on
+Income, opened and scrolled to, with a floating <em>Back to Social
+Security</em> button (back to the toggle on Retirement) and a labelled X
+that dismisses it; it shows only after that choice and goes when Inputs
+or Income is left.
+It offers every age of each person’s benefit table (entered and
+estimated) as the claim age, and shows under it the benefit used at
+that age and a read-only benefit card: on <em>Manual entry</em> the entered
+table and the table (age, entered, used, basis); on <em>Earnings history</em>
+only the estimate with its caption and warnings. Switching keeps the entered amounts. An earnings basis the
+estimate cannot cover shows the loader’s message and the table basis.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">settingsSchema</span></code>, <code class="docutils literal notranslate"><span class="pre">setPartner</span></code>, <code class="docutils literal notranslate"><span class="pre">syncRollover</span></code>, <code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code>,
+<code class="docutils literal notranslate"><span class="pre">rebalanceSurplus</span></code>, <code class="docutils literal notranslate"><span class="pre">depositSliders</span></code>, <code class="docutils literal notranslate"><span class="pre">moveDeposit</span></code>,
+<code class="docutils literal notranslate"><span class="pre">benefitTables</span></code>, <code class="docutils literal notranslate"><span class="pre">earningsPreview</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Outputs</p></td>
+<td><p>A Summary | Plots | Compare | Optimize switch, with the Monte Carlo run bar (Run
+for a manual rerun, the time estimate, progress, Cancel and a note when
+the last result is stale) above Summary and Plots; see Monte Carlo below. Every Summary
+table and plot is drawn from the last Monte Carlo: tables are the middle
+half average per year (the runs between the 25th and 75th percentile
+of final worth). Summary has three chips: Summary (tiles for the
+median final worth (accounts only), Home and cars (homes and cars less
+loans at the end), the final net worth after terminal tax, incl. home
+and cars (what beneficiaries keep: homes, cars and loans counted, homes still owned sold on the last day, beneficiaries’ income tax on their payout of Traditional money (over 10 years or all at once), federal and state estate taxes and inheritance tax; the median of the runs with their middle half, 25th to 75th
+percentile, under it; each tile’s “i” says why the after-tax figure can
+be above the accounts-only one)
+and the chance of running out, then the single-run
+headline figures with their change from the loaded scenario; the Insights
+card (see <a class="reference internal" href="#app-insights"><span class="std std-ref">Insights</span></a>); the final worth by percentile table; the
+middle half average summary table),
+Accounts (the middle half average accounts table) and Taxes (owner
+ruling: a <em>Taxes paid by year</em> card with the Taxes plot’s figures, each
+kind (State without the local tax, then Local Tax on its own), their
+Total, the sales tax for records not added to Total, then the home
+state’s deduction, exemptions and credits used for reference, from the
+<code class="docutils literal notranslate"><span class="pre">taxesByYear</span></code> table of <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.breakdown.taxesByYear</span></code>; then
+the <em>Deductions by year</em> card, the federal deductions by year, middle
+half average, no rules text, followed by the same four state figures:
+State Deduction, State Exemptions, State Credits and Local Tax, which
+is part of the state tax and so of the itemized state and local taxes). The
+beneficiaries’ tax is set and shown only in Benefits, Beneficiaries; the IRMAA
+estimate warning sits above the Summary chip’s tiles when it applies. The pinned strip at the top of every tab shows
+the median final worth of the last Monte Carlo (“Updating” before one,
+dimmed when stale), its median after terminal tax beside it (“After tax”),
+and the two single-run figures (average net earnings or withdrawal, and
+average annual expense). Plots: Total
+balance (the balance band and the final-value histogram), Balances,
+Cash flow, Deposits and withdrawals, Taxes and Expenses, each as an SVG
+chart with a Chart/Table switch and what it shows behind the “i” beside
+its title. Tapping a chart shows every series at that point. Every
+chart card (Plots and Compare) has a Full screen button in its top
+right corner: the card fills the screen in landscape (the browser’s
+full screen with a landscape lock where the phone allows it; on iOS,
+which has no element full screen, an overlay turned a quarter while
+the phone is upright), the chart is drawn again wider to fit, and
+Close, Esc or Back puts it back where it was. The note
+beside the title says whether amounts are today’s value or inflation
+adjusted. Deposits and withdrawals draws deposits above zero and
+withdrawals below it with two titled legend groups, x is the calendar
+year, and adds the RMD schedule and its notes (or why there is none).
+Cash flow stacks cash in (pay, Social Security, sale
+proceeds, withdrawals and any shortfall) above zero and cash out (expenses,
+taxes, retirement deposits and the surplus to the accounts) below it,
+so each year’s bars match, under the legend groups Cash in and Cash out.
+Taxes stacks the taxes by kind (the local tax as its own Local Tax
+slice beside State, which leaves it out) and draws the sales tax already inside
+the spending (<code class="docutils literal notranslate"><span class="pre">Sales</span> <span class="pre">Tax</span> <span class="pre">(records)</span></code>) as a hatched bar on top, with a
+hatched legend key and the last table column, both labelled <em>Sales tax
+(already in expenses, shown for records)</em>; that column’s heading is
+greyed with a tooltip. It is never added to a stack, the tap readout’s
+Total, a summary or an insight (<code class="docutils literal notranslate"><span class="pre">counted:</span> <span class="pre">false</span></code> in the chart spec).
+Its intro points to Outputs, Summary, Taxes for the same figures and the
+deductions as tables.
+Compare: two configs (see below). Optimize: the
+best strategy settings (see Optimize below).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">runSingle</span></code> (<code class="docutils literal notranslate"><span class="pre">headlines</span></code>), <code class="docutils literal notranslate"><span class="pre">startMonteCarlo</span></code> (<code class="docutils literal notranslate"><span class="pre">charts</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tables</span></code>), <code class="docutils literal notranslate"><span class="pre">compareVariants</span></code>, <code class="docutils literal notranslate"><span class="pre">startCompare</span></code>, <code class="docutils literal notranslate"><span class="pre">startOptimize</span></code>,
+<code class="docutils literal notranslate"><span class="pre">applyOptimum</span></code>, <code class="docutils literal notranslate"><span class="pre">optimizeInfo</span></code>,
+<code class="docutils literal notranslate"><span class="pre">matchProblems</span></code>, <code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code> (the model’s flat estimate of the
+terminal tax rate, shown as a guide)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Every edit reruns the model after a 0.4 s pause; the status pill says
+“Updating” meanwhile and is hidden once the run is done (no “Up to date” or
+“Ready”). When the settings are not valid, the pill says “Check
+settings”, the loader’s own message appears above the settings and the results,
+and the figures from the last valid settings stay on screen, dimmed. The
+current settings are saved in the browser (<code class="docutils literal notranslate"><span class="pre">localStorage</span></code>) as you edit and
+come back on the next visit; nothing leaves the device. A saved draft the page
+cannot read (not JSON, not a settings object, an older version that cannot be
+upgraded, or missing parts of the settings) is discarded and the page opens on
+the example household with “Saved settings could not be read; defaults
+loaded.”; a draft with a value that fails a check is kept and its message shown.
+A draft or a scenario saved on this device from an older version is upgraded
+and saved again at once in the current format. An imported file from an older
+version opens with “Upgraded to the current format; export to save the new
+file.”</p>
+<section id="scenarios-on-setup">
+<span id="id1"></span><h3>Scenarios on Setup<a class="headerlink" href="#scenarios-on-setup" title="Link to this heading"></a></h3>
+<p>The settings you edit are the <em>open scenario</em>. Its card at the top of Setup
+(accent-edged) shows “Open scenario”, the name in large type and a status line:
+“Unsaved changes” with a dot while the settings differ from the copy saved on
+this device (or none is saved yet), “Saved” or “Saved just now” once they match,
+and “Saved automatically” while the small <strong>Auto-save</strong> switch beside it is on.
+Auto-save is off by default and kept in this browser (<code class="docutils literal notranslate"><span class="pre">autoSave</span></code> in
+<code class="docutils literal notranslate"><span class="pre">wmti.prefs.v1</span></code>); when it is on, every settled edit (a 0.4 s pause) writes the
+open scenario’s saved copy, creating it under its name if there is none, and the
+<strong>Save</strong> button is hidden. Under the status line one flat strip of equal-width
+icon buttons holds <strong>Save</strong> (keep the settings on this device under the open
+scenario’s name; at most 50 scenarios), <strong>Rename</strong>, <strong>Duplicate</strong>, <strong>Clear</strong>
+and <strong>Export</strong>; on a phone narrower than 380 px the labels shrink so the five
+buttons still fit one row at 320 px. Duplicate saves a copy of the open
+scenario’s current settings, unsaved edits included, as “<em>name*_Copy1” (the lowest
+number not taken: “*name*_Copy2” and so on; a name that already ends in “_Copy” and a
+number is counted from the part before it, so duplicating “Plan_Copy1” gives “Plan_Copy2”
+when “Plan_Copy1” is taken; other endings stay, so “Q4_2025” gives “Q4_2025_Copy1”) and says so under the strip, then opens the copy as a
+tap on it would: unsaved changes of the scenario left are asked about first
+(Save, Discard or Cancel; its own saved copy is untouched), and Undo starts
+afresh on the copy. The copy is listed in Other scenarios and offered in
+Compare, so it can serve as a baseline there.
+Clear empties every setting of the open scenario, as for New, after two
+questions (“Clear *name</em>?”, then “Last check: all values will be removed. Clear
+it?”); Undo brings the settings back. The draft of the current settings is still
+kept as you edit, whatever Auto-save says. Export (on the card, or in a row’s
+“…” menu) saves <em>name</em>.json: through the host’s downloads where the page runs
+as a claude.ai artifact, else as an ordinary browser download (the installed app
+and the GitHub Pages site); only where no download can start does the file’s
+text open in a dialog with Copy text. A message under the card, scrolled into
+view, always says what happened (“Saved”, “Downloaded”, “Export cancelled”).</p>
+<p><strong>Other scenarios</strong> lists the scenarios saved on this device except the open
+one, and the example household (“Example household”, the shipped figures) while
+it is not open. A tap opens one; when the open scenario has unsaved changes and
+Auto-save is off, a dialog asks first: Save, Discard or Cancel. Every row has a
+red bin button (“Delete <em>name</em>”) beside its “…” menu; the menu has Duplicate
+(a copy named “<em>name*_Copy1” the same way, which then opens), Rename, Export and Delete. Delete, from the bin or
+the menu, asks once. The example household offers Duplicate, Export and Delete
+(no Rename), and the open scenario cannot be deleted. Deleting a scenario
+removes it from the list, from Compare and from this device, and never leaves
+its name shown anywhere. Deleting the example household removes it from Other
+scenarios (and frees its name) until **Load example household*</em> under Start
+over opens it again; the choice is kept in this browser (<code class="docutils literal notranslate"><span class="pre">exampleHidden</span></code> in
+<code class="docutils literal notranslate"><span class="pre">wmti.prefs.v1</span></code>). The list is <code class="docutils literal notranslate"><span class="pre">otherScenarioNames</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>.</p>
+<p><strong>New</strong> asks for a name (“New plan” by default, “New plan_1” and so on when taken) and <strong>Create and start</strong> makes
+a brand-new scenario with nothing filled in, not the example household, then
+opens Walk me through it at its first question with empty boxes. “Nothing
+filled in” is built from the settings schema by <code class="docutils literal notranslate"><span class="pre">blankInputs</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>: lists and maps empty, switches off, numbers zero (or
+the schema minimum when that is above zero, such as one year to simulate), a
+select’s first choice and optional parts left out, except the Expenses list,
+which starts with the suggested categories, each blank. The input checker needs four
+things a blank cannot give, so a new scenario files as Single (there is no
+partner), has one blank account and a Social Security claim age of 67 in its
+(zero) benefit table; with them the model runs and the walkthrough can write
+each answer. Until your age is filled in, Summary and Plots show “Finish setup
+to see results” instead of figures, and the Monte Carlo does not start.
+<strong>Import</strong> opens a dialog with Choose file (the file picker) and a box to paste
+the scenario text instead, then Cancel or Open; the file’s settings become the
+open scenario, named after the file (“Pasted scenario” for pasted text). A
+browser that shows no picker says so in the dialog and moves to the paste box.</p>
+<p>Whenever another scenario replaces the open one (a tap in Other scenarios,
+Duplicate, New, Import or Load example household), Setup’s open-scenario card
+is scrolled into view (when Setup shows) and its edge glows in the accent
+colour, fading out over about a second, the same flash Undo gives a field;
+with reduced motion the glow holds still for that second. Nothing covers the
+page while the scenario loads, and nothing glows at start-up, on Save or for an
+edit (<code class="docutils literal notranslate"><span class="pre">highlightOpenCard</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+<p>A scenario file has limits
+(<code class="docutils literal notranslate"><span class="pre">LIST_LIMITS</span></code> and <code class="docutils literal notranslate"><span class="pre">OTHER_LIST_LIMIT</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>,
+sent to the page as <code class="docutils literal notranslate"><span class="pre">listLimits</span></code> by <code class="docutils literal notranslate"><span class="pre">appInfo</span></code>): at most 50 accounts, 50
+loans, 20 cars, 20 homes, 20 children, 100 salary-history years and 200
+expense rows, and 200 rows in any other list or table. Every number must be
+finite: <code class="docutils literal notranslate"><span class="pre">NaN</span></code>, <code class="docutils literal notranslate"><span class="pre">Infinity</span></code> and <code class="docutils literal notranslate"><span class="pre">-Infinity</span></code> (or a number too large to hold,
+such as <code class="docutils literal notranslate"><span class="pre">1e999</span></code>) are refused. The message names the field, for example
+<code class="docutils literal notranslate"><span class="pre">scenario</span> <span class="pre">file:</span> <span class="pre">inputs.expenses:</span> <span class="pre">100000</span> <span class="pre">rows</span> <span class="pre">is</span> <span class="pre">too</span> <span class="pre">many;</span> <span class="pre">a</span> <span class="pre">scenario</span> <span class="pre">holds</span> <span class="pre">at</span>
+<span class="pre">most</span> <span class="pre">200,</span> <span class="pre">so</span> <span class="pre">remove</span> <span class="pre">some</span></code>. The page checks the list lengths itself before the
+worker reads the file, so even a 100,000-row file is refused at once; the worker
+checks the rest.</p>
+<p>A scenario name (Save, Rename, New, Duplicate) uses letters, digits, spaces,
+<code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">_</span></code> or <code class="docutils literal notranslate"><span class="pre">.</span></code>; it may not start with <code class="docutils literal notranslate"><span class="pre">.</span></code> or end with <code class="docutils literal notranslate"><span class="pre">.</span></code> or a space,
+and may not be “Default profile”, “Current settings”, <code class="docutils literal notranslate"><span class="pre">__proto__</span></code>,
+<code class="docutils literal notranslate"><span class="pre">constructor</span></code>, <code class="docutils literal notranslate"><span class="pre">prototype</span></code> or a Windows device name (<code class="docutils literal notranslate"><span class="pre">CON</span></code>, <code class="docutils literal notranslate"><span class="pre">PRN</span></code>,
+<code class="docutils literal notranslate"><span class="pre">AUX</span></code>, <code class="docutils literal notranslate"><span class="pre">NUL</span></code>, <code class="docutils literal notranslate"><span class="pre">COM1</span></code> to <code class="docutils literal notranslate"><span class="pre">COM9</span></code>, <code class="docutils literal notranslate"><span class="pre">LPT1</span></code> to <code class="docutils literal notranslate"><span class="pre">LPT9</span></code>, in any case, with
+or without an extension), so a name also works as the exported file’s name on any computer (<code class="docutils literal notranslate"><span class="pre">checkScenarioName</span></code> and <code class="docutils literal notranslate"><span class="pre">scenarioNameRules</span></code> in
+<code class="docutils literal notranslate"><span class="pre">wmti.inputs.scenarios</span></code>). The page keeps its saved scenarios in a map with no
+prototype, so a name read from an older page’s storage is an ordinary entry.</p>
+<p><strong>Undo</strong> (the round button at the top bar’s left, an icon with no count) steps back
+through the open scenario’s last 10 settled input states, Clear included; a
+burst of typing is one step. It is greyed out when there is nothing to undo and
+starts empty whenever another scenario opens (New, Import, a tap in Other
+scenarios or Load example household). After a step back the page goes to the
+first field it changed that is drawn somewhere: its tab and Inputs chip open,
+the list row’s sheet opens when the field is inside one (a list that grew or
+shrank is shown whole), and the field scrolls into view. Every changed field
+then in view gets an accent tint that fades over one second (held for that
+second without fading when the device asks for reduced motion). The changed
+fields are <code class="docutils literal notranslate"><span class="pre">changedPaths</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code> (the settings forms’
+path keys); <code class="docutils literal notranslate"><span class="pre">showUndone</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code> finds and tints them.
+Every dialog keeps the focus inside it
+while open, closes on Escape, Cancel or a tap outside, and gives the focus back
+to the button that opened it.</p>
+</section>
+<section id="swapping-tabs">
+<h3>Swapping tabs<a class="headerlink" href="#swapping-tabs" title="Link to this heading"></a></h3>
+<p>Each tab, and each Outputs view, keeps its own scroll position while the page
+is open; tapping the tab or view already shown scrolls it to the top. The open
+Inputs group, the chosen chips and text typed on Setup stay as they were, and
+a running Monte Carlo or comparison
+goes on while another tab is shown. Arrow keys, Home and End move between the
+tabs. The bar hides while a text field has focus (the on-screen keyboard is
+up). A link ending in <code class="docutils literal notranslate"><span class="pre">#setup</span></code>, <code class="docutils literal notranslate"><span class="pre">#inputs</span></code>, <code class="docutils literal notranslate"><span class="pre">#outputs</span></code>, <code class="docutils literal notranslate"><span class="pre">#summary</span></code>,
+<code class="docutils literal notranslate"><span class="pre">#plots</span></code> or <code class="docutils literal notranslate"><span class="pre">#compare</span></code> opens that place, and the older names <code class="docutils literal notranslate"><span class="pre">#results</span></code>,
+<code class="docutils literal notranslate"><span class="pre">#settings</span></code> and <code class="docutils literal notranslate"><span class="pre">#more</span></code> (and a tab the older page saved) open the matching
+new place; <code class="docutils literal notranslate"><span class="pre">#benefits</span></code> and <code class="docutils literal notranslate"><span class="pre">#savings</span></code> open Inputs on Benefits, <code class="docutils literal notranslate"><span class="pre">#healthcare</span></code> on
+Healthcare, and <code class="docutils literal notranslate"><span class="pre">#retirement</span></code>, <code class="docutils literal notranslate"><span class="pre">#medicare</span></code>, <code class="docutils literal notranslate"><span class="pre">#socialsecurity</span></code>, <code class="docutils literal notranslate"><span class="pre">#social-security</span></code> and
+<code class="docutils literal notranslate"><span class="pre">#ss</span></code> on Retirement.</p>
+</section>
+<section id="look-and-color-scheme">
+<h3>Look and color scheme<a class="headerlink" href="#look-and-color-scheme" title="Link to this heading"></a></h3>
+<p>A header band runs across the top: its first row (the Undo button on the left,
+the place, such as Inputs, the status pill, then the ? button and a menu button
+on the right) and the headline figures
+stay on screen; under them the title (the open settings group or Outputs view),
+a one-line subtitle and the chips scroll with the page. On Inputs each chip has an icon,
+and a bar under a chips row that does not fit shows how much of it is in view
+and where. On Inputs and Outputs the chips rows stay in view under the headline figures as
+the page scrolls (the title and subtitle still scroll away) while they are pinned,
+which is the default; a pin button at the right end of the Inputs chips row and of the
+Outputs view row (“Unpin tabs” or “Pin tabs”, pressed while pinned; one shared choice)
+lets them scroll away to give the page more room.
+The choice is kept on this device (<code class="docutils literal notranslate"><span class="pre">wmti.tabsPin.v1</span></code>; <code class="docutils literal notranslate"><span class="pre">placeBand</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>). On Outputs the Summary | Plots | Compare | Optimize row has the
+same look as the Inputs chips (an icon and a label each, and the same bubble
+over the open view). The chips under it are one
+row of underline text tabs on a thin line (the open one underlined in the band’s
+selected colour), scrolling sideways if they do not fit. The settings and results sit on a light sheet with a rounded top:
+each settings section is a white card with an icon tile and its title, and a
+Benefits section’s on/off switch sits at the right of the title (its label and
+“i” stay in the row below). Sections inside one card (Income’s You and
+Partner, the Social Security and employer match sub-headings) have a larger,
+bold title in the scheme’s accent color and a divider above every one but the
+first. Fields are rounded tinted rows: every field of a section shares its
+section’s tint, and the sections of a card alternate two tints (a card without
+sections keeps one tint). The bottom tab bar
+has an icon above each label. Scroll bars are thin and muted where the browser
+draws them. Every icon is inline SVG, so nothing extra is downloaded.</p>
+<p>On Inputs the selected chip wears a bubble: one glowing ring in the scheme’s
+selected-chip colour (<code class="docutils literal notranslate"><span class="pre">--chip-on</span></code>) with a nearly clear centre, so the chip
+keeps its own colours and its label stays legible in every scheme; the
+selected Outputs view (Summary, Plots, Compare or Optimize) wears the same
+bubble. A sideways drag in the page body (not on a chips row, and not starting
+in a field, slider, drag handle, chart or sideways-scrolling table) moves the
+panel with the finger while the bubble stretches toward the next chip, its
+middle pinching thinner and filling in like a stretched balloon; let go past a
+third of the width, or with a quick flick, and the next (finger to the left) or
+previous Inputs group opens, otherwise the panel springs back. On Outputs a
+swipe steps through the sub-tabs under the selected view (Summary’s Summary,
+Accounts and Taxes; Plots’ charts) and their underline follows; past a
+view’s last sub-tab it opens the next view, and before the first the previous
+view, in both directions at that view’s first sub-tab (owner ruling; Compare
+and Optimize have no sub-tabs, so each is one step); the view bubble stretches
+only when the view changes. A swipe to another Inputs group or Outputs view
+opens it at the top of the page, as a tap on a bottom tab does.
+A mostly vertical drag only scrolls. A swipe never moves between the bottom
+tabs (Setup, Inputs, Outputs; owner ruling): past the first or last Inputs
+group, before Summary’s first sub-tab or past Optimize it springs back, and
+Setup has no swipe. The bubble then settles on the new chip in about a quarter
+of a second, the chips row scrolls so that chip is centred and a screen reader
+hears the group’s or sub-tab’s name (led by the view’s name when the view
+changed); a tap on a chip glides the bubble there the same way. With reduced motion nothing stretches or slides and the bubble moves at
+once. The chips (still tabs with <code class="docutils literal notranslate"><span class="pre">aria-selected</span></code>), the bottom bar and the
+walkthrough’s buttons do everything a swipe does (<code class="docutils literal notranslate"><span class="pre">wireSwipe</span></code>,
+<code class="docutils literal notranslate"><span class="pre">swipeTarget</span></code>, <code class="docutils literal notranslate"><span class="pre">outputSteps</span></code> and <code class="docutils literal notranslate"><span class="pre">placeBubble</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+<p>The <strong>?</strong> button left of the menu opens a tour of the controls: a ring over one
+control at a time with a card that names it, “n of N”, Back, Next (Done on the
+last step) and a close button. On a first visit it also opens by itself once the
+first walkthrough ends (finished, skipped or closed; not after a hand-off to an
+Inputs page or an import), once per device (<code class="docutils literal notranslate"><span class="pre">wmti.tour.v1</span></code>; without storage it
+may show again); never after loading a config or a later walkthrough. It covers
+the app’s main parts, sixteen steps on a phone and fourteen in the wide layout:
+the bottom bar, the headline figures across the top, the Inputs bubbles (with
+one line, “Swipe sideways to move between tabs.”) and pin, the Outputs views,
+Summary, Plots, Optimize (what it tries and Find best settings), Compare
+(duplicate a plan, change one thing, compare), Undo, Setup’s scenario card, its
+household (partner, ages, filing status, home state) and Runs (how many Monte
+Carlo runs, and the seed), the walkthrough (Go deeper), the menu (with Tax law
+and costs and Final report (PDF)) and the <strong>?</strong> button itself. Minor inputs such
+as Relocation and Beneficiaries are left to the walkthrough. Each
+step opens the tab its control is on, scrolls the control into view (the page,
+its wide layout column and its sideways chips row), waits for the scroll to
+settle and only then rings the part of the control that shows; a turned or
+resized screen does the same again. A control that is not drawn, or still not in
+view after that, is skipped rather than ringed over nothing. Done, the close button and Escape put
+back the tab, view and scroll it started from, and focus returns to the <strong>?</strong>
+button (<code class="docutils literal notranslate"><span class="pre">TOUR_STEPS</span></code>, <code class="docutils literal notranslate"><span class="pre">openTour</span></code> and <code class="docutils literal notranslate"><span class="pre">closeTour</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+<p>The top bar has no account button: scenarios live on Setup. The menu button opens a
+menu: Walk me through it… (see Walkthrough below), Documentation (see
+<a class="reference internal" href="#app-documentation"><span class="std std-ref">Documentation</span></a> below), Appearance, Help and tips (a few
+lines in the menu; swiping is one line, “Swipe sideways to move between tabs.”), Install app (only in the GitHub Pages build; see <span>sharing the app</span>), About, which opens in its own window (Done, a tap outside or
+Escape closes it), and Legal, a window with a short disclaimer, the date the
+Terms were agreed to and each legal document as plain text (see
+<a class="reference internal" href="legal.html"><span class="doc">Legal</span></a>). Items that only led back to Setup are not in the menu. Escape or a tap
+outside closes the menu.</p>
+<p id="app-documentation"><strong>Documentation</strong> opens this user guide in a new tab: the guides for the app and the model,
+and the tax law the simulation uses for the federal return and each state, one page per
+jurisdiction written from its law file with each section’s confidence and sources (see
+<a class="reference internal" href="../law/index.html"><span class="doc">Tax law by jurisdiction</span></a>). In the GitHub Pages build the guide is published beside the app, in
+its <code class="docutils literal notranslate"><span class="pre">docs/</span></code> folder: the item opens <code class="docutils literal notranslate"><span class="pre">docs/index.html</span></code>, and the installed app keeps each
+page you read for offline use (pages never opened need a connection). The claude.ai artifact
+build has no docs folder and opens the documentation’s own artifact instead. A <em>See this
+state’s rules</em> link under the home state (Setup) and under the Relocation state (Inputs,
+Strategies) opens the chosen state’s law page (<code class="docutils literal notranslate"><span class="pre">docs/law/&lt;code&gt;.html</span></code>) in a new tab; in the
+artifact build it opens the documentation’s home. The address comes from the build
+(<code class="docutils literal notranslate"><span class="pre">DOCS_LOCATIONS</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/build.py</span></code>, read by <code class="docutils literal notranslate"><span class="pre">docsLink</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>).</p>
+<p>Appearance holds every color scheme: Lagoon and hibiscus (the default), Sunset over the motu,
+Palm and sand, Night lagoon (dark) and Match phone (stored as <code class="docutils literal notranslate"><span class="pre">device</span></code>; Lagoon and hibiscus in
+light mode, Night lagoon in dark mode); each has a swatch and the current one
+is ticked. The choice applies at once and is kept in this browser
+(<code class="docutils literal notranslate"><span class="pre">localStorage</span></code> key <code class="docutils literal notranslate"><span class="pre">wmti.theme.v1</span></code>; if storage is blocked it lasts for the
+visit). A small script at the top of the page sets it before the first paint.
+Each scheme is a set of color tokens on <code class="docutils literal notranslate"><span class="pre">:root[data-theme=...]</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/styles.css</span></code>; the charts take the scheme’s two series colors for
+their first two series, and the scheme changes no figure. Some colors are
+darker than in the mockups so text meets WCAG AA (4.5:1): the muted text of
+the three light schemes, Palm and sand’s band subtitle, the hero tile of
+Sunset and Palm, and the accent used for text and buttons (the toggle colors
+are too light for text). The comment at the top of <code class="docutils literal notranslate"><span class="pre">styles.css</span></code> lists each
+change.</p>
+</section>
+<section id="terms-and-agreement">
+<h3>Terms and agreement<a class="headerlink" href="#terms-and-agreement" title="Link to this heading"></a></h3>
+<p>Before the app, and before the walkthrough, a full-screen “Terms and
+agreement” step shows on a first visit and whenever the Terms version (the
+<code class="docutils literal notranslate"><span class="pre">Version:</span></code> date of <code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code>, a <code class="docutils literal notranslate"><span class="pre">+</span></code> and the first six characters of
+the text’s sha256, so a wording change counts even when the date stays) changes, in both builds: a short
+summary of four key points ending “Please read the full Terms below.”,
+the full Terms, Privacy notice and license in a scrolling box, the box “I have read and agree to the
+Terms” and Agree and continue, which stays disabled until the box is ticked.
+Decline leaves the app locked with a message. The acceptance is kept in
+<code class="docutils literal notranslate"><span class="pre">localStorage</span></code> under <code class="docutils literal notranslate"><span class="pre">wmti.terms.v1</span></code> as <code class="docutils literal notranslate"><span class="pre">{version,</span> <span class="pre">textHash,</span> <span class="pre">buildId,</span>
+<span class="pre">acceptedAt}</span></code>; if storage is blocked the step asks on each load. Keys an
+install kept before the rename (<code class="docutils literal notranslate"><span class="pre">fpt.*</span></code>) move to their <code class="docutils literal notranslate"><span class="pre">wmti.*</span></code> names once
+at load and are removed; a Terms acceptance moves only when its <code class="docutils literal notranslate"><span class="pre">textHash</span></code>
+matches this build’s Terms, so a changed text is asked again. <code class="docutils literal notranslate"><span class="pre">build.py</span></code> writes the
+documents (with the third-party license texts as one more document), the version and the text’s sha256 into
+<code class="docutils literal notranslate"><span class="pre">legal.&lt;hash&gt;.js</span></code> (<code class="docutils literal notranslate"><span class="pre">window.WMTI_LEGAL</span></code>).</p>
+<p>Under the Outputs run bar two lines stay on screen: that the planner is not
+financial, tax, legal or investment advice and not a fiduciary, and the Monte
+Carlo statement of the Terms in capitals. While parts of the settings still hold
+the example household’s figures (the same list as the walkthrough review’s
+“Still from the example household”, <code class="docutils literal notranslate"><span class="pre">exampleLeftoverList</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>), a banner there names them (“Example figures still
+in use for: …”), since those figures are fictional. The
+browser tests’ <code class="docutils literal notranslate"><span class="pre">openPage</span></code> seeds an acceptance of the current version.</p>
+</section>
+<section id="walkthrough">
+<h3>Walkthrough<a class="headerlink" href="#walkthrough" title="Link to this heading"></a></h3>
+<p>“Walk me through it” asks for the main settings one question at a time, over
+the page. It opens on its own on a first visit (no saved settings and no
+walkthrough progress in this browser) once the engine is ready, from the menu
+item “Walk me through it…” at any time (it reads “Continue the walkthrough…”
+while one is paused), and from a link ending in <code class="docutils literal notranslate"><span class="pre">#walkthrough</span></code>. A returning
+visitor with saved settings is never interrupted.</p>
+<p>A fresh walkthrough on the example household’s settings (a first visit, or after Load example household)
+first asks <em>Do you already have a scenario file?</em>. <strong>I have an existing file, let me import it now</strong> opens
+the same file picker as Setup’s Import; the file’s settings replace the current ones, named after the
+file, and the walkthrough closes as finished on the Summary: a scenario file is a whole plan, so every
+question counts as Answered and none is asked (the menu reopens it on the review), and Undo my answers
+there puts back the imported settings, never the ones the file replaced. A file
+that is not a scenario leaves the step with its message, and a browser that shows no picker says to
+continue and paste the text under Setup, Import. <strong>Continue the walkthrough</strong> goes on to the welcome.
+Back is off on both. On any other settings the walkthrough opens on the welcome. Whether the step is
+offered comes from the shared <code class="docutils literal notranslate"><span class="pre">walkthroughPlan</span></code> (<code class="docutils literal notranslate"><span class="pre">offerImport</span></code>).</p>
+<p>The welcome (“About 10 minutes”) says each question is filled in with what the settings hold now
+(the example household on a first visit, your own figures once you have filled
+some in): <strong>Continue</strong> takes what is shown, changed or not, and <strong>Skip</strong> leaves
+it as it is. <strong>Start</strong> begins; <strong>Skip for now</strong> closes it for good, opens
+Outputs and says once that the menu holds it. Each question has a large
+heading, one or a few big controls (a number box with its $ or %, option
+buttons, a list, a year-by-year editor, or one box a year for the last two
+years of earnings) filled in with the current settings (the partner Yes or No
+as it stands, the current number of children, of cars and of homes, the current monthly
+spending total, each field’s current value), the field’s help behind its “i”,
+an “Example value” tag while the value is the example’s, <strong>Continue</strong> (Enter,
+or a swipe to the left, does the same, refused the same way; a swipe to the right is
+Back), <strong>Skip</strong>, and <strong>Go deeper: …</strong> where a question has more
+behind it, with one to four short bullets under it naming what the deeper questions cover (the <code class="docutils literal notranslate"><span class="pre">preview</span></code> of
+each offer in <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.walkthrough</span></code>; an optional topic’s offer on the Trail and review lists its own).
+“Question X of Y” is pinned at the upper left above the question, so it stays in place while the question
+scrolls; when an answer adds or removes questions, the total Y is highlighted and fades out over a second
+(held for the second without fading with reduced motion). A question of the optional topic has no number: the
+count is hidden, the bar is full and the question carries an “Extra question” mark. The basic questions are the
+settings a complete run needs (the
+employer match as one share of pay, the main home’s value, property taxes and
+mortgage, the cars’ value and loans, the children’s ages, the health premium and
+out-of-pocket costs, a change of spending in retirement and the Social Security
+benefit included, each right after the question it depends on); Go deeper holds
+only extra detail (the full earnings history, how amounts are shown, Medicare’s
+supplement premium and so on). Questions a newcomer may not be able to answer
+carry a “Not sure?” line with the choice to keep (Original Medicare, claiming at
+67, no move, no change of spending in retirement). A
+follow-up question or hand-off shows only once you say you have the thing: the
+main home’s figures and the Home page once you own a home (the number of homes
+is 0 if you rent; a first home is your primary residence and the value, property
+tax and mortgage questions write to it; a mortgage balance above $0 turns its
+mortgage on and asks its rate and payments left, $0 turns it off), the match
+once you save in a 401k and its terms once the employer matches, the cars’
+value and loans (all together, split equally over the cars; a loan above $0
+turns each car’s loan on) and the Cars page once there is a car, the
+children’s ages (one box each; a negative age is a child you expect) and the
+Children page once there is a child, the Loans page once there is a loan, the
+yearly out-of-pocket amount while healthcare costs are a flat amount, and the
+premium and the Benefits page once you have a medical plan before Medicare. A
+question that is set on an Inputs page (accounts with returns and owners, the
+expense rows, loans, children’s college and daycare, visits) offers <strong>Open</strong>
+that page, with a “Back to the walkthrough” button to return. The topics are
+About you (with a partner, the tax filing status right after the partner’s age),
+Work and pay (when needed, for you and for a partner each, the earnings of each
+of the last two years; then whether spending changes in retirement and by what
+percent), Savings, Spending, Retirement, Medicare (Original Medicare with a
+Plan G style supplement, or Medicare Advantage), Health (with whether you have
+a medical plan before Medicare), and the optional Tax strategies (offered from
+the review only: Roth conversion, backdoor Roth and QCD, each with a plain line
+on what it is). Retirement asks the claim age (with what 62, 67 and 70 mean),
+then <em>Do you know your Social Security benefit?</em>: <strong>Yes</strong> asks the benefit
+table from the statement; <strong>No or not sure: estimate it from my pay</strong> sets the
+benefit to come from the earnings history and, when there is none yet, sets
+the history to <em>Last salary</em> with today’s pay, so the estimate needs nothing
+more typed (the same for a partner). It then asks whether you will move to
+another state when you retire (Relocation) and, once you say yes, the state and
+the move age (blank is the claim age), and hands off to Beneficiaries on the
+Benefits page.
+A few deeper questions carry one fixed line: the
+earnings history says someone already retired can turn on <em>I’m retired</em> and
+pick <em>Last salary</em> on the Income page, get earlier pay backtracked from age 22,
+and type over any year with Edit;
+the Social Security basis names <em>Earnings history</em> and <em>Manual entry</em> and says
+it stays on Manual entry until there are past earnings; the Home and Cars
+hand-offs say buying, selling, renting and leasing are planned on the page’s
+<em>Timeline</em> after the walkthrough.</p>
+<p>The last two years of earnings are asked only when the plan needs them and
+cannot work them out: a Medicare premium is charged, someone on your tax
+return is on Medicare in the first or second year of the plan, and the
+earnings history has no entry for the year that year’s income surcharge looks
+back to (two years earlier, before the plan starts; without one the model
+counts today’s pay). A younger household, or a history that already holds
+those years, is not asked; once an answer writes them the question leaves the
+list and the walkthrough goes on to the next one.</p>
+<p>Answers go into the settings at once, through the same checks as the model
+(<code class="docutils literal notranslate"><span class="pre">wmti.dashboard.walkthrough</span></code>, called through the worker) plus the bounds
+of each field, which the normal forms do not enforce: a value out of range
+(“Age must be between 18 and 100.”) is refused with its message under the
+field and nothing changes. Continue on an untouched question writes nothing,
+so it cannot clear a figure you filled in, and an emptied number box is
+refused (“Enter a number.”) and writes nothing; removing the partner or
+lowering the number of children, cars or homes happens only when you answer so. The
+last two years of earnings start at the earnings history’s entries for those
+years, or at the pay the plan counts without one (today’s pay, $0 once past
+the age you stop working); Continue writes both years into the history and
+keeps its other years. The partner, number of children, number of cars,
+monthly spending total and account balances answers change the shape of the
+settings; the cars’ value and loans and the children’s ages write one answer
+over every car or child. The Spending topic first asks about how much the
+household spends a month on everything except the mortgage, property taxes,
+car loans and health premiums (rent, utilities, insurance, groceries and fuel
+count; the others are asked on their own); a total replaces every monthly
+expense row, the suggested categories included, with one <em>Everything else</em> row
+under Other Spending, and leaves the one-off (Major Spending) rows as they are.
+Its <strong>Go deeper</strong> goes through spending by category instead: it hands off to
+the Expenses page, where the suggested categories wait to be filled in or
+removed beside rows of your own, with the same line on what to count there.
+The Spending topic then asks “How many cars do you drive?” after the home
+(0 to 6; new cars are named Car 1, Car 2 and so on, driven by you, and Skip
+leaves the cars as they are), and once there is a car <strong>Go deeper</strong> offers
+<strong>Open</strong> on the Cars page for value, loan, commute and costs; answering No to
+the partner removes the partner and the partner questions.</p>
+<p>A thin bar at the top has one segment per topic; Back returns to the previous
+question shown (with its answer), and the menu button opens <strong>Your trail</strong>: every
+topic and its questions, deeper ones indented, unopened branches as “+” rows,
+each with its status (Answered, Skipped, Now, Not yet; progress saved by an
+older walkthrough with other statuses reads as Answered); a tap
+goes there. The last screen, <strong>Here is your plan</strong>, is the same list with each
+answer and a <strong>Change</strong> button, plus “Still from the example household”: the
+children, expense rows, cars, loans and homes the walkthrough does not set in
+full while the whole list still equals the example household’s; within a
+changed list, the example’s one-off costs (college, daycare, repairs) and the
+children still born at the example’s ages; and each Social Security benefit
+table still the example’s (an estimate from pay is not listed), each with
+<strong>Open</strong>. Its lede says Finish shows the results and that the plan reruns
+itself whenever a setting changes; <strong>Finish</strong> opens Outputs, Summary. Reopening a finished
+walkthrough lands on this review. Forward the question slides out to the left
+while the next slides in from the right, both fading (about a third of a
+second); Back and a jump to an earlier question go the other way; with
+reduced motion set on the device the screens only cross-fade.</p>
+<p>The X (or Escape; Escape first closes the trail) asks to leave: <strong>Keep going</strong>,
+<strong>Continue later</strong> (the answers stay; a reload or the menu resumes at the same
+question) or <strong>Undo my answers</strong> (the settings go back to what they were when
+the walkthrough started). The automatic Monte Carlo waits while the
+walkthrough is open; the headline figures behind it still update. Progress is
+kept in this browser under <code class="docutils literal notranslate"><span class="pre">localStorage</span></code> key <code class="docutils literal notranslate"><span class="pre">wmti.walk.v1</span></code> (status, the
+current question, the screens visited, the opened branches, the answers and
+the settings at the start); with storage blocked a first visit shows the
+walkthrough again each time. The layer is a modal dialog (the page behind it
+is inert), focus moves to each new question’s heading, a hidden line reads the
+position (“Question 4 of 20, Work and pay”), the trail is a real list with the
+current row marked, every target is at least 44 px, statuses are words, and
+every color is a scheme token, so each scheme, Night lagoon included, draws
+it.</p>
+</section>
+<section id="help">
+<h3>Help<a class="headerlink" href="#help" title="Link to this heading"></a></h3>
+<p>Explanations are tooltips only: a tap on the “i” beside a field, a group or
+card heading or a chart title shows the text in place, and a second tap hides
+it (the button says whether it is open). This holds the field help, each
+settings group’s note, the cards on Setup, the Summary, Accounts, Compare,
+Taxes paid, Deductions and RMD schedule cards, the benefit table and the
+earnings estimate, the surplus split, and what each chart shows. Each Summary
+tile’s note (such as how many runs the median uses, or the terminal tax rate and
+where it comes from) sits behind an “i” beside the tile’s label and opens inside
+the tile; the figures, labels and change lines stay on screen, and a tile with
+no note has no “i”. Warnings, errors, run-state lines (such as “No Monte Carlo yet”, “Reading
+the limits”) and the numbers themselves stay on screen, as do the per month or per year
+line of an expense sheet. No explanatory paragraph over about 140 characters shows
+on its own: a caption that carries numbers keeps a short line on screen with an “i”
+beside it for the rest (<code class="docutils literal notranslate"><span class="pre">noteHelp</span></code>): the histogram trim (“Leaves out the lowest and
+highest 1% of runs (below … or above …)”), the beneficiaries’ tax rate in Benefits (“Beneficiaries’ 10-year
+drawdown taxed at their brackets. A flat rate to compare: Model’s estimate 20%.”, how it was
+found behind the “i”), the comparison (“Beneficiaries’ tax at their brackets, by each row’s payout (set in
+Benefits, Beneficiaries).” or “Beneficiaries’ tax rate 4.5% (…; set in Benefits, Beneficiaries).”, the after-tax caption
+behind the “i”) and the RMD schedule (a Notes line whose “i” opens
+the RMD notes). The deposit explanation is behind the “i” beside <em>Deposit per account</em>,
+the household plan’s account rule behind <em>Which account each deposit goes into</em>, what
+the Expenses totals count behind the <em>Total expenses</em> “i”, and what the Optimize risk
+preference weighs behind <em>What the risk preference weighs</em>. The Optimize not-advice
+line stays on screen (owner request). Each tooltip is at most about 450 characters,
+apart from the comparison caption.
+Every field has a tooltip (its schema <code class="docutils literal notranslate"><span class="pre">help</span></code>) and so does every pane: the
+schema gives each panel, section and sub-section a one-sentence <code class="docutils literal notranslate"><span class="pre">help</span></code>
+(<code class="docutils literal notranslate"><span class="pre">PANEL_HELP</span></code> and <code class="docutils literal notranslate"><span class="pre">SECTION_HELP</span></code> in <code class="docutils literal notranslate"><span class="pre">settings.py</span></code>), shown behind the “i”
+beside the pane’s title, followed by the panel’s note where it has one; a test
+fails when one is missing or longer than 400 characters. Information boxes (the
+deposit-per-account explanation and notes, the household plan text, plain
+banners) use the <code class="docutils literal notranslate"><span class="pre">--info-bg</span></code>, <code class="docutils literal notranslate"><span class="pre">--info-ink</span></code> and <code class="docutils literal notranslate"><span class="pre">--info-line</span></code> tokens of
+each scheme with an “i” icon, so they never look like a field row.</p>
+<p>A <strong>red</strong> “i” marks a field whose value the model reduces by the mean inflation
+when <em>Inflation-adjusted dollars</em> is off, so results stay in today’s value: the
+raise and the promotion raise (Income), an account’s mean return and a loan’s
+balance and extra per month. Its text ends with that note. The settings schema
+flags these fields with <code class="docutils literal notranslate"><span class="pre">inflationNote</span></code> and the button takes the <code class="docutils literal notranslate"><span class="pre">--bad</span></code>
+token, so it reads in every color scheme; <code class="docutils literal notranslate"><span class="pre">inflationnote.test.mjs</span></code>
+checks that only these fields are red and carry the note.</p>
+</section>
+<section id="where-surplus-cash-goes">
+<h3>Where surplus cash goes<a class="headerlink" href="#where-surplus-cash-goes" title="Link to this heading"></a></h3>
+<p>Each cash, Investments or 529 account has a slider (its share of the
+<a class="reference internal" href="overview.html#term-Surplus"><span class="xref std std-term">surplus</span></a>, in percent) and a 44 px lock button. Dragging a slider moves the unlocked others
+so the total stays 100%; a locked account keeps its share and its slider is
+greyed out. The rule is the Python model’s, not a copy: every move goes to
+<code class="docutils literal notranslate"><span class="pre">rebalanceSurplus</span></code>, which calls <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.editing.rebalanceShares</span></code>
+and writes the new shares into the accounts (accounts that cannot receive
+surplus get 0). Only one move is in flight at a time; while
+it runs the page keeps just the newest slider position. With one such account
+it takes 100% and has no lock; when every other account is locked the last one
+is fixed too, and the page says so; with none, the page asks for one. The locks
+are remembered in the browser. An account’s sheet does not show the surplus share;
+it is set only here.</p>
+</section>
+<section id="sheets">
+<h3>Sheets<a class="headerlink" href="#sheets" title="Link to this heading"></a></h3>
+<p>Every item sheet (an account, expense, loan, child, home or car) has one <em>Done</em>
+at its top, which closes the sheet and keeps its edits (there is no Save
+button), and ends with <em>Move up</em>, <em>Move down</em> and <em>Remove</em> (a
+second tap confirms). The timeline sheet hides that Done and ends in its own
+<em>Save</em> and <em>Cancel</em>.
+Pressing Enter (a phone keyboard’s Go or Done) in any one-line input, on a sheet
+or a page, ends the edit: the input loses focus, its value is kept and the
+keyboard closes (<code class="docutils literal notranslate"><span class="pre">enterEndsEdit</span></code>; a multi-line box keeps Enter for new lines).</p>
+<p>The expense, account and loan sheets draw every field of their type, or leave
+one off by a named rule (<code class="docutils literal notranslate"><span class="pre">sheetFields</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; the
+categories and kinds come from <code class="docutils literal notranslate"><span class="pre">appInfo().sheetRules</span></code>). An expense sheet says
+whether the amount is per month or per year in today’s value; the <em>From age</em> and
+<em>To age (inclusive)</em> never show for Charity, nor the <em>Tax deduction</em> select (blank
+or one of <code class="docutils literal notranslate"><span class="pre">sheetRules.deductionCategories</span></code>), whose deduction is always Charity.
+The <em>Exclude from child inflation</em>, <em>Education expense</em> and <em>Dependent care</em> ticks
+never show (those costs are entered on Children and Benefits); a row saved with
+one keeps it. The <em>Taxable</em> select (<code class="docutils literal notranslate"><span class="pre">ExpenseItem.taxable</span></code>: Default, Taxable or Not
+taxable; never shown for Charity) says whether the row pays sales tax (see
+<a class="reference internal" href="states.html#states-sales-tax"><span class="std std-ref">Sales tax</span></a>); while blank it shows the row’s default in gray
+(<code class="docutils literal notranslate"><span class="pre">SHEET_DEFAULTS</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>, from <code class="docutils literal notranslate"><span class="pre">sheetRules.taxableDefaults</span></code>, each suggested
+row’s default by name; a row you add is taxable), and <em>Default</em> for Groceries and
+Clothing, which follow the state’s own rule. Switching a row to Charity clears its ages, those ticks and its tax
+deduction, so the loader accepts it. An expense card shows “per month” or “per
+year”, “tax deductible” for Charity and “deductible:” with the deduction for a
+row that has one, its ages (“ages 50 to 60”, “from age 50”, “to age 60”, or “at age
+50” for a Major Spending row paid once) and “not scaled by children” for a row ticked <em>Exclude from child
+inflation</em>; a loan
+card shows “payment in Expenses”. An account sheet shows the name, kind, owner
+and starting value, then “Returns and basis”: the returns in a disclosure with the
+usual chevron, closed until tapped, whose header reads them (“Return 8.0% · std dev
+16.0%”), holding the mean return and standard deviation, the note “Filled from the
+account kind; change to override” with the kind’s usual figures, and a “Use the usual
+returns” button that writes them; then, always shown, the cost basis only for
+Investments and the IRA basis only for a Traditional IRA. The surplus share is set under
+<em>Where surplus cash goes</em> and the deposit on Benefits, not in the sheet. Changing the kind clears a cost basis, IRA
+basis or deposit the new kind cannot hold, and replaces each return that is blank or
+still the old kind’s usual value with the new kind’s (one you changed is kept). A new
+account starts with its kind’s usual returns.</p>
+</section>
+<section id="deposit-per-account">
+<h3>Deposit per account<a class="headerlink" href="#deposit-per-account" title="Link to this heading"></a></h3>
+<p>The Retirement plan pane of Benefits ends, in the same panel as each person’s
+employer match and the household plan, with a slider per Traditional 401k, Roth 401k,
+Traditional IRA and Roth IRA account, grouped by owner, from 0 to the most its limits leave, in today’s
+value and steps of $100. The values, maximums, limits and notes come from
+Python (<code class="docutils literal notranslate"><span class="pre">depositSliders</span></code>, from <code class="docutils literal notranslate"><span class="pre">accountDeposits</span></code>, <code class="docutils literal notranslate"><span class="pre">depositRoom</span></code> and
+<code class="docutils literal notranslate"><span class="pre">planDeposits</span></code>). Until an amount is set, the sliders show what the household
+plan deposits; the first move (<code class="docutils literal notranslate"><span class="pre">moveDeposit</span></code>) sets the amount for every
+account, and raising one slider lowers the most the others sharing its limit
+can take. “Go back to the household plan” clears every amount. An account with
+no room says why; when the settings are not valid the page asks to fix them
+first. Only one move is in flight at a time, as for the surplus sliders.</p>
+</section>
+<section id="monte-carlo">
+<h3>Monte Carlo<a class="headerlink" href="#monte-carlo" title="Link to this heading"></a></h3>
+<p>The Monte Carlo runs on its own: after start-up and after every change of the
+settings, the Runs or the Seed, once the single run has finished and a further
+1.5 s pause has passed. A change while it runs cancels it without a message and
+starts the new one when the engine is free; it does not run while the settings
+need a fix or while a comparison runs (it starts after the comparison), and
+it does not rerun on its own for settings whose run failed or was cancelled.
+Run in the bar above Summary and Plots (“Run again” when the result is
+current) reruns it by hand. Pick 25 (the default), 50 or 100
+runs on Setup; the seed is the one Seed on Setup. The page estimates the
+time from the last measured run on this device (about 10 s for 25 runs on a
+phone). While it runs, a progress bar shows the runs done and the time left,
+and Cancel stops it within one batch (about 0.2 s); nothing from cancelled runs
+is kept and the last finished result stays. The result gives the median final
+worth and the chance of running out, the final-value histogram (leaving out the
+lowest and highest 1% of runs), the total balance band, the
+percentile table, and the middle half average per year (the runs between the
+25th and 75th percentile of final worth) of the summary, accounts,
+deductions and RMD schedule tables and of the balance, cash flow, deposits and
+withdrawals, tax and expense charts. The last two results are kept; when the
+settings, runs or seed change, the earlier result stays on screen, dimmed,
+under a note that the Monte Carlo updates on its own.</p>
+</section>
+<section id="compare">
+<h3>Compare<a class="headerlink" href="#compare" title="Link to this heading"></a></h3>
+<p>Compare always runs exactly two configs: two selects,
+Config A and Config B, each listing the current settings, the default profile
+(the example household) and the scenarios saved on this device under Setup; A
+and B are never the same (a deleted scenario is replaced by another option). To
+compare a strategy or a claim age, save a scenario with each choice. It runs the
+Runs set on Setup per config (Compare has no run count of its own; a run count
+an older page kept for Compare is ignored). The pair is checked by
+<code class="docutils literal notranslate"><span class="pre">compareVariants</span></code> with its rules and messages before the Run button
+is enabled. A strategy variant, claim ages or Compare chip stored by an older
+page is ignored.</p>
+<p>Every scenario runs on the same random draws (the comparison’s seed); with no terminal tax
+rate set in the first scenario, each row’s own beneficiaries’ payout is taxed (see <a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">How Compare
+judges</span></a>).
+Progress names the scenario running; Cancel works as for the Monte Carlo. The
+result has the comparison table (scrolling sideways with the scenario
+column kept in view; the beneficiaries’ payout or the terminal tax rate on one line under it, with the after-tax
+caption behind its “i”; its Median home and cars column shows the homes and cars
+less loans that Median final leaves out, and the “i” beside the Comparison heading
+says why the after-tax column can be higher), the total balance by age (median
+lines with 10th-90th percentile shading per scenario), the final account value
+as one box per scenario. Each balance line ends in a dashed step past the last age to a dot at its
+median value after tax (each series’ <code class="docutils literal notranslate"><span class="pre">afterTax</span></code>), named in the legend, tap readout and summary.</p>
+<p>Settings that differ (a closed card, with the count in its title) needs no run: it
+is worked out by <code class="docutils literal notranslate"><span class="pre">compareDifferences</span></code> as soon as the pair is picked, and again
+after any change to either config. It lists every setting that differs as its own
+panel, grouped by settings panel under a heading, with the schema’s labels: the
+setting, A’s and B’s value (an added or removed row, the partner or the visit-cost
+block has <em>Show fields</em> with the fields behind it) and two stacked buttons,
+“Merge A with B” (A takes B’s value) and “Merge B with A” (B takes A’s value),
+each with what it does underneath; from 720 px wide the two sit side by side. Rows
+of a list are matched by name, and a value under a switched-off block is marked
+<em>(not used: … is off)</em>; a block off on both sides lists none of its settings. Turning a block’s switch off on a panel
+puts its other settings back to their defaults (<code class="docutils literal notranslate"><span class="pre">editing.resetDisabledBlock</span></code>). Settings whose values match but are held as an integer in
+one scenario and a float in another (for example 11800 and 11800.0, after the
+settings cross the page as JSON) are not listed.</p>
+<p>A merge applies at once, with no second tap: <code class="docutils literal notranslate"><span class="pre">mergeCompareDifference</span></code> returns the
+target’s merged settings (an older saved scenario is upgraded first), and the page
+writes them to the saved scenario on this device or, for the current settings, to
+the working settings (the top bar’s Undo then records it too). A merge the checker
+refuses shows its reason and changes nothing. The example household is never
+changed: its buttons are off with the reason. “Undo last merge (n)”
+steps back through the last 10 merges; a config edited since its merge is left
+alone and the page says so. The comparison is not run again; its results show as
+changed until you press Run. With Auto-save on, a merge into the saved copy of the
+open scenario is replaced by the next settled edit, as a make-match is.</p>
+<p>Settings that differ also has two make-match buttons, “A → B”
+(“Make B match A”, its accessible name) and “A ← B” (“Make A match B”); the
+arrow points the copy direction. A first tap asks for a second; the second
+replaces the target on this device: a saved scenario (an older version is
+upgraded first), or, for the current settings, the working settings (the
+loaded scenario stays the base, so Outputs shows them as edited). The default
+profile is never replaced; those buttons are off with the reason (<code class="docutils literal notranslate"><span class="pre">matchProblems</span></code>). The comparison
+then runs again and shows no differences.</p>
+</section>
+<section id="optimize">
+<span id="optimize-view"></span><h3>Optimize<a class="headerlink" href="#optimize" title="Link to this heading"></a></h3>
+<p>The fifth Outputs view, Optimize, searches the strategy settings for the best
+score (see <a class="reference internal" href="strategies.html#finding-best-settings"><span class="std std-ref">Finding the best settings</span></a> and <a class="reference internal" href="model-rules.html#tab-optimize"><span class="std std-ref">How Optimize scores</span></a>);
+the Strategies chip on Inputs starts with a quiet <em>Find the best settings in the
+optimizer</em> button that opens it. The run bar is hidden there, as on Compare. The card has one
+switch per search option (untick one to keep its current setting; its “i” says what it
+tries), the six for 401k deposits and new accounts among them; an option that cannot be
+used for the settings (<code class="docutils literal notranslate"><span class="pre">optimizeAvailability</span></code>, asked once per settings and seed) is off,
+greyed out, with <em>Not available: &lt;reason&gt;</em> under it, and is left out of the search. The
+beneficiaries’ payouts are not an option: each beneficiary keeps the payout set in Benefits,
+Beneficiaries, and Apply never changes it. The first option, <em>Relocation state</em>, is a list to tick instead of a switch: the states from
+<code class="docutils literal notranslate"><span class="pre">appInfo</span></code> as <em>NJ - New Jersey</em> in a short scrolling box, a search box above it on
+the phone (the <code class="docutils literal notranslate"><span class="pre">select-search</span></code> box, keeping the ticked states in view), <em>None</em> to
+clear the ticks, and at most <code class="docutils literal notranslate"><span class="pre">optimizeInfo</span></code>’s <code class="docutils literal notranslate"><span class="pre">maxStates</span></code> (5): with five ticked the
+other boxes are off under <em>Up to 5 states per search.</em> Under the list what the ticked
+states add to the chosen effort (<code class="docutils literal notranslate"><span class="pre">optimizeStatesEstimate</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>, the same text as <code class="docutils literal notranslate"><span class="pre">statesEstimateText</span></code>) reads, for example,
+<em>3 states and staying put: up to 672 more runs, up to 2 minutes more (estimate).</em>, the time
+from the seconds per run timed on the device (left out until it is known); with none ticked it reads
+<em>Tick the states you would consider; staying where you are is always compared.</em> The
+ticked states go with the options as <code class="docutils literal notranslate"><span class="pre">states</span></code> only when there are some. The second
+option, <em>Filing status (couples)</em>, on by default, tries joint and separate returns for the
+federal return and every state return alike; without a partner it is greyed out with <em>Not
+available: no partner.</em> Its “i” warns that separate returns often cost more federal tax
+(Social Security taxed more, narrower brackets, lower limits) while some states give each
+spouse their own exclusions or caps, so the search weighs both; income is split between the
+returns only by account owner, as the model already does for separate returns. Risk preference
+(Growth-leaning, Balanced or Cautious, with what it means under the select),
+Effort (Quick by default; each label carries the estimate for these settings on this
+device as a range, such as <em>Quick (estimate 25 s to 40 s)</em>, from the <code class="docutils literal notranslate"><span class="pre">estimate</span></code> that
+<code class="docutils literal notranslate"><span class="pre">optimizeAvailability</span></code> answers with (<code class="docutils literal notranslate"><span class="pre">searchEstimates</span></code>: the runs counted from the
+options the settings allow and a two-run calibration timed in the worker), and <em>(up to
+650 runs)</em> until it comes; see <a class="reference internal" href="strategies.html#optimizer-estimates"><span class="std std-ref">the estimates</span></a>), the
+not-advice note and <em>Find best settings</em>. The search runs in the worker as one
+batched job (<code class="docutils literal notranslate"><span class="pre">optimize</span></code>, <code class="docutils literal notranslate"><span class="pre">startOptimize</span></code>) with a bar of the runs done against the
+runs expected (the progress <code class="docutils literal notranslate"><span class="pre">expected</span></code>), the step, the settings
+tried, the runs and the time left (<code class="docutils literal notranslate"><span class="pre">optimizeStepText</span></code> and
+<code class="docutils literal notranslate"><span class="pre">optimizeSecondsLeft</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>: the time per run so far times the
+expected runs left, <code class="docutils literal notranslate"><span class="pre">OptimizeBatches.expectedRuns</span></code>), and <em>Stop, show best so
+far</em> (the worker’s <code class="docutils literal notranslate"><span class="pre">finish</span></code> message keeps the best so far) and <em>Cancel</em>
+(nothing kept). At its run budget the search pauses (its progress <code class="docutils literal notranslate"><span class="pre">capped</span></code>,
+with <code class="docutils literal notranslate"><span class="pre">capText</span></code>) and the progress asks <em>Continue</em> (the worker’s <code class="docutils literal notranslate"><span class="pre">answerCap</span></code>
+message raises the budget and the same search carries on) or <em>Stop and keep
+best so far</em>; it asks again at each new budget until the search finishes. An automatic Monte Carlo waits while it runs; an edit drops a
+running search. A locked surplus slider keeps its share.</p>
+<p>A browser app cannot run while the phone sleeps or another app is in front
+(the page and its worker freeze), so the help text asks you to keep the app
+open. While a search runs the page holds a Screen Wake Lock (where the browser
+has one) so the screen stays on, and lets it go when the search ends. Leaving
+the app pauses the search after its current batch (the worker’s <code class="docutils literal notranslate"><span class="pre">pause</span></code>
+message; the time away counts toward neither the time cap nor the time shown)
+with <em>Paused while the app was in the background</em>; coming back takes the screen
+lock again, resumes it (<code class="docutils literal notranslate"><span class="pre">resume</span></code>) and shows <em>Resumed</em>. The search’s checkpoint
+(<code class="docutils literal notranslate"><span class="pre">OptimizeBatches.checkpoint</span></code>: the outcome of every run so far with a hash of
+its setting, the code version, the run budget, the time spent and an early stop)
+is kept on the device under a key of the inputs, options, seed and build id
+(<code class="docutils literal notranslate"><span class="pre">optimizeCheckpointKey</span></code>); the worker builds one at most every 5 seconds, at
+the run budget and when the search pauses. If the browser closed the app
+mid-search, Optimize offers <em>Resume the search</em> (same settings and build only)
+or <em>Discard</em>; a resumed search replays the runs it kept, simulates none twice
+and ends with the result of a search never interrupted, a stop at the time cap
+or the run budget included. A checkpoint made by other code, or whose runs were
+of other settings, is refused with <em>The saved search was made by another version
+of the app; start a new search.</em> The checkpoint is cleared when the search ends,
+is cancelled or the settings change.</p>
+<p>The result card shows, under <em>Recommended changes</em>, one highlighted card per change that improves
+the score (<code class="docutils literal notranslate"><span class="pre">improvements</span></code>, from <code class="docutils literal notranslate"><span class="pre">improvementCards</span></code>): the setting in plain words, its value now
+→ the recommended value (wrapping on a phone, no wide table), and its gain, such as <em>+$15,247
+score</em>, in the accent and positive colours of the theme, light or dark. The gain is the score that
+change’s accepted steps added during the search (<code class="docutils literal notranslate"><span class="pre">SearchResult.steps</span></code>: the winner’s score less the
+incumbent’s on that step’s runs), so it is measured with the settings as they were then; a change
+with no measurable gain says <em>gain not measured on its own; part of the total</em>, and a change whose
+steps added nothing is not shown as a recommendation. Under the cards <em>Total improvement: +$N score,
+over M runs</em> notes that the gains need not add up to it. The settings the search kept fold into one
+quiet line, <em>N other settings kept as they are</em>, that opens on a tap to list them with their values.
+Then the score breakdown, whether the best held up on fresh draws, the skipped strategies and
+notes, and the settings Apply writes (folded); every text is built in Python.
+<em>Apply these settings</em> changes the settings at once through <code class="docutils literal notranslate"><span class="pre">applyOptimum</span></code>
+(only the settings the search moves), as one Undo step, and shows <em>Applied N
+settings</em>, naming the accounts it added and a 401k raise (<code class="docutils literal notranslate"><span class="pre">applyText</span></code>), with an Undo
+button. A Relocation state result writes the Relocation switch and state, so the
+Strategies panel’s Relocation section shows the move; a Filing status result writes
+<code class="docutils literal notranslate"><span class="pre">filingStatus</span></code> (<em>Joint</em> or <em>Separate</em> in its card). It is off, with the reason, once the settings
+changed since the search (the result is then dimmed under a note) or when
+nothing changes.</p>
+</section>
+<section id="final-report-pdf">
+<h3>Final report (PDF)<a class="headerlink" href="#final-report-pdf" title="Link to this heading"></a></h3>
+<p><strong>Final report (PDF)</strong> in the menu opens a picker of the saved scenarios (other
+than the open one): tick up to four to compare with the current settings, or
+none, then <strong>Create report</strong> (or <strong>Cancel</strong>). The current settings run their
+Monte Carlo first when it is missing or stale (the result is kept as the
+Outputs’ own); each ticked scenario then runs once with the same runs and seed,
+with progress and Cancel in the dialog. The PDF (US Letter) downloads as
+<em>scenario</em>-report-<em>date</em>.pdf, and the dialog says so; settings that need a fix
+show their message instead. The body, at most four pages, holds the headline
+figures, four key results (chance of success, median, 10th and 90th percentile
+final worth), the Insights (see <a class="reference internal" href="#app-insights"><span class="std std-ref">Insights</span></a>) and the charts (total balance, final values, balances, cash flow,
+taxes, expenses), each with a one-line caption and a summary of two to four
+sentences under it (the Taxes caption says the hatched bar is sales tax, already
+in expenses, shown for records; its legend key is hatched and its summary leaves
+it out); with scenarios ticked, one Comparison chart (every
+configuration’s median and 10th to 90th percentile band), its summary and one
+line of numbers per configuration follow.</p>
+<p>Each summary is built by fixed rules from the run’s own data (the charts and the
+yearly table), never written by hand. The rules find:</p>
+<ul class="simple">
+<li><p>year-over-year jumps (a rise of at least 50% and $5,000) and drops (a fall of
+at least 20% and $5,000) in taxes and spending;</p></li>
+<li><p>a balance reaching zero (at or below $1): the median or 10th percentile
+balance, or an account drained;</p></li>
+<li><p>pay stopping and Social Security or withdrawals starting;</p></li>
+<li><p>the peak, the end value, the largest category and the spread of final values.</p></li>
+</ul>
+<p>A cause is named only when the yearly table shows it in the same year: a home
+sale’s gain, a sale’s proceeds, Roth conversions or required distributions
+beginning, pay stopping the year before (spending then drops “at retirement”),
+or, for the first account drained under the PRIORITY withdrawal order, every
+account before it already empty. Otherwise the summary says what happened
+without a cause.</p>
+<p>The addendum holds the tables in small type with the header row repeated on
+each page. Every table spans the full page width. A wide table shows as many
+columns as fit, measured from their text, and continues in further blocks below,
+each repeating the row label column. The settings tables leave out every field
+the app hides now, by the app’s own rules: a switch’s figures while it is off (a
+car’s loan figures without a loan, or with a balance of 0, and its commute
+figures with the commute off), the figures a switch replaces, a titled section
+whose switch is off, and a field whose panel condition is not met. The tables
+are: the key inputs by
+group, every list of items (expenses, accounts, loans, homes, cars, children
+and so on), the yearly table split into column groups (income, taxes and
+deductions, deposits and withdrawals, loans, homes and cars, expenses; the taxes
+group heads <code class="docutils literal notranslate"><span class="pre">Sales</span> <span class="pre">Tax</span> <span class="pre">(records)</span></code> as <em>Sales tax (already in expenses, shown for
+records)</em>), the
+accounts, deductions and RMD tables, the final worth by percentile, the Inheritance
+table (median Traditional, Roth and taxable money and homes left, and each tax: beneficiaries’
+income tax, federal and state estate tax, inheritance tax, selling costs, what beneficiaries
+keep; each row its own median) and, with scenarios ticked, the numbers per configuration. Each page’s footer gives the
+scenario name, the page number and “Estimates for education only; not
+financial, tax or legal advice.” <code class="docutils literal notranslate"><span class="pre">frontend/src/report.js</span></code> builds the report data
+(<code class="docutils literal notranslate"><span class="pre">buildReport</span></code>, tested in Node) and draws it with jsPDF (<code class="docutils literal notranslate"><span class="pre">drawReport</span></code>); the
+charts are the page’s own SVG in the light colors, drawn to PNG at twice the
+size. jsPDF 4.2.1 is shipped unchanged from <code class="docutils literal notranslate"><span class="pre">frontend/vendor</span></code> (MIT; listed in
+<code class="docutils literal notranslate"><span class="pre">legal/NOTICE.md</span></code> with the libraries it bundles), so the report works offline.</p>
+</section>
+<section id="insights">
+<span id="app-insights"></span><h3>Insights<a class="headerlink" href="#insights" title="Link to this heading"></a></h3>
+<p>The <strong>Insights</strong> card on Outputs, Summary (below the tiles) and the <strong>Insights</strong>
+section of the report (after the key results) list up to five warnings and up to
+five opportunities, drawn by fixed rules from the last Monte Carlo (the median
+balance band, the middle half average charts and yearly table) and the inputs it
+ran on. Warnings are ranked by severity, opportunities by dollar size; a kind
+with no items is left out, and with none at all the card and the section are not
+shown. The card ends with “Estimates from this plan’s own numbers; not financial
+advice.” Every dollar figure is rounded to two significant figures and every
+rate to a whole percent (returns to one decimal).</p>
+<p>Warnings, each with its age:</p>
+<ul class="simple">
+<li><p>the median balance falling 3 or more years in a row (the longest such run);</p></li>
+<li><p>in a year without pay, the median balance of the accounts (homes and cars are
+not in it) below 2 years of that year’s spending;</p></li>
+<li><p>in a year without pay, withdrawals above 5% of the accounts’ balance at the
+end of the year before;</p></li>
+<li><p>a chance of running out above 10%, with the age the median (or else the 10th
+percentile) runs out;</p></li>
+<li><p>the largest one-year rise in total taxes of at least 50% and $5,000, with its
+cause when the yearly table shows one that year (a home sale’s gain, a sale,
+Roth conversions or required minimum distributions starting);</p></li>
+<li><p>an account drained while one earlier in the PRIORITY withdrawal order still
+holds money (with PROPORTIONAL, while any other account does);</p></li>
+<li><p>years where spending and taxes exceed income plus withdrawals, so some goes
+unpaid (the yearly Shortfall).</p></li>
+</ul>
+<p>Opportunities use simple arithmetic at the plan’s own expected real return (the
+accounts’ expected returns weighted by today’s balances, less the mean of the
+inflation minimum, mode and maximum), never a new simulation, and are stated in
+today’s value up to your retirement (the age your pay ends; the plan’s last age
+once retired):</p>
+<ul class="simple">
+<li><p>cutting the largest expense category today by 10%, the saving invested each
+year;</p></li>
+<li><p>what each $1,000 a year saved before retirement grows to (only while you work);</p></li>
+<li><p>an employer match not fully used: the extra match a year at today’s pay when
+the plan deposits less of pay than the employer matches up to, grown to the
+year that person’s pay ends;</p></li>
+<li><p>cash (Checking, Savings, CD &amp; Bonds) above a 6-month reserve of today’s
+spending, when it is expected to earn less than the Investments account: the
+difference the two returns make;</p></li>
+<li><p>the three largest expense categories today and their share of spending.</p></li>
+</ul>
+<p>The wording is factual (“would add about”), never advice. <code class="docutils literal notranslate"><span class="pre">frontend/src/insights.js</span></code>
+holds the rules as small pure functions with named thresholds (tested in Node);
+<code class="docutils literal notranslate"><span class="pre">report.js</span></code> and <code class="docutils literal notranslate"><span class="pre">app.js</span></code> both call its <code class="docutils literal notranslate"><span class="pre">insights</span></code>.</p>
+</section>
+</section>
+<section id="app-limits">
+<span id="id2"></span><h2>App limits<a class="headerlink" href="#app-limits" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The page needs WebAssembly in a worker; it does not load anything from a CDN.</p></li>
+<li><p>First load is about 20 MB; the host serves the files compressed and cached.</p></li>
+<li><p>A phone run takes about 0.2 s, so the single run behind the headline figures
+updates while you type. Runs offers 25 (the default), 50 or 100, about 10 s
+for 25 runs on a phone; Compare runs exactly two configs, each
+with the same Runs. Compare runs only on its Run button.</p></li>
+<li><p>A scenario file holds at most 50 accounts, 50 loans, 20 cars, 20 homes, 20
+children, 100 salary-history years, 200 expense rows and 200 rows in any other
+list, and only finite numbers (see <a class="reference internal" href="#scenarios-on-setup"><span class="std std-ref">Scenarios on Setup</span></a>).</p></li>
+<li><p>Saved scenarios live in this browser only (at most 50); export a scenario
+file to keep one elsewhere.</p></li>
+<li><p>Settings are kept per browser and per device. Export a scenario file to move
+them to another device.</p></li>
+<li><p>Wide tables scroll sideways inside their own box, with the first column
+(age or year) kept in view and a shadow on the right edge while more columns
+lie beyond it.</p></li>
+<li><p>The page itself (<code class="docutils literal notranslate"><span class="pre">index.html</span></code>) keeps its name; if a phone shows the old
+version after a republish, reload the page.</p></li>
+</ul>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a>: what the model does with each settings group (it was
+the second half of this page).</p></li>
+<li><p><span>developing</span>: build and publish, sharing the app, the entry point,
+chart specs and checks (formerly at the end of this page).</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Using the toolkit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="strategies.html" class="btn btn-neutral float-right" title="Strategies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, [BRAND NAME].</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

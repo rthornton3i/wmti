@@ -1,0 +1,826 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tax law in the model &mdash; Walk Me Through It  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=6752b5a2" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7f41d439"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tax law by jurisdiction" href="../law/index.html" />
+    <link rel="prev" title="States: taxes, living costs and moving" href="states.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../user_index.html" class="icon icon-home">
+            Walk Me Through It
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Start here</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the toolkit</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using the app</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="app.html">The app</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-gallery.html">Sample results</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="model-rules.html">Model rules by group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States: taxes, living costs and moving</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tax law and legal</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tax law in the model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-the-home-state-treats-the-strategies">How the home state treats the strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#state-estate-and-inheritance-taxes">State estate and inheritance taxes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#social-security-local-income-tax-and-living-costs-in-the-state-files">Social Security, local income tax and living costs in the state files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-state-law-files">The state law files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-list-of-states">The list of states</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#law-backlog">Law backlog</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../user_index.html">Walk Me Through It</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../user_index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tax law in the model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tax-law-in-the-model">
+<h1>Tax law in the model<a class="headerlink" href="#tax-law-in-the-model" title="Link to this heading"></a></h1>
+<p>For readers who want to know which tax rules the model applies and which it
+leaves out: how the home state treats the strategies, then the law backlog of
+rules not charged yet. The strategies themselves are in <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a>;
+how the law files are updated each year is in <span>tax-year-update</span>. Every
+figure of every law file, federal and for each state, with its confidence and
+sources, is on the law pages (<a class="reference internal" href="../law/index.html"><span class="doc">Tax law by jurisdiction</span></a>).
+Everything here is a model of the law, not tax advice.</p>
+<section id="how-the-home-state-treats-the-strategies">
+<span id="home-state-strategies"></span><h2>How the home state treats the strategies<a class="headerlink" href="#how-the-home-state-treats-the-strategies" title="Link to this heading"></a></h2>
+<p>Only New Jersey has state-specific treatment, from the <code class="docutils literal notranslate"><span class="pre">state_strategies</span></code> section of
+its law file. A Roth conversion is taxed there as retirement income, so the NJ
+retirement income exclusion can cover it once you qualify; a QCD stays taxable as
+retirement income although the federal return excludes it (see <a class="reference internal" href="strategies.html#qcd"><span class="std std-ref">Qualified charitable distributions (QCD)</span></a>). NY, PA, FL
+and any other state follow the federal treatment: a conversion is taxable income and
+retirement income, a QCD is left out. The senior and non-itemizer deductions never
+reach a state return, which starts from income before federal deductions. The
+Strategies tab shows the note for the home state you pick; it is the model’s reading
+of the rules, not a confirmed one.</p>
+</section>
+<section id="state-estate-and-inheritance-taxes">
+<span id="state-death-taxes"></span><h2>State estate and inheritance taxes<a class="headerlink" href="#state-estate-and-inheritance-taxes" title="Link to this heading"></a></h2>
+<p>What beneficiaries keep (see <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>) pays the estate tax of the state lived in at
+the end of the plan (the home state, or the Relocation state after a move) on the gross
+estate and its inheritance tax on each beneficiary’s share after the estate taxes, at the rate
+for children. The figures are each state law file’s <code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code> section, for 2026.
+Thirteen jurisdictions have an estate tax (CT, DC, HI, IL, MA, MD, ME, MN, NY, OR, RI, VT and
+WA) and five an inheritance tax (KY, MD, NE, NJ and PA; Maryland has both); the others have
+neither. Each section carries its own <code class="docutils literal notranslate"><span class="pre">confidence</span></code> label and <code class="docutils literal notranslate"><span class="pre">check_at</span></code> page. The table
+below gives the four original states as examples; the other files’ notes describe theirs.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10.0%" />
+<col style="width: 45.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>State</p></th>
+<th class="head"><p>Estate tax</p></th>
+<th class="head"><p>Inheritance tax</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NJ</p></td>
+<td><p>None (repealed for deaths from 2018).</p></td>
+<td><p>Children, spouse and parents exempt (Class A); siblings 11% to 16% above 25,000
+(Class C); others 15% to 700,000, then 16% (Class D). Source: NJ Division of
+Taxation rate page.</p></td>
+</tr>
+<tr class="row-odd"><td><p>NY</p></td>
+<td><p>Exclusion 7,350,000 (indexed); the 3.06% to 16% schedule of Tax Law 952 taxes the
+whole estate once it passes 105% of the exclusion (the cliff), with a shrinking
+credit in between; no portability. Source: NY Department of Taxation estate tax
+page and Tax Law 952.</p></td>
+<td><p>None.</p></td>
+</tr>
+<tr class="row-even"><td><p>PA</p></td>
+<td><p>None.</p></td>
+<td><p>4.5% to children and other lineal heirs from the first dollar; 12% siblings; 15%
+others; 0% spouse. Source: PA Department of Revenue inheritance tax page.</p></td>
+</tr>
+<tr class="row-odd"><td><p>FL</p></td>
+<td><p>None.</p></td>
+<td><p>None.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Not modelled: other heir classes than children, exempt assets (life insurance, some
+retirement accounts in PA), PA’s early-payment discount and the federal deduction for state
+death taxes.</p>
+</section>
+<section id="social-security-local-income-tax-and-living-costs-in-the-state-files">
+<span id="state-file-sections"></span><h2>Social Security, local income tax and living costs in the state files<a class="headerlink" href="#social-security-local-income-tax-and-living-costs-in-the-state-files" title="Link to this heading"></a></h2>
+<p>Each state file also holds how the state taxes Social Security (<code class="docutils literal notranslate"><span class="pre">social_security</span></code>:
+<code class="docutils literal notranslate"><span class="pre">exempt</span></code>, <code class="docutils literal notranslate"><span class="pre">federal</span></code> or <code class="docutils literal notranslate"><span class="pre">threshold</span></code>), an average local income tax rate
+(<code class="docutils literal notranslate"><span class="pre">local_income_tax.avg_rate</span></code> and whether it reaches only <code class="docutils literal notranslate"><span class="pre">wages</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span> <span class="pre">income</span></code>)
+and the living costs a move between states changes: sales tax, property tax, home and car
+insurance, car taxes, gas tax and pump price, electricity price, typical home value and a
+housing cost index. Most states exempt Social Security; Colorado and Montana tax the part
+the federal return taxes (<code class="docutils literal notranslate"><span class="pre">federal</span></code>), and Connecticut, Minnesota, New Mexico, Rhode Island,
+Utah and Vermont exempt it below an income limit (<code class="docutils literal notranslate"><span class="pre">threshold</span></code>). The local rate is a state
+average, for example 0 for NJ and FL, about 1% of wages in PA, and about 1.5% of all income in
+NY (New York City residents pay about 3.5%, everyone else nothing). A Social Security rule the
+three treatments cannot express (Colorado, Minnesota, Rhode Island, Utah and Vermont) is
+approximated and marked <code class="docutils literal notranslate"><span class="pre">unconfirmed</span></code>. The living costs come from compiled secondary sources
+(<code class="docutils literal notranslate"><span class="pre">confirmed</span> <span class="pre">secondary</span></code>, electricity <code class="docutils literal notranslate"><span class="pre">confirmed</span> <span class="pre">primary</span></code> for January to July 2026); car
+taxes are rough composites marked <code class="docutils literal notranslate"><span class="pre">unconfirmed</span></code>, and a state whose file holds 0 for one
+leaves that cost unchanged after a move.</p>
+</section>
+<section id="the-state-law-files">
+<span id="states-table"></span><h2>The state law files<a class="headerlink" href="#the-state-law-files" title="Link to this heading"></a></h2>
+<p>One row per jurisdiction: its tax year and status (<code class="docutils literal notranslate"><span class="pre">final</span></code> only when every income-tax
+figure was read on a primary page; otherwise <code class="docutils literal notranslate"><span class="pre">estimate</span></code>), the weakest confidence label
+recorded for its own income tax (brackets, deductions, exclusions, add-backs and Social
+Security; the average local tax is left out), and the rules its notes say are approximated.
+The table is written from the law files by <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">docs/generate_states_table.py</span></code>
+(<code class="docutils literal notranslate"><span class="pre">--check</span></code> fails when it is out of date); the same table is in <code class="docutils literal notranslate"><span class="pre">.config/law/README.md</span></code>.
+Every approximation and unconfirmed item is also listed in the project’s law backlog.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 7.0%" />
+<col style="width: 18.0%" />
+<col style="width: 8.0%" />
+<col style="width: 9.0%" />
+<col style="width: 16.0%" />
+<col style="width: 42.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Code</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Tax year</p></th>
+<th class="head"><p>Status</p></th>
+<th class="head"><p>Income tax confidence</p></th>
+<th class="head"><p>Approximated rules</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>AK</p></td>
+<td><p><a class="reference internal" href="../law/ak.html"><span class="doc">Alaska</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>AL</p></td>
+<td><p><a class="reference internal" href="../law/al.html"><span class="doc">Alabama</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><p>retirement exclusion</p></td>
+</tr>
+<tr class="row-even"><td><p>AR</p></td>
+<td><p><a class="reference internal" href="../law/ar.html"><span class="doc">Arkansas</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><p>retirement exclusion; add-backs</p></td>
+</tr>
+<tr class="row-odd"><td><p>AZ</p></td>
+<td><p><a class="reference internal" href="../law/az.html"><span class="doc">Arizona</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>CA</p></td>
+<td><p><a class="reference internal" href="../law/ca.html"><span class="doc">California</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>CO</p></td>
+<td><p><a class="reference internal" href="../law/co.html"><span class="doc">Colorado</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>retirement exclusion; Social Security</p></td>
+</tr>
+<tr class="row-even"><td><p>CT</p></td>
+<td><p><a class="reference internal" href="../law/ct.html"><span class="doc">Connecticut</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><p>retirement exclusion; add-backs</p></td>
+</tr>
+<tr class="row-odd"><td><p>DC</p></td>
+<td><p><a class="reference internal" href="../law/dc.html"><span class="doc">District of Columbia</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><p>estate or inheritance tax</p></td>
+</tr>
+<tr class="row-even"><td><p>DE</p></td>
+<td><p><a class="reference internal" href="../law/de.html"><span class="doc">Delaware</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>FL</p></td>
+<td><p><a class="reference internal" href="../law/fl.html"><span class="doc">Florida</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>final</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>GA</p></td>
+<td><p><a class="reference internal" href="../law/ga.html"><span class="doc">Georgia</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>retirement exclusion</p></td>
+</tr>
+<tr class="row-odd"><td><p>HI</p></td>
+<td><p><a class="reference internal" href="../law/hi.html"><span class="doc">Hawaii</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>IA</p></td>
+<td><p><a class="reference internal" href="../law/ia.html"><span class="doc">Iowa</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>ID</p></td>
+<td><p><a class="reference internal" href="../law/id.html"><span class="doc">Idaho</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed secondary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>IL</p></td>
+<td><p><a class="reference internal" href="../law/il.html"><span class="doc">Illinois</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>IN</p></td>
+<td><p><a class="reference internal" href="../law/in.html"><span class="doc">Indiana</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>KS</p></td>
+<td><p><a class="reference internal" href="../law/ks.html"><span class="doc">Kansas</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>KY</p></td>
+<td><p><a class="reference internal" href="../law/ky.html"><span class="doc">Kentucky</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>LA</p></td>
+<td><p><a class="reference internal" href="../law/la.html"><span class="doc">Louisiana</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>MA</p></td>
+<td><p><a class="reference internal" href="../law/ma.html"><span class="doc">Massachusetts</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed secondary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>MD</p></td>
+<td><p><a class="reference internal" href="../law/md.html"><span class="doc">Maryland</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>retirement exclusion</p></td>
+</tr>
+<tr class="row-odd"><td><p>ME</p></td>
+<td><p><a class="reference internal" href="../law/me.html"><span class="doc">Maine</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>credits; retirement exclusion</p></td>
+</tr>
+<tr class="row-even"><td><p>MI</p></td>
+<td><p><a class="reference internal" href="../law/mi.html"><span class="doc">Michigan</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>MN</p></td>
+<td><p><a class="reference internal" href="../law/mn.html"><span class="doc">Minnesota</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>Social Security</p></td>
+</tr>
+<tr class="row-even"><td><p>MO</p></td>
+<td><p><a class="reference internal" href="../law/mo.html"><span class="doc">Missouri</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>MS</p></td>
+<td><p><a class="reference internal" href="../law/ms.html"><span class="doc">Mississippi</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>MT</p></td>
+<td><p><a class="reference internal" href="../law/mt.html"><span class="doc">Montana</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>gains exclusion</p></td>
+</tr>
+<tr class="row-odd"><td><p>NC</p></td>
+<td><p><a class="reference internal" href="../law/nc.html"><span class="doc">North Carolina</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>ND</p></td>
+<td><p><a class="reference internal" href="../law/nd.html"><span class="doc">North Dakota</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>NE</p></td>
+<td><p><a class="reference internal" href="../law/ne.html"><span class="doc">Nebraska</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>NH</p></td>
+<td><p><a class="reference internal" href="../law/nh.html"><span class="doc">New Hampshire</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>NJ</p></td>
+<td><p><a class="reference internal" href="../law/nj.html"><span class="doc">New Jersey</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>NM</p></td>
+<td><p><a class="reference internal" href="../law/nm.html"><span class="doc">New Mexico</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed secondary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>NV</p></td>
+<td><p><a class="reference internal" href="../law/nv.html"><span class="doc">Nevada</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>NY</p></td>
+<td><p><a class="reference internal" href="../law/ny.html"><span class="doc">New York</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>OH</p></td>
+<td><p><a class="reference internal" href="../law/oh.html"><span class="doc">Ohio</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>OK</p></td>
+<td><p><a class="reference internal" href="../law/ok.html"><span class="doc">Oklahoma</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>OR</p></td>
+<td><p><a class="reference internal" href="../law/or.html"><span class="doc">Oregon</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>PA</p></td>
+<td><p><a class="reference internal" href="../law/pa.html"><span class="doc">Pennsylvania</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>RI</p></td>
+<td><p><a class="reference internal" href="../law/ri.html"><span class="doc">Rhode Island</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed secondary</p></td>
+<td><p>retirement exclusion; Social Security</p></td>
+</tr>
+<tr class="row-even"><td><p>SC</p></td>
+<td><p><a class="reference internal" href="../law/sc.html"><span class="doc">South Carolina</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>standard deduction</p></td>
+</tr>
+<tr class="row-odd"><td><p>SD</p></td>
+<td><p><a class="reference internal" href="../law/sd.html"><span class="doc">South Dakota</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>final</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>TN</p></td>
+<td><p><a class="reference internal" href="../law/tn.html"><span class="doc">Tennessee</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed secondary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>TX</p></td>
+<td><p><a class="reference internal" href="../law/tx.html"><span class="doc">Texas</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed secondary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>UT</p></td>
+<td><p><a class="reference internal" href="../law/ut.html"><span class="doc">Utah</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>add-backs; Social Security</p></td>
+</tr>
+<tr class="row-odd"><td><p>VA</p></td>
+<td><p><a class="reference internal" href="../law/va.html"><span class="doc">Virginia</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>retirement exclusion</p></td>
+</tr>
+<tr class="row-even"><td><p>VT</p></td>
+<td><p><a class="reference internal" href="../law/vt.html"><span class="doc">Vermont</span></a></p></td>
+<td><p>2025</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>Social Security; 2025 figures (newer not yet published)</p></td>
+</tr>
+<tr class="row-odd"><td><p>WA</p></td>
+<td><p><a class="reference internal" href="../law/wa.html"><span class="doc">Washington</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed primary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>WI</p></td>
+<td><p><a class="reference internal" href="../law/wi.html"><span class="doc">Wisconsin</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>standard deduction</p></td>
+</tr>
+<tr class="row-odd"><td><p>WV</p></td>
+<td><p><a class="reference internal" href="../law/wv.html"><span class="doc">West Virginia</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>unconfirmed</p></td>
+<td><p>exemptions</p></td>
+</tr>
+<tr class="row-even"><td><p>WY</p></td>
+<td><p><a class="reference internal" href="../law/wy.html"><span class="doc">Wyoming</span></a></p></td>
+<td><p>2026</p></td>
+<td><p>estimate</p></td>
+<td><p>confirmed secondary</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="the-list-of-states">
+<span id="states-list"></span><h2>The list of states<a class="headerlink" href="#the-list-of-states" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">.config/law/states.json</span></code> lists the jurisdictions the model knows: the 50 states and DC,
+each a USPS <code class="docutils literal notranslate"><span class="pre">code</span></code> and a full <code class="docutils literal notranslate"><span class="pre">name</span></code>, under a <code class="docutils literal notranslate"><span class="pre">schema_version</span></code> (1). It is not a law
+file. <code class="docutils literal notranslate"><span class="pre">wmti.taxes.taxdata</span></code> reads it once at import into <code class="docutils literal notranslate"><span class="pre">ALL_STATE_CODES</span></code> and
+<code class="docutils literal notranslate"><span class="pre">STATE_NAMES</span></code>; <code class="docutils literal notranslate"><span class="pre">stateName</span></code> answers from it, and each state file’s header <code class="docutils literal notranslate"><span class="pre">name</span></code> must
+match its entry. An entry may also carry the loader rules for that state alone:
+<code class="docutils literal notranslate"><span class="pre">required_sections</span></code> (New Jersey’s file must have <code class="docutils literal notranslate"><span class="pre">exemptions</span></code>) and
+<code class="docutils literal notranslate"><span class="pre">brackets_with_over</span></code> (New Jersey’s brackets each give <code class="docutils literal notranslate"><span class="pre">over</span></code>). The loader refuses the
+list, naming the field, when a code is not two upper-case letters, a code or name is listed
+twice, or a listed state has no law file. No state list or per-state rule is written in
+the code.</p>
+</section>
+<section id="law-backlog">
+<span id="id1"></span><h2>Law backlog<a class="headerlink" href="#law-backlog" title="Link to this heading"></a></h2>
+<p>These rules are not charged by the model yet. Each is tracked, with its status, in
+the project notes; the model’s results leave them out.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Rule</p></th>
+<th class="head"><p>What is left out and why it matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Net Investment Income Tax (NIIT)</p></td>
+<td><p>A 3.8% federal tax on the lesser of net investment income and income above
+200,000 single, 250,000 joint or 125,000 separate (not indexed). A Roth
+conversion raises income and can pull interest and gains into it. Left out
+because charging it changes results for households with large taxable
+accounts.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Section 125 payroll-tax savings</p></td>
+<td><p>A pre-tax employer health premium also escapes Social Security and Medicare
+tax; the model still charges them.</p></td>
+</tr>
+<tr class="row-even"><td><p>Credits and the alternative minimum tax</p></td>
+<td><p>No tax credits (such as the child tax credit) and no AMT are modelled.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Early-withdrawal penalty and the Roth five-year rules</p></td>
+<td><p>There is no 10% penalty before 59.5, so the Roth rules have no effect.</p></td>
+</tr>
+<tr class="row-even"><td><p>Affordable Care Act premium credit</p></td>
+<td><p>The enhanced credits expired after 2025: from 2026 income above 400% of
+the poverty level loses the whole credit. The Strategies tab warns with
+the household’s figure (<code class="docutils literal notranslate"><span class="pre">aca_premium_credit</span></code> in the law data); the
+credit itself is not priced.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rules that change in a given year</p></td>
+<td><p>A law section can start or end in a given year (the senior deduction ends
+after 2028), but cannot switch to new figures, such as new brackets, New
+York’s rates or the IRMAA top tier. The SALT cap is the exception: its own
+fields grow it 1% a year through 2029 and revert it to 10,000 in 2030.</p></td>
+</tr>
+<tr class="row-even"><td><p>Social Security benefit calculation</p></td>
+<td><p>The benefit is entered by default: each table amount is the benefit at
+that claim age, already reduced or increased, and the ages not entered
+are estimated on straight lines, not from a full-retirement-age amount.
+It may instead be estimated from the earnings history (Retirement tab,
+<em>Benefit comes from</em>: <em>Earnings history</em>), by the simplified method in today’s value: not
+modelled are the year of eligibility (earnings indexed to age 60 and that
+year’s bend points) and cost-of-living adjustments, each past year’s own
+wage base (this year’s caps every year), the earnings test, spousal and
+survivor benefits, the special minimum and a recomputation for earnings
+after the claim; the 40 work credits are approximated by ten years with
+earnings; WEP and GPO were repealed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Spousal, survivor and other family benefits</p></td>
+<td><p>Each person gets only their own benefit: no spousal benefit (it needs the
+worker’s primary insurance amount, which is not stored), no survivor
+benefit (no deaths), no divorced-spouse or child benefit.</p></td>
+</tr>
+<tr class="row-even"><td><p>Social Security earnings test</p></td>
+<td><p>Benefits claimed before full retirement age are not withheld while
+earning above the annual limit, so an early claimant who still works is
+overpaid.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Joint-life RMD table</p></td>
+<td><p>Only the Uniform Lifetime Table is used; a spouse more than ten years younger
+as sole beneficiary would give smaller RMDs.</p></td>
+</tr>
+<tr class="row-even"><td><p>IRMAA appeal</p></td>
+<td><p>A life-changing event (such as retirement) lets Social Security use a later
+year’s income for the surcharge; the model always looks back two years.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Survivor and mortality</p></td>
+<td><p>No one dies in the model, so a survivor’s single brackets and surcharge
+thresholds never apply; the value of a conversion is understated, and a
+later Social Security claim is judged to the end of the plan horizon.</p></td>
+</tr>
+<tr class="row-even"><td><p>Federal itemized-deduction limits for 2026</p></td>
+<td><p>A 0.5% of income floor on charity and a 35% cap on the value of itemized
+deductions are to be checked when the deductions feature is built.</p></td>
+</tr>
+<tr class="row-odd"><td><p>State rules that do not fit the schema</p></td>
+<td><p>Each state’s own income tax is its brackets, deductions, exemptions or credits,
+a retirement exclusion and one of three Social Security treatments. Not
+modelled: the deduction of federal income tax some states allow (such as
+Alabama, Missouri and Oregon), state-only taxes on capital gains (Washington’s
+excise, Maryland’s 2% surtax), phase-outs of exemptions, credits and deductions
+at high incomes, part-year residence, senior property-tax freezes and homestead
+caps, Medicaid and long-term-care rules, and state rate changes already enacted
+for later years. Local income taxes are one statewide average. The rules that
+are approximated instead are named in <a class="reference internal" href="#states-table"><span class="std std-ref">The state law files</span></a>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Figures in the law files marked <code class="docutils literal notranslate"><span class="pre">estimate</span></code> have not been checked against a
+primary source; see the status line of each file.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="states.html" class="btn btn-neutral float-left" title="States: taxes, living costs and moving" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../law/index.html" class="btn btn-neutral float-right" title="Tax law by jurisdiction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, [BRAND NAME].</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-TJ39lnOcb+8VDUBwQa1jxJnf56sCuFfLS4PLlqAYmJk=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-LTO6FXvQZ00fvXOvfOXbIrqBumCrftOV8RfkTJbLVyg=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -449,6 +449,11 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .group .group > legend { font-size: 14px; color: var(--ink-2); }
 .sheet-body .group { border: 0; padding: 0; background: transparent; border-top: 1px solid var(--line); border-radius: 0; }
 .sheet-body .group > legend { font-size: 14px; color: var(--ink-2); }
+/* A car's replacement rule: a bordered block holding Replace by and each selected rule's figures under its sub-label. */
+.sheet-body .group.replace-rule { border: 1px solid var(--line); border-radius: 14px; padding: 0 12px 12px; margin-top: 8px; }
+.replace-rule-note { margin: 6px 0 0; }
+.replace-rule-part { margin-top: 10px; padding-left: 10px; border-left: 3px solid var(--line); }
+.replace-rule-label { margin: 0; color: var(--ink-2); }
 /* Field rows: rounded and tinted, one tint per section of a pane or sheet (tintSections: the sections alternate the two
    tints, a pane without sections keeps the first). */
 .field { display: grid; gap: 4px; padding: 10px 12px; margin-top: 8px; border-radius: 12px; background: var(--tint-1);
@@ -495,6 +500,17 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .state-picks { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
 .state-pick { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
 .state-pick[hidden] { display: none; }
+/* The optimizer's recommended changes: one card per change that improves the score, values wrapping on a phone. */
+.optimize-improvements { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 8px; }
+.optimize-improvement { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 8px;
+  padding: 8px 12px; overflow-wrap: anywhere; }
+.optimize-improvement-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.optimize-gain { color: var(--good); font-weight: 600; }
+.optimize-change { margin: 4px 0 0; }
+.optimize-now { color: var(--muted); }
+.optimize-best { font-weight: 600; }
+.optimize-total { font-weight: 600; }
+.optimize-kept summary { color: var(--muted); cursor: pointer; }
 textarea.input { resize: vertical; }
 .affix { position: relative; display: flex; align-items: center; }
 .affix .input { padding-left: 26px; }
@@ -779,6 +795,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   stroke-linejoin: round; }
 .menu-item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 6px; border: 0;
   border-bottom: 1px solid var(--line); background: transparent; font-size: 16px; text-align: left; cursor: pointer; }
+a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link styled as its sibling buttons */
 .menu > .menu-item:last-child { border-bottom: 0; }
 .menu-group { display: grid; gap: 2px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .menu-heading { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 6px; font-size: 16px; }
@@ -975,63 +992,10 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .legal-doc p { margin: 0 0 8px; overflow-wrap: anywhere; }
 .legal-docs { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
 
-/* Tax law and costs (menu): a full-screen layer over the page with a sticky top (title, close, state picker, filter,
-   Expand all) and one collapsible card per law-file section, its left edge and chip colored by its confidence
-   (green confirmed primary, amber confirmed secondary, red unconfirmed). Scheme tokens only, so every scheme draws it. */
-.law { position: fixed; inset: 0; z-index: 85; height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr);
-  background: var(--bg); color: var(--ink); padding-top: env(safe-area-inset-top, 0px);
-  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
-.law-top { display: grid; gap: 10px; padding: 10px max(var(--gutter), calc((100% - 56rem) / 2)) 12px;
-  background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: 0 4px 14px var(--edge-shadow); }
-.law-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.law-title { margin: 0; font-size: 20px; line-height: 1.2; }
-.law-bar .walk-icon { background: var(--surface-2); }
-.law-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-.law-state { grid-column: 1 / -1; }
-@media (min-width: 720px) {
-  .law-tools { grid-template-columns: minmax(0, 18rem) minmax(0, 1fr) auto; }
-  .law-state { grid-column: auto; }
-}
-.law-body { overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 12px; align-content: start;
-  padding: 14px max(var(--gutter), calc((100% - 56rem) / 2)) calc(24px + env(safe-area-inset-bottom, 0px));
-  scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
-.law-body > * { min-width: 0; }
-.law-summary { margin: 0; font-weight: 600; }
-.law-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; margin: 0; padding: 12px 14px;
-  border-radius: var(--radius); background: var(--surface); font-size: 13.5px; }
-.law-facts dt { color: var(--muted); }
-.law-facts dd { margin: 0; overflow-wrap: anywhere; }
-.law-sections { display: grid; gap: 8px; }
-.law-section { min-width: 0; border: 1px solid var(--line); border-left: 5px solid var(--line); border-radius: var(--radius);
-  background: var(--surface); }
-.law-section[data-confidence="primary"] { border-left-color: var(--good); }
-.law-section[data-confidence="secondary"] { border-left-color: var(--warn); }
-.law-section[data-confidence="unconfirmed"] { border-left-color: var(--bad); }
-.law-section-head { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 12px; cursor: pointer; }
-.law-section-head::after { margin-left: 0; }  /* the app's details chevron, after the chip */
-.law-section-name { flex: 1; min-width: 0; font-family: var(--font-data); font-size: 14px; font-weight: 600;
-  overflow-wrap: anywhere; }
-.law-chip { flex: none; padding: 3px 9px; border-radius: 999px; font-family: var(--font-body); font-size: 12px;
-  font-weight: 600; color: var(--ink); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
-.law-chip[data-level="primary"] { background: color-mix(in srgb, var(--good) 20%, var(--surface)); box-shadow: inset 0 0 0 1px var(--good); }
-.law-chip[data-level="secondary"] { background: color-mix(in srgb, var(--warn) 20%, var(--surface)); box-shadow: inset 0 0 0 1px var(--warn); }
-.law-chip[data-level="unconfirmed"] { background: color-mix(in srgb, var(--bad) 20%, var(--surface)); box-shadow: inset 0 0 0 1px var(--bad); }
-.law-block { display: grid; gap: 8px; min-width: 0; padding: 0 12px 12px; }
-.law-block > * { min-width: 0; }
-.law-group { display: grid; gap: 6px; min-width: 0; padding-top: 8px; border-top: 1px solid var(--line); }
-.law-group > .law-block { padding: 0 0 0 10px; border-left: 2px solid var(--line); }
-.law-key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-family: var(--font-data);
-  font-size: 13px; font-weight: 600; color: var(--ink-2); overflow-wrap: anywhere; }
-.law-rows { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); gap: 4px 12px; margin: 0;
-  font-family: var(--font-data); font-size: 13px; }
-.law-rows dt { color: var(--muted); overflow-wrap: anywhere; }
-.law-rows dd { margin: 0; overflow-wrap: anywhere; }
-.law-table th, .law-table td { text-align: left; }
-.law-table thead th:first-child { position: static; }
-.law-note { margin: 0; font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; }
-.law-empty { margin: 0; }
-.law-link { justify-self: start; min-height: 44px; padding: 0; border: 0; background: none; color: var(--accent);
-  font-size: 14px; text-decoration: underline; cursor: pointer; }
+/* "See this state's rules" under the Home state and Relocation state selects: a link to that state's page of the
+   user documentation, opened in a new tab (app.js, stateRulesLink). */
+.state-rules-link { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; color: var(--accent);
+  font-size: 14px; text-decoration: underline; }
 
 /* The ownership timeline on the Home and Cars panes: one bar row per lane (owned filled, rented hatched, leased
    outlined, no car blank), the segment cards with their buttons, and the workflow's fields in the bottom sheet. */
@@ -1316,8 +1280,8 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   <div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
     <button type="button" class="menu-item" id="menuWalk">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20c2-6 5-4 7-9s4-6 7-7"/><circle cx="5" cy="20" r="1.5"/><circle cx="19" cy="4" r="1.5"/></svg><span id="menuWalkText">Walk me through it...</span></button>
-    <button type="button" class="menu-item" id="menuLaw" aria-haspopup="dialog" aria-controls="law">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/></svg><span>Tax law and costs</span></button>
+    <a class="menu-item" id="menuDocs" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/></svg><span>Documentation</span></a>
     <div class="menu-group" role="radiogroup" aria-labelledby="schemeTitle">
       <p class="menu-heading" id="schemeTitle">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.2-1-1.6-1-2.6 0-.9.7-1.7 1.7-1.7H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="11" cy="7.5" r="1.2"/><circle cx="15.5" cy="8.5" r="1.2"/></svg><span>Appearance</span></p>
@@ -1342,29 +1306,6 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h0"/></svg><span>About</span></button>
     <button type="button" class="menu-item" id="menuLegal">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg><span>Legal</span></button>
-  </div>
-</div>
-
-<!-- Tax law and costs (menu): one jurisdiction's law file, as the model reads it (wmti.dashboard.web.lawFile), over
-     the page (which is inert meanwhile). app.js draws the sections; Close, Escape or the back button leave it. -->
-<div class="law" id="law" role="dialog" aria-modal="true" aria-labelledby="lawTitle" hidden>
-  <div class="law-top">
-    <div class="law-bar">
-      <h2 class="law-title" id="lawTitle">Tax law and costs</h2>
-      <button type="button" class="walk-icon" id="lawClose" aria-label="Close tax law and costs">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    </div>
-    <div class="law-tools">
-      <select class="input law-state" id="lawState" aria-label="State or federal law"></select>
-      <input class="input law-filter" id="lawFilter" type="search" autocomplete="off" placeholder="Filter fields" aria-label="Filter fields" aria-controls="lawSections">
-      <button type="button" class="button button-quiet law-expand" id="lawExpand" aria-controls="lawSections">Expand all</button>
-    </div>
-  </div>
-  <div class="law-body" id="lawBody">
-    <p class="law-summary" id="lawSummary" role="status" aria-live="polite"></p>
-    <dl class="law-facts" id="lawFacts"></dl>
-    <div class="law-sections" id="lawSections"></div>
-    <p class="field-help law-empty" id="lawEmpty" hidden>No section matches the filter.</p>
   </div>
 </div>
 
@@ -1443,14 +1384,14 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "05ce8f8efec7", pyodide: "0.29.5" };</script>
+<script>window.WMTI_BUILD = { id: "9683c0da38cc", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.87e48eb529.js"></script>
+<script src="shared.8fe05a5c08.js"></script>
 <script src="charts.54d59a7eb6.js"></script>
 <script src="insights.ee50546e73.js"></script>
 <script src="report.ad13ed448d.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.60913cdeb9.js"></script>
+<script src="app.c00d05880d.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
