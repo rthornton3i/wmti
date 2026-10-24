@@ -85,9 +85,10 @@
   const OPTIMIZE_CHECKPOINT_KEY = "wmti.optimizeCheckpoint.v1";
   const TABS_PIN_KEY = "wmti.tabsPin.v1";  // whether Inputs' tabs stay pinned under the top bar: "on" or "off"
   const LAW_KEY = "wmti.lawState.v1";  // kept by the removed law viewer; listed so Clear all data still removes it
+  const SPLIT_KEY = "wmti.split.v1";  // the wide layout's Inputs share of the Inputs | Outputs room, "0" to "1"
   const LAW_STATE_PATHS = ["homeState", "strategies.relocation.state"];  // state selects with a "See this state's rules" link
   const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
-    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY];
+    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY, SPLIT_KEY];
   // Keys kept before the rename (fpt.*) move to these once, before anything reads them.
   try {
     migrateLegacyStorage(localStorage, TERMS_KEY, (window.WMTI_LEGAL || {}).textHash || "");
@@ -170,7 +171,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.6c9d8f45eb.js");
+      worker = new Worker("worker.1f6f884499.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -472,6 +473,7 @@
   // At WIDE_QUERY the page puts Setup, Inputs and Outputs in three columns (1:2:2) under the top bar, each scrolling on
   // its own; the bottom bar and the sideways swipe between panels go. `state.tab` still names the place last opened
   // (the phone layout comes back to it). A narrower window is the phone layout; a resize or rotation switches live.
+  // A divider between Inputs and Outputs sets how they share their room (wireSplit below).
   const WIDE_QUERY = "(min-width: 1100px)";
   const wide = { on: false };
   const wideScroll = {};  // the Outputs column's scroll position per view, in the wide layout
@@ -487,12 +489,137 @@
     const apply = () => {
       wide.on = query.matches;
       document.documentElement.classList.toggle("wide", wide.on);
+      showSplit(false);
     };
+    wireSplit();
     apply();
     query.addEventListener("change", () => {
       apply();
       if (state.schema != null) showPlace();
     });
+  }
+
+  // ---- Wide layout: the divider between Inputs and Outputs ----
+  // A bar between the two columns: drag it (mouse, pen or touch) for a custom split, double-click it or press Enter for
+  // an equal one, Left and Right to move it, Home to show only Outputs and End only Inputs. A side dragged under half
+  // of SPLIT_MIN shuts, like a snapped window; the bar then stays at that edge to be dragged back. The icon at its top
+  // pops out the same three snaps (Show only Outputs, Split equally, Show only Inputs) on hover, keyboard focus or a
+  // tap. The split is Inputs' share of the two columns' room (the split* helpers in shared.js), kept per viewer.
+  const SPLIT_MIN = 280;  // px an open column keeps
+  const SPLIT_STEP = 0.05;  // an arrow key's move, as a share of the room
+  const split = { share: 0.5, shown: 0.5, drag: null, fitTimer: 0 };
+  const { splitShare, splitFit, splitStep, splitRead, splitText } = window.WmtiShared;
+
+  // The Inputs track's left edge and the room Inputs and Outputs share (px), from the grid's resolved columns.
+  function splitRoom() {
+    const app = $("app");
+    const tracks = getComputedStyle(app).gridTemplateColumns.split(" ").map(parseFloat);
+    const left = app.getBoundingClientRect().left + parseFloat(getComputedStyle(app).paddingLeft) + tracks[0] + tracks[1];
+    return { left, room: tracks[2] + tracks[4] };
+  }
+
+  // Draw the kept split (held to the room there is now) and, with `refit`, let the columns' contents fit their new
+  // widths: the chips rows' bubbles and scroll bars follow a window resize, so one is sent once the bar settles (the
+  // charts are SVG at the card's width and need nothing).
+  function showSplit(refit) {
+    const root = document.documentElement;
+    const room = wide.on ? splitRoom().room : NaN;  // NaN while the page is hidden (start-up): the kept split as it is
+    const shown = !wide.on ? 0.5 : isFinite(room) ? splitFit(split.share, room, SPLIT_MIN) : split.share;
+    split.shown = shown;
+    root.style.setProperty("--split", String(shown));
+    root.style.setProperty("--split-in", 4 * shown + "fr");
+    root.style.setProperty("--split-out", 4 * (1 - shown) + "fr");
+    root.classList.toggle("split-only-outputs", wide.on && shown === 0);
+    root.classList.toggle("split-only-inputs", wide.on && shown === 1);
+    const bar = $("splitBar");
+    bar.setAttribute("aria-valuenow", String(Math.round(shown * 100)));
+    bar.setAttribute("aria-valuetext", splitText(shown));
+    for (const button of document.querySelectorAll(".split-snap-button")) {
+      button.setAttribute("aria-pressed", String(Number(button.dataset.split) === shown));
+    }
+    if (!refit) return;
+    clearTimeout(split.fitTimer);
+    split.fitTimer = setTimeout(() => window.dispatchEvent(new Event("resize")), 120);
+  }
+
+  // Keep a new split (`save` false while a drag is under way) and draw it.
+  function setSplit(share, save) {
+    split.share = share;
+    if (save) {
+      try { localStorage.setItem(SPLIT_KEY, String(share)); } catch (error) { /* storage blocked: this visit only */ }
+    }
+    showSplit(true);
+  }
+
+  // A column the split shuts: a move there (a link into Inputs while only Outputs shows) opens both again.
+  function splitShuts(tab) {
+    return wide.on && ((tab === "inputs" && document.documentElement.classList.contains("split-only-outputs"))
+      || (tab === "outputs" && document.documentElement.classList.contains("split-only-inputs")));
+  }
+
+  function wireSplit() {
+    try { split.share = splitRead(localStorage.getItem(SPLIT_KEY)); } catch (error) { /* storage blocked: equal */ }
+    const bar = $("splitBar");
+    const snap = $("splitSnap");
+    const endDrag = (event) => {
+      const drag = split.drag;
+      if (!drag || event.pointerId !== drag.id) return;
+      split.drag = null;
+      document.documentElement.classList.remove("split-dragging");
+      if (drag.moved) setSplit(split.share, true);
+    };
+    bar.addEventListener("pointerdown", (event) => {
+      if (!wide.on || event.button !== 0) return;
+      event.preventDefault();  // no text selection; the bar takes the focus below
+      bar.focus({ preventScroll: true });
+      bar.setPointerCapture(event.pointerId);
+      split.drag = { id: event.pointerId, startX: event.clientX, grab: event.clientX - bar.getBoundingClientRect().left,
+        moved: false, ...splitRoom() };
+      document.documentElement.classList.add("split-dragging");
+    });
+    bar.addEventListener("pointermove", (event) => {
+      const drag = split.drag;
+      if (!drag || event.pointerId !== drag.id) return;
+      if (!drag.moved && Math.abs(event.clientX - drag.startX) < 3) return;  // a click or a double-click, not a drag
+      drag.moved = true;
+      setSplit(splitShare(event.clientX - drag.grab - drag.left, drag.room, SPLIT_MIN), false);
+    });
+    bar.addEventListener("pointerup", endDrag);
+    bar.addEventListener("pointercancel", endDrag);
+    bar.addEventListener("lostpointercapture", endDrag);
+    bar.addEventListener("dblclick", () => setSplit(0.5, true));
+    bar.addEventListener("keydown", (event) => {
+      const step = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
+      let share;
+      if (step) share = splitStep(split.shown, step, splitRoom().room, SPLIT_MIN, SPLIT_STEP);
+      else if (event.key === "Home") share = 0;
+      else if (event.key === "End") share = 1;
+      else if (event.key === "Enter") share = 0.5;
+      else return;
+      event.preventDefault();
+      setSplit(share, true);
+    });
+    const openMenu = (open) => {
+      snap.classList.toggle("open", open);
+      $("splitSnapOpen").setAttribute("aria-expanded", String(open));
+    };
+    $("splitSnapOpen").addEventListener("click", () => openMenu(!snap.classList.contains("open")));
+    for (const button of snap.querySelectorAll(".split-snap-button")) {
+      button.addEventListener("click", () => {
+        setSplit(Number(button.dataset.split), true);
+        if (!button.matches(":focus-visible")) openMenu(false);  // a keyboard user stays in the menu
+      });
+    }
+    snap.addEventListener("mouseleave", () => openMenu(false));
+    snap.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !snap.contains(document.activeElement)) return;
+      openMenu(false);
+      bar.focus();
+    });
+    document.addEventListener("pointerdown", (event) => { if (!snap.contains(event.target)) openMenu(false); });
+    // The page shown at start-up or a resized window: the kept split held to the room there is now.
+    if (window.ResizeObserver) new ResizeObserver(() => showSplit(false)).observe($("app"));
+    else window.addEventListener("resize", () => showSplit(false));
   }
 
   // Scroll a place to its top: its own column in the wide layout, else the page.
@@ -553,6 +680,7 @@
     }
     if (wide.on) {
       // Wide: every column shows and keeps its own scroll; only the Outputs column swaps views (each its own scroll).
+      if (splitShuts(tab)) setSplit(0.5, true);
       if (tab === state.tab && view === state.view) { scrollPlaceTop(tab); return; }
       const outputs = $("panel-outputs");
       wideScroll[state.view] = outputs.scrollTop;

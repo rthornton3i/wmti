@@ -1,7 +1,7 @@
 // Copyright (c) 2026 [BRAND NAME], Walk Me Through It (WMTI) ([PUBLIC REPOSITORY URL]). PolyForm Noncommercial License 1.0.0; see LICENSE.
 // Small pure helpers shared by the page, the charts and the Node tests: text escaping, number formats, the
 // scenario name rule, dotted-path access into the inputs JSON, the list-item sheet layout, the Compare pair and the
-// tab route of a hash or saved tab name, and the About window's update-check wording.
+// tab route of a hash or saved tab name, the About window's update-check wording and the wide layout's split.
 // No financial rule lives here: the categories and kinds the sheet rules use come from appInfo().sheetRules.
 (function (root) {
   "use strict";
@@ -1613,6 +1613,52 @@
     return String(base == null ? "" : base).endsWith("/") ? "See this state's rules" : "Open the documentation";
   }
 
+  // ---- The wide layout's divider between Inputs and Outputs (app.js wireSplit) ----
+  // A split is Inputs' share of the room the two columns have between them: 0 shows only Outputs, 1 only Inputs, 0.5
+  // halves it. Every open column keeps at least `minimum` px; a room too narrow for two of them halves it.
+
+  // The share for an Inputs column dragged to `width` px: a side dragged under half the minimum closes (snaps shut),
+  // else each side keeps the minimum.
+  function splitShare(width, room, minimum) {
+    if (!(room > 0)) return 0.5;
+    if (width < minimum / 2) return 0;
+    if (room - width < minimum / 2) return 1;
+    return splitFit(width / room, room, minimum);
+  }
+
+  // The share drawn for a kept `share` in the room there is now: 0 and 1 stay shut, any other is held to the minimums.
+  function splitFit(share, room, minimum) {
+    if (share <= 0 || share >= 1) return share <= 0 ? 0 : 1;
+    if (!(room > 0) || room < 2 * minimum) return 0.5;
+    return Math.min(Math.max(share, minimum / room), 1 - minimum / room);
+  }
+
+  // The share after an arrow key (`direction` -1 toward Outputs only, 1 toward Inputs only) moves it by `step` of the
+  // room: arrows never shut a side (Home and End do); from a shut side the first press opens it at the minimum.
+  function splitStep(share, direction, room, minimum, step) {
+    if (share <= 0 && direction < 0) return 0;
+    if (share >= 1 && direction > 0) return 1;
+    if (!(room > 0) || room < 2 * minimum) return 0.5;
+    const low = minimum / room;
+    if (share <= 0) return low;
+    if (share >= 1) return 1 - low;
+    return Math.min(Math.max(share + direction * step, low), 1 - low);
+  }
+
+  // A kept split read back from storage text: a number from 0 to 1, else the equal split.
+  function splitRead(text) {
+    const share = text == null || text === "" ? NaN : Number(text);
+    return isFinite(share) && share >= 0 && share <= 1 ? share : 0.5;
+  }
+
+  // The divider's spoken value: which columns show and, when both, each one's percent.
+  function splitText(share) {
+    if (share <= 0) return "Only Outputs";
+    if (share >= 1) return "Only Inputs";
+    const inputs = Math.round(share * 100);
+    return "Inputs " + inputs + "%, Outputs " + (100 - inputs) + "%";
+  }
+
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
@@ -1620,7 +1666,7 @@
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
-    docsLink, stateRulesText };
+    docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-D3mVMc065ykU8YG6WbUko8U/N8qBY3Qm15Nd7JBhqBo=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-GvGgnss3lt+w4oNKshbL0uevgt+VlJrcwJ7mKIQN3PU=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1092,11 +1092,17 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 
 /* Wide layout (app.js wireWide: html.wide on a window 1100 px or wider, such as a PC monitor): the top bar is one banner
    across the top (Undo, the pinned headline figures, the status, ? and the menu), then Setup, Inputs and Outputs side by
-   side (1:2:2 of the width) down to the bottom of the window, each scrolling on its own under its chips rows, which
-   stay put; no bottom bar, no band title or subtitle and no pin button. A narrower window keeps the phone layout. */
-:root.wide { --tabbar: 0px; --wide-pad: 16px; --wide-gap: 12px; }
-.wide .app { display: grid; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; column-gap: var(--wide-gap);
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 2fr);
+   side (1:2:2 of the width by default) down to the bottom of the window, each scrolling on its own under its chips rows,
+   which stay put; no bottom bar, no band title or subtitle and no pin button. A narrower window keeps the phone layout.
+   Columns: Setup | gap | Inputs | divider | Outputs. The divider (app.js wireSplit, #splitBar) splits the Inputs and
+   Outputs room: --split-in and --split-out are their fr (2fr each when equal, 0fr when shut), --split Inputs' share
+   (0 to 1); html.split-only-outputs or html.split-only-inputs hides the shut column and its chips rows. The icon at the
+   divider's top (#splitSnap) pops out Show only Outputs, Split equally and Show only Inputs on hover or keyboard focus.
+   Each column is positioned so a visually hidden table caption in it scrolls with it, not the page or the grid. */
+:root.wide { --tabbar: 0px; --wide-pad: 16px; --wide-gap: 12px; --wide-divider: 14px; }
+.wide .app { display: grid; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden;
+  grid-template-columns: minmax(0, 1fr) var(--wide-gap) minmax(0, var(--split-in, 2fr)) var(--wide-divider)
+    minmax(0, var(--split-out, 2fr));
   grid-template-rows: auto auto auto minmax(0, 1fr); padding-inline: var(--wide-pad); }
 .wide .topbar { grid-column: 1 / -1; grid-row: 1; position: static; display: flex; align-items: center; gap: 12px;
   padding-inline: 0; }
@@ -1108,15 +1114,15 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .wide .band, .wide .panels { display: contents; }
 .wide .band-title, .wide .band-sub, .wide .chips-pin { display: none; }
 .wide .band > .chips-wrap { align-self: start; padding: 2px var(--gutter) 10px; }
-.wide .chips-wrap[data-place="inputs"] { grid-column: 2; grid-row: 2 / 4; }
-.wide .chips-wrap[data-place="outputs"] { grid-column: 3; grid-row: 2; }
-.wide .chips-wrap[data-place^="outputs/"] { grid-column: 3; grid-row: 3; }
+.wide .chips-wrap[data-place="inputs"] { grid-column: 3; grid-row: 2 / 4; }
+.wide .chips-wrap[data-place="outputs"] { grid-column: 5; grid-row: 2; }
+.wide .chips-wrap[data-place^="outputs/"] { grid-column: 5; grid-row: 3; }
 .wide #panel-setup { grid-column: 1; grid-row: 2 / 5; }
-.wide #panel-inputs { grid-column: 2; grid-row: 4; }
-.wide #panel-outputs { grid-column: 3; grid-row: 4; }
-.wide .panel { min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; background: var(--bg);
-  border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge); padding: 16px var(--gutter) 24px;
-  scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+.wide #panel-inputs { grid-column: 3; grid-row: 4; }
+.wide #panel-outputs { grid-column: 5; grid-row: 4; }
+.wide .panel { position: relative; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start;
+  background: var(--bg); border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
+  padding: 16px var(--gutter) 24px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .wide .tabbar { display: none; }
 /* Setup's narrow column: the open scenario's five buttons in rows of three, so every label fits. */
 .wide #panel-setup .action-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1124,7 +1130,37 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .wide #panel-setup .strip-button:nth-child(4) { border-left: 0; }
 .wide .menu { right: 12px; }
 /* Back to Social Security floats over the middle of the Inputs column. */
-.wide .earnings-return { left: calc(var(--wide-pad) + var(--wide-gap) + 2 * (100% - 2 * var(--wide-pad) - 2 * var(--wide-gap)) / 5); }
+.wide .earnings-return { left: calc(var(--wide-pad) + var(--wide-gap) + (1 + 2 * var(--split, 0.5))
+  * (100% - 2 * var(--wide-pad) - var(--wide-gap) - var(--wide-divider)) / 5); }
+/* The divider between Inputs and Outputs: a bar with a grip down the middle, the full height of the two panes. */
+.split, .split-snap { display: none; }
+.wide .split { display: block; grid-column: 4; grid-row: 4; position: relative; cursor: col-resize;
+  touch-action: none; border-radius: 999px; }
+.wide .split::before { content: ""; position: absolute; inset: 0 -4px; }  /* a wider target than the bar */
+.split-grip { position: absolute; left: 50%; top: 50%; width: 4px; height: 48px; transform: translate(-50%, -50%);
+  border-radius: 999px; background: var(--band-thumb); opacity: 0.55; transition: opacity 0.15s, background-color 0.15s; }
+.wide .split:hover .split-grip, :root.split-dragging .split-grip { opacity: 1; background: var(--chip-on); }
+.wide .split:focus-visible { outline: 3px solid var(--chip-on); outline-offset: 0; }
+:root.split-dragging, :root.split-dragging * { cursor: col-resize !important; user-select: none; }
+.wide.split-only-outputs #panel-inputs, .wide.split-only-outputs .chips-wrap[data-place="inputs"],
+.wide.split-only-inputs #panel-outputs, .wide.split-only-inputs .chips-wrap[data-place^="outputs"] { display: none; }
+/* The snap icon at the divider's top; hover, keyboard focus or a tap pops out its three buttons under it. */
+.wide .split-snap { display: flex; flex-direction: column; align-items: center; grid-column: 4; grid-row: 4;
+  justify-self: center; align-self: start; position: relative; z-index: 30; margin-top: 10px; }
+.split-snap-open, .split-snap-button { display: inline-grid; place-items: center; border: 0; border-radius: 999px;
+  background: var(--band-button); color: var(--band-button-ink); cursor: pointer; padding: 0; }
+.split-snap-open { width: 26px; height: 26px; }
+.split-snap-open .button-icon { width: 14px; height: 14px; }
+.split-snap-open:hover, .split-snap-button:hover { background: var(--chip-on); color: var(--chip-on-ink); }
+.split-snap-menu { position: absolute; top: 100%; display: flex; gap: 4px; padding: 8px 4px 4px; visibility: hidden;
+  opacity: 0; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s, visibility 0s linear 0.15s; }
+.split-snap-menu::before { content: ""; position: absolute; inset: 4px 0 0; z-index: -1; border-radius: 999px;
+  background: var(--band); box-shadow: 0 4px 14px var(--edge-shadow), 0 0 0 1px var(--band-track); }
+.split-snap:hover .split-snap-menu, .split-snap:has(:focus-visible) .split-snap-menu,
+.split-snap.open .split-snap-menu { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+.split-snap-button { width: 36px; height: 36px; }
+.split-snap-button .button-icon { width: 18px; height: 18px; }
+.split-snap-button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--chip-on); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -1263,6 +1299,28 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <div class="banner banner-error" id="settings-error" role="alert" hidden></div>
       <form id="settings-body" class="settings" novalidate></form>
     </section>
+    <!-- Wide layout only: the divider between Inputs and Outputs and, at its top, the icon that pops out the snap
+         buttons (app.js wireSplit). -->
+    <div class="split" id="splitBar" role="separator" tabindex="0" aria-orientation="vertical"
+      aria-controls="panel-inputs panel-outputs" aria-label="Resize Inputs and Outputs" aria-valuemin="0"
+      aria-valuemax="100" aria-valuenow="50" aria-valuetext="Inputs 50%, Outputs 50%"
+      title="Drag to resize; double-click to split equally"><span class="split-grip" aria-hidden="true"></span></div>
+    <div class="split-snap" id="splitSnap">
+      <button type="button" class="split-snap-open" id="splitSnapOpen" aria-label="Snap Inputs and Outputs"
+        aria-expanded="false" aria-controls="splitSnapMenu" title="Snap Inputs and Outputs"><svg class="button-icon"
+        viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14"/></svg></button>
+      <div class="split-snap-menu" id="splitSnapMenu" role="group" aria-label="Snap Inputs and Outputs">
+        <button type="button" class="split-snap-button" data-split="0" aria-label="Show only Outputs"
+          title="Show only Outputs"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path
+          d="M4 4v16M15 7l-5 5 5 5M10 12h10"/></svg></button>
+        <button type="button" class="split-snap-button" data-split="0.5" aria-label="Split equally"
+          title="Split equally"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5"
+          width="18" height="14" rx="2"/><path d="M12 5v14"/></svg></button>
+        <button type="button" class="split-snap-button" data-split="1" aria-label="Show only Inputs"
+          title="Show only Inputs"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path
+          d="M20 4v16M9 7l5 5-5 5M14 12H4"/></svg></button>
+      </div>
+    </div>
     <section class="panel" id="panel-outputs" data-tab="outputs" role="tabpanel" aria-labelledby="tab-outputs">
       <div class="card mc-bar" id="mc-bar" aria-label="Monte Carlo run"></div>
       <div class="title-help mc-notice-row"><button type="button" class="help-button" aria-expanded="false" aria-controls="help-mc-notice" aria-label="About these results: not advice, hypothetical"><span>i</span></button></div>
@@ -1459,14 +1517,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "742aa9e06161", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "1666d012603e", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.df61c672e3.js"></script>
+<script src="shared.d3e3f49e2d.js"></script>
 <script src="charts.54d59a7eb6.js"></script>
 <script src="insights.ee50546e73.js"></script>
 <script src="report.ad13ed448d.js"></script>
 <script src="jspdf.e6551fcdc3.js"></script>
-<script src="app.dbd9e757e1.js"></script>
+<script src="app.0710c183fb.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

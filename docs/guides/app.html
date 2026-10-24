@@ -194,6 +194,19 @@ two fifths of the width), each down to the bottom of the window and scrolling
 on its own under its chips rows. There is no bottom bar, pin button or sideways
 swipe between panels, and the tour skips its bottom-bar and pin steps. A
 narrower window is the phone layout (<code class="docutils literal notranslate"><span class="pre">wireWide</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+<p>In the wide layout a divider runs down between the Inputs and Outputs columns,
+like the bar between two snapped windows. Drag it (mouse, pen or finger) to give
+one column more room; each open column keeps at least 280 px, and dragging a
+column to under half of that closes it, leaving the divider at that edge to be
+dragged back. Hover over the small icon at the top of the divider (or tab to it)
+and three buttons pop out: Show only Outputs, Split equally and Show only
+Inputs. Double-clicking the divider splits equally. From the keyboard the
+divider is a separator: Left and Right move it, Home shows only Outputs, End
+only Inputs and Enter splits equally. The split is kept on this device for the
+next visit (<code class="docutils literal notranslate"><span class="pre">wmti.split.v1</span></code>, cleared by Clear all data); a link that opens a
+closed column splits equally again, and the phone layout ignores the split
+(<code class="docutils literal notranslate"><span class="pre">wireSplit</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>, the <code class="docutils literal notranslate"><span class="pre">split*</span></code> helpers in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>).</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 18.0%" />
