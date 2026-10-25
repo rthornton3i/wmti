@@ -439,7 +439,7 @@ its Traditional money early gets a low rate on a small balance; and a household 
 10 years of late Traditional withdrawals keeps the first-years average, so the estimate can step
 when an input change crosses that line. Typing a rate stores an
 explicit flat rate (<code class="docutils literal notranslate"><span class="pre">terminalTaxRate</span></code>); <strong>Use the beneficiaries’ payout</strong> clears it. Outputs,
-<strong>Summary</strong> shows <strong>Final net worth after terminal tax</strong>: each run’s final net worth less the estate and
+<strong>Summary</strong> shows <strong>What beneficiaries keep</strong>: each run’s final net worth less the estate and
 inheritance taxes, the beneficiaries’ income tax on its Traditional balances and the homes’ selling
 costs, as the median of the runs with their middle half (25th to 75th percentile). The
 Compare tab uses the first scenario’s saved rate for every row, or with none each row’s own
@@ -510,7 +510,7 @@ Investments accounts, always totalling 100%, first on a coarse grid of quarters,
 than three accounts each account alone and the even split, then fine steps that move 5% from
 one account to another; a locked slider keeps its share), and the Roth backdoor and QCDs on or
 off. The beneficiaries’ payouts are not searched: each beneficiary keeps the payout set in the
-Beneficiaries section, since taking the money over 10 years always leaves the heirs at least as much
+Beneficiaries section, since taking the money over 10 years always leaves the beneficiaries at least as much
 as taking it all at once (see <a class="reference internal" href="#optimizer-findings"><span class="std std-ref">known findings</span></a>).
 The <em>Relocation state</em> option, first in the list, tries retiring in each state you tick (see
 <a class="reference internal" href="#states-in-the-optimizer"><span class="std std-ref">States</span></a> below); with no state ticked it is not searched at all.
@@ -734,7 +734,7 @@ and a <code class="docutils literal notranslate"><span class="pre">check_at</spa
 <li><p><em>applied</em>: the optimizer acts on it. The one kind it acts on is <code class="docutils literal notranslate"><span class="pre">removed</span></code>: the dimension named
 by <code class="docutils literal notranslate"><span class="pre">effect.dimension</span></code> is never searched (a dimension the optimizer still builds is left out and
 shown as skipped with the finding’s id). The Beneficiary payout was removed this way
-(<code class="docutils literal notranslate"><span class="pre">heirsPayoutSpread</span></code>, owner ruling 2026-10-23): spreading over 10 years always leaves the heirs at
+(<code class="docutils literal notranslate"><span class="pre">heirsPayoutSpread</span></code>, owner ruling 2026-10-23): spreading over 10 years always leaves the beneficiaries at
 least as much, and leaving it out kept every winner while a Quick search of the pinned profiles ran
 30 fewer runs (800 to 770, 500 to 470 and 740 to 710).</p></li>
 <li><p><em>built-in</em>: a rule the optimizer’s code already holds, such as skipping a claim age for someone

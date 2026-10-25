@@ -155,8 +155,9 @@
     },
     // The loan's own figures first, then its Starts later and Pay off early sections, each opened by its switch.
     Loan: {
-      order: ["name", "kind", "balance", "annualRate", "remainingMonths", "extraMonthly", "refinance", "forgiveAtMonth",
-        "paymentsInExpenses", "startsLater", "startYear", "paysOffEarly", "payoffAge", "prepayPenaltyRate"],
+      order: ["name", "kind", "improvesHome", "balance", "annualRate", "remainingMonths", "extraMonthly", "refinance",
+        "forgiveAtMonth", "paymentsInExpenses", "startsLater", "startYear", "paysOffEarly", "payoffAge",
+        "prepayPenaltyRate"],
       groups: {},
       sections: true,
     },
@@ -188,6 +189,10 @@
     }
     for (const [toggle, names] of Object.entries((rules.itemSwitchReplaces || {})[typeName] || {})) {
       if (names.includes(name) && item[toggle]) return "not used while its " + toggle + " switch is on";
+    }
+    // Used on this home only matters for a loan secured by a home (a home's own loans, or a Mortgage loan on Loans).
+    if (typeName === "Loan" && name === "improvesHome" && !(rules.homeLoanKinds || []).includes(item.kind)) {
+      return "for a loan secured by a home only";
     }
     if (typeName === "Account") {
       if (name === "deposit") return "set per account on the Benefits page";
@@ -396,13 +401,28 @@
   // The blank panel figures that show the value the model uses until edited, by path: the move age of
   // Strategies > Relocation is your Social Security claim age, else with no benefit the age your pay stops (today's
   // age when retired), as wmti moveYear reads it (defaultSpendingStartAge).
+  // A blank Years to simulate runs until you are 100 (yearsToAge100).
   const PANEL_DEFAULTS = {
     "strategies.relocation.moveAge": (inputs) => {
       const you = inputs && inputs.you;
       if (!you) return null;
       return defaultSpendingStartAge(you);
     },
+    years: (inputs) => (inputs && inputs.you ? yearsToAge100(inputs.you.currentAge) : null),
   };
+
+  // The run length of a blank Years to simulate, as wmti yearsToAge100 reads it: the years until you are
+  // PLAN_END_AGE (the last year is the one you are 99), at least 1.
+  const PLAN_END_AGE = 100;
+  function yearsToAge100(currentAge) {
+    return Math.max(1, PLAN_END_AGE - (Number(currentAge) || 0));
+  }
+
+  // The settings' run length: `years`, or for a blank one the years until you are 100 (wmti planYears).
+  function planYears(inputs) {
+    if (!inputs) return null;
+    return inputs.years == null ? yearsToAge100(inputs.you && inputs.you.currentAge) : inputs.years;
+  }
 
   // What a panel field shows while it is blank: {value, blank: null}, or null when it has no default rule or holds a
   // value of its own.
@@ -1143,6 +1163,7 @@
   // wmti.dashboard.walkthrough._selected); undefined when a part is missing. A person's `employerMatch.percent` is
   // read as rate x cap.
   function walkRead(data, path) {
+    if (path === "years" && data && data.years == null) return planYears(data);  // blank: the years to age 100
     if (path.endsWith("employerMatch." + MATCH_PERCENT_FIELD)) {
       return matchPercent(walkRead(data, path.slice(0, -(MATCH_PERCENT_FIELD.length + 1))));
     }
@@ -1464,6 +1485,7 @@
     // The suggested category rows (settings schema `suggestedExpenses`, from .config/expenseCategories.json), blank.
     inputs.expenses = (schema.suggestedExpenses || []).map((row) => ({ ...blankObject(schema, "ExpenseItem"), ...row }));
     inputs.strategies.heirs = [heirDefaults(schema.types.Heir, 0, 1)];
+    inputs.years = null;  // until you are 100 (yearsToAge100), following your age
     return inputs;
   }
 
@@ -1526,6 +1548,15 @@
     let number = 1;
     while (used.has((base + suffix + number).toLowerCase())) number += 1;
     return base + suffix + number;
+  }
+
+  // The name an imported scenario opens under: `name` (the file's), unless Auto-save is on for it (not in
+  // `autoSaveOff`) and `saved` (name to saved settings) holds different settings under it; then the next free
+  // "_1", "_2" (numberedName, `taken` the names in use), so the save that follows at once never writes over them.
+  function importedName(name, inputs, saved, autoSaveOff, taken) {
+    const copy = Object.prototype.hasOwnProperty.call(saved, name) ? saved[name] : null;
+    if (copy == null || autoSaveOff.includes(name) || sameValue(copy, inputs)) return name;
+    return numberedName(name, taken, true);
   }
 
   // The undo history of the open scenario: `current` (the settled settings as JSON text) and `stack` (earlier settled
@@ -1689,7 +1720,7 @@
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
+    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName, yearsToAge100, planYears, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

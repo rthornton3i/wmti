@@ -11,7 +11,7 @@
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, undoRecord, undoStep, mergeUndoPush,
+    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName, planYears, undoRecord, undoStep, mergeUndoPush,
     mergeUndoPop, changedPaths, optimizeStepText, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
     spendingChangePreview, docsLink, stateRulesText } = window.WmtiShared;
   const charts = window.WmtiCharts;
@@ -24,6 +24,7 @@
   const NOTES_PANELS = new Set(["accounts", "cars", "expenses", "retirement", "savings", "strategies"]);  // panels that show settingsNotes
   const SETUP_PANEL = "household";  // the schema panel drawn on Setup instead of as an Inputs chip
   const INFLATION_CARD_FIELDS = ["useInflation", "inflation"];  // fields of that panel drawn in the Inflation card
+  const RUN_CARD_FIELDS = ["years"];  // fields of that panel drawn in the Run card, in Advanced settings
   const ROLLOVER_SWITCH = "strategies.rothConversion.enabled";  // adds or removes the rollover account
   // Plots chips: the chart spec id, the chip label, what the view shows and what it says when the run has no rows.
   // Every plot is drawn from the last Monte Carlo: "total" is its spread, the others the runs' middle half average each year.
@@ -40,12 +41,10 @@
       + "minimum. Social Security, pay and the Roth conversion are not bars." },
     { id: "taxes", label: "Taxes", intro: "The taxes charged each year, by kind; the middle half average of the runs. The "
       + "hatched bar is the sales tax inside your spending: already in expenses, shown for records, never added to the "
-      + "taxes. The same figures by year, and the deductions, are in tables under Outputs, Summary, Taxes." },
+      + "taxes. The same figures by year, and the deductions, are tables in the Final report (PDF)." },
     { id: "expenses", label: "Expenses", intro: "What the household spends each year, by category; the middle half "
       + "average of the runs. Categories never charged are left out; taxes are in Taxes." },
   ];
-  const RESULT_VIEWS = [{ id: "summary", label: "Summary" }, { id: "accounts", label: "Accounts" },
-    { id: "taxes", label: "Taxes" }];
   // What Compare does, behind the "i" beside the Compare card's heading.
   const COMPARE_HELP = "Pick two configs to compare. Both run on the same random draws (same seed), "
     + "so the differences come from the settings, not from luck. Save scenarios under Setup to compare them "
@@ -58,7 +57,7 @@
   const LONG_SELECT_CHOICES = 12;  // a select with more choices than this (the states) is a combobox (stateCombobox)
   const RUN_DELAY_MS = 400;
   const SETTLE_MS = 400;  // a pause in editing this long makes one undo step (and, with Auto-save on, one save)
-  const UNDO_LIMIT = 10;  // input states of the open scenario that Undo can step back through
+  const UNDO_LIMIT = 20;  // input states of the open scenario that Undo can step back through
   const MC_DELAY_MS = 1500;  // the pause after the single run before the Monte Carlo starts on its own
   const EXAMPLE_NAME = "Example household";
   const DRAFT_KEY = "wmti.draft.v1";
@@ -84,11 +83,14 @@
   // An interrupted strategy search: {key (optimizeCheckpointKey), inputsText, optionsText, checkpoint}.
   const OPTIMIZE_CHECKPOINT_KEY = "wmti.optimizeCheckpoint.v1";
   const TABS_PIN_KEY = "wmti.tabsPin.v1";  // whether Inputs' tabs stay pinned under the top bar: "on" or "off"
+  const HEIRS_MARK_KEY = "wmti.heirsMark.v1";  // whether the balance charts mark What beneficiaries keep: "on" or "off"
   const LAW_KEY = "wmti.lawState.v1";  // kept by the removed law viewer; listed so Clear all data still removes it
   const SPLIT_KEY = "wmti.split.v1";  // the wide layout's Inputs share of the Inputs | Outputs room, "0" to "1"
+  const SETUP_FOLD_KEY = "wmti.setupFold.v1";  // whether the wide layout's Setup column is folded to a rail: "folded" or "open"
+  const ADVANCED_KEY = "wmti.advanced.v1";  // whether Setup's Advanced settings is open: "open" or "closed"
   const LAW_STATE_PATHS = ["homeState", "strategies.relocation.state"];  // state selects with a "See this state's rules" link
   const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
-    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY, SPLIT_KEY];
+    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY, SPLIT_KEY, SETUP_FOLD_KEY, HEIRS_MARK_KEY, ADVANCED_KEY];
   // Keys kept before the rename (fpt.*) move to these once, before anything reads them.
   try {
     migrateLegacyStorage(localStorage, TERMS_KEY, (window.WMTI_LEGAL || {}).textHash || "");
@@ -132,9 +134,9 @@
     info: null, schema: null, defaults: null, inputs: null, base: null, scenarioName: EXAMPLE_NAME, seed: 1,
     walkTree: null, result: null, error: null, lastRunMs: null, bootMs: null, pyodideVersion: null,
     notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, planOpen: false,
-    tab: "outputs", view: "summary", scroll: {}, chips: { results: "summary", plots: null, settings: "income" },
+    tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
-    autoSave: false, exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
+    autoSaveOff: [], exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null },
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null, diffs: null, diffsPending: null, mergeUndo: [] },
@@ -158,7 +160,7 @@
   function savePrefs() {
     const compare = state.compare;
     store(PREFS_KEY, { tab: state.tab, view: state.view, chips: state.chips, plotView: state.plotView,
-      surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSave: state.autoSave,
+      surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
       exampleHidden: state.exampleHidden, compare: { seed: compare.seed, pair: compare.pair } });
   }
 
@@ -171,7 +173,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.5d319b4343.js");
+      worker = new Worker("worker.ebdf48b60b.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -289,7 +291,9 @@
       if (prefs.plotView === "table") state.plotView = "table";
       if (Array.isArray(prefs.surplusLocks)) state.surplusLocks = prefs.surplusLocks.filter((name) => typeof name === "string");
       restoreRunPrefs(prefs);
-      state.autoSave = prefs.autoSave === true;
+      // Auto-save is on unless turned off for a scenario; the older one-switch preference (`autoSave`) is not read, since
+      // it could not tell a switch turned off from the old default.
+      if (Array.isArray(prefs.autoSaveOff)) state.autoSaveOff = prefs.autoSaveOff.filter((name) => typeof name === "string");
       // The example household left Other scenarios when deleted there; it is back whenever it is the open scenario.
       state.exampleHidden = prefs.exampleHidden === true && state.scenarioName !== EXAMPLE_NAME;
     }
@@ -298,6 +302,7 @@
     if (saved && typeof saved === "object" && !Array.isArray(saved)) state.scenarios = Object.assign(Object.create(null), saved);
     const hashRoute = tabRoute(location.hash);
     if (hashRoute) state.tab = hashRoute.tab;
+    if (hashRoute && hashRoute.tab === "setup") revealSetup();  // a link to Setup
     if (hashRoute && hashRoute.chip) state.chips.settings = hashRoute.chip;
     if (hashRoute && hashRoute.view) state.view = hashRoute.view;
     $("boot").hidden = true;
@@ -423,11 +428,13 @@
     const summaryCard = $("expenseSummary");
     if (summaryCard) fillExpenseSummary(summaryCard);
     refreshSpending();  // the Spending in retirement amounts follow every edit (a percent, the start or stop age)
+    refreshYearsDefault();  // a blank Years to simulate follows your age
     updateTerminalRate();  // the beneficiaries' caption follows their payouts
     clearTimeout(runTimer);
     setStatus("busy", "Updating");
     $("app").classList.add("stale");
     singleBusy = true;
+    renderPinned();  // the figures read "Running…" until the run is back
     mcKeyChanged();
     optimizeInputsChanged();
     runTimer = setTimeout(runNow, RUN_DELAY_MS);
@@ -471,12 +478,11 @@
 
   // ---- Wide layout: on a wide window (a PC monitor) the three tabs show side by side ----
   // At WIDE_QUERY the page puts Setup, Inputs and Outputs in three columns (1:2:2) under the top bar, each scrolling on
-  // its own; the bottom bar and the sideways swipe between panels go. `state.tab` still names the place last opened
-  // (the phone layout comes back to it). A narrower window is the phone layout; a resize or rotation switches live.
+  // its own; the bottom bar goes, and a sideways swipe moves within the column it is made in (wirePanelsSwipe).
+  // `state.tab` still names the place last opened (the phone layout comes back to it). A narrower window is the phone layout; a resize or rotation switches live.
   // A divider between Inputs and Outputs sets how they share their room (wireSplit below).
   const WIDE_QUERY = "(min-width: 1100px)";
   const wide = { on: false };
-  const wideScroll = {};  // the Outputs column's scroll position per view, in the wide layout
 
   // Whether a tab's panel is on screen: always in the wide layout, else when it is the selected tab.
   function tabShown(tab) {
@@ -489,13 +495,16 @@
     const apply = () => {
       wide.on = query.matches;
       document.documentElement.classList.toggle("wide", wide.on);
+      showSetupFold();
       showSplit(false);
     };
     wireSplit();
+    wireSetupFold();
     apply();
     query.addEventListener("change", () => {
       apply();
       if (state.schema != null) showPlace();
+      tourRelayout();  // the tour's control moved with the layout: measure it again in the new one
     });
   }
 
@@ -622,6 +631,48 @@
     else window.addEventListener("resize", () => showSplit(false));
   }
 
+  // ---- Wide layout: Setup folded to a rail ----
+  // The bar over Setup's column (#setupFold: "Setup" and a chevron) folds the column to a slim rail showing the open
+  // scenario's name, and a click (or Enter or Space) on the rail brings it back; Inputs and Outputs share the freed
+  // width at the split they had. Folding only stops drawing Setup, so nothing in it is lost and its scroll comes back.
+  // Anything that goes to Setup unfolds it first: a move to its tab (a link, Undo of a Setup field), the tour's Setup
+  // steps, the open scenario's glow and a file message. Kept per device; the phone layout never folds.
+  const setupFold = { folded: false, scroll: 0 };
+
+  function showSetupFold() {
+    const folded = wide.on && setupFold.folded;
+    document.documentElement.classList.toggle("setup-folded", folded);
+    const button = $("setupFold");
+    const label = folded ? "Show Setup" : "Hide Setup";
+    button.setAttribute("aria-expanded", String(!folded));
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
+
+  function foldSetup(folded) {
+    if (folded === setupFold.folded) return;
+    const panel = $("panel-setup");
+    if (folded) {
+      setupFold.scroll = panel.scrollTop;
+      if (panel.contains(document.activeElement)) $("setupFold").focus();
+    }
+    setupFold.folded = folded;
+    try { localStorage.setItem(SETUP_FOLD_KEY, folded ? "folded" : "open"); } catch (error) { /* this visit only */ }
+    showSetupFold();
+    if (!folded) panel.scrollTop = setupFold.scroll;
+    if (wide.on) showSplit(true);
+  }
+
+  // Unfold Setup before something in it is shown.
+  function revealSetup() {
+    if (wide.on && setupFold.folded) foldSetup(false);
+  }
+
+  function wireSetupFold() {
+    try { setupFold.folded = localStorage.getItem(SETUP_FOLD_KEY) === "folded"; } catch (error) { /* open */ }
+    $("setupFold").addEventListener("click", () => foldSetup(!setupFold.folded));
+  }
+
   // Scroll a place to its top: its own column in the wide layout, else the page.
   function scrollPlaceTop(tab) {
     if (wide.on) $("panel-" + tab).scrollTop = 0;
@@ -669,9 +720,11 @@
     if (optimizeShown()) renderOptimize();
   }
 
-  // Move to a place (tab and view) and back to its saved scroll; a tap on the place already shown scrolls it to the
-  // top. `remember` false (start-up) only shows the place.
+  // Move to a place (tab and view) and open it at its top, whether a tap or a swipe got there (the owner, s367: a new
+  // tab starts at the top); a tap on the place already shown scrolls it to the top too. `remember` false (start-up)
+  // only shows the place.
   function goTo(tab, view, remember) {
+    if (tab === "setup" && remember !== false) revealSetup();
     if (remember === false) {
       state.tab = tab;
       state.view = view;
@@ -679,26 +732,23 @@
       return;
     }
     if (wide.on) {
-      // Wide: every column shows and keeps its own scroll; only the Outputs column swaps views (each its own scroll).
+      // Wide: every column shows and keeps its own scroll; the Outputs column opens another view at its top.
       if (splitShuts(tab)) setSplit(0.5, true);
       if (tab === state.tab && view === state.view) { scrollPlaceTop(tab); return; }
-      const outputs = $("panel-outputs");
-      wideScroll[state.view] = outputs.scrollTop;
       const viewChanged = view !== state.view;
       state.tab = tab;
       state.view = view;
       showPlace();
       savePrefs();
-      if (viewChanged) outputs.scrollTop = wideScroll[view] || 0;
+      if (viewChanged) $("panel-outputs").scrollTop = 0;
       return;
     }
     if (tab === state.tab && view === state.view) { window.scrollTo(0, 0); return; }
-    state.scroll[scrollKey()] = window.scrollY;
     state.tab = tab;
     state.view = view;
     showPlace();
     savePrefs();
-    window.scrollTo(0, state.scroll[scrollKey()] || 0);
+    window.scrollTo(0, 0);
   }
 
   // The Outputs view row's bubble: over the selected view, gliding there when the view changed while Outputs showed.
@@ -725,14 +775,12 @@
       if (panels.length) state.chips.settings = panels[0].id;
     } else if (tab === "outputs") {
       view = VIEWS[0];
-      state.chips.results = RESULT_VIEWS[0].id;
       state.chips.plots = PLOT_VIEWS[0].id;
     }
     goTo(tab, view);
     if (tab === "inputs") renderSettings();
     else if (tab === "outputs") { renderResults(); renderPlots(); }
-    state.scroll[scrollKey()] = 0;
-    window.scrollTo(0, 0);
+    scrollPlaceTop(tab);  // after the redraw, which can change the page's height
     centerSwipedChips();
   }
 
@@ -823,7 +871,11 @@
         soon.textContent = "soon";
         chip.append(soon);
       }
-      chip.addEventListener("click", () => onSelect(item.id));
+      chip.addEventListener("click", () => {
+        onSelect(item.id);
+        // Another chip opens its page at the top (its column in the wide layout), as a swipe does.
+        if (item.id !== selected) scrollPlaceTop(containerId === "chips-settings" ? "inputs" : "outputs");
+      });
       return chip;
     }));
     if (containerId === "chips-settings") {  // Inputs' chips: the bubble over the selected one, kept across renders
@@ -975,18 +1027,25 @@
     return true;
   }
 
-  // Watch `root` for swipes. `handlers.enabled()` says whether a swipe may start, `drag(dx, width)` follows the
+  // Watch `root` for swipes. `handlers.enabled(down)` says whether a swipe may start (and `width()`, when given, how
+  // wide the swiped area is; else root's width), `drag(dx, width)` follows the
   // finger and `release(direction, dx, width)` ends it (direction 1 forward, -1 back, 0 too short: spring back).
   function wireSwipe(root, handlers) {
+    // While a sideways drag is followed the page must not scroll: Safari still can when the area's touch-action is
+    // not honoured, so its touchmove is cancelled too.
+    let claimed = false;
+    root.addEventListener("touchmove", (event) => { if (claimed && event.cancelable) event.preventDefault(); },
+      { passive: false });
     root.addEventListener("pointerdown", (down) => {
-      if (down.pointerType === "mouse" || !down.isPrimary || !handlers.enabled() || !swipeStartsOn(down.target, root)) {
+      if (down.pointerType === "mouse" || !down.isPrimary || !handlers.enabled(down) || !swipeStartsOn(down.target, root)) {
         return;
       }
-      const width = Math.max(1, root.clientWidth);
+      const width = Math.max(1, handlers.width ? handlers.width() : root.clientWidth);
       let sideways = null;
       let dx = 0;
       let samples = [];
       const stop = () => {
+        claimed = false;
         root.removeEventListener("pointermove", move);
         root.removeEventListener("pointerup", end);
         root.removeEventListener("pointercancel", end);
@@ -999,6 +1058,7 @@
           if (Math.abs(dx) < SWIPE_SLOP && Math.abs(dy) < SWIPE_SLOP) return;
           sideways = Math.abs(dx) > 1.5 * Math.abs(dy);
           if (!sideways) { stop(); return; }
+          claimed = true;
           try { root.setPointerCapture(event.pointerId); } catch (error) { /* already released */ }
         }
         samples = samples.filter(([time]) => event.timeStamp - time < 100).concat([[event.timeStamp, dx]]);
@@ -1034,8 +1094,9 @@
     return at < 0 ? null : chips[at + direction] || null;
   }
 
-  // The sub-tabs of each Outputs view, in order; a view without sub-tabs (Compare, Optimize) is one step of its own.
-  const OUTPUT_SUBTABS = { summary: { list: RESULT_VIEWS, chip: "results" }, plots: { list: PLOT_VIEWS, chip: "plots" } };
+  // The sub-tabs of each Outputs view, in order; a view without sub-tabs (Summary, Compare, Optimize) is one step of
+  // its own.
+  const OUTPUT_SUBTABS = { plots: { list: PLOT_VIEWS, chip: "plots" } };
 
   // The sub-tab a view shows now: its stored chip when the view still offers it, else its first; null for none.
   function shownSubtab(view) {
@@ -1056,11 +1117,11 @@
   // neighbouring view, always at its first sub-tab (`chip` is then the view's chip); null at an end and on Setup, so a
   // swipe never changes the bottom tab.
   function swipeTarget(direction) {
-    if (state.tab === "inputs") {
+    if (swipeTab() === "inputs") {
       const chip = neighbourChip(direction);
       return chip ? { tab: "inputs", view: state.view, chip, row: $("chips-settings") } : null;
     }
-    if (state.tab === "outputs") {
+    if (swipeTab() === "outputs") {
       const steps = outputSteps();
       const at = steps.findIndex((step) => step.view === state.view && step.sub === shownSubtab(state.view));
       const next = at < 0 ? null : steps[at + direction];
@@ -1073,10 +1134,14 @@
     return null;
   }
 
-  // The shown tab's panel, and its chips row that wears a bubble (none on Setup).
-  const shownPanel = () => $("panel-" + state.tab);
-  const bubbleRow = () => (state.tab === "inputs" ? $("chips-settings")
-    : state.tab === "outputs" ? $("views-outputs") : null);
+  // The tab a swipe moves through: the shown tab, or in the wide layout the column the finger went down in.
+  let swipeColumn = null;
+  const swipeTab = () => (wide.on && swipeColumn) || state.tab;
+
+  // The swiped tab's panel, and its chips row that wears a bubble (none on Setup).
+  const shownPanel = () => $("panel-" + swipeTab());
+  const bubbleRow = () => (swipeTab() === "inputs" ? $("chips-settings")
+    : swipeTab() === "outputs" ? $("views-outputs") : null);
 
   // After a swipe, scroll every chips row in view so the tab or sub-tab swiped to sits in the middle of the screen.
   function centerSwipedChips() {
@@ -1104,23 +1169,29 @@
       if (target.view === "summary") renderResults();
       else renderPlots();
     }
-    if (viewChanged) {
-      goTo("outputs", target.view);
-      state.scroll[scrollKey()] = 0;
-      scrollPlaceTop("outputs");
-    }
+    if (viewChanged) goTo("outputs", target.view);
+    scrollPlaceTop("outputs");  // another view or sub-tab opens at its top
     centerSwipedChips();
     const subLabel = sub ? sub.list.find((item) => item.id === target.sub).label : "";
     const viewLabel = $("sub-" + target.view).textContent.trim();
     return viewChanged ? [viewLabel, subLabel].filter(Boolean).join(", ") : subLabel;
   }
 
-  // One swipe for the sheet: Inputs panels, and Outputs sub-tabs and views; never across the bottom tabs.
+  // One swipe for the sheet: Inputs panels, and Outputs sub-tabs and views; never across the bottom tabs. In the wide
+  // layout (a touch screen such as an iPad held sideways) a swipe in the Inputs column moves between its panels and
+  // one in the Outputs column between its sub-tabs and views, the column sliding on its own; Setup has none.
   function wirePanelsSwipe() {
     let busy = false;
     // Listen on the whole sheet, so a swipe in the empty space below a short panel works too; the panel still slides.
-    wireSwipe(document.querySelector("main.panels"), {
-      enabled: () => state.schema != null && !walk.open && !busy && !wide.on,  // wide: no panel swipe
+    const root = document.querySelector("main.panels");
+    wireSwipe(root, {
+      enabled: (down) => {
+        if (state.schema == null || walk.open || busy) return false;
+        const column = wide.on ? down.target.closest("#panel-inputs, #panel-outputs") : null;
+        swipeColumn = column ? column.dataset.tab : null;
+        return !wide.on || column != null;
+      },
+      width: () => (wide.on ? shownPanel().clientWidth : root.clientWidth),
       drag: (dx, width) => {
         const target = swipeTarget(dx < 0 ? 1 : -1);
         if (reducedMotion()) return;
@@ -1315,17 +1386,28 @@
     if (!state.inputs) return;
     const unsaved = hasUnsavedChanges();
     $("loadedName").textContent = state.scenarioName;
-    $("saveStatus").textContent = state.autoSave ? "Saved automatically" : unsaved ? "Unsaved changes"
+    $("setupFoldName").textContent = state.scenarioName;
+    $("saveStatus").textContent = autoSaveOn() ? "Saved automatically" : unsaved ? "Unsaved changes"
       : state.savedJustNow ? "Saved just now" : "Saved";
-    $("dirtyDot").hidden = state.autoSave || !unsaved;
-    $("autoSave").setAttribute("aria-checked", String(state.autoSave));
-    $("saveButton").hidden = state.autoSave;
+    $("dirtyDot").hidden = autoSaveOn() || !unsaved;
+    $("autoSave").setAttribute("aria-checked", String(autoSaveOn()));
+    $("saveButton").hidden = autoSaveOn();
     $("undoButton").disabled = !state.undo.stack.length;
+  }
+
+  // A blank Years to simulate shows, in grey, the years until you are 100 (planYears): kept in step with your age
+  // after every edit, unless its box is being typed in.
+  function refreshYearsDefault() {
+    const input = $(fieldId("years"));
+    if (!input || !state.inputs || state.inputs.years != null || document.activeElement === input) return;
+    input.value = String(planYears(state.inputs));
+    markDefault(input, "years");
   }
 
   function renderRunCard() {
     const rootFields = state.schema.types[state.schema.root];
-    $("run-body").replaceChildren(seedField(), runsField());
+    $("run-body").replaceChildren(...RUN_CARD_FIELDS.map((name) =>
+      fieldElement(rootFields.find((item) => item.name === name), name)), seedField(), runsField());
     $("inflation-body").replaceChildren(...INFLATION_CARD_FIELDS.map((name) =>
       fieldElement(rootFields.find((item) => item.name === name), name)));
   }
@@ -1370,21 +1452,26 @@
     return dollars === "future" ? "Inflation adjusted" : "Today's value";
   }
 
-  // The pinned strip: the median final worth of the last Monte Carlo ("Updating" before one, marked when stale) with
-  // its median after terminal tax under it, then the two single-run headlines (net earnings or withdrawal, annual expense).
+  // The pinned strip: what the household is worth today (the single run's `netWorthToday`), the median final worth of
+  // the last Monte Carlo (marked when stale), then the two single-run headlines (net earnings or withdrawal, annual
+  // expense). While a run after a change is under way its figures read RUNNING_TEXT: the single run's while it runs,
+  // the median before the first Monte Carlo and while a stale one is being replaced (a run going, or the single run
+  // it waits for).
+  const RUNNING_TEXT = "Running…";
   function renderPinned() {
     const pinned = $("pinned");
     if (!state.result || needsSetup(state.inputs)) { pinned.replaceChildren(); return; }
     const { entry, stale } = latestMonteCarlo();
-    const headline = (label) => (entry ? entry.value.headlines.find((item) => item.label === label) : null);
-    const median = headline("Median final worth");
-    const afterTax = headline(AFTER_TAX_LABEL);
+    const median = entry ? entry.value.headlines.find((item) => item.label === "Median final worth") : null;
+    const medianRunning = !median || (stale && Boolean(state.mc.job || singleBusy));
+    const today = state.result.netWorthToday;
     const stalePin = entry && stale ? " stale-results" : "";
+    const money = (value) => (singleBusy ? RUNNING_TEXT : compactMoney(value));
     const pin = (label, value, extra) => "<div class=\"pin" + extra + "\"><span class=\"pin-label\">" + escapeText(label)
       + "</span><span class=\"pin-value\">" + escapeText(value) + "</span></div>";
-    pinned.innerHTML = pin("Median final worth", median ? compactMoney(median.value) : "Updating", stalePin)
-      + pin("After tax", afterTax ? compactMoney(afterTax.value) : "Updating", stalePin)
-      + state.result.headlines.slice(0, 2).map((headline) => pin(headline.label, compactMoney(headline.value), "")).join("");
+    pinned.innerHTML = (today ? pin(today.label, money(today.value), "") : "")
+      + pin("Median final worth", medianRunning ? RUNNING_TEXT : compactMoney(median.value), stalePin)
+      + state.result.headlines.slice(0, 2).map((headline) => pin(headline.label, money(headline.value), "")).join("");
   }
 
   function errorBanner(error) {
@@ -1397,9 +1484,10 @@
   function tileHtml(headline, first, stale) {
     const helpId = headline.help ? newHelpId() : null;
     const label = "<span class=\"tile-label\">" + escapeText(headline.label) + "</span>";
+    const subtitle = headline.subtitle ? "<span class=\"tile-subtitle\">" + escapeText(headline.subtitle) + "</span>" : "";
     return "<div class=\"tile" + (first ? " tile-first" : "") + (stale ? " stale-results" : "") + "\">"
       + (helpId ? "<div class=\"tile-head\">" + label + helpButtonHtml(headline.label, helpId) + "</div>" : label)
-      + "<span class=\"tile-value\">"
+      + subtitle + "<span class=\"tile-value\">"
       + escapeText(headline.unit === "percent" ? percent(headline.value, 1) : fullMoney(headline.value)) + "</span>"
       + (headline.range ? "<span class=\"tile-change\">Middle half of the runs: " + escapeText(fullMoney(headline.range[0]))
         + " to " + escapeText(fullMoney(headline.range[1])) + "</span>" : "")
@@ -1408,22 +1496,9 @@
       + (helpId ? helpTextHtml(helpId, headline.help, "tile-help") : "") + "</div>";
   }
 
-  // A read-only table card of the last Monte Carlo, marked when it is stale.
-  function tableCard(title, help, frame, options, stale, dollars) {
-    const about = titleHelp("h2", title, help);
-    return "<div class=\"card" + (stale ? " stale-results" : "") + "\"><div class=\"card-head\">" + about.head
-      + "<span class=\"chart-note\">" + escapeText(dollarsText(dollars)) + "</span></div>"
-      + about.text + charts.renderFrame(frame, Object.assign({ title }, options)) + "</div>";
-  }
-
-  // Summary: Summary (tiles, insights, percentiles, the middle half average summary table), Accounts and Taxes (taxes paid
-  // and the deductions by year), all from the last Monte Carlo; the single-run headline tiles follow the Monte Carlo ones.
+  // Summary: the headline tiles and insights of the last Monte Carlo (the single-run headline tiles after the Monte
+  // Carlo ones), then a pointer to the Final report, which holds every table; the app itself shows none.
   function renderResults() {
-    const chip = RESULT_VIEWS.some((view) => view.id === state.chips.results) ? state.chips.results : "summary";
-    renderChips("chips-results", RESULT_VIEWS, chip, (id) => {
-      state.chips.results = id; savePrefs(); renderResults();
-    });
-    $("summary-warnings").hidden = chip !== "summary";  // the Medicare warning
     const body = $("results-body");
     if (needsSetup(state.inputs)) { body.innerHTML = FINISH_SETUP_HTML; return; }
     let html = state.error ? errorBanner(state.error) : "";
@@ -1434,28 +1509,12 @@
     }
     const result = entry.value;
     const tables = result.tables;
-    if (chip === "summary") {
-      html += "<div class=\"result-meta\"><span>" + result.runs + " runs</span><span>Seed " + escapeText(result.seed)
-        + "</span><span>" + escapeText(dollarsText(result.dollars)) + "</span></div><div class=\"tiles\">"
-        + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale)).join("")
-        + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false)).join("") : "")
-        + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "");
-      html += renderInsights(result, entry, stale);
-      html += "<div class=\"card" + (stale ? " stale-results" : "") + "\"><div class=\"card-head\"><h2>Final worth by "
-        + "percentile</h2><span class=\"chart-note\">" + escapeText(dollarsText(result.dollars)) + "</span></div>"
-        + charts.renderUnitsTable(result.percentiles, ["ordinal", "money"], { title: "Final worth by percentile" })
-        + "</div>";
-      html += tableCard("Summary table", AVERAGE_HELP, tables.summary, { indexLabel: "Row", columnHelp: tables.columnHelp },
-        stale, tables.dollars);
-    } else if (chip === "accounts") {
-      html += tableCard("Accounts table", AVERAGE_HELP, tables.accounts, { indexLabel: "Row" }, stale, tables.dollars);
-    } else {
-      if (tables.taxesByYear) {
-        html += tableCard("Taxes paid by year", TAXES_HELP, tables.taxesByYear, { indexLabel: "Your age" }, stale,
-          tables.dollars);
-      }
-      html += tableCard("Deductions by year", DEDUCTIONS_HELP, tables.deductions, { indexLabel: "Your age" }, stale, tables.dollars);
-    }
+    html += "<div class=\"result-meta\"><span>" + result.runs + " runs</span><span>Seed " + escapeText(result.seed)
+      + "</span><span>" + escapeText(dollarsText(result.dollars)) + "</span></div><div class=\"tiles\">"
+      + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale)).join("")
+      + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false)).join("") : "")
+      + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "");
+    html += renderInsights(result, entry, stale) + REPORT_POINTER_HTML;
     body.innerHTML = html;
   }
 
@@ -1480,24 +1539,9 @@
   const FINISH_SETUP_HTML = "<div class=\"card empty-state finish-setup\"><strong>Finish setup to see results.</strong> "
     + "Fill in your age and the rest under Inputs, or open Walk me through it from the menu.</div>";
 
-  const AVERAGE_HELP = "Each number is the middle half average for that year: the mean of the Monte Carlo runs whose "
-    + "final worth lies between the 25th and 75th percentile, so the best and worst cases are left out (runs that ran "
-    + "out count when they fall in it). Deduction type is the most common value among those runs that year.";
-  const TAXES_HELP = "Read-only: the taxes charged each year, by kind, the middle half average of the runs; the same "
-    + "figures as the Taxes plot. State is the state income tax without the local tax; Local Tax is the average local "
-    + "income tax charged with it. Total adds the kinds. The sales tax column is the sales tax inside your spending: "
-    + "already in expenses, shown for records and not added to Total. State Deduction, State Exemptions and State "
-    + "Credits are what lowered the state tax, as in Deductions by year; they are not taxes and not in Total.";
-  const DEDUCTIONS_HELP = "Read-only: the deductions taken each year, the middle half average of the runs. Itemized parts "
-    + "are before the high-income reduction; Itemized is after it. Deduction is the standard or itemized deduction "
-    + "taken plus the senior deduction. Dependents counts the children claimed; only the state exemption uses it. "
-    + "The state columns are your home state's: State Deduction and State Exemptions come off its taxable income and "
-    + "State Credits (only what the tax could use) off its tax. Local Tax is part of the state tax paid, so it counts "
-    + "in Itemized SALT. The four state columns show the same figures in Taxes paid by year.";
-
-  function listHtml(items) {
-    return "<ul class=\"notes\">" + items.map((item) => "<li>" + escapeText(item) + "</li>").join("") + "</ul>";
-  }
+  // Where the tables went: one line and a button that opens the Final report (PDF) picker (wired once in wire()).
+  const REPORT_POINTER_HTML = "<div class=\"card report-pointer\"><p>Detailed tables are in the Final report (PDF) in "
+    + "the menu.</p><button type=\"button\" class=\"button button-quiet open-report\">Open the Final report</button></div>";
 
   // ---- Monte Carlo: runs on its own after every change (and on Run), in batches, with progress and cancel;
   // results kept per inputs ----
@@ -1865,7 +1909,7 @@
         addChartHelp(card, spec.title, "Lines are the median run; shading is the 10th to 90th percentile.");
       }
       if (stale) card.classList.add("stale-results");
-      figures.push([card.querySelector("figure"), spec]);
+      figures.push([card.querySelector("figure"), card.chartSpec]);
       parts.push(card);
     }
     requestAnimationFrame(() => figures.forEach(([figure, spec]) => figure && charts.attachChart(figure, spec)));
@@ -2674,10 +2718,18 @@
     renderCompare();
   }
 
+  // Auto-save is on by default, for every scenario (a first visit, New, Duplicate, an import): only a scenario whose
+  // switch was turned off keeps it off (its name in `state.autoSaveOff`, kept on this device).
+  function autoSaveOn() {
+    return !state.autoSaveOff.includes(state.scenarioName);
+  }
+
   function toggleAutoSave() {
-    state.autoSave = !state.autoSave;
+    const name = state.scenarioName;
+    state.autoSaveOff = autoSaveOn() ? state.autoSaveOff.concat([name])
+      : state.autoSaveOff.filter((item) => item !== name);
     savePrefs();
-    if (state.autoSave && hasUnsavedChanges()) {
+    if (autoSaveOn() && hasUnsavedChanges()) {
       const problem = saveOpen();
       if (problem) savedMessage(problem, true);
       else renderCompare();
@@ -2699,7 +2751,7 @@
     settleTimer = null;
     if (!state.inputs) return;
     state.undo = undoRecord(state.undo, JSON.stringify(state.inputs), UNDO_LIMIT);
-    if (state.autoSave && hasUnsavedChanges()) {
+    if (autoSaveOn() && hasUnsavedChanges()) {
       const problem = saveOpen();
       if (problem) savedMessage(problem, true);
     }
@@ -2712,7 +2764,7 @@
     settleTimer = null;
     state.savedJustNow = false;
     state.undo = { stack: [], current: JSON.stringify(state.inputs) };
-    if (state.autoSave && hasUnsavedChanges()) {
+    if (autoSaveOn() && hasUnsavedChanges()) {
       const problem = saveOpen();
       if (problem) savedMessage(problem, true);
       else renderCompare();
@@ -2821,7 +2873,7 @@
             target.scrollIntoView({ block: "center" });
             return;
           }
-          closeSheet();
+          closeSheet(true);
           found = drawnField(path, document);
           if (!found) return;
         }
@@ -2939,7 +2991,7 @@
   // Before another scenario replaces the open one: with unsaved changes and Auto-save off, ask Save, Discard or
   // Cancel first. `then` runs unless Cancel is chosen.
   function leaveOpen(then) {
-    if (state.autoSave || !hasUnsavedChanges()) { then(); return; }
+    if (autoSaveOn() || !hasUnsavedChanges()) { then(); return; }
     const name = state.scenarioName;
     openDialog({ title: "Save changes to " + name + "?",
       text: name + " has changes that are not saved on this device.",
@@ -2974,6 +3026,7 @@
   // Setup's open-scenario card is brought into view (when Setup shows) and its edge glows, fading over a second like
   // the Undo flash (same class; held still for that second with reduced motion). Never at start-up nor for edits.
   function highlightOpenCard() {
+    revealSetup();
     const card = flashField($("savedCard"));
     if (card.getClientRects().length) card.scrollIntoView({ block: "nearest" });
   }
@@ -3072,6 +3125,10 @@
       state.scenarioName = to;
       saveDraft();
     }
+    if (state.autoSaveOff.includes(from)) {  // a switch turned off stays off under the new name
+      state.autoSaveOff = state.autoSaveOff.map((name) => (name === from ? to : name));
+      savePrefs();
+    }
     if (Array.isArray(state.compare.pair)) {
       state.compare.pair = state.compare.pair.map((name) => (name === from ? to : name));
       savePrefs();
@@ -3152,10 +3209,9 @@
       delete state.scenarios[name];
       storeScenarios();
     }
-    if (name === EXAMPLE_NAME) {
-      state.exampleHidden = true;
-      savePrefs();
-    }
+    if (name === EXAMPLE_NAME) state.exampleHidden = true;
+    state.autoSaveOff = state.autoSaveOff.filter((item) => item !== name);  // a new scenario of that name starts on
+    savePrefs();
     savedMessage("Deleted " + name + ".", false);
     renderOpenCard();
     renderSaved();
@@ -3268,12 +3324,35 @@
     + "title=\"Full screen\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 9V4h5M15 4h5v5M20 15v5h-5"
     + "M9 20H4v-5\"/></svg></button>";
 
+  // Whether the balance charts mark What beneficiaries keep (Total balance, Balances, Compare): on unless this device
+  // turned it off.
+  const heirsMark = { on: true };
+  try { heirsMark.on = localStorage.getItem(HEIRS_MARK_KEY) !== "off"; } catch (error) { /* storage blocked: on */ }
+
+  // A chart card: Chart / Table, Full screen, the chart and its table. A spec with a What beneficiaries keep mark gets
+  // the "Show what beneficiaries keep" box under the chart; unticked, the card draws the spec without the mark. The
+  // spec drawn is `card.chartSpec`, for attachChart.
   function chartCard(spec, rerender) {
+    const marked = charts.hasAfterTax(spec);
+    const shown = marked && !heirsMark.on ? charts.withoutAfterTax(spec) : spec;
     const card = document.createElement("div");
     card.className = "card chart-card";
+    card.chartSpec = shown;
     card.innerHTML = "<div class=\"view-toggle\" role=\"group\" aria-label=\"Show as\"><button type=\"button\" "
       + "data-view=\"chart\">Chart</button><button type=\"button\" data-view=\"table\">Table</button></div>"
-      + FULL_SCREEN_BUTTON + charts.renderChart(spec) + "<div class=\"chart-table\">" + charts.renderTable(spec) + "</div>";
+      + FULL_SCREEN_BUTTON + charts.renderChart(shown)
+      + (marked ? "<label class=\"heirs-toggle\"><input type=\"checkbox\" class=\"heirs-toggle-input\""
+        + (heirsMark.on ? " checked" : "") + "> Show what beneficiaries keep</label>" : "")
+      + "<div class=\"chart-table\">" + charts.renderTable(shown) + "</div>";
+    const toggle = card.querySelector(".heirs-toggle-input");
+    if (toggle) {
+      toggle.addEventListener("change", () => {
+        heirsMark.on = toggle.checked;
+        try { localStorage.setItem(HEIRS_MARK_KEY, heirsMark.on ? "on" : "off"); } catch (error) { /* storage blocked */ }
+        (rerender || renderPlots)();
+      });
+    }
+    spec = shown;
     const showTable = state.plotView === "table";
     card.querySelector(".chart-plot, .chart-empty").hidden = showTable;
     // The Full screen button (top right) shows the plot on the whole screen in landscape; not for the table or a
@@ -3281,6 +3360,7 @@
     card.querySelector(".chart-full").hidden = showTable || !card.querySelector(".chart-plot");
     charts.attachFullScreen(card, spec);
     if (card.querySelector(".legend")) card.querySelector(".legend").hidden = showTable;
+    if (card.querySelector(".heirs-toggle")) card.querySelector(".heirs-toggle").hidden = showTable;
     card.querySelector(".chart-table").hidden = !showTable;
     for (const button of card.querySelectorAll(".view-toggle button")) {
       button.setAttribute("aria-pressed", String(button.dataset.view === state.plotView));
@@ -3293,7 +3373,7 @@
     return card;
   }
 
-  // Plots: the charts of the last Monte Carlo, marked when stale; the RMD schedule sits under Deposits and withdrawals.
+  // Plots: the charts of the last Monte Carlo, marked when stale (their tables are in the Final report).
   function renderPlots() {
     const body = $("plots-body");
     const selected = PLOT_VIEWS.some((view) => view.id === state.chips.plots) ? state.chips.plots : PLOT_VIEWS[0].id;
@@ -3326,41 +3406,21 @@
         // The trim and its bounds stay on screen; why, behind the "i".
         const note = noteHelp("Leaves out the lowest and highest " + spec.trimmed.percent + "% of runs (below "
           + fullMoney(spec.trimmed.low) + " or above " + fullMoney(spec.trimmed.high) + ").", "The chart leaves out "
-          + "the extreme runs so a few outcomes do not stretch the axis; the percentile table under Summary counts every "
+          + "the extreme runs so a few outcomes do not stretch the axis; the percentile table in the Final report counts every "
           + "run.", "muted");
         card.insertAdjacentHTML("beforeend", note.head + note.text);
       }
       if (stale) card.classList.add("stale-results");
-      figures.push([card.querySelector("figure"), spec]);
+      figures.push([card.querySelector("figure"), card.chartSpec]);
       parts.push(card);
     }
-    if (view.id === "flows") parts.push(rmdScheduleCard(result.tables, stale));
+    if (view.id === "flows") {  // where the RMD schedule table was
+      const holder = document.createElement("div");
+      holder.innerHTML = REPORT_POINTER_HTML;
+      parts.push(holder.firstElementChild);
+    }
     body.replaceChildren(...parts);
     figures.forEach(([figure, spec]) => figure && charts.attachChart(figure, spec));
-  }
-
-  function rmdScheduleCard(tables, stale) {
-    const card = document.createElement("div");
-    card.className = "card" + (stale ? " stale-results" : "");
-    if (tables.rmdEmptyNote) {
-      card.classList.add("empty-state");
-      card.textContent = tables.rmdEmptyNote;
-      return card;
-    }
-    const about = titleHelp("h2", "RMD schedule", "Middle half average of the runs (the prior balance is that average balance). "
-      + "IRMAA is not in the tax figure.");
-    card.innerHTML = "<div class=\"card-head\">" + about.head + "<span class=\"chart-note\">"
-      + escapeText(dollarsText(tables.dollars)) + "</span></div>" + about.text
-      + charts.renderFrame(tables.rmdSchedule, { title: "RMD schedule" }) + rmdNotesHtml(tables.rmdNotes);
-    return card;
-  }
-
-  // The RMD rules notes as a list behind an "i" beside a short Notes line.
-  function rmdNotesHtml(notes) {
-    if (!notes || !notes.length) return "";
-    const id = newHelpId();
-    return "<div class=\"title-help note-help\"><p class=\"field-label\">Notes</p>" + helpButtonHtml("the RMD notes", id)
-      + "</div>" + listHtml(notes).replace("<ul class=\"notes\">", "<ul class=\"notes\" id=\"" + id + "\" hidden>");
   }
 
   // ---- Settings ----
@@ -3548,7 +3608,7 @@
         continue;
       }
       let field = panelField(state.schema, name);
-      if (!field || (panel.id === SETUP_PANEL && INFLATION_CARD_FIELDS.includes(name))) continue;
+      if (!field || (panel.id === SETUP_PANEL && [...INFLATION_CARD_FIELDS, ...RUN_CARD_FIELDS].includes(name))) continue;
       if (name.includes(".") && getPath(state.inputs, name.split(".")[0]) == null) continue;
       if (panel.id === "retirement" && name.endsWith(".socialSecurityByAge")
         && getPath(state.inputs, name.split(".")[0] + ".socialSecurityBasis") === "earnings") continue;  // Manual entry only
@@ -3655,17 +3715,18 @@
     if (group.querySelector(".pane-section")) element.classList.add("section-break");
   }
 
-  // The Loans chip's read-only mortgage rows: each home's mortgage (titled with the home's name: owed today, or
-  // borrowed at a later purchase, with when it starts and ends), then one "Mortgage" row per Mortgage loan of the Home
-  // chip's other mortgage loans, with a button that opens the Home chip where they are edited; nothing without a
-  // mortgage.
+  // The Loans chip's read-only home loan rows: each home's mortgage (titled with the home's name: owed today, or
+  // borrowed at a later purchase, with when it starts and ends), then one row per loan each home holds (titled with
+  // the home's name, its kind first), with a button that opens the Home chip where they are edited; nothing without a
+  // home loan. A Mortgage loan still on the Loans list is edited there, in the list below.
   function mortgageRows() {
-    const mortgages = (state.inputs.loans || []).filter((loan) => loan.kind === "Mortgage");
+    const homes = state.inputs.homes || [];
+    const mortgages = homes.flatMap((home) => (home.loans || []).map((loan) => ({ home, loan })));
     const borrowed = (home) => (home.buysLater ? home.purchasePrice * (1 - home.downPaymentRate) : home.mortgageBalance);
-    const owing = (state.inputs.homes || []).filter((home) => home.hasMortgage && borrowed(home) > 0);
+    const owing = homes.filter((home) => home.hasMortgage && borrowed(home) > 0);
     if (!mortgages.length && !owing.length) return [];
-    const wrap = fieldShell("Mortgage", "Read-only here: a home's mortgage and the other mortgage loans are entered and "
-      + "edited on the Home chip.", null);
+    const wrap = fieldShell("Home loans", "Read-only here: each home's mortgage and its other loans (second mortgage, "
+      + "home equity) are entered and edited on the home, on the Home chip.", null);
     wrap.classList.add("mortgage-rows");
     for (const home of owing) {
       const row = document.createElement("div");
@@ -3680,21 +3741,21 @@
         + home.mortgageMonthsLeft + " months" + (span ? " · " + span : "");
       wrap.append(row);
     }
-    for (const loan of mortgages) {
+    for (const { home, loan } of mortgages) {
       const summary = itemSummary("Loan", loan);
       const row = document.createElement("div");
       row.className = "item item-readonly";
-      row.innerHTML = "<span class=\"item-name\">Mortgage</span><span class=\"item-value\"></span>"
+      row.innerHTML = "<span class=\"item-name\"></span><span class=\"item-value\"></span>"
         + "<span class=\"item-detail\"></span>";
+      row.querySelector(".item-name").textContent = home.name;
       row.querySelector(".item-value").textContent = summary.value;
-      row.querySelector(".item-detail").textContent = (loan.name ? loan.name + " · " : "") + summary.detail
-        .replace(/^Mortgage · /, "");
+      row.querySelector(".item-detail").textContent = (loan.name ? loan.name + " · " : "") + summary.detail;
       wrap.append(row);
     }
     const edit = document.createElement("button");
     edit.type = "button";
     edit.className = "button button-quiet";
-    edit.textContent = "Edit the mortgage on Home";
+    edit.textContent = "Edit home loans on Home";
     edit.addEventListener("click", () => {
       state.chips.settings = "home";
       savePrefs();
@@ -4392,11 +4453,10 @@
   const TERMINAL_PATH = "strategies.terminalTaxRate";
   const TERMINAL_HELP = "Leave blank to tax what beneficiaries withdraw at their federal and state brackets, by each "
     + "one's payout above: over 10 years or all at once in the year after the death. Type a rate to charge that flat "
-    + "rate on Traditional money left instead, whichever the payouts. It sets the final net worth after terminal tax "
-    + "on Outputs, Summary (what beneficiaries keep: no gains tax, since their basis steps up; home selling costs, the "
+    + "rate on Traditional money left instead, whichever the payouts. It sets What beneficiaries keep "
+    + "on Outputs, Summary (no gains tax, since their basis steps up; less home selling costs, the "
     + "federal and state estate taxes and the inheritance tax) and, saved with a config, how strategies are compared "
     + "after tax in Compare.";
-  const AFTER_TAX_LABEL = "Final net worth after terminal tax, incl. home and cars";
 
   function terminalRateCard() {
     const field = state.schema.types.StrategyPlan.find((item) => item.name === "terminalTaxRate");
@@ -5783,7 +5843,7 @@
     return details;
   }
 
-  // Edit (or Done editing) and Revert to calculated under a Last salary table.
+  // Edit (or Save, which closes the boxes keeping what was typed) and Revert to calculated under a Last salary table.
   function earningsButtons(path) {
     const editing = earningsEditing.has(path);
     const typed = getPath(state.inputs, path + ".salaryOverrides") || {};
@@ -5793,7 +5853,7 @@
     edit.type = "button";
     edit.className = "button button-quiet";
     edit.dataset.action = "earnings-edit";
-    edit.textContent = editing ? "Done editing" : "Edit";
+    edit.textContent = editing ? "Save" : "Edit";
     edit.addEventListener("click", () => {
       if (editing) earningsEditing.delete(path);
       else earningsEditing.add(path);
@@ -6004,6 +6064,7 @@
       const span = spanText(item, state.inputs.you.currentAge);
       return { name: item.name, detail: item.kind + " · " + percent(item.annualRate, 2) + " · " + item.remainingMonths
         + " months" + (item.refinance ? " · refinanced" : "") + (item.paymentsInExpenses ? " · payment in Expenses" : "")
+        + (item.improvesHome === false && state.info.sheetRules.homeLoanKinds.includes(item.kind) ? " · not deducted" : "")
         + (span ? " · " + span : ""),
       value: compactMoney(item.balance) };
     }
@@ -6207,8 +6268,8 @@
     const add = document.createElement("button");
     add.type = "button";
     add.className = "button button-quiet";
-    add.textContent = "Add " + (field.type === "Loan" && filter && filter.kind && filter.kind.length === 1
-      && filter.kind[0] === "Mortgage" ? "mortgage loan" : typeWords(field.type));  // the Home chip's other mortgages
+    const homeOwner = homeOfLoans(path);  // a home's own loans (second mortgage, home equity)
+    add.textContent = "Add " + (homeOwner ? "loan on this home" : typeWords(field.type));
     add.addEventListener("click", () => {
       // A home, car or rent period is added on its timeline: the first question there asks for its years.
       const timed = { Home: ["Home", null, 0], Car: ["Car", null, null], RentPeriod: ["Home", "rent", 0] }[field.type];
@@ -6221,12 +6282,35 @@
       const usual = field.type === "Account" && state.info.usualReturns[item.kind];
       if (usual) [item.meanReturn, item.returnStdDev] = usual;  // a new account starts with its kind's usual returns
       if (field.type === "Child") item.yourAgeAtBirth = state.inputs.you.currentAge;  // a new child is born this year
+      // A loan added from inside its home's sheet keeps the home's sheet session to go back to.
+      if (sheetOpen && sheetSession && path.startsWith(sheetOpen.path + "." + sheetOpen.position + ".")) {
+        sheetSessionParents.push(sheetSession);
+        sheetSession = null;
+      }
+      if (homeOwner) item.name = freeLoanName(homeOwner.name + " " + String(item.kind).toLowerCase());
+      beginSheetSession(path);  // Cancel on the new item's sheet removes it again
       items.push(item);
       inputsChanged();
       openSheet(field, path, items.length - 1, false, filter);
     });
     wrap.append(list, ...(shown.length ? [bar] : []), add);
     return wrap;
+  }
+
+  // The home whose own loans a list path holds ("homes.<n>.loans"), or null for any other list.
+  function homeOfLoans(path) {
+    const match = /^homes\.(\d+)\.loans$/.exec(path);
+    return match ? (state.inputs.homes || [])[Number(match[1])] || null : null;
+  }
+
+  // A loan name no loan uses yet (the Loans list, every home's mortgage and loans): `base`, else `base 2`, `base 3`...
+  function freeLoanName(base) {
+    const homes = state.inputs.homes || [];
+    const taken = new Set([...(state.inputs.loans || []).map((loan) => loan.name),
+      ...homes.map((home) => home.name + " mortgage"), ...homes.flatMap((home) => (home.loans || []).map((loan) => loan.name))]);
+    let name = base;
+    for (let number = 2; taken.has(name); number += 1) name = base + " " + number;
+    return name;
   }
 
   function typeWords(typeName) {
@@ -6254,6 +6338,32 @@
 
   let sheetReturn = null;
   let sheetOpen = null;  // {field, path, position, filter, kind} of the item in the sheet (kind: as it was drawn)
+  const sheetParents = [];  // the sheets a nested item's sheet goes back to on close, innermost last
+  // An item sheet's edits apply as they are made; `sheetSession` holds the settings and the Undo history from just
+  // before the sheet opened (before the item was added, for Add), so Cancel puts both back and Save leaves one Undo step.
+  let sheetSession = null;  // {inputs (JSON text), undo, path}
+  const sheetSessionParents = [];  // the sessions of the sheets in sheetParents, innermost last
+
+  function beginSheetSession(path) {
+    if (settleTimer) settle();  // an edit made before the sheet opened is a step of its own
+    sheetSession = { inputs: JSON.stringify(state.inputs), undo: state.undo, path };
+  }
+
+  // Close the item sheet's session: kept (Save, Remove, a link away), its edits are one Undo step; cancelled, the
+  // settings and the Undo history are put back as they were when it opened, so it leaves no step.
+  function endSheetSession(keep) {
+    const session = sheetSession;
+    sheetSession = null;
+    if (!session) return;
+    clearTimeout(settleTimer);
+    settleTimer = null;
+    state.undo = session.undo;
+    if (keep) { settle(); return; }
+    if (JSON.stringify(state.inputs) === session.inputs) return;
+    state.inputs = JSON.parse(session.inputs);
+    clearSelections(session.path);
+    inputsChanged();
+  }
 
   // The values a select of the open sheet's item may take when its list is filtered on that field, else null.
   function sheetAllowed(field, path) {
@@ -6330,7 +6440,7 @@
       const homes = getPath(state.inputs, sheetOpen.path);
       const low = state.inputs.you.currentAge;
       const clash = homes[sheetOpen.position].primaryResidence ? primaryClashText(homes[sheetOpen.position],
-        state.inputs.rents, low, low + state.inputs.years - 1, state.info.lawTaxYear) : null;
+        state.inputs.rents, low, low + planYears(state.inputs) - 1, state.info.lawTaxYear) : null;
       choosePrimary(homes, sheetOpen.position, state.inputs.rents);
       inputsChanged();
       refreshForm();
@@ -6377,6 +6487,16 @@
   function openSheet(field, path, position, keepFocus, filter) {
     const items = getPath(state.inputs, path);
     if (!sheetOpen) sheetReturn = document.activeElement;
+    // A list inside the open item (a home's loans): its item opens in the same sheet, and closing it goes back here;
+    // it gets a session of its own, so its Cancel undoes only its own edits.
+    if (sheetOpen && path.startsWith(sheetOpen.path + "." + sheetOpen.position + ".")) {
+      sheetParents.push(sheetOpen);
+      if (sheetSession && sheetSession.path !== path) {
+        sheetSessionParents.push(sheetSession);
+        sheetSession = null;
+      }
+    }
+    if (!sheetSession) beginSheetSession(path);  // kept while the sheet redraws or Move up / Move down moves the item
     sheetOpen = { field, path, position, filter: filter || null, kind: items[position] && items[position].kind };
     $("sheetTitle").textContent = (items[position] && items[position].name) || typeWords(field.type);
     const body = $("sheetBody");
@@ -6399,7 +6519,8 @@
         parts.push(sheetHeading(child.group, section === null));
         section = child.group;
       }
-      const element = fieldElement(child, path + "." + position + "." + child.name);
+      const listFilter = ((state.schema.itemListFilters || {})[field.type] || {})[child.name];  // a home's loans
+      const element = fieldElement(child, path + "." + position + "." + child.name, listFilter);
       const holder = sections.find((item) => item.section.fields.includes(entry.name));
       if (holder) { holder.fields.push(element); continue; }
       if (entry.group && entry.group.startsWith("replaceRule")) {  // a car's replacement rule: one bordered block
@@ -6463,12 +6584,16 @@
     const onTimeline = sheetTimelineLink(field.type, position);  // a home, rent period or car: its years are there
     if (onTimeline) actions.prepend(onTimeline);
     body.append(actions);
-    $("sheet").classList.remove("timeline-sheet");  // an item sheet keeps its header Done
+    sheetFootFor(null);
+    $("sheet").classList.remove("timeline-sheet");
     $("sheet").hidden = false;
     $("sheetBackdrop").hidden = false;
     $("app").classList.remove("typing");
     const first = body.querySelector("input, select");
     if (first && !keepFocus) first.focus({ preventScroll: true });
+    // A sheet opened afresh (also a nested item's, the parent's again and after Move) starts at the top of its body,
+    // not where the last sheet was scrolled; a redraw while it is open (keepFocus) keeps the place.
+    if (!keepFocus) body.scrollTop = 0;
   }
 
   // A car's replacement rule on its sheet: a bordered block titled by `carReplaceRuleTitle` holding Replace by, the note
@@ -6522,13 +6647,75 @@
     return holder;
   }
 
-  function closeSheet() {
+  // The sheet's footer, always in view under the scrolling body: an item sheet's Cancel and Save (#sheetCancel,
+  // #sheetDone), or a timeline screen's own Back, Cancel and Save row (`nav`) in their place.
+  function sheetFootFor(nav) {
+    const foot = $("sheetFoot");
+    for (const old of foot.querySelectorAll(".timeline-nav")) old.remove();
+    $("sheetFootActions").hidden = Boolean(nav);
+    if (nav) foot.append(nav);
+  }
+
+  // The on-screen keyboard's height (--keyboard on the root): the part of the window the visual viewport no longer
+  // shows at the bottom, so the sheets and dialogs sit above the keyboard with their header and footer in view. Zero
+  // while the page is pinch-zoomed.
+  function wireKeyboardInset() {
+    const view = window.visualViewport;
+    if (!view) return;
+    const place = () => {
+      const inset = view.scale > 1.01 ? 0 : Math.max(0, Math.round(window.innerHeight - view.height - view.offsetTop));
+      document.documentElement.style.setProperty("--keyboard", inset + "px");
+    };
+    view.addEventListener("resize", place);
+    view.addEventListener("scroll", place);
+    place();
+  }
+
+  // Save (#sheetDone): the item sheet's edits already apply as they are made, so it closes the sheet keeping them.
+  function saveSheet() {
+    closeSheet();
+  }
+
+  // Cancel (#sheetCancel), Escape and a tap outside the sheet: the item sheet's edits are undone (a new item is
+  // removed) and the sheet closes (a nested item's sheet goes back to its parent's); a timeline screen applies
+  // nothing until its Save, so it just closes.
+  function cancelSheet() {
     if ($("sheet").hidden) return;
+    // A field still being typed in commits on blur: let it commit now, so Cancel undoes it too.
+    if ($("sheet").contains(document.activeElement)) document.activeElement.blur();
+    endSheetSession(false);
+    closeSheet();
+  }
+
+  // Close the sheet, keeping its item's edits (see cancelSheet for the other way); an item opened from a list inside
+  // another item's sheet (a home's loan) goes back to that sheet unless `all` is true.
+  function closeSheet(all) {
+    if ($("sheet").hidden) return;
+    endSheetSession(true);
+    if (all !== true && sheetParents.length) {
+      const parent = sheetParents.pop();
+      sheetSession = sheetSessionParents.pop() || null;
+      sheetOpen = null;
+      renderSettings();
+      const items = getPath(state.inputs, parent.path);
+      if (items && items[parent.position]) {
+        const back = sheetReturn;  // focus still returns where the outer sheet was opened from
+        openSheet(parent.field, parent.path, parent.position, false, parent.filter);
+        sheetReturn = back;
+        return;
+      }
+    }
+    sheetParents.length = 0;
+    while (sheetSessionParents.length) {  // closing every level keeps every level's edits
+      sheetSession = sheetSessionParents.pop();
+      endSheetSession(true);
+    }
     if (timelineFlow && timelineFlow.notes.length) timelineNotes[timelineFlow.kind] = timelineFlow.notes.slice();
     timelineFlow = null;
     sheetOpen = null;
     $("sheet").hidden = true;
     $("sheet").classList.remove("timeline-sheet");
+    sheetFootFor(null);
     $("sheetBackdrop").hidden = true;
     $("app").classList.remove("typing");
     renderSettings();
@@ -6769,17 +6956,19 @@
   function openTimeline(kind, step, options) {
     if (!sheetOpen && $("sheet").hidden) sheetReturn = document.activeElement;
     sheetOpen = null;
+    sheetParents.length = 0;
     timelineFlow = { kind, step, position: null, lane: 0, year: null, history: [], notes: [], error: null, busy: false,
       addChoice: null, ...(options || {}) };
     $("sheetTitle").textContent = "Timeline";
-    $("sheet").classList.add("timeline-sheet");  // hides the header Done: the screen has Save and Cancel
+    $("sheet").classList.add("timeline-sheet");
     $("sheet").hidden = false;
     $("sheetBackdrop").hidden = false;
     timelineScreen();
+    $("sheetBody").scrollTop = 0;  // at the top of the body, not where the last sheet was scrolled
   }
 
   function timelineClose() {
-    closeSheet();  // keeps the workflow's notes for the block (see closeSheet)
+    closeSheet(true);  // keeps the workflow's notes for the block (see closeSheet)
   }
 
   // A labelled input on a workflow screen: a number (a year shows your age beside it), text or a tick box.
@@ -6810,7 +6999,7 @@
 
   function timelineYearInput(label, year, optional) {
     const first = state.info.lawTaxYear;
-    const last = first + state.inputs.years - 1;
+    const last = first + planYears(state.inputs) - 1;
     const value = year == null ? (optional ? null : first) : Math.min(Math.max(year, first), last);
     return timelineInput(label, "year", value, { min: first, max: last, step: 1 });
   }
@@ -7249,12 +7438,12 @@
         }
       }
     });
-    // Two ways out, both here: Save applies the edit and closes; Cancel closes with nothing applied.
+    // In the sheet's footer: Save applies the edit and closes; Cancel closes with nothing applied.
     const cancel = timelineButton("Cancel", "cancel");
     cancel.addEventListener("click", timelineClose);
-    actions.append(back, go, cancel);
-    parts.push(actions);
+    actions.append(back, cancel, go);
     $("sheetBody").replaceChildren(...parts);
+    sheetFootFor(actions);
     const first = $("sheetBody").querySelector("input");
     if (first) first.focus({ preventScroll: true });
   }
@@ -7267,7 +7456,7 @@
       const homes = (state.inputs.homes || []).length;
       const list = kind === "Car" ? "cars" : isRent ? "rents" : "homes";
       const index = isRent ? position - homes : position;
-      closeSheet();
+      closeSheet(true);
       const item = document.querySelector("#settings-body .items[data-list='" + list + "'] button.item[data-position='"
         + index + "']");
       if (item) item.click();
@@ -7283,7 +7472,7 @@
     const link = timelineButton(timelineWords(kind).onTimeline, "timeline", "button-quiet sheet-timeline");
     link.addEventListener("click", () => {
       const at = type === "RentPeriod" ? (state.inputs.homes || []).length + position : position;
-      closeSheet();
+      closeSheet(true);
       openTimeline(kind, "edit", { position: at });
     });
     return link;
@@ -7467,6 +7656,7 @@
   // action was taken further down the page (an Other scenarios row's menu).
   function showFileMessage(text, isError) {
     const message = $("fileMessage");
+    revealSetup();
     message.hidden = false;
     message.className = isError ? "banner banner-error" : "banner";
     message.textContent = text;
@@ -7560,7 +7750,9 @@
     }
     state.inputs = reply.inputs;
     state.base = clone(state.inputs);
-    state.scenarioName = fileName ? fileName.replace(/\.json$/i, "") : "Pasted scenario";
+    // Auto-save keeps it at once (resetUndo below), under a free name when another saved scenario has the file's.
+    state.scenarioName = importedName(fileName ? fileName.replace(/\.json$/i, "") : "Pasted scenario", reply.inputs,
+      state.scenarios, state.autoSaveOff, takenNames());
     forgetBlankWalk();
     const upgraded = reply.fromVersion !== reply.inputs.schemaVersion;
     showFileMessage("Opened " + state.scenarioName + "."
@@ -7591,7 +7783,8 @@
   }
 
   // Open the file picker of the hidden file input; `blocked` runs when the browser shows none (no focus change within
-  // a moment), so the caller can offer the paste box instead.
+  // a moment), so the caller can offer the paste box instead. It is a guess: iPad Safari's picker sends no focus change
+  // and its file arrives later, so `blocked` must leave a pick that is still coming able to finish.
   function pickScenarioFile(blocked) {
     let opened = false;
     const mark = () => { opened = true; };
@@ -7672,14 +7865,14 @@
     highlightOpenCard();
   }
 
-  // The About window: opened from the menu over the page, closed by Done, the backdrop or Escape.
+  // The About window: opened from the menu over the page, closed by Close, the backdrop or Escape.
   function openAbout() {
     closeMenu();
     renderAbout();
     $("aboutUpdateStatus").textContent = "";
     $("aboutSheet").hidden = false;
     $("aboutBackdrop").hidden = false;
-    $("aboutDone").focus();
+    $("aboutClose").focus();
   }
 
   function closeAbout() {
@@ -7809,7 +8002,7 @@
     });
   }
 
-  // The Legal window: opened from the menu over the page, closed by Done, the backdrop or Escape.
+  // The Legal window: opened from the menu over the page, closed by Close, the backdrop or Escape.
   function openLegal() {
     closeMenu();
     let accepted = null;
@@ -7830,7 +8023,7 @@
     if (LEGAL.documents.length) drawLegal($("legalDoc"), [LEGAL.documents[0].id]);
     $("legalSheet").hidden = false;
     $("legalBackdrop").hidden = false;
-    $("legalDone").focus();
+    $("legalClose").focus();
   }
 
   function showLegalDocument(event) {
@@ -7870,7 +8063,7 @@
       : "Open your browser's menu, then choose Install app or Add to Home screen.";
     $("installSheet").hidden = false;
     $("installBackdrop").hidden = false;
-    $("installDone").focus();
+    $("installClose").focus();
   }
 
   function closeInstallHelp() {
@@ -7905,13 +8098,13 @@
     const sheet = document.createElement("div");
     sheet.innerHTML = "<div class=\"sheet-backdrop\" id=\"installBackdrop\" hidden></div>"
       + "<div class=\"sheet\" id=\"installSheet\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"installTitle\" hidden>"
-      + "<div class=\"sheet-head\"><h2 id=\"installTitle\">Install app</h2>"
-      + "<button type=\"button\" class=\"button\" id=\"installDone\">Done</button></div>"
+      + "<div class=\"sheet-head\"><h2 id=\"installTitle\">Install app</h2></div>"
       + "<div class=\"sheet-body\"><p class=\"field-help\" id=\"installHelp\"></p>"
-      + "<p class=\"field-help\">Once added, it opens from your home screen with one tap and works offline.</p></div></div>";
+      + "<p class=\"field-help\">Once added, it opens from your home screen with one tap and works offline.</p></div>"
+      + "<div class=\"sheet-foot\"><button type=\"button\" class=\"button\" id=\"installClose\">Close</button></div></div>";
     $("app").append(...sheet.children);
     item.addEventListener("click", installApp);
-    $("installDone").addEventListener("click", closeInstallHelp);
+    $("installClose").addEventListener("click", closeInstallHelp);
     $("installBackdrop").addEventListener("click", closeInstallHelp);
     window.addEventListener("beforeinstallprompt", (event) => {
       event.preventDefault();
@@ -8098,6 +8291,7 @@
   // Show a screen: the first step, the welcome, a question or the review. `direction` (forward or back) sets the slide;
   // `animate` false (opening) shows it at once.
   function showWalkScreen(id, direction, animate) {
+    if (id !== "start") walk.importing = false;  // a picker left open on the first step no longer imports into it
     walk.saved.current = id;
     walkSave();
     const screen = id === "start" ? startScreen() : id === "welcome" ? welcomeScreen() : id === "review" ? reviewScreen()
@@ -8202,8 +8396,9 @@
     if (walk.busy) return;
     walk.importing = true;
     walkError(null);
+    // Only a hint: `walk.importing` stays set, since iPad Safari's picker sends the page no blur and its file arrives
+    // after the pause; leaving the first step (showWalkScreen) or closing the walkthrough clears it.
     pickScenarioFile(() => {
-      walk.importing = false;
       walkError("This browser did not open a file picker. Continue the walkthrough, then paste the scenario text "
         + "under Setup, Import.");
     });
@@ -8808,30 +9003,32 @@
   }
 
   // ---- The tour of the controls (the ? button in the top bar) ----
-  // One step per control, in the order the eye meets them: the pages in bottom-bar order (Setup, Inputs, Outputs), then
-  // the menu's items and the ? button (TOUR_PAGES); on a page top to bottom, left to right (a unit test checks `page`
+  // One step per control: the main parts first, the pages in bottom-bar order (Setup, Inputs, Outputs), then the
+  // supporting tools: the top bar's Undo ("bar"), the menu's items and the ? button (TOUR_PAGES); on a page top to bottom, left to right (a unit test checks `page`
   // and where `target`, a selector, sits in index.html). `view` is the Outputs view a step shows and `when` (optional)
-  // whether the step applies now. Before the first step on another page or view the tour rings the button that goes
-  // there with "Next: ..." in the card, then slides the page in as a swipe does; only then does the step show. A step
+  // whether the step applies now and `opens` the closed section its control sits in. Before a step elsewhere the tour
+  // goes there one hop at a time (tourMove: scroll to the control, ring it for a second with "Next: ..." in the card,
+  // then slide the page in as a swipe does, open the menu or the section); only then does the step show. A step
   // whose control is not drawn is skipped. Done, the close button and Escape put back the tab, view and scroll the
   // tour started from.
-  const TOUR_PAGES = ["setup", "inputs", "outputs", "menu", "help"];
-  const TOUR_PRESS_MS = 720;  // how long the ring stays on the button pressed before the page moves
+  const TOUR_PAGES = ["setup", "inputs", "outputs", "bar", "menu", "help"];
+  const TOUR_PRESS_MS = 1000;  // how long the ring stays on the control pressed before the tour moves on
+  const TOUR_SCROLL_SPEED = 900;  // px a second the tour scrolls at, so the eye can follow
+  const TOUR_SCROLL_MS = [400, 1500];  // the shortest and longest such scroll
   const TOUR_STEPS = [
-    { title: "Undo", page: "setup", target: "#undoButton",
-      text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
     { title: "Headline figures", page: "setup", target: "#pinned",
-      text: "The figures across the top sum up your plan: the median final worth over the runs and the same after tax, "
-        + "then two yearly averages such as net withdrawal and expense. They update after every change." },
+      text: "The figures across the top sum up your plan: what you are worth today, the median final worth over the "
+        + "runs, then two yearly averages such as net withdrawal and expense. They update after every change." },
     { title: "Your scenarios", page: "setup", target: "#savedCard",
       text: "Setup shows the scenario you are working on: save, rename, duplicate, clear or export it. Below it you "
         + "can open another scenario, start a new one or import a file." },
     { title: "Your household", page: "setup", target: "#householdCard legend",
       text: "Household on Setup holds the basics: whether there is a partner, your ages, filing status and home "
         + "state." },
-    { title: "Runs", page: "setup", target: "#runCard",
-      text: "Runs sets how many possible futures (Monte Carlo runs) sit behind every result: more runs are steadier "
-        + "but slower. The same seed gives the same random draws each time." },
+    { title: "Advanced settings", page: "setup", target: "#runCard", opens: "#advancedSettings",
+      text: "Advanced settings, at the bottom of Setup, holds the run settings: the years to simulate (until you are "
+        + "100 unless you change it), how many possible futures (Monte Carlo runs) sit behind every result, more being "
+        + "steadier but slower, and the seed; the same seed gives the same random draws each time." },
     { title: "Setup, Inputs and Outputs", page: "setup", when: () => !wide.on, target: ".tabbar",
       text: "The bar at the bottom moves between the three parts of the app: Setup (your scenarios and runs), Inputs "
         + "(your settings) and Outputs (the results). Next, Inputs." },
@@ -8844,7 +9041,7 @@
       text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
     { title: "Summary", page: "outputs", view: "summary", target: "#sub-summary",
       text: "Summary shows the results over all the runs: final worth before and after tax with its range, warnings "
-        + "and opportunities for your plan, final worth by percentile and a summary table." },
+        + "and opportunities for your plan. The detailed tables are in the Final report (PDF) in the menu." },
     { title: "Plots", page: "outputs", view: "plots", target: "#sub-plots",
       text: "Plots draws the plan year by year: the total balance over the runs, each account's balance, cash flow, "
         + "deposits and withdrawals, taxes and expenses." },
@@ -8854,6 +9051,8 @@
     { title: "Optimize", page: "outputs", view: "optimize", target: "#sub-optimize",
       text: "Optimize tries other choices for you (when to claim Social Security, which state to retire in, how to "
         + "draw down) and shows what each would be worth. Tick what you would consider and tap Find best settings." },
+    { title: "Undo", page: "bar", target: "#undoButton",
+      text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
     { title: "Walk me through it", page: "menu", target: "#menuWalk",
       text: "Walk me through it asks one question at a time and fills in your settings. Where a topic has more "
         + "detail, Go deeper adds its extra questions." },
@@ -8866,14 +9065,15 @@
     { title: "This tour", page: "help", target: "#helpButton",
       text: "Tap ? any time to see this tour again." },
   ];
-  const tour = { steps: [], at: 0, from: null, direction: 1, token: 0, busy: false, timers: [] };
+  const tour = { steps: [], at: 0, from: null, direction: 1, token: 0, busy: false, skip: null, timers: [],
+    relayoutTimer: 0 };
 
   const tourTarget = (step) => document.querySelector(step.target);
 
   // Where a step shows: its tab and Outputs view (the menu and ? stay on the page the tour is on), and whether the
   // menu is open.
   function tourPlace(step) {
-    if (step.page === "menu" || step.page === "help") {
+    if (step.page === "bar" || step.page === "menu" || step.page === "help") {
       return { tab: state.tab, view: state.view, menu: step.page === "menu" };
     }
     return { tab: step.page, view: step.view || state.view, menu: false };
@@ -8902,6 +9102,7 @@
   // The card back from the caption to the step's title and text.
   function tourCaptionOff() {
     tour.busy = false;
+    tour.skip = null;
     $("tourNav").hidden = true;
     $("tourNav").textContent = "";
     $("tourTitle").hidden = false;
@@ -8915,11 +9116,10 @@
     const direction = tourRank(to.tab, to.view) >= tourRank(state.tab, state.view) ? 1 : -1;
     const open = () => {
       goTo(to.tab, to.view);
-      state.scroll[scrollKey()] = 0;
       scrollPlaceTop(to.tab);
     };
     const moving = wide.on ? (to.view !== state.view ? $("panel-outputs") : null) : shownPanel();
-    if (!moving || reducedMotion()) { open(); done(); return; }
+    if (!moving || reducedMotion() || tourMs(1) === 0) { open(); done(); return; }
     const width = window.innerWidth;
     moving.classList.add("tour-sliding");
     moving.style.transition = "transform 140ms ease-in";
@@ -8942,34 +9142,144 @@
     });
   }
 
-  // Move to `step`'s page, then `done`. On the same page at once (closing the menu when the step is not in it);
-  // otherwise the card shows only "Next: <page>" while the ring presses the button that goes there (a bottom tab, an
-  // Outputs view or the menu button; no ring when that button is not drawn), then the page slides in or the menu opens.
-  function tourMove(step, token, done) {
+  // A tour wait or scroll in ms, scaled by `window.WMTI_TOUR_SPEED` when a test sets it (0: at once).
+  function tourMs(ms) {
+    const speed = Number(window.WMTI_TOUR_SPEED);
+    return window.WMTI_TOUR_SPEED != null && Number.isFinite(speed) && speed >= 0 ? ms * speed : ms;
+  }
+
+  // The next control the tour presses on its way to `step`, one hop at a time, or null once there: the bottom tab of
+  // another page (the page keeps its Outputs view), then the chip of another Outputs view, the menu button for a
+  // step in the menu, or the header of a closed section the step's control sits in (`opens`, Advanced settings); in
+  // the wide layout a Setup step first unfolds a folded Setup column from its rail. `go` is the place the hop opens,
+  // `menu` that it opens the menu, `section` the section it opens, `unfold` that it unfolds Setup.
+  function tourHop(step) {
     const to = tourPlace(step);
-    if (!to.menu) tourMenu(false);
-    const pageMoves = to.tab !== state.tab || to.view !== state.view;
-    const menuOpens = to.menu && $("menu").hidden;
-    if (!pageMoves && !menuOpens) { done(); return; }
+    if (step.page === "setup" && wide.on && setupFold.folded) {
+      return { button: $("setupFold"), label: "Setup", unfold: true };
+    }
+    if (to.tab !== state.tab) {
+      return { button: $("tab-" + to.tab), label: $("tab-" + to.tab).textContent.trim(),
+        go: { tab: to.tab, view: state.view } };
+    }
+    if (to.view !== state.view) {
+      return { button: $("sub-" + to.view), label: $("sub-" + to.view).textContent.trim(),
+        go: { tab: to.tab, view: to.view } };
+    }
+    if (to.menu && $("menu").hidden) return { button: $("menuButton"), label: "the menu", menu: true };
+    const section = step.opens ? document.querySelector(step.opens) : null;
+    if (section && !section.open) {
+      const header = section.querySelector("summary");
+      return { button: header, label: (header.querySelector(".advanced-head > span") || header).textContent.trim(),
+        section };
+    }
+    return null;
+  }
+
+  // Take a hop at once (a skip): the place opened at its top, the menu or the section opened.
+  function tourHopNow(hop) {
+    if (hop.go) { goTo(hop.go.tab, hop.go.view); scrollPlaceTop(hop.go.tab); }
+    if (hop.menu) tourMenu(true);
+    if (hop.section) hop.section.open = true;
+    if (hop.unfold) foldSetup(false);
+  }
+
+  // The caption ("Next: <place>") in the card in place of the step's title and text, while the tour moves; Back and
+  // Next then skip to the end of the move (tour.skip).
+  function tourCaption(text, skip) {
     tour.busy = true;
-    const button = !pageMoves ? $("menuButton") : to.tab !== state.tab ? $("tab-" + to.tab) : $("sub-" + to.view);
+    tour.skip = skip;
     $("tourTitle").hidden = true;
     $("tourText").hidden = true;
     $("tourNav").hidden = false;
-    $("tourNav").textContent = "Next: " + (pageMoves ? button.textContent.trim() : "the menu");
-    const ring = $("tourRing");
-    if (tourShown(button) && ringOver(button)) ring.classList.add("tour-press");
-    else ring.hidden = true;
-    tourLater(token, TOUR_PRESS_MS, () => {
-      ring.classList.remove("tour-press");
-      const finish = () => {
-        tourCaptionOff();
-        done();
-      };
-      if (pageMoves) { tourSlide(to, token, finish); return; }
-      tourMenu(true);
-      finish();
+    $("tourNav").textContent = text;
+  }
+
+  // Move to `step`'s place, then `done`, one hop at a time (tourHop) so the eye can follow: the card says "Next:
+  // <place>" while the page scrolls to the control pressed at a readable pace (tourScrollInto) and the ring presses
+  // it for TOUR_PRESS_MS (no ring when it is not drawn: the wide layout has no bottom bar); then the page slides in as
+  // a swipe slides it, the menu opens or the section opens, and the next hop starts. The menu closes for a step
+  // outside it. Back or Next during a move skips to its end and shows the step.
+  function tourMove(step, token, done) {
+    if (!tourPlace(step).menu) tourMenu(false);
+    const hop = tourHop(step);
+    if (!hop) {
+      if (tour.busy) tourCaptionOff();
+      done();
+      return;
+    }
+    tourCaption("Next: " + hop.label, () => {  // skip: every hop left at once, then the step
+      tourStop();
+      for (let next = tourHop(step), count = 0; next && count < 5; next = tourHop(step), count += 1) tourHopNow(next);
+      if (!tourPlace(step).menu) tourMenu(false);
+      tour.token += 1;
+      tourCaptionOff();
+      done();
     });
+    const ring = $("tourRing");
+    const press = () => {
+      if (tourShown(hop.button) && ringOver(hop.button)) {
+        ring.style.animationDuration = tourMs(TOUR_PRESS_MS) / 2 + "ms";
+        ring.classList.add("tour-press");
+      } else {
+        ring.hidden = true;
+      }
+      tourLater(token, tourMs(TOUR_PRESS_MS), () => {
+        ring.classList.remove("tour-press");
+        ring.style.animationDuration = "";
+        const next = () => tourMove(step, token, done);
+        if (hop.go) { tourSlide(hop.go, token, next); return; }
+        tourHopNow(hop);
+        if (hop.menu) { tourLater(token, tourMs(BUBBLE_MS), next); return; }  // the menu has opened
+        requestAnimationFrame(() => { if (token === tour.token) next(); });  // the section has opened
+      });
+    };
+    ring.hidden = true;
+    if (tourShown(hop.button)) tourScrollInto(hop.button, token, press);
+    else press();
+  }
+
+  // The nearest box around `element` that scrolls up and down (a wide layout column), or null for the page.
+  function tourScroller(element) {
+    for (let node = element.parentElement; node && node !== document.body; node = node.parentElement) {
+      const style = getComputedStyle(node);
+      if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1) return node;
+      if (style.position === "fixed") return undefined;  // a fixed bar: nothing to scroll
+    }
+    return null;
+  }
+
+  // Bring `element` to the middle of its scroller (or into it, when taller) at a readable pace, eased, about
+  // TOUR_SCROLL_SPEED px a second within TOUR_SCROLL_MS, then `then`; with reduced motion at once. Left as it is when
+  // it already shows whole. A tour that closes or moves on stops it (its token changed) without `then`.
+  function tourScrollInto(element, token, then) {
+    const scroller = tourScroller(element);
+    if (scroller === undefined) { then(); return; }
+    const page = scroller === null;
+    const view = page ? { top: 0, bottom: window.innerHeight } : scroller.getBoundingClientRect();
+    const box = element.getBoundingClientRect();
+    const from = page ? window.scrollY : scroller.scrollTop;
+    const room = page ? document.documentElement.scrollHeight - window.innerHeight
+      : scroller.scrollHeight - scroller.clientHeight;
+    const shows = box.top >= view.top && box.bottom <= view.bottom;
+    const middle = box.height < view.bottom - view.top
+      ? (box.top + box.bottom) / 2 - (view.top + view.bottom) / 2 : box.top - view.top - 8;
+    const goal = Math.round(Math.max(0, Math.min(room, from + middle)));
+    const set = (y) => { if (page) window.scrollTo(0, y); else scroller.scrollTop = y; };
+    const distance = Math.abs(goal - from);
+    if (shows || distance < 2) { then(); return; }
+    const duration = tourMs(Math.min(TOUR_SCROLL_MS[1], Math.max(TOUR_SCROLL_MS[0], distance / TOUR_SCROLL_SPEED * 1000)));
+    if (reducedMotion() || duration === 0) { set(goal); then(); return; }
+    const start = performance.now();
+    const frame = (now) => {
+      if (token !== tour.token || $("tour").hidden) return;
+      const t = Math.min(1, (now - start) / duration);
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;  // ease in and out
+      set(Math.round(from + (goal - from) * eased));
+      if (t < 1) requestAnimationFrame(frame);
+      else then();
+    };
+    requestAnimationFrame(frame);
   }
 
   function tourShown(element) {
@@ -9001,14 +9311,15 @@
       && top <= box.top + 1 && bottom >= box.bottom - 1, box };
   }
 
-  // Call `done` once a control's box has held still for a few frames (a scroll has settled), or after about a second.
+  // Call `done` once a control's box, the window's size and the layout (phone or wide) have held still for a few frames
+  // (a scroll or a turn of the screen has settled), or after about a second.
   function tourSettle(target, done) {
     let last = "";
     let still = 0;
     let frames = 0;
     const tick = () => {
       const box = target.getBoundingClientRect();
-      const key = [box.left, box.top, box.width, box.height].join(",");
+      const key = [box.left, box.top, box.width, box.height, window.innerWidth, window.innerHeight, wide.on].join(",");
       still = key === last ? still + 1 : 0;
       last = key;
       frames += 1;
@@ -9020,7 +9331,10 @@
 
   // Bring the shown step's control into view (the page, its column and its chips row), wait for the scroll to settle,
   // then place the ring; a control still not visible is skipped in the tour's direction rather than ringed over nothing.
-  function tourFocusTarget() {
+  // A control further down the page is scrolled to at a readable pace (tourScrollInto) while the card says "Next:
+  // <step>" and no ring shows, so the step's ring and text come once it is there; `instant` (a resize or a turn of
+  // the screen) jumps there instead.
+  function tourFocusTarget(instant) {
     if ($("tour").hidden || tour.busy) return;  // a move to another page places the ring itself
     const token = ++tour.token;
     delete $("tour").dataset.ready;
@@ -9028,25 +9342,51 @@
     const target = step && tourTarget(step);
     if (!tourShown(target)) { showTourStep(tour.at + tour.direction, tour.direction); return; }
     const seen = tourVisibleBox(target);
-    if (!seen || !seen.whole) {
-      const box = target.getBoundingClientRect();
-      const across = !seen || seen.left > box.left + 1 || seen.right < box.right - 1;
-      const down = !seen || seen.top > box.top + 1 || seen.bottom < box.bottom - 1;
-      target.scrollIntoView({ block: down ? "center" : "nearest", inline: across ? "center" : "nearest" });
-    }
-    placeTourRing();  // where it shows now; placed again once any scroll has settled
-    tourSettle(target, () => {
-      if (token !== tour.token || $("tour").hidden) return;
-      if (!tourVisibleBox(target)) { showTourStep(tour.at + tour.direction, tour.direction); return; }
-      placeTourRing();
-      $("tour").dataset.ready = "true";
+    const box = target.getBoundingClientRect();
+    const across = !seen || seen.left > box.left + 1 || seen.right < box.right - 1;
+    const down = !seen || seen.top > box.top + 1 || seen.bottom < box.bottom - 1;
+    const ring = () => {
+      if (across || (down && instant === true)) {
+        target.scrollIntoView({ block: down ? "center" : "nearest", inline: across ? "center" : "nearest" });
+      }
+      placeTourRing();  // where it shows now; placed again once any scroll has settled
+      tourSettle(target, () => {
+        if (token !== tour.token || $("tour").hidden) return;
+        if (!tourVisibleBox(target)) { showTourStep(tour.at + tour.direction, tour.direction); return; }
+        placeTourRing();
+        $("tour").dataset.ready = "true";
+      });
+    };
+    if (!down || instant === true || tourScroller(target) === undefined) { ring(); return; }
+    $("tourRing").hidden = true;
+    tourCaption("Next: " + step.title, () => {  // skip: there at once
+      tour.token += 1;
+      tourCaptionOff();
+      target.scrollIntoView({ block: "center", inline: "nearest" });
+      tourFocusTarget(true);
     });
+    tourScrollInto(target, token, () => {
+      tourCaptionOff();
+      ring();
+    });
+  }
+
+  // After a resize, a turn of the screen or a switch between the phone and wide layouts: place the ring now, and again
+  // once the turn has finished (TOUR_RELAYOUT_MS after the last such event). A turn reports its size in steps and the
+  // wide layout's class follows the resize (its media query listener runs after the resize handlers), so a ring
+  // measured only at the first event can stay where the control was in the old layout: a corner of the new one.
+  const TOUR_RELAYOUT_MS = 350;
+  function tourRelayout() {
+    if ($("tour").hidden) return;
+    tourFocusTarget(true);
+    clearTimeout(tour.relayoutTimer);
+    tour.relayoutTimer = setTimeout(() => tourFocusTarget(true), TOUR_RELAYOUT_MS);
   }
 
   function openTour() {
     if (!$("tour").hidden) return;
     tour.steps = TOUR_STEPS.filter((step) => !step.when || step.when());
-    tour.from = { tab: state.tab, view: state.view, scroll: window.scrollY };
+    tour.from = { tab: state.tab, view: state.view, scroll: window.scrollY, advanced: $("advancedSettings").open };
     $("tour").hidden = false;
     $("app").inert = true;
     $("helpButton").setAttribute("aria-expanded", "true");
@@ -9077,6 +9417,7 @@
   function closeTour() {
     if ($("tour").hidden) return;
     tour.token += 1;  // a move under way stops here
+    clearTimeout(tour.relayoutTimer);
     tourStop();
     tourCaptionOff();
     $("tourRing").hidden = false;
@@ -9087,6 +9428,7 @@
     $("helpButton").setAttribute("aria-expanded", "false");
     const from = tour.from;
     if (from && (from.tab !== state.tab || from.view !== state.view)) goTo(from.tab, from.view);
+    if (from) $("advancedSettings").open = from.advanced;  // shut again when the tour opened it
     if (from) window.scrollTo(0, from.scroll);
     $("helpButton").focus();
   }
@@ -9102,6 +9444,7 @@
     $("tourCount").textContent = (at + 1) + " of " + tour.steps.length;
     const step = tour.steps[at];
     tourMove(step, token, () => {
+      if (step.page === "setup") revealSetup();
       if (!tourShown(tourTarget(step))) { showTourStep(at + direction, direction); return; }
       tour.at = at;
       tour.direction = direction;
@@ -9146,10 +9489,15 @@
     $("helpButton").setAttribute("aria-expanded", "false");
     $("helpButton").addEventListener("click", openTour);
     $("tourClose").addEventListener("click", closeTour);
-    // Back and Next wait while the tour moves to another page (the caption shows), so no tip shows before its page.
-    $("tourBack").addEventListener("click", () => { if (!tour.busy) showTourStep(tour.at - 1, -1); });
+    // Back and Next during a move or a scroll skip to its end and show the step (tour.skip); pressed again they move on.
+    const skipped = () => {
+      if (!tour.busy) return false;
+      if (tour.skip) tour.skip();
+      return true;
+    };
+    $("tourBack").addEventListener("click", () => { if (!skipped()) showTourStep(tour.at - 1, -1); });
     $("tourNext").addEventListener("click", () => {
-      if (tour.busy) return;
+      if (skipped()) return;
       if (tour.at >= tour.steps.length - 1) closeTour();
       else showTourStep(tour.at + 1, 1);
     });
@@ -9164,8 +9512,10 @@
       }
       trapFocus(event, $("tourCard"));
     }, true);
-    window.addEventListener("resize", tourFocusTarget);  // a turned or resized screen: bring the control back in view
-    window.addEventListener("orientationchange", tourFocusTarget);
+    // A turned or resized screen: bring the control back in view and ring it again where it is now.
+    window.addEventListener("resize", tourRelayout);
+    window.addEventListener("orientationchange", tourRelayout);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", tourRelayout);
     window.addEventListener("scroll", placeTourRing, { passive: true });
     document.addEventListener("scroll", placeTourRing, { passive: true, capture: true });  // a wide layout column
   }
@@ -9192,8 +9542,10 @@
     });
     $("settings-body").addEventListener("submit", (event) => event.preventDefault());
     $("household-body").addEventListener("submit", (event) => event.preventDefault());
-    $("sheetDone").addEventListener("click", closeSheet);
-    $("sheetBackdrop").addEventListener("click", closeSheet);
+    $("sheetDone").addEventListener("click", saveSheet);
+    $("sheetCancel").addEventListener("click", cancelSheet);
+    $("sheetBackdrop").addEventListener("click", cancelSheet);
+    wireKeyboardInset();
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       if (!$("rowMenu").hidden) { closeRowMenu(); return; }
@@ -9203,18 +9555,19 @@
       closeAbout();
       closeLegal();
       closeInstallHelp();
-      closeSheet();
+      cancelSheet();
     });
     $("menuButton").addEventListener("click", openMenu);
     $("menuBackdrop").addEventListener("click", closeMenu);
     $("undoButton").addEventListener("click", undoLast);
     $("menuAbout").addEventListener("click", openAbout);
     $("menuReport").addEventListener("click", () => { closeMenu(); openReportPicker(); });
+    document.addEventListener("click", (event) => { if (event.target.closest(".open-report")) openReportPicker(); });
     $("aboutCheck").addEventListener("click", checkForUpdates);
-    $("aboutDone").addEventListener("click", closeAbout);
+    $("aboutClose").addEventListener("click", closeAbout);
     $("aboutBackdrop").addEventListener("click", closeAbout);
     $("menuLegal").addEventListener("click", openLegal);
-    $("legalDone").addEventListener("click", closeLegal);
+    $("legalClose").addEventListener("click", closeLegal);
     $("legalBackdrop").addEventListener("click", closeLegal);
     $("legalDocs").addEventListener("click", showLegalDocument);
     for (const button of document.querySelectorAll(".scheme")) {
@@ -9234,6 +9587,13 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBubbles);
     $("saveButton").addEventListener("click", saveButtonPressed);
     $("autoSave").addEventListener("click", toggleAutoSave);
+    // Setup's Advanced settings (the Run card): shut until opened; open or shut is kept on this device.
+    const advanced = $("advancedSettings");
+    try { advanced.open = localStorage.getItem(ADVANCED_KEY) === "open"; } catch (error) { /* storage blocked: shut */ }
+    advanced.addEventListener("toggle", () => {
+      if (state.clearing) return;
+      try { localStorage.setItem(ADVANCED_KEY, advanced.open ? "open" : "closed"); } catch (error) { /* this visit only */ }
+    });
     $("renameButton").addEventListener("click", () => renameDialog(state.scenarioName));
     $("duplicateButton").addEventListener("click", duplicateOpen);
     $("clearButton").addEventListener("click", clearDialog);

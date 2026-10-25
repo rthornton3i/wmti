@@ -3,7 +3,8 @@
 // into plain report data, and drawReport draws that data with a jsPDF document. The body holds the headline figures,
 // four key results, the insights (warnings and opportunities, insights.js) and the charts, each with a one-line caption and a short summary built by rules from the run's
 // data; the addendum holds every table at the full page width, in small type with the header row repeated on each
-// page. The settings tables leave out the fields the app hides. buildReport and the helpers run in Node for the tests;
+// page, grouped under section headings and subheadings, each table under its title and a one or two sentence brief.
+// The settings tables leave out the fields the app hides. buildReport and the helpers run in Node for the tests;
 // drawReport needs only the jsPDF object it is given, and the page rasterizes the charts (standaloneSvg) before
 // calling it.
 (function (root) {
@@ -16,7 +17,8 @@
   const MAX_SAVED = 4;  // saved scenarios the report can compare with the current settings
   // The body's charts, in order, by the Monte Carlo result's chart ids; one-line captions.
   const PLOTS = [
-    { id: "bands", caption: "Median run (line) and 10th to 90th percentile (shaded) of the total balance." },
+    { id: "bands", caption: "Median run (line) and 10th to 90th percentile (shaded) of the total balance; the dot past "
+      + "the last year is what beneficiaries keep (median)." },
     { id: "histogram", caption: "How the runs' final values spread; the extreme runs are left out." },
     { id: "balances", caption: "Each account's balance by year; middle half average of the runs." },
     { id: "cashFlow", caption: "Cash in above zero, cash out below; middle half average of the runs." },
@@ -27,7 +29,7 @@
   const COMPARE_CAPTION = "Median (line) and 10th to 90th percentile (shaded) per configuration; same runs and seed.";
   // The app's own wording (the Setup notice): estimates for education, not advice.
   const NOTICE = "Estimates for education only; not financial, tax or legal advice.";
-  const AFTER_TAX_PREFIX = "Final net worth after terminal tax";
+  const AFTER_TAX_LABEL = "What beneficiaries keep";  // wmti.dashboard.web.AFTER_TAX_LABEL
   // The light scheme's chart tokens (the plain :root block of styles.css) and its series palette, slots 0 to 9.
   const LIGHT = { line: "#D6E2E4", muted: "#4F6772", surface: "#ffffff", ink: "#0B3A4F", ink2: "#2E5566" };
   const PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948", "#8c5a2e",
@@ -53,17 +55,66 @@
     homes: "Homes", cars: "Cars", children: "Children and education", rents: "Rents", visits: "Healthcare visits",
     premiums: "Health premiums", salaryHistory: "Salary history", retirementSpending: "Retirement spending" };
   // The yearly table's column groups, first match wins; the rest go under Other.
+  // Each group: [title, column pattern, the first sentence of its addendum brief].
   const YEARLY_GROUPS = [
-    ["Income sources", /^(Paycheck|Interest|Social Security$|Asset Sale|Employer Match|Home Sale|Gross Income|Net Earnings)/],
-    ["Taxes, deductions and withholding", /(Tax|Federal|State|MAGI|AGI|Deduction|Itemized|Dependents|HSA|FSA|Property|Medicare|Capital Gains|^Medical$|^Taxable)/],
-    ["Deposits and withdrawals", /(Deposit|Withdraw|QCD|Conversion|Investment Gains|Shortfall)/],
-    ["Loans, homes and cars", /(Loan|Home Value|Car Value)/],
-    ["Expenses", /(Bills|Spending|College|Healthcare|Supplement|Premium|IRMAA|Car |Charitable|Asset Purchases|Selling Costs|Tagged)/],
-    ["Other", /./],
+    ["Income sources", /^(Paycheck|Interest|Social Security$|Asset Sale|Employer Match|Home Sale|Gross Income|Net Earnings)/,
+      "Money coming in each year by source: pay, interest, Social Security, employer match and sales."],
+    ["Taxes, deductions and withholding", /(Tax|Federal|State|MAGI|AGI|Deduction|Itemized|Dependents|HSA|FSA|Property|Medicare|Capital Gains|^Medical$|^Taxable)/,
+      "Each year's taxes by kind and the income and deduction figures they are worked out from."],
+    ["Deposits and withdrawals", /(Deposit|Withdraw|QCD|Conversion|Investment Gains|Shortfall)/,
+      "Money put into and taken out of the accounts each year, with Roth conversions, investment gains and any "
+      + "spending left unpaid."],
+    ["Loans, homes and cars", /(Loan|Home Value|Car Value)/,
+      "What is still owed on loans and what homes and cars are worth at each year."],
+    ["Expenses", /(Bills|Spending|College|Healthcare|Supplement|Premium|IRMAA|Car |Charitable|Asset Purchases|Selling Costs|Tagged)/,
+      "Spending each year by kind: bills, healthcare and premiums, college, cars, gifts and purchases."],
+    ["Other", /./, "The other yearly figures, such as the inflation rate used each year."],
   ];
+  // The first sentence of the brief over each "Settings: <group>" table, by the group's settings key ("" for the
+  // single settings at the top level); a group not listed gets a general sentence.
+  const GROUP_BRIEFS = {
+    "": "Settings that apply to the whole plan, such as the years planned, filing status, home state and withdrawal "
+      + "order.",
+    you: "Your own settings: age, pay and raises, Social Security and employer match.",
+    partner: "Your partner's settings: age, pay and raises, Social Security and employer match.",
+    inflation: "The range the runs draw each year's inflation rate from: the lowest, most likely and highest rate.",
+    randomMajorExpense: "The range the runs draw an unplanned large expense from: the lowest, most likely and highest "
+      + "amount.",
+    contributions: "How new savings are deposited: whether deposits are on, the share that goes to Traditional "
+      + "accounts and the Roth deposit.",
+    healthcare: "How healthcare costs are worked out: from doctor visits, or as one flat amount a year.",
+    visits: "The doctor visits, their cost and the health plan's cost sharing, used when healthcare costs come from "
+      + "visits.",
+    premiums: "Health plan and Medicare premiums, and the age Medicare starts.",
+    supplement: "The Medicare supplement plan: whether it is on, its monthly cost and its cost sharing.",
+    strategies: "Tax strategies and end-of-plan settings: Roth conversions, backdoor Roth, gifts to charity from an "
+      + "IRA, the tax rate on what is left, and relocation.",
+    home: "The home's monthly utility bills.",
+    hsa: "The health savings account: whether it is on, how deposits are sized, the starting balance and returns.",
+    dependentCareFsa: "The dependent care flexible spending account: whether it is on and its yearly cap.",
+    retirementSpending: "How spending changes once you retire, and the age the change starts.",
+  };
+  // Group titles that read better than the key spelled out.
+  const GROUP_TITLES = { hsa: "Health savings account (HSA)", dependentCareFsa: "Dependent care FSA" };
+  // The brief over each list table, by the list's key; a list not listed gets a general sentence.
+  const LIST_BRIEFS = {
+    expenses: "Each planned expense with its amount, category and years; suggested rows not filled in are left out.",
+    accounts: "Each account with its kind, owner, starting balance and expected return.",
+    loans: "Each loan and mortgage with its balance, rate and payment.",
+    homes: "Each home with its value, costs, mortgage and any purchase or sale.",
+    cars: "Each car with its price, running costs, loan and when it is bought or sold.",
+    children: "Each child with the ages and costs used for childcare and college.",
+    rents: "Each rent with its amount and the years it is paid.",
+    visits: "The doctor visits a year used to work out healthcare costs.",
+    salaryHistory: "Past pay by year, used to estimate Social Security from earnings.",
+    socialSecurityByAge: "The yearly Social Security benefit by the age it is claimed, as entered.",
+    salaryOverrides: "Pay set by hand for given years, in place of the raise rules.",
+    heirs: "Who inherits what is left at the end of the plan: each one's share, other income and filing status, and "
+      + "how the payout is taken.",
+  };
   // Yearly table columns shown for records only, with the heading that says so: already counted elsewhere.
   const RECORDS_HEADINGS = { "Sales Tax (records)": "Sales tax (already in expenses, shown for records)" };
-  const PLAIN_COLUMN = /^(Age|Year|Divisor|Dependents|Deduction type|Percentile)/;
+  const PLAIN_COLUMN = /^(Age|Your age|Year|Divisor|Dependents|Deduction type|Percentile)/;
 
   // ---- report data ----
 
@@ -91,9 +142,10 @@
       parts.push("You " + you.currentAge + (partner && Number.isFinite(partner.currentAge) ? ", partner "
         + partner.currentAge : ""));
     }
-    if (inputs && Number.isFinite(inputs.years)) {
-      parts.push(inputs.years + " years planned" + (you && Number.isFinite(you.currentAge) ? " (to your age "
-        + (you.currentAge + inputs.years - 1) + ")" : ""));
+    const years = inputs ? shared.planYears(inputs) : null;  // a blank one: the years until you are 100
+    if (Number.isFinite(years)) {
+      parts.push(years + " years planned" + (you && Number.isFinite(you.currentAge) ? " (to your age "
+        + (you.currentAge + years - 1) + ")" : ""));
     }
     return parts.join(" · ");
   }
@@ -107,7 +159,7 @@
     const singleLines = single ? single.headlines : [];
     const picks = [
       [headlineOf(mcLines, (label) => label === "Median final worth"), "Median final worth"],
-      [headlineOf(mcLines, (label) => label.startsWith(AFTER_TAX_PREFIX)), "After tax, incl. home and cars"],
+      [headlineOf(mcLines, (label) => label === AFTER_TAX_LABEL), AFTER_TAX_LABEL],
       [headlineOf(singleLines, (label) => /^Avg net (withdrawal|earnings)/.test(label)), null],
       [headlineOf(singleLines, (label) => label === "Avg annual expense"), "Avg annual expense"],
     ];
@@ -126,7 +178,7 @@
   }
 
   function afterTaxValue(monteCarlo) {
-    const item = headlineOf(monteCarlo && monteCarlo.headlines, (label) => label.startsWith(AFTER_TAX_PREFIX));
+    const item = headlineOf(monteCarlo && monteCarlo.headlines, (label) => label === AFTER_TAX_LABEL);
     return item ? item.value : null;
   }
 
@@ -155,14 +207,20 @@
         values: byAge(line.values), high: byAge(line.high), afterTax: afterTaxValue(config.result) };
     });
     const first = bandsOf(configs[0]);
-    return { id: "reportCompare", type: "compareBands", title: "Total balance by age", x: { label: "Your age", values: ages },
+    // The calendar year of each age is the first configuration's (the year you are that age in it), as Compare does.
+    const born = first.x.years && first.x.ages ? first.x.years[0] - first.x.ages[0] : null;
+    const x = born == null ? { label: "Your age", values: ages }
+      : { label: "Your age (year)", values: ages, ages, years: ages.map((age) => age + born) };
+    const lead = born == null ? ["Your age"] : ["Your age", "Year"];
+    return { id: "reportCompare", type: "compareBands", title: "Total balance by age", x,
       y: { label: "Total balance", unit: "money" }, percentiles: first.percentiles, series, dollars: first.dollars,
-      table: { columns: ["Your age"].concat(series.map((item) => item.name + " median")),
-        rows: ages.map((age, position) => [age].concat(series.map((item) => item.values[position]))) } };
+      table: { columns: lead.concat(series.map((item) => item.name + " median")),
+        rows: ages.map((age, position) => (born == null ? [age] : [age, age + born])
+          .concat(series.map((item) => item.values[position]))) } };
   }
 
   function comparisonTable(configs) {
-    return { title: "Configurations compared", columns: ["Configuration", "Median final worth", "After tax",
+    return { title: "Configurations compared", columns: ["Configuration", "Median final worth", AFTER_TAX_LABEL,
       "Chance of success", "10th percentile", "90th percentile"], numeric: [false, true, true, true, true, true],
     rows: configs.map((config) => [config.name, fullMoney(percentileValue(config.result, 50)),
       fullMoney(afterTaxValue(config.result)), percent(successShare(config.result), 0),
@@ -245,8 +303,9 @@
     return Boolean(hiddenReason(typeName, name, item, { ...rules, timelineManaged: {} }));
   }
 
-  // The inputs as addendum tables: one "Key inputs" table (group, setting, value) for every single setting, and one
-  // table per list of items (expenses, accounts, loans and so on); a list with no items gives no table, and the
+  // The inputs as addendum tables: one "Settings: <group>" table (setting, value) per group of single settings, and one
+  // table per list of items (expenses, accounts, loans and so on), each with its `brief` (GROUP_BRIEFS, LIST_BRIEFS)
+  // and the list tables marked `list: true`; a list with no items gives no table, and the
   // suggested expense rows not filled in yet (`unfilledSuggestion`) are left out of the expenses. With the
   // settings `schema` and the sheet `rules`, a field the app hides now (a car's loan figures without a loan, the
   // commute figures with the commute off, a section whose switch is off) is left out the same way for every type.
@@ -258,7 +317,7 @@
       if (isHidden(path)) return;
       if (isRecordList(value)) {
         const items = path === "expenses" ? value.filter((item) => !unfilledSuggestion(item)) : value;
-        if (items.length) lists.push(recordTable(listTitle, items, typeName, rules));
+        if (items.length) lists.push({ ...recordTable(listTitle, items, typeName, rules, LIST_BRIEFS[key]), list: true });
         return;
       }
       if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -272,17 +331,30 @@
       if (value == null || (Array.isArray(value) && !value.length)) return;
       keyRows.push([group, label, inputText(key, value)]);
     };
+    const groupKeys = new Map([["General", ""]]);
     const root = (schema && schema.root) || null;
     for (const [key, value] of Object.entries(inputs || {})) {
       if (key === "schemaVersion") continue;
       const title = LIST_TITLES[key] || humanize(key);
       const typeName = fieldType(schema, root, key);
       if (value && typeof value === "object" && !Array.isArray(value)) {
-        walk(value, humanize(key), "", key, title, key, typeName);
+        const group = GROUP_TITLES[key] || humanize(key);
+        groupKeys.set(group, key);
+        walk(value, group, "", key, title, key, typeName);
       } else walk(value, "General", humanize(key), key, title, key, typeName);
     }
-    const tables = [];
-    if (keyRows.length) tables.push({ title: "Key inputs by group", columns: ["Group", "Setting", "Value"], rows: keyRows });
+    // One table per group, in the order the groups first appear.
+    const groups = new Map();
+    for (const [group, label, value] of keyRows) {
+      if (!groups.has(group)) groups.set(group, []);
+      groups.get(group).push([label, value]);
+    }
+    const tables = [...groups].map(([group, rows]) => {
+      const lead = GROUP_BRIEFS[groupKeys.get(group)];
+      return { title: "Settings: " + group, columns: ["Setting", "Value"], rows,
+        brief: lead ? lead + " One row per setting, as entered in the app."
+          : "The " + group.toLowerCase() + " settings, one row per setting, as entered in the app." };
+    });
     const order = Object.values(LIST_TITLES);
     lists.sort((left, right) => rank(order, left.title) - rank(order, right.title));
     return tables.concat(lists);
@@ -295,8 +367,10 @@
 
   // A list of items as a table: a column per field that any item fills and shows, the name first; a field the app
   // hides for an item (`itemFieldHidden`, by the item's `typeName`) is blank for it. A few items with many fields
-  // (homes, cars) read better turned: a row per field and a column per item.
-  function recordTable(title, items, typeName, rules) {
+  // (homes, cars) read better turned: a row per field and a column per item. The `brief` is `lead` (or a general
+  // sentence) and how the table reads.
+  function recordTable(title, items, typeName, rules, lead) {
+    const opening = (lead || "Each item of the " + title.toLowerCase() + " list.") + " ";
     const shown = items.map((item) => Object.fromEntries(Object.entries(item)
       .filter(([key]) => !itemFieldHidden(typeName, key, item, rules))));
     const keys = [];
@@ -306,11 +380,13 @@
     filled.sort((left, right) => (right === "name") - (left === "name"));
     if (filled.length > TURN_FIELDS && shown.length <= TURN_ITEMS) {
       const names = shown.map((item, position) => (item.name != null ? String(item.name) : "Item " + (position + 1)));
-      return { title, columns: ["Setting"].concat(names), numeric: [false].concat(names.map(() => false)),
+      return { title, brief: opening + "One column per item and one row per setting, as entered in the app.",
+        columns: ["Setting"].concat(names), numeric: [false].concat(names.map(() => false)),
         rows: filled.filter((key) => key !== "name").map((key) => [humanize(key)].concat(shown.map((item) =>
           inputText(key, item[key])))) };
     }
-    return { title, columns: filled.map(humanize), numeric: filled.map((key) => shown.every((item) =>
+    return { title, brief: opening + "One row per item, as entered in the app; a blank is a field the item leaves empty or the app hides.",
+      columns: filled.map(humanize), numeric: filled.map((key) => shown.every((item) =>
       item[key] == null || typeof item[key] === "number")),
     rows: shown.map((item) => filled.map((key) => inputText(key, item[key]))) };
   }
@@ -323,19 +399,23 @@
     return fullMoney(value);
   }
 
+  // How a result table's money reads, by the result's `dollars` ("future" when inflation adjusted).
+  const moneyNote = (dollars) => (dollars === "future" ? "amounts are inflation adjusted" : "amounts are in today's value");
+
   // A result frame ({columns, index?, data}) as a table; `indexLabel` names the index column when it has one.
-  function frameTable(title, frame, indexLabel) {
+  function frameTable(title, frame, indexLabel, brief) {
     const hasIndex = Array.isArray(frame.index) && indexLabel;
     const columns = (hasIndex ? [indexLabel] : []).concat(frame.columns);
     const rows = frame.data.map((row, position) => (hasIndex ? [frame.index[position]] : []).concat(row)
       .map((value, column) => columnText(columns[column], value)));
-    return { title, columns, rows, numeric: columns.map((name) => name !== "Deduction type" && name !== "Item") };
+    return { title, brief, columns, rows, numeric: columns.map((name) => name !== "Deduction type" && name !== "Item") };
   }
 
-  // The yearly table (Outputs, Summary table) split into its column groups, each led by your age.
-  function yearlyTables(summary) {
+  // The yearly table (Outputs, Summary table) split into its column groups, each led by your age, each with its
+  // brief (YEARLY_GROUPS) saying how its money reads (`dollars`, the result's).
+  function yearlyTables(summary, dollars) {
     const ageColumn = summary.columns.indexOf("Age (you)");
-    const groups = YEARLY_GROUPS.map(([title]) => ({ title, columns: [] }));
+    const groups = YEARLY_GROUPS.map(([title, , lead]) => ({ title, lead, columns: [] }));
     summary.columns.forEach((name, position) => {
       if (position === ageColumn) return;
       const group = YEARLY_GROUPS.findIndex(([, pattern]) => pattern.test(name));
@@ -345,37 +425,52 @@
       const positions = (ageColumn >= 0 ? [ageColumn] : []).concat(group.columns);
       const names = positions.map((position) => summary.columns[position]);
       const columns = names.map((name) => RECORDS_HEADINGS[name] || name);
-      return { title: "Yearly: " + group.title, columns, numeric: columns.map((name) => name !== "Deduction type"),
+      return { title: "Yearly: " + group.title, brief: group.lead + " One row per year, led by your age; "
+        + moneyNote(dollars) + ".", columns, numeric: columns.map((name) => name !== "Deduction type"),
         rows: summary.data.map((row) => positions.map((position) => columnText(summary.columns[position], row[position]))) };
     });
   }
 
   // The column blocks a table is drawn in: from each column's width measured from its text (`widths`, the row label
-  // column first), as many columns as fit `available` beside the row label column, then the rest in further blocks.
-  // Returns the positions of each block, each led by the row label column (0); a column wider than the room left
-  // beside the label still gets a block of its own.
+  // column first), as few blocks as fit `available` beside the row label column, with the columns spread so the blocks
+  // are about equally wide (never a last block of a couple of leftover columns). Returns the positions of each block,
+  // each led by the row label column (0); a column wider than the room left beside the label gets a block of its own.
   function fitColumns(widths, available) {
-    const blocks = [];
-    let block = [0];
-    let used = widths[0];
-    for (let position = 1; position < widths.length; position += 1) {
-      if (block.length > 1 && used + widths[position] > available) {
-        blocks.push(block);
-        block = [0];
-        used = widths[0];
+    const fill = (cap) => {
+      const blocks = [];
+      let block = [0];
+      let used = widths[0];
+      for (let position = 1; position < widths.length; position += 1) {
+        if (block.length > 1 && used + widths[position] > cap) {
+          blocks.push(block);
+          block = [0];
+          used = widths[0];
+        }
+        block.push(position);
+        used += widths[position];
       }
-      block.push(position);
-      used += widths[position];
+      blocks.push(block);
+      return blocks;
+    };
+    const fullest = fill(available);
+    if (fullest.length === 1) return fullest;
+    // The narrowest cap that still needs no more blocks than filling each one to `available` does.
+    let low = widths[0];
+    let high = available;
+    for (let step = 0; step < 40 && high - low > 0.01; step += 1) {
+      const middle = (low + high) / 2;
+      if (fill(middle).length <= fullest.length) high = middle; else low = middle;
     }
-    blocks.push(block);
-    return blocks;
+    return fill(high);
   }
 
-  // A table's column blocks (`fitColumns` positions) as tables, titled "(1 of n)" when there is more than one.
+  // A table's column blocks (`fitColumns` positions) as tables, titled "(1 of n)" when there is more than one; only
+  // the first block keeps the brief.
   function splitTable(table, blocks) {
     if (blocks.length === 1 && blocks[0].length === table.columns.length) return [table];
     const numeric = table.numeric || table.columns.map(() => false);
     return blocks.map((positions, block) => ({ title: table.title + " (" + (block + 1) + " of " + blocks.length + ")",
+      brief: block === 0 ? table.brief : "",
       columns: positions.map((position) => table.columns[position]),
       numeric: positions.map((position) => numeric[position]),
       rows: table.rows.map((row) => positions.map((position) => row[position])) }));
@@ -641,7 +736,9 @@
   // scenarios run for the report; empty for none), and optionally schema (the settings schema) and rules
   // (appInfo().sheetRules), which leave out of the settings tables the fields the app hides. The comparison is there
   // only when configs has an item. Each plot carries its `summary` sentences; `insights` holds the warnings and
-  // opportunities (insights.js) drawn after the key results.
+  // opportunities (insights.js) drawn after the key results. The addendum is a list of sections ({heading, intro,
+  // parts: [{heading (null for none), tables}], tables: every table of the parts}), empty parts and sections left
+  // out; every table carries a one or two sentence `brief` of what it shows and how to read it.
   function buildReport(data) {
     const monteCarlo = data.monteCarlo;
     const plots = PLOTS.map((plot) => ({ spec: monteCarlo.charts.find((spec) => spec.id === plot.id),
@@ -652,26 +749,53 @@
     const comparison = configs.length ? { spec: compareSpec(configs), caption: COMPARE_CAPTION,
       summary: comparisonSummary(configs),
       lines: configs.map((config) => config.name + ": median " + fullMoney(percentileValue(config.result, 50))
-        + " · after tax " + fullMoney(afterTaxValue(config.result)) + " · success "
+        + " · beneficiaries keep " + fullMoney(afterTaxValue(config.result)) + " · success "
         + percent(successShare(config.result), 0)) } : null;
     const tables = monteCarlo.tables || {};
-    const results = [];
-    if (tables.summary) results.push(...yearlyTables(tables.summary));
-    if (tables.accounts) results.push(frameTable("Accounts by year", tables.accounts, null));
-    if (tables.deductions) results.push(frameTable("Deductions by year", tables.deductions, "Your age"));
+    const money = moneyNote(monteCarlo.dollars);
+    const Money = money.charAt(0).toUpperCase() + money.slice(1) + ".";
+    const perYear = " One row per year, led by your age; " + money + ".";
+    const settings = inputTables(data.inputs, data.schema, data.rules);
+    const accounts = [];
+    if (tables.accounts) {
+      accounts.push(frameTable("Accounts by year", tables.accounts, null,
+        "Each account's balance in each year, with the totals by kind of account." + perYear));
+    }
     if (tables.rmdSchedule && tables.rmdSchedule.data && tables.rmdSchedule.data.length) {
-      results.push(frameTable("Required minimum distributions", tables.rmdSchedule, null));
+      accounts.push(frameTable("Required minimum distributions", tables.rmdSchedule, null,
+        "The least that must be taken out of Traditional accounts in each year the rule applies. " + Money));
     }
-    if (monteCarlo.percentiles) {
-      results.push(frameTable("Final worth by percentile", monteCarlo.percentiles, null));
-    }
-    if (tables.inheritance) results.push(frameTable("Inheritance (median of runs)", tables.inheritance, null));
+    const deductions = tables.deductions ? [frameTable("Deductions by year", tables.deductions, "Your age",
+      "The deduction taken each year, standard or itemized, and its amount." + perYear)] : [];
+    const taxes = tables.taxesByYear ? [frameTable("Taxes paid by year", tables.taxesByYear, "Your age",
+      "The taxes charged each year by kind, the same figures as the Taxes plot; the sales tax is inside spending and "
+      + "not in Total." + perYear)] : [];
+    const outcomes = monteCarlo.percentiles ? [frameTable("Final worth by percentile", monteCarlo.percentiles, null,
+      "What the plan ends with at each percentile of the runs: at the 10th, 9 runs in 10 end higher, and the 50th is "
+      + "the median. " + Money)] : [];
+    const inheritance = tables.inheritance ? [frameTable("Inheritance (median of runs)", tables.inheritance, null,
+      "What is left at the end of the plan, the taxes on it and what beneficiaries keep, each row the median of the "
+      + "runs. " + Money)] : [];
+    const part = (heading, list) => ({ heading, tables: list.filter((table) => table.rows.length) });
     const sections = [
-      { heading: "Settings", tables: inputTables(data.inputs, data.schema, data.rules) },
-      { heading: "Yearly results (middle half average of the runs)", tables: results },
-      { heading: "Comparison", tables: configs.length ? [comparisonTable(configs)] : [] },
-    ].map((section) => ({ heading: section.heading, tables: section.tables.filter((table) => table.rows.length) }))
-      .filter((section) => section.tables.length);
+      { heading: "Your settings", intro: "The settings this report was run with; fields the app hides now are left out.",
+        parts: [part("Single settings by group", settings.filter((table) => !table.list)),
+          part("Lists", settings.filter((table) => table.list))] },
+      { heading: "Year by year results (middle half average of the runs)",
+        intro: "Each year's figure is the average of the middle half of the runs, those between the 25th and 75th "
+          + "percentile of final worth. " + Money,
+        parts: [part("Cash flow by type", tables.summary ? yearlyTables(tables.summary, monteCarlo.dollars) : []),
+          part("Accounts", accounts), part("Taxes", taxes), part("Deductions", deductions)] },
+      { heading: "End of the plan", intro: "How the plan ends across all the runs.",
+        parts: [part("Range of outcomes", outcomes), part("What beneficiaries receive", inheritance)] },
+      { heading: "Comparison", intro: "The current settings beside the saved scenarios picked for this report.",
+        parts: [part(null, configs.length ? [{ ...comparisonTable(configs), brief: "Each configuration's median "
+          + "final worth, what beneficiaries keep, chance of success and 10th and 90th percentile final worth. All of them use "
+          + "the same runs and seed." }] : [])] },
+    ].map((section) => {
+      const parts = section.parts.filter((item) => item.tables.length);
+      return { ...section, parts, tables: parts.flatMap((item) => item.tables) };
+    }).filter((section) => section.tables.length);
     return {
       title: data.scenarioName, filename: reportFilename(data.scenarioName, data.date), date: isoDate(data.date),
       household: householdLine(data.inputs), runs: monteCarlo.runs, seed: monteCarlo.seed,
@@ -714,11 +838,14 @@
       const series = spec.series[0];
       const [low, high] = spec.percentiles || [10, 90];
       return [{ name: "Median", color: series.color, key: "line" }, { name: low + "th to " + high + "th percentile",
-        color: series.color, key: "band" }];
+        color: series.color, key: "band" }].concat(series.afterTax != null ? [{ name: AFTER_TAX_LABEL + " "
+        + fullMoney(series.afterTax), color: series.color, key: "box" }] : []);
     }
     if (spec.type === "histogram") return [];
     return spec.series.map((series) => ({ name: series.name, color: series.color,
-      key: series.mark === "line" || spec.type === "compareBands" ? "line" : series.hatched ? "hatch" : "box" }));
+      key: series.mark === "line" || spec.type === "compareBands" ? "line" : series.hatched ? "hatch" : "box" }))
+      .concat(spec.afterTax != null ? [{ name: AFTER_TAX_LABEL + " " + fullMoney(spec.afterTax), color: LIGHT.ink,
+        key: "box" }] : []);
   }
 
   // ---- drawing ----
@@ -729,6 +856,13 @@
   const INK = [11, 58, 79];
   const MUTED = [79, 103, 114];
   const RULE = [214, 226, 228];
+  // Addendum heading type: section heading and intro, part subheading, table title (alone when it has no brief) and
+  // brief; `after` is the space below, in points.
+  const ADDENDUM_TYPE = { section: { size: 12, style: "bold", after: 3 },
+    intro: { size: 8, style: "normal", color: MUTED, after: 8 }, part: { size: 10, style: "bold", after: 5 },
+    title: { size: 8.5, style: "bold", after: 1.5 }, lone: { size: 8.5, style: "bold", after: 3 },
+    brief: { size: 7.5, style: "normal", color: MUTED, after: 4 } };
+  const KEEP_ROWS = 4;  // a table's title and headings stay on the page with its header row and this many rows
   const LATIN = { "→": "->", "–": "-", "—": "-", "‘": "'", "’": "'", "“": "\"", "”": "\"", "…": "...", "≥": ">=",
     "≤": "<=", "−": "-" };
 
@@ -899,17 +1033,35 @@
     }
     const bodyPages = doc.getNumberOfPages();
 
-    // Addendum: section headings, then each table with its header row repeated on every page it runs onto.
+    // Addendum: each section's heading and intro, each part's subheading, then each table's title and brief over the
+    // table, with its header row repeated on every page it runs onto. The headings wait (`pending`) and are drawn with
+    // the next table, on a new page when they, its header row and first rows do not fit.
     newPage();
     font(14, "bold");
     doc.text("Addendum: tables", PAGE.margin, y + 12);
-    y += 22;
+    y += 24;
+    let pending = [];
     for (const section of report.addendum) {
-      if (y + 60 > bottom) newPage();
-      font(11.5, "bold");
-      doc.text(plain(section.heading), PAGE.margin, y + 11);
-      y += 18;
-      for (const table of section.tables) fitTable(table);
+      pending.push(leadText(section.heading, ADDENDUM_TYPE.section, 12));
+      if (section.intro) pending.push(leadText(section.intro, ADDENDUM_TYPE.intro));
+      for (const part of section.parts || [{ heading: null, tables: section.tables }]) {
+        if (part.heading) pending.push(leadText(part.heading, ADDENDUM_TYPE.part, 4));
+        for (const table of part.tables) fitTable(table);
+      }
+    }
+
+    // A heading or brief as wrapped lines in its type ({size, style, color, after}), `before` points above it unless
+    // it starts a page.
+    function leadText(text, type, before) {
+      font(type.size, type.style, type.color);
+      const lines = doc.splitTextToSize(plain(text), width);
+      return { lines, type, before: before || 0, height: (before || 0) + lines.length * type.size * 1.25 + type.after };
+    }
+    function drawLead(item) {
+      if (y > PAGE.margin) y += item.before;
+      font(item.type.size, item.type.style, item.type.color);
+      for (const line of item.lines) { doc.text(line, PAGE.margin, y + item.type.size); y += item.type.size * 1.25; }
+      y += item.type.after;
     }
 
     // A table split into column blocks by the width its text needs (`fitColumns`), each block drawn at full width.
@@ -957,8 +1109,13 @@
         doc.text(fitText(doc, title, width), PAGE.margin, y + 9);
         y += 13;
       };
-      if (y + 16 + headerHeight + rowHeight * Math.min(3, table.rows.length) > bottom) newPage();
-      drawTitle(table.title);
+      const leads = pending.concat(leadText(table.title, table.brief ? ADDENDUM_TYPE.title : ADDENDUM_TYPE.lone),
+        table.brief ? [leadText(table.brief, ADDENDUM_TYPE.brief)] : []);
+      pending = [];
+      const needed = leads.reduce((sum, item) => sum + item.height, 0) + headerHeight
+        + rowHeight * Math.min(KEEP_ROWS, table.rows.length);
+      if (y + needed > bottom) newPage();
+      leads.forEach(drawLead);
       drawHeader();
       table.rows.forEach((row, index) => {
         if (y + rowHeight > bottom) { newPage(); drawTitle(table.title + " (continued)"); drawHeader(); }

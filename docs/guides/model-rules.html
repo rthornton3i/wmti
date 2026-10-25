@@ -175,8 +175,8 @@ PRIORITY withdrawals and a surplus split of 33%, 33%, 0%, 0% and 34%.</p>
 conversion lands in a Roth account of the same owner, and each person’s Traditional deposit
 and employer match go to their own Traditional account (else to the first one). Filing
 separately, an account’s interest, investment gains and taxed withdrawals (RMDs and
-conversions included) go on its owner’s return; only a JOINT account’s are split by
-the partner’s share of joint accounts and shared items on Setup. Turning off <em>Include
+conversions included) go on its owner’s return; only a JOINT account’s are split 50/50
+between the two returns, as are the shared items. Turning off <em>Include
 a partner</em> makes you the owner of the partner’s accounts. Only the part of an Investments
 withdrawal that is gain, the share of the balance above the cost basis, is taxed, as
 long-term capital gains. Returns are drawn each year from the mean and standard deviation;
@@ -245,10 +245,10 @@ older) loads with no daycare cost, so its results do not change.</p>
 <section id="home">
 <span id="tab-home"></span><h2>Home<a class="headerlink" href="#home" title="Link to this heading"></a></h2>
 <p><strong>What it is.</strong> The timeline of when you own each home and when you rent; the homes you own
-or will own, with their values, mortgages, property taxes and insurance, an optional purchase
-or sale during the run, and which one is your primary residence; the rent periods, each with
-its own rent; the household’s utilities; and the Mortgage loans that do not fit a home’s
-mortgage figures.</p>
+or will own, with their values, mortgages and other loans (a second mortgage, a home equity
+loan or line), property taxes and insurance, an optional purchase or sale during the run, and
+which one is your primary residence; the rent periods, each with its own rent; and the
+household’s utilities.</p>
 <p><strong>Defaults.</strong> One home named Home, the primary residence, with a value of 0, an appreciation
 equal to the mean inflation (3.33%: the mean of 1%, 3% and 6%), no mortgage and property taxes
 of 6,000 (a new home starts with the same appreciation); no rent periods and no utilities. The default profile has no loans; its
@@ -267,7 +267,13 @@ year draws. A home bought later starts at its price at that year’s prices. The
 mortgages included, are subtracted). With its
 switch on and a balance above 0, a home’s mortgage is a Mortgage loan named after the home,
 charged, deducted and subtracted from net worth as described under <a class="reference internal" href="#tab-loans"><span class="std std-ref">Loans</span></a>.
-Each rent period’s monthly rent times 12 is charged in <code class="docutils literal notranslate"><span class="pre">Bills</span></code> in each of its years,
+Each home also holds any number of other loans (<em>Other loans on this home</em>: kind Second
+mortgage, Home equity loan, Home equity line or Mortgage), each a loan with the figures and
+switches of the Loans tab, charged after every home’s mortgage. A home’s loan starts now, or
+for a home bought later in its purchase year, unless <em>Starts later</em> sets its own start
+within the years the home is held; a home equity line is entered as the amount drawn,
+repaid over its months left (a later draw is a loan that starts later; the interest-only
+draw period and the cash a loan pays out are not modelled). Each rent period’s monthly rent times 12 is charged in <code class="docutils literal notranslate"><span class="pre">Bills</span></code> in each of its years,
 inflation adjusted and not raised by the child inflation factor; a year with no home and no
 rent period charges no housing. The primary residences and the rent periods are one lane,
 one at a time: a primary home and a rent period that share a year other than a move year
@@ -286,15 +292,15 @@ a Mortgage loan that starts that year and counts toward the deduction like any h
 mortgage. A home sold has its value at 0 from its sale year and its property tax and
 insurance stop the year after; renting after it is a rent period on the timeline. The
 sale price is the one entered, or with 0 the home’s value that year before the sale. The
-selling costs (<code class="docutils literal notranslate"><span class="pre">Selling</span> <span class="pre">Costs</span></code>) and the mortgage still owed, with its prepayment penalty,
-are taken from the price; the rest is <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Sale</span> <span class="pre">Proceeds</span></code>, deposited to the cash and
+selling costs (<code class="docutils literal notranslate"><span class="pre">Selling</span> <span class="pre">Costs</span></code>) and the mortgage and every other loan of the home still
+owed, with the home’s prepayment penalty, are taken from the price; the rest is <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Sale</span> <span class="pre">Proceeds</span></code>, deposited to the cash and
 Investments accounts by the surplus rule, while a mortgage above the price is paid from the
 accounts in <code class="docutils literal notranslate"><span class="pre">Loan</span> <span class="pre">Payoffs</span></code>.</p>
 <p>The gain on a sale is the price less the selling costs less the cost basis (the one entered,
 or the value today for a home owned now, so only growth from now is a gain, or for a home
 bought later its price with the transfer tax and the fees; the closing costs stay out). A
 primary residence’s gain is excluded up to the section 121 limit of the law data (250,000
-single, 500,000 joint, 250,000 per separate return, split by the partner share; figures
+single, 500,000 joint, 250,000 per separate return, the gain split 50/50; figures
 unconfirmed), assuming you owned and lived in it 2 of the last 5 years, except that a
 primary bought during the run and sold less than 2 years later gets no exclusion. The rest,
 and the whole gain on any other home, is a long-term capital gain of the return (federal,
@@ -312,22 +318,30 @@ apportionment. Depreciation recapture, the net investment income tax, the partia
 income are not modelled. Example: a primary residence worth 500,000 today, 2% appreciation,
 sold at the end of the year you are 59 with 6% selling costs and 1,000 of fees, with no
 basis entered: the gain is the price less the costs less 500,000, excluded up to the limit.
-A home still owned at the end is not sold in the run; only the Summary’s <em>Final net worth
-after terminal tax</em> and Compare’s after-tax columns treat it as sold on the last day, by the
+A home still owned at the end is not sold in the run; only the Summary’s <em>What beneficiaries
+keep</em> and Compare’s after-tax columns treat it as sold on the last day, by the
 beneficiaries: they pay the selling costs but no gains tax, since an inherited home’s basis steps up
 to its value at death (see <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>).</p>
 <p>The mortgage interest deduction counts the primary residence and one other home: each year
-the other home with the most mortgage interest (the first on a tie), and the Other mortgage
-loans with the primary residence, all under the one principal limit of the law data (half of
-it for each separate return). A third home’s mortgage interest is not deducted, so the
+the other home with the most mortgage interest (the first on a tie), and any Mortgage loan
+left on the Loans tab with the primary residence, all under the one principal limit of the
+law data (half of it for each separate return). A home’s interest is that of its mortgage
+and of each of its loans with <em>Used on this home</em> on: under current law home equity debt is
+deductible only when the money bought, built or substantially improved the home securing it,
+so a home equity loan or line spent on anything else (switch off) deducts nothing and its
+balance stays out of the limit. A third home’s mortgage interest is not deducted, so the
 primary residence changes the deduction only with three or more mortgaged homes; primary
-residences held in turn count as one. Home equity debt used for anything but the home, the
-higher limit for debt from before 2018, mortgage insurance premiums, utilities per home and
-rental income are not modelled; a second home’s utilities and upkeep go on Expenses.</p>
+residences held in turn count as one. The higher limit for debt from before 2018, mortgage
+insurance premiums, utilities per home and rental income are not modelled; a second home’s
+utilities and upkeep go on Expenses.</p>
 <p>A scenario saved before the homes list loads with one primary home holding its home value,
 property taxes and home insurance, and its first Mortgage loan that starts now with no
-refinance or forgiveness moves onto that home (Mortgage switched on); its other Mortgage
-loans stay under Other mortgage loans. A scenario that rented loads with no homes, its
+refinance or forgiveness moves onto that home (Mortgage switched on). A scenario saved before
+each home held its own loans (version 54 or older) moves every Mortgage loan of the Loans tab
+into the primary residence owned today when that home keeps it to its last payment (not sold,
+or sold two or more years after it), so results do not change; any other Mortgage loan (you
+rent, or the home is sold while it still runs) stays on the Loans tab, still deducted with
+the primary residence, with one warning. A scenario that rented loads with no homes, its
 Mortgage loans kept; a home value, property taxes or insurance it held, which counted for
 nothing while renting, are dropped with one warning. Results do not change. A scenario saved
 before the purchase and sale switches (version 30 or older) loads with them off. A scenario
@@ -475,8 +489,10 @@ Expenses. A new loan starts now and runs to its last payment (both switches off,
 penalty).</p>
 <p><strong>Logic.</strong> Payments come out of cash flow as expenses, and the balances are subtracted from
 net worth. The mortgage interest deduction
-comes only from Mortgage loans, from their interest and balance each year, with the limits
-in the law data; Auto, Student and Other loans never count toward it. When the payment is
+comes only from loans secured by a home (each home’s mortgage and other loans on
+<a class="reference internal" href="#tab-home"><span class="std std-ref">Home</span></a>, and a Mortgage loan saved here before homes held their loans), from
+their interest and balance each year, with the limits in the law data; Auto, Student and Other
+loans never count toward it. The Loans tab lists the homes’ loans read-only above its own. When the payment is
 already a row on Expenses (such as a Mortgage row in Bills), tick <em>Payment in
 Expenses</em>: the loan is then not charged and not taken from net worth, and it only feeds the
 deduction; otherwise the payment is charged twice.</p>
@@ -701,8 +717,9 @@ payment, and do not tag the payment row of a Mortgage loan, which counts already
 <li><p>Charity counts within 60% of AGI less the 0.5% floor, toward the non-itemizer charity
 deduction, and a QCD can pay it, like a Charity row.</p></li>
 </ul>
-<p>Filing separately, each return takes its share of a tagged row, as with the other shared
-household items.</p>
+<p>Filing separately, each return takes half of a tagged row, as with the other shared
+household items. (Until version 55 a saved partner share set the split; a scenario with a
+share other than 50% loads with one warning.)</p>
 <p>A scenario saved before the deduction inputs moved loads with its charitable giving as a
 Charity row, its mortgage interest and balance as a Mortgage loan used for the deduction
 only, and its random shocks dropped (use the <em>Random major</em> expense or Major Spending rows).
@@ -912,7 +929,8 @@ bought at the start of year m: its price (today’s value) is O’s expected val
 transfer tax, fee, selling cost and prepayment rates, has no cost basis or sale price of
 its own, and is sold when O was meant to be. Financing: on, O’s mortgage carries over
 (same rate, extra payment and months left, the amount financed equal to O’s balance at
-the start of year m, the down payment floored at 0); off, a new loan with the Home
+the start of year m, the down payment floored at 0) and O’s other loans move to “O (S)”
+unchanged, not paid off by the sale; off, O keeps its other loans and a new loan with the Home
 defaults (20% down, 360 months, O’s rate) when O has a mortgage; no mortgage on O means
 all cash. Its purchase cash is in <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Purchases</span></code>, and it counts as bought in year m
 (a sale fewer than <code class="docutils literal notranslate"><span class="pre">min_years</span></code> later gets no exclusion). In inflation adjusted dollars
@@ -1024,7 +1042,7 @@ other person’s; a 401k’s RMD is its own. See <a class="reference internal" h
 <li><p>The tax on Traditional withdrawals is the federal, state and capital gains tax with the
 year’s taxed Traditional withdrawals less the same tax without them, so it includes
 knock-ons such as more Social Security being taxed, but not the conversion tax or IRMAA.
-The Summary table shows the same figure as the <code class="docutils literal notranslate"><span class="pre">Tax</span> <span class="pre">on</span> <span class="pre">Traditional</span>
+The yearly summary table (in the Final report) shows the same figure as the <code class="docutils literal notranslate"><span class="pre">Tax</span> <span class="pre">on</span> <span class="pre">Traditional</span>
 <span class="pre">Withdrawals</span></code> column, to compare with the total taxes.</p></li>
 <li><p>Amounts are in the run’s dollars.</p></li>
 </ul>
@@ -1044,7 +1062,7 @@ averaged over the state), counted as state tax. Its <code class="docutils litera
 state’s taxable income, <code class="docutils literal notranslate"><span class="pre">wages</span></code> on the return’s wages only (pay less the pre-tax premium, the dependent care
 FSA and the HSA taken through payroll, with the 401(k) deferrals, which local wage taxes count; never interest, gains or retirement income; never below
 zero), which is charged even in a year with no state taxable income. A file without that rate has no local tax. The State summary column holds the local tax;
-the <em>Local Tax</em> summary column is that part of it. The Taxes plot and the <em>Taxes paid by year</em> table show it as its
+the <em>Local Tax</em> summary column is that part of it. The Taxes plot and the <em>Taxes paid by year</em> table (in the Final report) show it as its
 own kind and State without it, so their Total is unchanged. Being part of the state tax, it counts in the itemized
 state and local taxes.</p>
 <p><em>State figures by year.</em> The informational summary columns <em>State Deduction</em> and <em>State Exemptions</em> (the standard

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-jQVM9SYKvibOjB3y+VG3gTHVsTY4HQoxIK4HlIuh2zw=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-1NlIi7tSZaG7aTk3U2ghPTT0tlM8SpfM3LPIyFE5Rps=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -33,7 +33,9 @@ if (window.top !== window.self) {
    Night lagoon in dark mode. Colors darkened from the mockups for WCAG AA (4.5:1) text contrast: muted text (Lagoon #5F7A86 -> #4F6772, Sunset #6A7C88
    -> #566773, Palm #6E7E74 -> #56665C, also Palm's band subtitle), the hero tile (Sunset #F2675A -> #C4452F, Palm
    #19A7B6 -> #0E7682) and the accent used for text and buttons (the toggle colors #19B5C4, #F2675A and #2F8F6B are
-   too light for text: Lagoon #0B6E7F, Sunset #B5402C, Palm #1F6B4F). */
+   too light for text: Lagoon #0B6E7F, Sunset #B5402C -> #AC3A27, Palm #1F6B4F). Cards stand off the page: --bg darkened
+   so white cards are at least 1.25:1 against it (Lagoon #F6EEDF -> #EFE3CC, Sunset #FFF5EA -> #F2E3D0, Palm #F3EBDD ->
+   #E9DFCC, Night #16252F -> #101D25) and a 1 px --panel-edge ring at least 3:1 against --bg. */
 /* Fonts: Public Sans and IBM Plex Mono, Latin subsets, shipped beside the page under fonts/ (SIL Open Font License;
    legal/third-party), so the page asks no other host for them. */
 @font-face { font-family: "Public Sans"; font-style: normal; font-weight: 400; font-display: swap;
@@ -54,7 +56,9 @@ if (window.top !== window.self) {
   --band: #0B4F6C; --band-ink: #ffffff; --band-sub: #9FD6DE; --band-button: #14627F; --band-button-ink: #D4EEF2;
   --band-track: #14627F; --band-thumb: #9FD6DE;
   --chip-on: #19B5C4; --chip-on-ink: #03343B; --chip-off: #14627F; --chip-off-ink: #D4EEF2;
-  --bg: #F6EEDF;
+  --bg: #EFE3CC;
+  /* The 1 px ring round every card and tile, at least 3:1 against --bg (WCAG 1.4.11) in each scheme. */
+  --panel-edge: #6C8086;
   --surface: #ffffff;
   --surface-2: #EDF4F5;
   --field-bg: #ffffff;
@@ -88,6 +92,8 @@ if (window.top !== window.self) {
   --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --gutter: 16px;
+  /* Space between the cards and sections of a panel (Setup, every Inputs chip, every Outputs view). */
+  --section-gap: 22px;
   --radius: 12px;
   --tabbar: 64px;
   color-scheme: light;
@@ -102,8 +108,8 @@ if (window.top !== window.self) {
   --band: #103F5C; --band-ink: #ffffff; --band-sub: #F9C9A5; --band-button: #1C5373; --band-button-ink: #F3DCCB;
   --band-track: #1C5373; --band-thumb: #F9C9A5;
   --chip-on: #F59E4C; --chip-on-ink: #3E2205; --chip-off: #1C5373; --chip-off-ink: #F3DCCB;
-  --bg: #FFF5EA; --surface: #ffffff; --surface-2: #FBEEE3; --field-bg: #ffffff; --ink: #103F5C; --ink-2: #34556B;
-  --muted: #566773; --line: #EEDCCD; --accent: #B5402C; --accent-ink: #ffffff; --accent-soft: #FFE6D3;
+  --bg: #F2E3D0; --panel-edge: #8A7A6C; --surface: #ffffff; --surface-2: #FBEEE3; --field-bg: #ffffff; --ink: #103F5C; --ink-2: #34556B;
+  --muted: #566773; --line: #EEDCCD; --accent: #AC3A27; --accent-ink: #ffffff; --accent-soft: #FFE6D3;
   --toggle: #F2675A; --tint-1: #FFE6D3; --tint-2: #DDF2F4; --hero: #C4452F; --hero-ink: #ffffff; --hero-sub: #ffffff;
   --scroll-thumb: rgb(86 103 115 / 0.5);
   --info-bg: #ECEFFA; --info-ink: #263866; --info-line: #4A5FAE;
@@ -115,7 +121,7 @@ if (window.top !== window.self) {
   --band: #F3EBDD; --band-ink: #1F4B3F; --band-sub: #56665C; --band-button: #ffffff; --band-button-ink: #1F4B3F;
   --band-track: rgb(0 0 0 / 0.08); --band-thumb: #56665C;
   --chip-on: #1F4B3F; --chip-on-ink: #ffffff; --chip-off: #ffffff; --chip-off-ink: #1F4B3F;
-  --bg: #F3EBDD; --surface: #ffffff; --surface-2: #EEF3EE; --field-bg: #ffffff; --ink: #1F4B3F; --ink-2: #34584C;
+  --bg: #E9DFCC; --panel-edge: #73806F; --surface: #ffffff; --surface-2: #EEF3EE; --field-bg: #ffffff; --ink: #1F4B3F; --ink-2: #34584C;
   --muted: #56665C; --line: #DCE3DA; --accent: #1F6B4F; --accent-ink: #ffffff; --accent-soft: #E3F1EA;
   --toggle: #2F8F6B; --tint-1: #E3F1EA; --tint-2: #E0F4F6; --hero: #0E7682; --hero-ink: #ffffff; --hero-sub: #E0F4F6;
   --sheet-edge: rgb(0 0 0 / 0.07); --scroll-thumb: rgb(86 102 92 / 0.5);
@@ -128,7 +134,7 @@ if (window.top !== window.self) {
   --band: #0F1C24; --band-ink: #ffffff; --band-sub: #7FC9D3; --band-button: #1E3341; --band-button-ink: #C9DCE2;
   --band-track: #1E3341; --band-thumb: #7FC9D3;
   --chip-on: #2CC5D2; --chip-on-ink: #04343A; --chip-off: #1E3341; --chip-off-ink: #C9DCE2;
-  --bg: #16252F; --surface: #1D303D; --surface-2: #263C4A; --field-bg: #16252F; --ink: #E4EEF1; --ink-2: #C3D3DA;
+  --bg: #101D25; --panel-edge: #5E7B8A; --surface: #1D303D; --surface-2: #263C4A; --field-bg: #16252F; --ink: #E4EEF1; --ink-2: #C3D3DA;
   --muted: #93A8B2; --line: #2E4655; --accent: #2CC5D2; --accent-ink: #04343A; --accent-soft: #1F3746;
   --toggle: #2CC5D2; --toggle-off: #4A5F6B; --tint-1: #1F3746; --tint-2: #3A2A30;
   --hero: #0E4A60; --hero-ink: #ffffff; --hero-sub: #7FC9D3; --sheet-edge: transparent;
@@ -146,7 +152,7 @@ if (window.top !== window.self) {
     --band: #0F1C24; --band-ink: #ffffff; --band-sub: #7FC9D3; --band-button: #1E3341; --band-button-ink: #C9DCE2;
     --band-track: #1E3341; --band-thumb: #7FC9D3;
     --chip-on: #2CC5D2; --chip-on-ink: #04343A; --chip-off: #1E3341; --chip-off-ink: #C9DCE2;
-    --bg: #16252F; --surface: #1D303D; --surface-2: #263C4A; --field-bg: #16252F; --ink: #E4EEF1; --ink-2: #C3D3DA;
+    --bg: #101D25; --panel-edge: #5E7B8A; --surface: #1D303D; --surface-2: #263C4A; --field-bg: #16252F; --ink: #E4EEF1; --ink-2: #C3D3DA;
     --muted: #93A8B2; --line: #2E4655; --accent: #2CC5D2; --accent-ink: #04343A; --accent-soft: #1F3746;
     --toggle: #2CC5D2; --toggle-off: #4A5F6B; --tint-1: #1F3746; --tint-2: #3A2A30;
     --hero: #0E4A60; --hero-ink: #ffffff; --hero-sub: #7FC9D3; --sheet-edge: transparent;
@@ -265,7 +271,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .panels { background: var(--bg); border-radius: 30px 30px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
   padding-inline: var(--gutter); padding-top: 16px; min-height: 100vh;
   padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 24px); }
-.panel { display: grid; gap: 14px; }
+.panel { display: grid; gap: var(--section-gap); }
 /* Grid children default to min-width: auto and would grow to a wide table's width; 0 keeps them to the column, so
    the table's own wrapper is what scrolls. */
 .panel > *, .card > *, .view-intro > *, .group > *, .sheet-body > * { min-width: 0; }
@@ -297,7 +303,9 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 /* A swipe moves between Inputs panels, Outputs views, the bottom tabs past their ends, and walkthrough questions
    (app.js wireSwipe): vertical scrolling stays the browser's, sideways drags come to the page (a table, chart or chips
    row takes them back). */
-.panels, .panels > .panel, .walk-stage { touch-action: pan-y pinch-zoom; }
+/* pan-y first: Safari (iPhone, iPad) has no pinch-zoom value, drops the second line and would otherwise fall back to
+   auto, which takes the sideways drag for itself (pointercancel) so a swipe never moved on. */
+.panels, .panels > .panel, .walk-stage { touch-action: pan-y; touch-action: pan-y pinch-zoom; }
 /* The Outputs sub-tabs (the chips rows under Summary | Plots | Compare): one thin row of underline text tabs on a 1px
    hairline, scrolling sideways if too narrow; the open one in the band's selected colour. The Inputs chips stay bubbles. */
 .chips-wrap[data-place^="outputs/"] .chips { gap: 4px; padding-block: 0;
@@ -311,7 +319,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .chips-wrap[data-place^="outputs/"] .chips-track { display: none; }
 
 .card { background: var(--surface); border: 0; border-radius: 20px; padding: 16px;
-  display: grid; gap: 12px; min-width: 0; }
+  display: grid; gap: 12px; min-width: 0; box-shadow: 0 0 0 1px var(--panel-edge); }
 .stub { padding: 24px 4px; display: grid; gap: 8px; color: var(--ink-2); }
 .banner { padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 14px; }
 /* Information boxes: notes, plain banners and explanations, in the info color with an "i" icon, so they never
@@ -340,14 +348,19 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 /* Results */
 .result-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.tile { background: var(--surface); border: 0; border-radius: 18px; padding: 12px 14px;
+.tile { background: var(--surface); border: 0; border-radius: 18px; padding: 12px 14px; box-shadow: 0 0 0 1px var(--panel-edge);
   display: grid; gap: 4px; align-content: start; min-width: 0; }
 .tile-first { grid-column: 1 / -1; background: var(--hero); color: var(--hero-ink); border-radius: 20px; padding: 16px; }
 .tile-first .tile-label, .tile-first .tile-change, .tile-first .tile-help { color: var(--hero-sub); }
 .tile-label { font-size: 13px; color: var(--ink-2); }
+.tile-subtitle { font-size: 12px; color: var(--ink-2); margin-top: -2px; }
 .tile-value { font-size: clamp(17px, 6vw, 24px); font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
 .tile-first .tile-value { font-size: clamp(24px, 8vw, 34px); }
 .tile-change { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.report-pointer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.report-pointer p { margin: 0; color: var(--ink-2); }
+.heirs-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); min-height: 44px; cursor: pointer; }
+.heirs-toggle input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
 .tile .tile-help { font-size: 12.5px; }
 /* A tile with a note: the label and its "i" (the 44px target overlaps the tile padding, so the row stays one line). */
 .tile-head { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; }
@@ -385,6 +398,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .key-hatch { width: 10px; height: 10px; border-radius: 2px; box-sizing: border-box; border: 1px solid var(--key);
   background: repeating-linear-gradient(45deg, var(--key) 0 2px, var(--hatch-bg) 2px 4px); }
 .key-none { width: 14px; }
+.key-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--key); }
 .chart-plot { position: relative; }
 .chart-svg { display: block; width: 100%; height: auto; touch-action: pan-y; font-family: var(--font-body); }
 .chart-svg .grid { stroke: var(--line); stroke-width: 1; }
@@ -434,8 +448,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
   text-align: left; }
 
 /* Settings */
-.settings { display: grid; gap: 14px; }
-.group { background: var(--surface); border: 0; border-radius: 20px; padding: 4px 16px 14px;
+.settings { display: grid; gap: var(--section-gap); }
+.group { background: var(--surface); border: 0; border-radius: 20px; padding: 4px 16px 14px; box-shadow: 0 0 0 1px var(--panel-edge);
   margin: 0; min-width: 0; display: grid; }
 .group > legend { font-weight: 650; font-size: 17px; padding: 12px 0 4px; float: left; width: 100%; }
 /* A pane: the icon tile and the title, and the pane's on/off toggle (its switch field) at the right of the title. */
@@ -449,7 +463,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .pane > .pane-switch .switch { position: absolute; top: 15px; right: 16px; }
 /* A sub-section inside a pane (the HSA in the Medical plan pane): a smaller title, its toggle at the title's right. */
 .subsection > .pane-switch .switch { top: 9px; right: 0; }
-.group .group { border: 0; padding: 0; background: transparent; border-top: 1px solid var(--line); border-radius: 0; margin-top: 6px; }
+.group .group { border: 0; padding: 0; background: transparent; box-shadow: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 6px; }
 .group .group > legend { font-size: 14px; color: var(--ink-2); }
 .sheet-body .group { border: 0; padding: 0; background: transparent; border-top: 1px solid var(--line); border-radius: 0; }
 .sheet-body .group > legend { font-size: 14px; color: var(--ink-2); }
@@ -689,10 +703,10 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .segmented button[aria-pressed="true"], .segmented button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 650;
   box-shadow: 0 0 0 1px var(--line); }
 .segmented button:disabled { opacity: 0.45; cursor: not-allowed; }
-.subpanel { display: grid; gap: 14px; }
+.subpanel { display: grid; gap: var(--section-gap); }
 .subpanel > * { min-width: 0; }
 /* Summary's body stacks its meta line, tiles and cards with the same gap as the subpanel. */
-#results-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+#results-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
 #results-body > * { min-width: 0; }
 .run-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .run-progress { display: grid; gap: 8px; }
@@ -783,18 +797,28 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .row-menu-item:focus-visible { outline-offset: -3px; }
 .row-menu-danger { color: var(--bad); }
 .dialog-backdrop { position: fixed; inset: 0; z-index: 85; background: rgb(0 0 0 / 0.45); }
-.dialog { position: fixed; z-index: 90; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: min(400px, calc(100% - 2 * var(--gutter))); max-height: calc(100% - 32px); overflow-y: auto; display: grid;
-  gap: 10px; padding: 18px 16px 16px; background: var(--surface); color: var(--ink); border-radius: 16px;
+/* A dialog: its title stays at the top and its actions (its verb and Cancel, or Close) at the bottom; only the text and
+   fields between them scroll. Centred in the part of the screen above the on-screen keyboard. */
+.dialog { position: fixed; z-index: 90; left: 50%; top: calc((100% - var(--keyboard, 0px)) / 2);
+  transform: translate(-50%, -50%);
+  width: min(400px, calc(100% - 2 * var(--gutter))); max-height: calc(100% - 32px);
+  max-height: calc(100dvh - var(--keyboard, 0px) - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--surface); color: var(--ink); border-radius: 16px;
   box-shadow: 0 16px 40px rgb(0 0 0 / 0.3); }
+.dialog-head { padding: 18px 16px 8px; }
 .dialog h2 { overflow-wrap: anywhere; }
+.dialog-scroll { overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 10px; align-content: start;
+  padding: 2px 16px 10px; }
+.dialog-scroll > [hidden] { display: none; }
 .dialog-body { display: grid; gap: 8px; }
 .dialog-body:empty { display: none; }
 /* The final report picker: one row per saved scenario, a tick box and its name */
 .report-picks { border: 0; margin: 0; padding: 0; display: grid; gap: 4px; }
 .report-pick { display: flex; align-items: center; gap: 10px; min-height: 40px; overflow-wrap: anywhere; }
 .report-pick input { width: 20px; height: 20px; flex: none; }
-.dialog-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; padding-top: 4px; }
+.dialog-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px;
+  padding: 10px 16px 16px; border-top: 1px solid var(--line); }
 .dialog-actions .button { padding-inline: 8px; justify-self: stretch; }
 .dialog-wide { width: 100%; }
 .finish-setup strong { color: var(--ink); }
@@ -813,17 +837,30 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .tab:focus-visible { outline-offset: -3px; }
 .app.typing .tabbar { visibility: hidden; }
 
-/* Bottom sheet for editing one item of a list */
+/* Bottom sheets (an item's edit sheet, the timeline, About, Legal, Install help): the header (title) stays at the top
+   and the footer (Cancel and Save, or Close) at the bottom; only the body between them scrolls. The sheet sits above the
+   on-screen keyboard (--keyboard, set by app.js from the visual viewport) and inside the safe areas. */
 .sheet-backdrop { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / 0.4); }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; max-height: 88%; display: grid; grid-template-rows: auto 1fr;
+.sheet { position: fixed; left: 0; right: 0; bottom: var(--keyboard, 0px); z-index: 50; max-height: 88%;
+  max-height: calc((100dvh - var(--keyboard, 0px) - env(safe-area-inset-top, 0px)) * 0.92);
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden;
   background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -8px 30px rgb(0 0 0 / 0.25);
-  padding-bottom: env(safe-area-inset-bottom, 0px); max-width: 640px; margin-inline: auto; }
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+  max-width: 640px; margin-inline: auto; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px var(--gutter);
-  border-bottom: 1px solid var(--line); }
-.sheet-body { overflow-y: auto; padding: 4px var(--gutter) 16px; display: grid; gap: 0; align-content: start; }
+  min-height: 60px; border-bottom: 1px solid var(--line); }
+.sheet-head h2 { overflow-wrap: anywhere; }
+.sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 4px var(--gutter) 16px; display: grid; gap: 0;
+  align-content: start; }
 .sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; }
-/* The timeline sheet has one Save and one Cancel in its own nav row: the header Done and footer Save are hidden. */
-.sheet.timeline-sheet #sheetDone { display: none; }
+.sheet-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px var(--gutter);
+  padding-bottom: max(10px, calc(10px + env(safe-area-inset-bottom, 0px) - var(--keyboard, 0px)));
+  border-top: 1px solid var(--line); background: var(--surface); }
+.sheet-foot-actions, .sheet-foot .timeline-nav { display: flex; flex: 1; justify-content: flex-end; gap: 8px;
+  padding-top: 0; flex-wrap: nowrap; }
+.sheet-foot-actions[hidden] { display: none; }
+.sheet-foot .button { min-width: 96px; }
+.sheet-foot .timeline-nav [data-action=back] { margin-right: auto; }
 
 /* Menu (top right): the walkthrough, Appearance (the color schemes and Match phone), the help and tips */
 .menu-backdrop { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 0.4); }
@@ -1099,10 +1136,17 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
    Outputs room: --split-in and --split-out are their fr (2fr each when equal, 0fr when shut), --split Inputs' share
    (0 to 1); html.split-only-outputs or html.split-only-inputs hides the shut column and its chips rows. The icon at the
    divider's top (#splitSnap) pops out Show only Outputs, Split equally and Show only Inputs on hover or keyboard focus.
+   Over Setup a bar (#setupFold, app.js wireSetupFold) folds the column to a --setup-rail wide rail (html.setup-folded,
+   kept per device); Inputs and Outputs take the freed width at the split they had, and the rail brings Setup back.
    Each column is positioned so a visually hidden table caption in it scrolls with it, not the page or the grid. */
-:root.wide { --tabbar: 0px; --wide-pad: 16px; --wide-gap: 12px; --wide-divider: 14px; }
+/* --setup-min: Setup's column never gets narrower than a small phone's panel, so its labels, the open scenario's
+   buttons and the help buttons fit (on an iPad in landscape, 1133 to 1366 px, a fifth of the width is only 215 to
+   262 px and words went one to a line); Inputs and Outputs share what is left. From 1858 px up the column is the
+   plain fifth, as before. */
+:root.wide { --tabbar: 0px; --wide-pad: 16px; --wide-gap: 12px; --wide-divider: 14px; --setup-min: 340px;
+  --setup-rail: 44px; }
 .wide .app { display: grid; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden;
-  grid-template-columns: minmax(0, 1fr) var(--wide-gap) minmax(0, var(--split-in, 2fr)) var(--wide-divider)
+  grid-template-columns: minmax(var(--setup-min), 1fr) var(--wide-gap) minmax(0, var(--split-in, 2fr)) var(--wide-divider)
     minmax(0, var(--split-out, 2fr));
   grid-template-rows: auto auto auto minmax(0, 1fr); padding-inline: var(--wide-pad); }
 .wide .topbar { grid-column: 1 / -1; grid-row: 1; position: static; display: flex; align-items: center; gap: 12px;
@@ -1115,11 +1159,17 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .wide .band, .wide .panels { display: contents; }
 .wide .band-title, .wide .band-sub, .wide .chips-pin { display: none; }
 .wide .band > .chips-wrap { align-self: start; padding: 2px var(--gutter) 10px; }
-.wide .chips-wrap[data-place="inputs"] { grid-column: 3; grid-row: 2 / 4; }
+/* Each panel starts right under its own chips: Inputs' chips take row 2 and its panel rows 3 and 4, beside Outputs'
+   view chips (row 2), sub-tab chips (row 3, none on most views) and panel (row 4). Both top rows start level (no
+   phone gap between the rows) and keep room for their scroll bar even when it is off, so they are one height. */
+.wide .band > .chips-wrap[data-place] + .chips-wrap:not([hidden]) { margin-top: 0; }
+.wide .chips-wrap:is([data-place="inputs"], [data-place="outputs"]) .chips-track-off { display: block; visibility: hidden; }
+.wide .chips-wrap[data-place="inputs"] .chips-track { grid-column: 1 / -1; }  /* under the chips: no pin button here */
+.wide .chips-wrap[data-place="inputs"] { grid-column: 3; grid-row: 2; }
 .wide .chips-wrap[data-place="outputs"] { grid-column: 5; grid-row: 2; }
 .wide .chips-wrap[data-place^="outputs/"] { grid-column: 5; grid-row: 3; }
-.wide #panel-setup { grid-column: 1; grid-row: 2 / 5; }
-.wide #panel-inputs { grid-column: 3; grid-row: 4; }
+.wide #panel-setup { grid-column: 1; grid-row: 2 / 5; margin-top: 48px; }  /* under its fold bar (36 px and margins) */
+.wide #panel-inputs { grid-column: 3; grid-row: 3 / 5; }
 .wide #panel-outputs { grid-column: 5; grid-row: 4; }
 .wide .panel { position: relative; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start;
   background: var(--bg); border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
@@ -1131,11 +1181,40 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .wide #panel-setup .strip-button:nth-child(4) { border-left: 0; }
 .wide .menu { right: 12px; }
 /* Back to Social Security floats over the middle of the Inputs column. */
-.wide .earnings-return { left: calc(var(--wide-pad) + var(--wide-gap) + (1 + 2 * var(--split, 0.5))
-  * (100% - 2 * var(--wide-pad) - var(--wide-gap) - var(--wide-divider)) / 5); }
+.wide .earnings-return { --wide-room: calc(100% - 2 * var(--wide-pad) - var(--wide-gap) - var(--wide-divider));
+  --wide-setup: max(var(--setup-min), var(--wide-room) / 5);
+  left: calc(var(--wide-pad) + var(--wide-gap) + var(--wide-setup) + var(--split, 0.5) * (var(--wide-room) - var(--wide-setup)) / 2); }
+.wide.setup-folded .earnings-return { --wide-setup: var(--setup-rail); }
+/* Setup's fold (#setupFold): a bar over the column ("Setup" and a chevron) that folds it to a --setup-rail wide rail;
+   the rail is the same button, the chevron at its top and the open scenario's name down it. */
+.setup-fold { display: none; }
+.wide .setup-fold { display: flex; align-items: center; gap: 8px; grid-column: 1; grid-row: 2; align-self: start;
+  min-width: 0; height: 36px; margin: 2px 0 10px; padding: 0 6px 0 var(--gutter); border: 0; border-radius: 999px;
+  background: transparent; color: var(--band-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  text-align: start; }
+.setup-fold-text { flex: 1; min-width: 0; }
+.setup-fold-name { display: none; }
+.setup-fold-icon { display: grid; width: 26px; height: 26px; padding: 6px; border-radius: 999px;
+  background: var(--band-button); color: var(--band-button-ink); }
+.wide .setup-fold:hover, .wide .setup-fold:focus-visible { background: var(--chip-off); color: var(--chip-off-ink); }
+.wide .setup-fold:hover .setup-fold-icon { background: var(--chip-on); color: var(--chip-on-ink); }
+.wide .setup-fold:focus-visible { outline: 3px solid var(--chip-on); outline-offset: 0; }
+.wide.setup-folded .app { grid-template-columns: var(--setup-rail) var(--wide-gap) minmax(0, var(--split-in, 2fr))
+  var(--wide-divider) minmax(0, var(--split-out, 2fr)); }
+.wide.setup-folded #panel-setup { display: none; }
+.wide.setup-folded .setup-fold { grid-row: 2 / 5; align-self: stretch; flex-direction: column; justify-content: flex-start;
+  gap: 12px; height: auto; margin: 0; padding: 10px 0 24px; overflow: hidden; border-radius: 24px 24px 0 0;
+  background: var(--band-button); color: var(--band-button-ink); box-shadow: 0 -1px 0 var(--sheet-edge); }
+.wide.setup-folded .setup-fold:hover { background: var(--chip-off); color: var(--chip-off-ink); }
+.wide.setup-folded .setup-fold-icon { order: -1; flex: none; transform: scaleX(-1); background: var(--chip-on);
+  color: var(--chip-on-ink); }
+.wide.setup-folded .setup-fold-text, .wide.setup-folded .setup-fold-name { flex: none; writing-mode: vertical-rl;
+  text-wrap: nowrap; }  /* not white-space, which the walkthrough color check reads as a color */
+.wide.setup-folded .setup-fold-name { display: block; min-height: 0; flex: 0 1 auto; overflow: hidden;
+  text-overflow: ellipsis; font-weight: 400; color: inherit; opacity: 0.85; }
 /* The divider between Inputs and Outputs: a bar with a grip down the middle, the full height of the two panes. */
 .split, .split-snap { display: none; }
-.wide .split { display: block; grid-column: 4; grid-row: 4; position: relative; cursor: col-resize;
+.wide .split { display: block; grid-column: 4; grid-row: 3 / 5; position: relative; cursor: col-resize;
   touch-action: none; border-radius: 999px; }
 .wide .split::before { content: ""; position: absolute; inset: 0 -4px; }  /* a wider target than the bar */
 .split-grip { position: absolute; left: 50%; top: 50%; width: 4px; height: 48px; transform: translate(-50%, -50%);
@@ -1146,7 +1225,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .wide.split-only-outputs #panel-inputs, .wide.split-only-outputs .chips-wrap[data-place="inputs"],
 .wide.split-only-inputs #panel-outputs, .wide.split-only-inputs .chips-wrap[data-place^="outputs"] { display: none; }
 /* The snap icon at the divider's top; hover, keyboard focus or a tap pops out its three buttons under it. */
-.wide .split-snap { display: flex; flex-direction: column; align-items: center; grid-column: 4; grid-row: 4;
+.wide .split-snap { display: flex; flex-direction: column; align-items: center; grid-column: 4; grid-row: 3 / 5;
   justify-self: center; align-self: start; position: relative; z-index: 30; margin-top: 10px; }
 .split-snap-open, .split-snap-button { display: inline-grid; place-items: center; border: 0; border-radius: 999px;
   background: var(--band-button); color: var(--band-button-ink); cursor: pointer; padding: 0; }
@@ -1174,6 +1253,23 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
   /* A changed question total stays highlighted for the flash's second, without fading. */
   .walk-count-total.walk-count-flash { animation: none !important; background: var(--accent); color: var(--accent-ink); }
 }
+
+/* Setup's Advanced settings at the bottom: a closed card (open or shut kept per device) holding the Run settings. */
+.advanced-head { display: grid; gap: 2px; min-width: 0; }
+.advanced-hint { font-size: 13.5px; font-weight: 400; color: var(--ink-2); }
+.run-card { display: grid; gap: 12px; min-width: 0; }
+.run-card > h2 { margin: 0; }
+
+/* The headline figures: each one a block like the Summary tiles (the surface, its edge, label over value, a rounded
+   box), and a line under the top bar that sets them apart from the rest of the app (phone and wide layouts). */
+.topbar:has(.pinned:not(:empty)) { padding-bottom: 10px;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent), 0 6px 10px -8px rgb(0 0 0 / 0.35); }
+.pinned { padding-top: 8px; }
+.pin { display: grid; align-content: start; gap: 2px; padding: 7px 10px; border-radius: 14px; background: var(--surface);
+  color: var(--ink); box-shadow: 0 0 0 1px var(--panel-edge); }
+.pin .pin-label { color: var(--ink-2); }
+.wide .topbar > .pinned { padding-top: 0; }
+.wide .pin { padding: 6px 12px; }
 
 </style>
 
@@ -1204,7 +1300,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <button type="button" class="round-button" id="menuButton" aria-label="Menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="menu">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
-    <div class="pinned" id="pinned" aria-label="Headline figures"></div>
+    <div class="pinned" id="pinned" aria-label="Headline figures" aria-live="polite"></div>
   </header>
 
   <div class="band">
@@ -1227,10 +1323,6 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
       <div class="chips-track" aria-hidden="true"><span></span></div>
     </div>
-    <div class="chips-wrap" data-place="outputs/summary">
-      <div class="chips" role="tablist" aria-label="Summary views" id="chips-results"></div>
-      <div class="chips-track" aria-hidden="true"><span></span></div>
-    </div>
     <div class="chips-wrap" data-place="outputs/plots">
       <div class="chips" role="tablist" aria-label="Charts" id="chips-plots"></div>
       <div class="chips-track" aria-hidden="true"><span></span></div>
@@ -1239,6 +1331,12 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
   </div>
 
   <main class="panels">
+    <!-- Wide layout only: the bar over Setup that folds it to a rail, and the rail that brings it back (app.js
+         wireSetupFold). -->
+    <button type="button" class="setup-fold" id="setupFold" aria-controls="panel-setup" aria-expanded="true"
+      aria-label="Hide Setup" title="Hide Setup"><span class="setup-fold-text" aria-hidden="true">Setup</span><span
+      class="setup-fold-name" id="setupFoldName" aria-hidden="true"></span><svg class="button-icon setup-fold-icon"
+      viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
     <section class="panel" id="panel-setup" data-tab="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
       <div class="card open-card" id="savedCard">
         <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
@@ -1278,10 +1376,6 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <div class="banner banner-error" id="household-error" role="alert" hidden></div>
         <form id="household-body" class="settings" novalidate></form>
       </div>
-      <div class="card" id="runCard">
-        <h2>Run</h2>
-        <div id="run-body"></div>
-      </div>
       <div class="card" id="inflationCard">
         <h2>Inflation</h2>
         <div id="inflation-body"></div>
@@ -1295,6 +1389,13 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         </div>
         <p class="banner" id="clearMessage" role="status" hidden></p>
       </div>
+      <details class="card disclosure advanced" id="advancedSettings">
+        <summary id="advancedSummary"><span class="advanced-head"><span>Advanced settings</span><span class="advanced-hint">Years to simulate, Monte Carlo runs and seed, for people who know what they change</span></span></summary>
+        <div class="run-card" id="runCard">
+          <h2>Run</h2>
+          <div id="run-body"></div>
+        </div>
+      </details>
     </section>
     <section class="panel" id="panel-inputs" data-tab="inputs" role="tabpanel" aria-labelledby="tab-inputs" hidden>
       <div class="banner banner-error" id="settings-error" role="alert" hidden></div>
@@ -1355,20 +1456,26 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Outputs</span></button>
   </nav>
 
+  <!-- Every sheet and dialog: its title in a header that stays at the top, a footer that stays at the bottom with its
+       actions (Cancel and Save on an edit sheet, Close on a read-only one), and only the body between them scrolls. -->
   <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
     <div class="sheet-head">
       <h2 id="sheetTitle">Edit</h2>
-      <button type="button" class="button" id="sheetDone">Done</button>
     </div>
     <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-foot" id="sheetFoot">
+      <div class="sheet-foot-actions" id="sheetFootActions">
+        <button type="button" class="button button-quiet" id="sheetCancel">Cancel</button>
+        <button type="button" class="button" id="sheetDone">Save</button>
+      </div>
+    </div>
   </div>
 
   <div class="sheet-backdrop" id="aboutBackdrop" hidden></div>
   <div class="sheet" id="aboutSheet" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" hidden>
     <div class="sheet-head">
       <h2 id="aboutTitle">About</h2>
-      <button type="button" class="button" id="aboutDone">Done</button>
     </div>
     <div class="sheet-body">
       <p class="field-help">Walk Me Through It (WMTI), a retirement income planner. Everything runs on this device. Nothing you enter is sent anywhere; your settings stay in this browser.</p>
@@ -1381,13 +1488,13 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       </div>
       <dl class="about" id="about"></dl>
     </div>
+    <div class="sheet-foot"><button type="button" class="button" id="aboutClose">Close</button></div>
   </div>
 
   <div class="sheet-backdrop" id="legalBackdrop" hidden></div>
   <div class="sheet" id="legalSheet" role="dialog" aria-modal="true" aria-labelledby="legalTitle" hidden>
     <div class="sheet-head">
       <h2 id="legalTitle">Legal</h2>
-      <button type="button" class="button" id="legalDone">Done</button>
     </div>
     <div class="sheet-body">
       <div class="legal-summary"></div>
@@ -1395,14 +1502,17 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <div class="legal-docs" id="legalDocs" role="group" aria-label="Legal documents"></div>
       <div class="legal-doc" id="legalDoc"></div>
     </div>
+    <div class="sheet-foot"><button type="button" class="button" id="legalClose">Close</button></div>
   </div>
 
   <div class="dialog-backdrop" id="dialogBackdrop" hidden></div>
   <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogText" hidden>
-    <h2 id="dialogTitle"></h2>
-    <p class="muted" id="dialogText"></p>
-    <div class="dialog-body" id="dialogBody"></div>
-    <p class="field-error" id="dialogError" role="alert" hidden></p>
+    <div class="dialog-head"><h2 id="dialogTitle"></h2></div>
+    <div class="dialog-scroll" id="dialogScroll">
+      <p class="muted" id="dialogText"></p>
+      <div class="dialog-body" id="dialogBody"></div>
+      <p class="field-error" id="dialogError" role="alert" hidden></p>
+    </div>
     <div class="dialog-actions" id="dialogActions"></div>
   </div>
   <div class="row-menu" id="rowMenu" role="menu" hidden></div>
@@ -1518,14 +1628,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "2501b490fbfd", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "fd23d960f106", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.e42481712d.js"></script>
-<script src="charts.818739d91a.js"></script>
+<script src="shared.fc00a84ec7.js"></script>
+<script src="charts.a657ac5f08.js"></script>
 <script src="insights.ee50546e73.js"></script>
-<script src="report.d2fc90fa44.js"></script>
+<script src="report.f9e7f3363e.js"></script>
 <script src="jspdf.e6551fcdc3.js"></script>
-<script src="app.3274f24ed0.js"></script>
+<script src="app.77f082e570.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

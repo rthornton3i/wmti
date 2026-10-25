@@ -20,9 +20,11 @@
   let PLOT_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
   const BAR_GAP = 2;
   const MAX_BAR = 24;
-  // The after-tax step of a compared balance: room kept right of the last year, how far past it the first marker sits
-  // and how far apart the configs' markers sit.
+  // The "What beneficiaries keep" step of a balance (Total balance, Balances, Compare): room kept right of the last year, how far
+  // past it the first marker sits and how far apart the configs' markers sit.
   const AFTER_TAX = { room: 24, out: 9, stagger: 7 };
+  const HEIRS_LABEL = "What beneficiaries keep";
+  const HEIRS_COLOR = "var(--ink, #0B3A4F)";  // the Balances mark: the stack has no one series color
 
   const PALETTE_SIZE = 10;  // the --s0..--s9 tokens; a slot past the last wraps around
   const color = (series) => "var(--s" + (series.slot % PALETTE_SIZE) + ", " + series.color + ")";
@@ -120,7 +122,34 @@
     }).join("");
   }
 
-  function axisX(values, positionOf, unit) {
+  // A by-year chart's x axis carries your age and the calendar year (`x.ages`, `x.years` from wmti.dashboard.web) and
+  // draws them as two rows of ticks, the age over the year, each row named at the left.
+  const ageYear = (spec) => Boolean(spec && spec.x && Array.isArray(spec.x.years) && Array.isArray(spec.x.ages)
+    && spec.x.years.length === spec.x.values.length);
+  const AXIS_BOTTOM = { one: 28, two: 36 };  // the bottom margin under one row of x ticks and under the age and year rows
+  const TICK_ROOM = 40;  // the least distance between two x ticks' centers, so "2031" and its neighbours never touch
+  const TICK_STEPS = [1, 2, 5, 10, 20, 25, 50, 100];
+
+  // The ticks of a by-year axis: every age that is a multiple of a step, the smallest of TICK_STEPS that leaves
+  // TICK_ROOM between neighbours on this viewBox (so a phone card shows fewer than full screen).
+  function ageTicks(ages, positionOf) {
+    if (ages.length < 2) return ages.map((age, position) => [age, position]);
+    const across = Math.abs(positionOf(1) - positionOf(0));
+    const step = TICK_STEPS.find((item) => item * across >= TICK_ROOM) || TICK_STEPS[TICK_STEPS.length - 1];
+    const picked = ages.map((age, position) => [age, position]).filter(([age]) => age % step === 0);
+    return picked.length >= 2 ? picked : [[ages[0], 0], [ages[ages.length - 1], ages.length - 1]];
+  }
+
+  function axisX(values, positionOf, unit, years) {
+    const baseline = HEIGHT - MARGIN.bottom;
+    if (years) {
+      const tick = (text, x, y, extra) => "<text class=\"tick" + extra + "\" x=\"" + x + "\" y=\"" + y
+        + "\" text-anchor=\"middle\">" + escapeText(text) + "</text>";
+      return "<text class=\"tick axis-name\" x=\"4\" y=\"" + (baseline + 14) + "\">Age</text><text class=\"tick "
+        + "axis-name\" x=\"4\" y=\"" + (baseline + 27) + "\">Year</text>" + ageTicks(values, positionOf)
+        .map(([age, position]) => tick(age, round(positionOf(position)), baseline + 14, " tick-age")
+          + tick(years[position], round(positionOf(position)), baseline + 27, " tick-year")).join("");
+    }
     const numeric = values.every((value) => typeof value === "number");
     let picked;
     if (numeric && values.length > 1) {
@@ -130,10 +159,15 @@
     } else {
       picked = values.map((value, position) => [value, position]);
     }
-    const baseline = HEIGHT - MARGIN.bottom;
     return picked.map(([value, position]) => "<text class=\"tick\" x=\"" + round(positionOf(position)) + "\" y=\""
       + (baseline + 16) + "\" text-anchor=\"middle\">" + escapeText(unit ? tickText(value, unit) : value) + "</text>")
       .join("");
+  }
+
+  // "Age 45 · 2031" on a by-year chart, else the x label and value.
+  function xTitle(spec, position) {
+    return ageYear(spec) ? "Age " + spec.x.ages[position] + " \u00b7 " + spec.x.years[position]
+      : spec.x.label + " " + spec.x.values[position];
   }
 
   function barPath(x, y, width, height) {
@@ -166,20 +200,45 @@
       + "\"></circle>";
   }
 
+  // The dashed step from a line's last point ([x, y]) out to `x`, then up or down to a dot at `y`, the value of what
+  // heirs keep; `title` is the dot's tooltip.
+  function heirsStep(last, x, y, stroke, title) {
+    return "<path class=\"after-tax-step\" stroke=\"" + stroke + "\" stroke-dasharray=\"3 2\" fill=\"none\" d=\"M"
+      + round(last[0]) + "," + round(last[1]) + "H" + round(x) + "V" + round(y) + "\"></path><circle class=\"dot "
+      + "after-tax-dot\" cx=\"" + round(x) + "\" cy=\"" + round(y) + "\" r=\"4\" fill=\"" + stroke + "\"><title>"
+      + escapeText(title) + "</title></circle>";
+  }
+
+  // The x axis's right end: the plot's, less the room for the steps of `count` markers past the last year.
+  function rightEdge(count) {
+    return WIDTH - MARGIN.right - (count ? AFTER_TAX.room + AFTER_TAX.stagger * (count - 1) : 0);
+  }
+
   // Geometry and marks for each chart type: returns {marks, yTicks, unit, xAxis, positions}.
   const DRAW = {
+    // A balance stack with `spec.afterTax` (What beneficiaries keep) ends in a dashed step from the stack's top in the last
+    // year to a dot at that value, as Compare does.
     stackedArea(spec) {
       const values = spec.x.values;
       const { layers, max, min } = stack(spec.series, values.length);
-      const ticks = niceTicks(min, max, 4);
+      const marked = spec.afterTax != null && values.length > 0;
+      const heirs = number(spec.afterTax);
+      const ticks = niceTicks(marked ? Math.min(min, heirs) : min, marked ? Math.max(max, heirs) : max, 4);
       const scaleY = linear(ticks[0], ticks[ticks.length - 1], HEIGHT - MARGIN.bottom, MARGIN.top);
-      const scaleX = linear(0, Math.max(values.length - 1, 1), MARGIN.left, WIDTH - MARGIN.right);
-      const marks = layers.map((layer, index) => {
+      const right = rightEdge(marked ? 1 : 0);
+      const scaleX = linear(0, Math.max(values.length - 1, 1), MARGIN.left, right);
+      let marks = layers.map((layer, index) => {
         const upper = layer.map((part, position) => [scaleX(position), scaleY(part.high)]);
         const lower = layer.map((part, position) => [scaleX(position), scaleY(part.low)]).reverse();
         return "<path class=\"area\" fill=\"" + color(spec.series[index]) + "\" d=\"" + areaPath(upper.concat(lower))
           + "\"></path><path class=\"seam\" d=\"" + linePath(upper) + "\"></path>";
       }).join("");
+      if (marked) {
+        const last = values.length - 1;
+        const top = layers.length ? Math.max(...layers.map((layer) => layer[last].high)) : 0;
+        marks += heirsStep([scaleX(last), scaleY(top)], right + AFTER_TAX.out, scaleY(heirs), HEIRS_COLOR,
+          HEIRS_LABEL + ": " + formatValue(spec.afterTax, "money"));
+      }
       return { marks, ticks, scaleY, positionOf: scaleX, values };
     },
     lines(spec) {
@@ -278,20 +337,26 @@
       const positionOf = (position) => (scaleX(bins[position].from) + scaleX(bins[position].to)) / 2;
       return { marks, ticks, scaleY, positionOf, values: bins.map((bin) => bin.from), xAxis, yUnit: "percent" };
     },
+    // The median line and its band; a series with `afterTax` (What beneficiaries keep) ends in the dashed step to its dot.
     bands(spec) {
       const values = spec.x.values;
       const series = spec.series[0];
-      const all = series.low.concat(series.high, series.values).map(number);
+      const marked = series.afterTax != null && values.length > 0;
+      const all = series.low.concat(series.high, series.values).map(number)
+        .concat(marked ? [number(series.afterTax)] : []);
       const ticks = niceTicks(Math.min(0, ...all), Math.max(0, ...all), 4);
       const scaleY = linear(ticks[0], ticks[ticks.length - 1], HEIGHT - MARGIN.bottom, MARGIN.top);
-      const scaleX = linear(0, Math.max(values.length - 1, 1), MARGIN.left, WIDTH - MARGIN.right);
+      const right = rightEdge(marked ? 1 : 0);
+      const scaleX = linear(0, Math.max(values.length - 1, 1), MARGIN.left, right);
       const upper = series.high.map((value, position) => [scaleX(position), scaleY(number(value))]);
       const lower = series.low.map((value, position) => [scaleX(position), scaleY(number(value))]).reverse();
       const median = series.values.map((value, position) => [scaleX(position), scaleY(number(value))]);
       const last = median[median.length - 1];
       const marks = "<path class=\"band\" fill=\"" + color(series) + "\" d=\"" + areaPath(upper.concat(lower))
         + "\"></path><path class=\"line\" stroke=\"" + color(series) + "\" d=\"" + linePath(median) + "\"></path>"
-        + (last ? endDot(last[0], last[1], series) : "");
+        + (last ? endDot(last[0], last[1], series) : "")
+        + (marked && last ? heirsStep(last, right + AFTER_TAX.out, scaleY(number(series.afterTax)), color(series),
+          HEIRS_LABEL + ": " + formatValue(series.afterTax, "money")) : "");
       return { marks, ticks, scaleY, positionOf: scaleX, values };
     },
     // One median line and 10th-90th percentile band per compared scenario on a shared age axis. A series with an
@@ -303,7 +368,7 @@
         .concat(taxed.map((series) => number(series.afterTax)));
       const ticks = niceTicks(Math.min(0, ...all), Math.max(0, ...all), 4);
       const scaleY = linear(ticks[0], ticks[ticks.length - 1], HEIGHT - MARGIN.bottom, MARGIN.top);
-      const right = WIDTH - MARGIN.right - (taxed.length ? AFTER_TAX.room + AFTER_TAX.stagger * (taxed.length - 1) : 0);
+      const right = rightEdge(taxed.length);
       const scaleX = linear(0, Math.max(values.length - 1, 1), MARGIN.left, right);
       const bands = spec.series.map((series) => {
         const upper = presentPoints(series.high, scaleX, scaleY);
@@ -320,13 +385,9 @@
       const steps = taxed.map((series, index) => {
         const median = presentPoints(series.values, scaleX, scaleY);
         if (!median.length) return "";
-        const last = median[median.length - 1];
-        const x = right + AFTER_TAX.out + AFTER_TAX.stagger * index;
-        const y = scaleY(number(series.afterTax));
-        return "<path class=\"after-tax-step\" stroke=\"" + color(series) + "\" stroke-dasharray=\"3 2\" fill=\"none\" d=\"M"
-          + round(last[0]) + "," + round(last[1]) + "H" + round(x) + "V" + round(y) + "\"></path><circle class=\"dot "
-          + "after-tax-dot\" cx=\"" + round(x) + "\" cy=\"" + round(y) + "\" r=\"4\" fill=\"" + color(series) + "\"><title>"
-          + escapeText(series.name + " after tax: " + formatValue(series.afterTax, "money")) + "</title></circle>";
+        return heirsStep(median[median.length - 1], right + AFTER_TAX.out + AFTER_TAX.stagger * index,
+          scaleY(number(series.afterTax)), color(series), series.name + ", what beneficiaries keep: "
+          + formatValue(series.afterTax, "money"));
       }).join("");
       return { marks: bands + lines + steps, ticks, scaleY, positionOf: scaleX, values };
     },
@@ -370,10 +431,11 @@
       const series = spec.series[0];
       const [low, high] = spec.percentiles || [10, 90];
       return [{ name: "Median", series, key: "line" }, { name: low + "th to " + high + "th percentile", series,
-        key: "band" }];
+        key: "band" }].concat(series.afterTax != null ? [{ name: HEIRS_LABEL + " " + tickMoney(series.afterTax), series,
+        key: "dot" }] : []);
     }
     if (spec.type === "compareBands") {
-      return spec.series.map((series) => ({ name: series.name + (series.afterTax != null ? " (after tax "
+      return spec.series.map((series) => ({ name: series.name + (series.afterTax != null ? " (beneficiaries keep "
         + tickMoney(series.afterTax) + ")" : ""), series, key: "line" }));
     }
     // Series with a group (deposits, withdrawals) get a heading item before the first series of each group.
@@ -384,6 +446,7 @@
       group = series.group || null;
       items.push({ name: series.name, series, key: series.mark === "line" ? "line" : series.hatched ? "hatch" : "box" });
     }
+    if (spec.afterTax != null) items.push({ name: HEIRS_LABEL + " " + tickMoney(spec.afterTax), key: "dot", keyColor: HEIRS_COLOR });
     return items;
   }
 
@@ -392,7 +455,7 @@
     if (items.filter((item) => !item.heading).length < 2) return "";
     return "<ul class=\"legend\">" + items.map((item) => (item.heading ? "<li class=\"legend-group\">"
       + escapeText(item.name) + "</li>" : "<li><span class=\"key key-" + item.key + "\" style=\"--key:"
-      + color(item.series) + "\"></span>" + escapeText(item.name) + "</li>")).join("") + "</ul>";
+      + (item.keyColor || color(item.series)) + "\"></span>" + escapeText(item.name) + "</li>")).join("") + "</ul>";
   }
 
   function dollarsNote(spec) {
@@ -413,26 +476,31 @@
         + " bins" + (peak ? "; most common " + tickMoney(peak.from) + " to " + tickMoney(peak.to) : "") + ".";
     }
     const values = spec.x.values;
-    const range = values.length ? " by " + spec.x.label.toLowerCase() + " from " + values[0] + " to "
-      + values[values.length - 1] : "";
+    const last = values.length - 1;
+    const range = !values.length ? "" : ageYear(spec) ? " by your age from " + values[0] + " (" + spec.x.years[0]
+      + ") to " + values[last] + " (" + spec.x.years[last] + ")"
+      : " by " + spec.x.label.toLowerCase() + " from " + values[0] + " to " + values[last];
     const names = spec.series.map((series) => series.name).join(", ");
     const taxed = spec.series.filter((series) => series.afterTax != null);
-    const afterTax = taxed.length ? " After tax at the end (median): " + taxed.map((series) => series.name + " "
-      + tickMoney(series.afterTax)).join("; ") + "." : "";
+    const afterTax = spec.afterTax != null ? " " + HEIRS_LABEL + " (median): " + tickMoney(spec.afterTax) + "."
+      : taxed.length ? " " + HEIRS_LABEL + " (median): " + taxed.map((series) => (spec.type === "compareBands"
+        ? series.name + " " : "") + tickMoney(series.afterTax)).join("; ") + "." : "";
     return spec.title + ", " + dollarsNote(spec).toLowerCase() + range + ". " + spec.series.length + " series: "
       + names + "." + afterTax;
   }
 
-  // Run `draw` with the viewBox set to `size` ({width, height}; null for the card's own size), then put it back.
-  function sized(size, draw) {
-    const kept = [WIDTH, HEIGHT];
+  // Run `draw` with the viewBox set to `size` ({width, height}; null for the card's own size), and the bottom margin
+  // room for the age and year rows when `spec` is a by-year chart, then put them back.
+  function sized(size, draw, spec) {
+    const kept = [WIDTH, HEIGHT, MARGIN.bottom];
     [WIDTH, HEIGHT] = size ? [size.width, size.height] : [BASE_SIZE.width, BASE_SIZE.height];
+    MARGIN.bottom = ageYear(spec) ? AXIS_BOTTOM.two : AXIS_BOTTOM.one;
     PLOT_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
     PLOT_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
     try {
       return draw();
     } finally {
-      [WIDTH, HEIGHT] = kept;
+      [WIDTH, HEIGHT, MARGIN.bottom] = kept;
       PLOT_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
       PLOT_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
     }
@@ -440,7 +508,7 @@
 
   // The chart as markup; `size` ({width, height}) draws it on a larger viewBox, as full screen does.
   function renderChart(spec, size) {
-    return sized(size || null, () => drawChart(spec));
+    return sized(size || null, () => drawChart(spec), spec);
   }
 
   function drawChart(spec) {
@@ -453,7 +521,7 @@
     } else {
       const drawn = DRAW[spec.type](spec);
       const unit = drawn.yUnit || spec.y.unit;
-      const xAxis = drawn.xAxis || axisX(drawn.values, drawn.positionOf);
+      const xAxis = drawn.xAxis || axisX(drawn.values, drawn.positionOf, null, ageYear(spec) ? spec.x.years : null);
       const yAxis = drawn.yAxis != null ? drawn.yAxis : axisY(drawn.ticks, drawn.scaleY, unit)
         + "<line class=\"baseline\" x1=\"" + MARGIN.left + "\" x2=\"" + (WIDTH - MARGIN.right) + "\" y1=\""
         + round(drawn.scaleY(0)) + "\" y2=\"" + round(drawn.scaleY(0)) + "\"></line>";
@@ -472,7 +540,8 @@
 
   function columnUnits(spec) {
     if (spec.type === "histogram") return ["money", "money", "count", "percent"];
-    return spec.table.columns.map((name, position) => (position === 0 ? "label" : spec.y.unit));
+    return spec.table.columns.map((name, position) => (position === 0 || (position === 1 && ageYear(spec)
+      && name === "Year") ? "label" : spec.y.unit));
   }
 
   function renderTable(spec) {
@@ -576,7 +645,7 @@
         ["75th percentile", formatValue(series.q3, unit), null], ["Median", formatValue(series.median, unit), series],
         ["25th percentile", formatValue(series.q1, unit), null], ["Lower whisker", formatValue(series.low, unit), null]] };
     }
-    const title = spec.x.label + " " + spec.x.values[position];
+    const title = xTitle(spec, position);
     if (spec.type === "compareBands") {
       const rows = [];
       for (const series of spec.series.filter((item) => item.values[position] != null)) {
@@ -584,22 +653,29 @@
           + tickMoney(series.high[position]) + ")", formatValue(series.values[position], unit), series]);
         const last = series.values.reduce((found, value, index) => (value == null ? found : index), -1);
         if (series.afterTax != null && position === last) {
-          rows.push([series.name, "After tax: " + formatValue(series.afterTax, unit), series]);
+          rows.push([series.name, HEIRS_LABEL + ": " + formatValue(series.afterTax, unit), series]);
         }
       }
       return { title, rows };
     }
     if (spec.type === "bands") {
       const series = spec.series[0];
-      return { title, rows: [["90th percentile", formatValue(series.high[position], unit), null],
+      const rows = [["90th percentile", formatValue(series.high[position], unit), null],
         ["Median", formatValue(series.values[position], unit), series],
-        ["10th percentile", formatValue(series.low[position], unit), null]] };
+        ["10th percentile", formatValue(series.low[position], unit), null]];
+      if (series.afterTax != null && position === spec.x.values.length - 1) {
+        rows.push([HEIRS_LABEL + " (median)", formatValue(series.afterTax, unit), series]);
+      }
+      return { title, rows };
     }
     const rows = spec.series.map((series) => [series.name, formatValue(series.values[position], unit), series]);
     if (spec.type !== "lines") {
       const total = seriesOf(spec, spec.type === "stackedArea" ? "area" : "bar").filter(counted)
         .reduce((sum, series) => sum + number(series.values[position]), 0);
       rows.push(["Total", formatValue(total, unit), null]);
+      if (spec.afterTax != null && position === spec.x.values.length - 1) {
+        rows.push([HEIRS_LABEL + " (median)", formatValue(spec.afterTax, unit), null]);
+      }
     }
     return { title, rows };
   }
@@ -608,7 +684,7 @@
     const svg = figure.querySelector("svg.chart-svg");
     if (!svg) return;
     const [, , width, height] = svg.getAttribute("viewBox").split(" ").map(Number);
-    const drawn = sized({ width, height }, () => DRAW[spec.type](spec));
+    const drawn = sized({ width, height }, () => DRAW[spec.type](spec), spec);
     // In the turned full screen overlay the drawing's x axis runs down the screen and its y axis right to left.
     const turned = () => Boolean(figure.closest(".chart-rotated"));
     const count = drawn.values.length;
@@ -817,8 +893,20 @@
     close.focus();
   }
 
+  // Whether a spec carries a "What beneficiaries keep" mark: on a series (Total balance, Compare) or the spec (Balances).
+  function hasAfterTax(spec) {
+    return spec.afterTax != null || (spec.series || []).some((series) => series.afterTax != null);
+  }
+
+  // A copy of a spec without its "What beneficiaries keep" marks, for the chart card's toggle; the spec is not changed.
+  function withoutAfterTax(spec) {
+    const copy = { ...spec, series: (spec.series || []).map((series) => ({ ...series, afterTax: null })) };
+    delete copy.afterTax;
+    return copy;
+  }
+
   const api = { TYPES, renderChart, renderTable, renderFrame, renderUnitsTable, unitCell, attachChart, chartSummary,
-    niceTicks, fullScreenSize, attachFullScreen, readoutRows, BASE_SIZE };
+    niceTicks, fullScreenSize, attachFullScreen, readoutRows, hasAfterTax, withoutAfterTax, HEIRS_LABEL, BASE_SIZE };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiCharts = api;
 })(typeof self !== "undefined" ? self : this);
