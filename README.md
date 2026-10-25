@@ -2,7 +2,8 @@
 
 A retirement income planner that runs entirely on your device: the full model runs in your browser, and nothing
 you enter is sent anywhere. Open the site and use your browser's "Add to Home Screen" (or "Install app") to keep it
-on your phone; it works offline once loaded.
+on your phone; it works offline once loaded. New here? [GETTING-STARTED.pdf](GETTING-STARTED.pdf) shows how to open
+the site and install it as an app on a phone, tablet or computer.
 
 This planner gives estimates for education only; it is not financial, tax, investment or legal advice. Its results
 are hypothetical and may not come true; it comes with no warranty, and you use it at your own risk. It models United
