@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -134,12 +134,13 @@
     info: null, schema: null, defaults: null, inputs: null, base: null, scenarioName: EXAMPLE_NAME, seed: 1,
     walkTree: null, result: null, error: null, lastRunMs: null, bootMs: null, pyodideVersion: null,
     notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, planOpen: false,
+    heirLocks: [], heirNotice: [], childHeirsOn: null,  // the beneficiaries' slider locks (positions) and warning
     tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
     autoSaveOff: [], exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null },
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
-      armed: null, diffs: null, diffsPending: null, mergeUndo: [] },
+      armed: null, diffs: null, diffsPending: null, mergeUndo: [], merging: 0 },
     optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
       options: { effort: null, preset: null, dimensions: {}, states: [] } },
   };
@@ -173,7 +174,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.ebdf48b60b.js");
+      worker = new Worker("worker.7ee5fb0409.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -420,6 +421,7 @@
 
   function inputsChanged() {
     normalizeFilingTableChoices();
+    syncHeirs();  // a beneficiary per child while Add children as beneficiaries is on; shares at 100%
     if (state.schema) syncResetFlags(state.schema, state.inputs);
     saveDraft();
     state.savedJustNow = false;
@@ -429,7 +431,9 @@
     if (summaryCard) fillExpenseSummary(summaryCard);
     refreshSpending();  // the Spending in retirement amounts follow every edit (a percent, the start or stop age)
     refreshYearsDefault();  // a blank Years to simulate follows your age
+    syncInflationRange();  // the inflation range shows only with Inflation-adjusted dollars on
     updateTerminalRate();  // the beneficiaries' caption follows their payouts
+    renderSplit(HEIR_SPLIT);  // the beneficiaries' sliders follow their names and shares
     clearTimeout(runTimer);
     setStatus("busy", "Updating");
     $("app").classList.add("stale");
@@ -1359,7 +1363,7 @@
   }
 
   // ---- Setup: the open scenario card, the seed and runs, and the Inflation card (the inflation adjusted switch and
-  // the inflation range) ----
+  // the inflation range, in Advanced settings with the Run card) ----
   const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 
   // The saved copy of a scenario: its entry on this device, or the example household for the example's name (unless
@@ -1408,8 +1412,19 @@
     const rootFields = state.schema.types[state.schema.root];
     $("run-body").replaceChildren(...RUN_CARD_FIELDS.map((name) =>
       fieldElement(rootFields.find((item) => item.name === name), name)), seedField(), runsField());
-    $("inflation-body").replaceChildren(...INFLATION_CARD_FIELDS.map((name) =>
-      fieldElement(rootFields.find((item) => item.name === name), name)));
+    $("inflation-body").replaceChildren(...INFLATION_CARD_FIELDS.map((name) => {
+      const element = fieldElement(rootFields.find((item) => item.name === name), name);
+      element.dataset.inflationField = name;
+      return element;
+    }));
+    syncInflationRange();
+  }
+
+  // The inflation range shows only while Inflation-adjusted dollars is on. Off, it is hidden but still used: its mean
+  // turns the nominal rates into today's value.
+  function syncInflationRange() {
+    const range = document.querySelector("#inflation-body [data-inflation-field=\"inflation\"]");
+    if (range) range.hidden = !(state.inputs && state.inputs.useInflation);
   }
 
   // The Monte Carlo's number of runs: a segmented choice under the seed, kept in the prefs.
@@ -1510,7 +1525,9 @@
     const result = entry.value;
     const tables = result.tables;
     html += "<div class=\"result-meta\"><span>" + result.runs + " runs</span><span>Seed " + escapeText(result.seed)
-      + "</span><span>" + escapeText(dollarsText(result.dollars)) + "</span></div><div class=\"tiles\">"
+      + "</span><span>" + escapeText(dollarsText(result.dollars)) + "</span></div>"
+      + "<p class=\"note dollars-note\" id=\"dollarsNote\">"  // what the dollars are, before any figure
+      + escapeText(dollarsNote(ranInputs(entry, stale), result.dollars)) + "</p><div class=\"tiles\">"
       + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale)).join("")
       + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false)).join("") : "")
       + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "");
@@ -1518,14 +1535,16 @@
     body.innerHTML = html;
   }
 
+  // The inputs a Monte Carlo cache entry ran on: the current ones unless it is stale.
+  function ranInputs(entry, stale) {
+    if (!stale) return state.inputs;
+    try { return JSON.parse(entry.key)[0]; } catch (error) { return state.inputs; }
+  }
+
   // The Insights card (insights.js) of a Monte Carlo cache entry, on the inputs it ran on: a list per kind that has
   // items and the note; "" when neither has any.
   function renderInsights(result, entry, stale) {
-    let inputs = state.inputs;
-    if (stale) {
-      try { inputs = JSON.parse(entry.key)[0]; } catch (error) { inputs = state.inputs; }
-    }
-    const found = insightRules.insights(inputs, result);
+    const found = insightRules.insights(ranInputs(entry, stale), result);
     const groups = [["Warnings", found.warnings, "insights-warnings"], ["Opportunities", found.opportunities,
       "insights-opportunities"]].filter(([, items]) => items.length);
     if (!groups.length) return "";
@@ -2493,14 +2512,17 @@
     if (!reply) html += "<p class=\"muted\">Finding the settings that differ…</p>";
     else if (!reply.ok) html += messageHtml({ error: true, text: reply.error });
     else {
-      html += matchButtons([nameA, nameB], reply.problems);
+      // Make-match and Undo would undo a merge still in line, so they wait for it.
+      const busy = compareBusy() || (compare.merging ? "Off until the merges in line are applied." : null);
+      html += matchButtons([nameA, nameB], reply.problems.map((problem) => problem || busy));
       if (compare.mergeUndo.length) {
-        html += "<div class=\"run-row\"><button type=\"button\" class=\"button button-quiet\" id=\"compareMergeUndo\">"
-          + "Undo last merge (" + compare.mergeUndo.length + ")</button></div>";
+        html += "<div class=\"run-row\"><button type=\"button\" class=\"button button-quiet\" id=\"compareMergeUndo\""
+          + (busy ? " disabled" : "") + ">Undo last merge (" + compare.mergeUndo.length + ")</button></div>";
       }
       if (!differences.length) html += "<p class=\"muted\">These configs have identical settings.</p>";
       // Why each side's buttons are off: "Merge A with B" changes A (problem of making A match B), and the reverse.
-      const problems = { A: reply.problems[1], B: reply.problems[0] };
+      const running = compareBusy();  // merges wait in line, so only a running comparison turns them off
+      const problems = { A: reply.problems[1] || running, B: reply.problems[0] || running };
       let section = null;
       differences.forEach((difference, index) => {
         if (difference.section !== section) {
@@ -2550,8 +2572,15 @@
   }
 
   // Write a config's settings: the working settings for the current settings, else the scenario saved on this device.
+  // The open scenario's saved copy with Auto-save on is its working settings too: writing only the copy would be undone
+  // by the next Auto-save (the next edit, or the next page load), which keeps the working settings as the copy.
   function writeConfig(name, inputs) {
-    if (name === state.info.compare.currentName) {
+    const open = name === state.scenarioName && autoSaveOn();
+    if (name === state.info.compare.currentName || open) {
+      if (open) {
+        state.scenarios[name] = clone(inputs);
+        storeScenarios();
+      }
       state.inputs = clone(inputs);  // the loaded scenario stays the base, so Outputs shows the settings as edited
       renderSettings();
       inputsChanged();
@@ -2562,25 +2591,51 @@
     }
   }
 
+  // Why the merge and make-match buttons are off while a comparison runs, or null.
+  function compareBusy() {
+    return state.compare.job ? "Off while the comparison runs; wait for it or cancel it." : null;
+  }
+
+  // Merges wait in line: each starts from the settings the one before it wrote, so a quick second tap never overwrites
+  // the first merge with the settings from before it.
+  let mergeLine = Promise.resolve();
+
+  function mergeOne(side, diffId) {
+    if (compareBusy()) return mergeLine;
+    const [nameA, nameB] = selectedScenarios();
+    const run = mergeLine.then(() => mergeNow(side, diffId, nameA, nameB));
+    mergeLine = run.catch(() => null);
+    return run;
+  }
+
   // Merge one difference at once: side "A" gives A the value of B, "B" gives B the value of A. The comparison is not
   // run again (it shows as changed); Undo last merge steps back through the last UNDO_LIMIT merges.
-  async function mergeOne(side, diffId) {
+  async function mergeNow(side, diffId, nameA, nameB) {
     const compare = state.compare;
-    if (compare.job) return;
-    const [nameA, nameB] = selectedScenarios();
     const [target, source] = side === "A" ? [nameA, nameB] : [nameB, nameA];
     if (target === state.info.compare.defaultName) return;
-    const targetConfig = await configInputs(target);
-    const sourceConfig = await configInputs(source);
-    const failed = !targetConfig.ok ? targetConfig : !sourceConfig.ok ? sourceConfig : null;
-    const reply = failed ? null : await ask("mergeCompareDifference", [JSON.stringify(targetConfig.inputs),
-      JSON.stringify(sourceConfig.inputs), diffId]);
-    if (failed || !reply || !reply.ok) {
-      compare.message = { error: true, text: failed ? failed.error : reply ? reply.error : "The merge did not answer; try again." };
+    if (settleTimer) settle();  // an edit still settling is saved first, so the merge starts from it
+    compare.merging += 1;
+    let reply;
+    let before = null;
+    try {
+      const targetConfig = await configInputs(target);
+      const sourceConfig = await configInputs(source);
+      const failed = !targetConfig.ok ? targetConfig : !sourceConfig.ok ? sourceConfig : null;
+      before = failed ? null : JSON.stringify(targetConfig.inputs);
+      const stored = configText(target);
+      reply = failed || await ask("mergeCompareDifference", [before, JSON.stringify(sourceConfig.inputs), diffId]);
+      if (reply && reply.ok && configText(target) !== stored) {
+        reply = { ok: false, error: target + " changed while the merge was worked out; nothing was merged. Try again." };
+      }
+    } finally {
+      compare.merging -= 1;
+    }
+    if (!reply || !reply.ok) {
+      compare.message = { error: true, text: reply ? reply.error : "The merge did not answer; try again." };
       renderCompare();
       return;
     }
-    const before = JSON.stringify(targetConfig.inputs);
     writeConfig(target, reply.inputs);
     compare.mergeUndo = mergeUndoPush(compare.mergeUndo, { target, before, after: configText(target), label: reply.label },
       UNDO_LIMIT);
@@ -2592,6 +2647,7 @@
   // Undo the last merge, unless its config changed since (later edits are never overwritten).
   function undoMerge() {
     const compare = state.compare;
+    if (compareBusy() || compare.merging) return;
     const popped = mergeUndoPop(compare.mergeUndo);
     if (!popped) return;
     compare.mergeUndo = popped.stack;
@@ -2652,7 +2708,7 @@
   // comparison runs again.
   async function makeMatch(position, result) {
     const compare = state.compare;
-    if (compare.job) return;
+    if (compareBusy() || compare.merging) return;
     const [nameA, nameB] = result.names;
     const [source, target] = position === 0 ? [nameA, nameB] : [nameB, nameA];
     if (compare.armed !== position) {
@@ -2669,15 +2725,7 @@
       renderCompare();
       return;
     }
-    if (target === state.info.compare.currentName) {
-      state.inputs = clone(inputs.inputs);  // the loaded scenario stays the base, so Outputs shows the settings as edited
-      renderSettings();
-      inputsChanged();
-    } else {
-      state.scenarios[target] = clone(inputs.inputs);
-      storeScenarios();
-      renderSaved();
-    }
+    writeConfig(target, inputs.inputs);
     compare.message = { text: target + " now matches " + source + "." };
     renderCompare();
     await checkCompare();
@@ -2877,6 +2925,8 @@
           found = drawnField(path, document);
           if (!found) return;
         }
+        const shut = found.element.closest("details:not([open])");  // Advanced settings: the inflation and run
+        if (shut) shut.open = true;
         const target = flashField(found.element);
         for (const other of paths) {
           const more = other !== path && drawnField(other, document);
@@ -3517,6 +3567,8 @@
     applyNotes();
     applyBenefits();
     renderDeposits();
+    renderSplit(HEIR_SPLIT);
+    fillHeirNotice();
     requestNotes();
     requestBenefits();
     requestEarnings();
@@ -3527,7 +3579,7 @@
   }
 
   // The Household panel on Setup: the partner switch and the panel's fields (the seed, runs and the
-  // inflation adjusted switch and range are in the Loaded config and Inflation cards below it).
+  // inflation adjusted switch and range are in the Inflation and Run cards of Advanced settings).
   function renderHousehold() {
     const panel = state.schema.panels.find((item) => item.id === SETUP_PANEL);
     $("householdCard").hidden = !panel;
@@ -3603,8 +3655,8 @@
         group.append(...terminalRateCard());
         continue;
       }
-      if (name === HEIRS_PATH) {  // one card per beneficiary, in Beneficiaries
-        group.append(beneficiaryCards());
+      if (name === HEIRS_PATH) {  // the list and its share sliders, in Beneficiaries
+        group.append(...beneficiaryList());
         continue;
       }
       let field = panelField(state.schema, name);
@@ -3632,6 +3684,7 @@
         element.append(benefitBox(name.split(".")[0]));  // the benefit table and estimate under the claim age
       }
       group.append(element);
+      if (panel.id === "retirement" && name === PART_B_SWITCH) element.append(partBRow(element));
       if (panel.id === "retirement" && name === "retirementSpending.startAge") {
         spendingStartHint(element);  // the age a blank start means, as the box's placeholder
         group.append(spendingBox());  // Per expense: every Expenses row with its percent; then the change's caption
@@ -3642,7 +3695,8 @@
     if (resetRoots.length) group.append(resetDefaultsButton(resetRoots));
     const sections = [group];
     if (panel.id === "loans") group.append(...mortgageRows(), ...carLoanRows());
-    if (panel.id === "cars") group.append(warningsBox("car-warnings"));  // Expenses rows a car charges again
+    if (panel.id === "cars") group.append(warningsBox("car-warnings"));
+    if (panel.id === "children") group.append(warningsBox("child-heir-warnings"));  // children's beneficiaries kept  // Expenses rows a car charges again
     if (panel.id === "home" && panel.fields.includes("homes")) {
       group.append(warningsBox("home-warnings"));  // in the Homes pane: a Mortgage while renting, bills counted twice
     }
@@ -3763,6 +3817,27 @@
     });
     wrap.append(edit);
     return [wrap];
+  }
+
+  // The Part B switch's read-only line (`state.info.medicarePartB`, wmti `medicarePartBInfo`): the law data's standard
+  // premium and deductible, shown while the switch is on. The model adds IRMAA on higher incomes.
+  const PART_B_SWITCH = "premiums.partB";
+  function partBRow(element) {
+    const partB = state.info.medicarePartB;
+    const row = document.createElement("div");
+    row.className = "item item-readonly part-b-row";
+    row.innerHTML = "<span class=\"item-name\"></span><span class=\"item-detail\"></span>";
+    const dollars = (value, digits) => "$" + value.toLocaleString("en-US",
+      { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    row.querySelector(".item-name").textContent = "Part B premium " + dollars(partB.monthlyPremium, 2)
+      + " per person per month (" + partB.year + ", set by law) · deductible " + dollars(partB.annualDeductible, 0)
+      + " a year";
+    row.querySelector(".item-detail").textContent = "Higher incomes pay more (IRMAA), added by the model";
+    const input = element.querySelector("input[type=checkbox]");
+    const show = () => { row.hidden = !input.checked; };
+    input.addEventListener("change", show);
+    show();
+    return row;
   }
 
   // The Accounts chip's read-only benefit accounts (`benefitAccounts`): the HSA while it counts and the dependent care
@@ -4298,77 +4373,127 @@
     updateTerminalRate();
   }
 
-  // ---- Where surplus cash goes: a slider and a lock per cash or Investments account, always totalling 100% ----
-  const surplusMove = { busy: false, pending: null, name: null };
+  // ---- Linked share sliders: a slider and a lock per item, always totalling 100%. Where surplus cash goes (Accounts:
+  // the cash and Investments accounts, by name, from state.notes.surplus) and Split among beneficiaries (Benefits:
+  // the beneficiaries, by position, from the inputs) are two splits drawn and moved by the same code. A split names its
+  // body's id, its slider ids, the items as [label, share] pairs, the key that locks an item, its locks, the wmti
+  // call that moves a share (`call`, by the item's position) and how the reply is written back (`apply`) ----
+  const SURPLUS_SPLIT = {
+    body: "surplusBody", idPrefix: "surplus-", noun: "account",
+    empty: "Add a cash or Investments account to receive surplus cash.",
+    only: "Only one account can receive surplus cash, so it takes all of it.",
+    items: () => (state.notes ? state.notes.surplus : null),
+    keys: (items) => items.map(([name]) => name),
+    locks: () => state.surplusLocks,
+    setLocks: (keys) => {
+      state.surplusLocks = keys;
+      savePrefs();
+    },
+    call: (position, share, locked) => engine.call("rebalanceSurplus", [JSON.stringify(state.inputs),
+      state.notes.surplus[position][0], share, JSON.stringify(locked)]),
+    apply: (reply) => {
+      const accounts = reply.inputs.accounts;
+      state.inputs.accounts.forEach((account, position) => {
+        if (accounts[position]) account.surplusShare = accounts[position].surplusShare;
+      });
+      state.notes = Object.assign({}, state.notes, { surplus: reply.shares });
+    },
+    motion: { busy: false, pending: null, position: null },
+  };
+  const HEIR_SPLIT = {
+    body: "heirSplitBody", idPrefix: "heir-share-", noun: "beneficiary",
+    empty: "Add a beneficiary to split what is left.",
+    only: "Only one beneficiary, so they take all of it.",
+    items: () => (getPath(state.inputs, HEIRS_PATH) || []).map((heir, position) =>
+      [heir.name || "Beneficiary " + (position + 1), Number(heir.share) || 0]),
+    keys: (items) => items.map((_, position) => String(position)),
+    locks: () => state.heirLocks,
+    setLocks: (keys) => { state.heirLocks = keys; },
+    call: (position, share, locked) => engine.call("rebalanceHeirShares", [JSON.stringify(state.inputs), position,
+      share, JSON.stringify(locked.map(Number))]),
+    apply: (reply) => {
+      const heirs = getPath(state.inputs, HEIRS_PATH) || [];
+      reply.shares.forEach((share, position) => { if (heirs[position]) heirs[position].share = share; });
+    },
+    motion: { busy: false, pending: null, position: null },
+  };
 
-  function surplusSection() {
+  function splitSection(split, title, help) {
     const group = document.createElement("fieldset");
     group.className = "group surplus";
-    group.id = "surplus";
+    group.id = split.body.replace(/Body$/, "");
     const id = newHelpId();
-    group.innerHTML = "<legend class=\"legend-help\"><span>Where surplus cash goes</span>"
-      + helpButtonHtml("Where surplus cash goes", id) + "</legend>" + helpTextHtml(id, "Cash left over after spending "
-      + "and saving is deposited into these accounts. Drag a slider and the unlocked ones move so the total stays "
-      + "100%; lock an account to keep its share. Retirement accounts and HSAs never receive surplus.")
-      + "<div class=\"surplus-body\" id=\"surplusBody\"><p class=\"note\">Reading the split</p></div>";
+    group.innerHTML = "<legend class=\"legend-help\"><span>" + escapeText(title) + "</span>"
+      + helpButtonHtml(title, id) + "</legend>" + helpTextHtml(id, help)
+      + "<div class=\"surplus-body\" id=\"" + split.body + "\"><p class=\"note\">Reading the split</p></div>";
     return group;
   }
 
-  function lockedNames(names) {
-    return state.surplusLocks.filter((name) => names.includes(name));
+  function surplusSection() {
+    return splitSection(SURPLUS_SPLIT, "Where surplus cash goes", "Cash left over after spending and saving is "
+      + "deposited into these accounts. Drag a slider and the unlocked ones move so the total stays 100%; lock an "
+      + "account to keep its share. Retirement accounts and HSAs never receive surplus.");
   }
 
-  // Draw the split from state.notes.surplus. The rows are rebuilt only when the accounts or locks change, so a slider
-  // being dragged keeps its place; otherwise only the values move.
-  function renderSurplus() {
-    const holder = $("surplusBody");
-    if (!holder || !state.notes) return;
-    const shares = state.notes.surplus;
-    const names = shares.map(([name]) => name);
-    const locked = lockedNames(names);
-    const unlocked = names.filter((name) => !locked.includes(name));
-    const key = JSON.stringify([names, locked]);
+  function lockedKeys(split, keys) {
+    return split.locks().filter((key) => keys.includes(key));
+  }
+
+  // Draw a split. The rows are rebuilt only when the items or locks change, so a slider being dragged keeps its
+  // place; otherwise only the values move.
+  function renderSplit(split) {
+    const holder = $(split.body);
+    const items = holder && split.items();
+    if (!items) return;
+    const keys = split.keys(items);
+    const locked = lockedKeys(split, keys);
+    const key = JSON.stringify([items.map(([label]) => label), keys, locked]);
     if (holder.dataset.key !== key) {
       holder.dataset.key = key;
-      holder.replaceChildren(...surplusRows(names, locked, unlocked));
+      holder.replaceChildren(...splitRows(split, items, keys, locked));
     }
-    shares.forEach(([name, share], position) => {
+    items.forEach(([, share], position) => {
       const row = holder.querySelector(".surplus-row[data-position=\"" + position + "\"]");
       if (!row) return;
       row.querySelector(".surplus-value").textContent = percent(share, 1);
       const slider = row.querySelector("input[type=range]");
-      if (!(surplusMove.pending && surplusMove.name === name)) slider.value = String(share * 100);
+      if (!(split.motion.pending && split.motion.position === position)) slider.value = String(share * 100);
       slider.setAttribute("aria-valuetext", percent(share, 1));
       const segment = holder.querySelector(".split-bar [data-position=\"" + position + "\"]");
       if (segment) segment.style.flexGrow = String(share);
     });
     const total = holder.querySelector(".surplus-total strong");
-    if (total) total.textContent = percent(shares.reduce((sum, [, share]) => sum + share, 0), 0);
+    if (total) total.textContent = percent(items.reduce((sum, [, share]) => sum + share, 0), 0);
   }
 
-  function surplusRows(names, locked, unlocked) {
-    if (!names.length) {
+  function renderSurplus() {
+    renderSplit(SURPLUS_SPLIT);
+  }
+
+  function splitRows(split, items, keys, locked) {
+    if (!items.length) {
       const warning = document.createElement("p");
       warning.className = "banner banner-warn";
-      warning.textContent = "Add a cash or Investments account to receive surplus cash.";
+      warning.textContent = split.empty;
       return [warning];
     }
+    const unlocked = keys.filter((key) => !locked.includes(key));
     const bar = document.createElement("div");
     bar.className = "split-bar";
     bar.setAttribute("aria-hidden", "true");
-    names.forEach((name, position) => {
+    items.forEach((_, position) => {
       const segment = document.createElement("span");
       segment.dataset.position = String(position);
       segment.style.background = "var(--s" + (position % 8) + ")";
       bar.append(segment);
     });
-    const rows = names.map((name, position) => {
-      const isLocked = locked.includes(name);
+    const rows = items.map(([name], position) => {
+      const isLocked = locked.includes(keys[position]);
       const fixed = isLocked || unlocked.length <= 1;
       const row = document.createElement("div");
       row.className = "surplus-row";
       row.dataset.position = String(position);
-      const id = "surplus-" + position;
+      const id = split.idPrefix + position;
       row.innerHTML = "<div class=\"surplus-head\"><span class=\"surplus-key\"></span><label class=\"field-label\"></label>"
         + "<output class=\"surplus-value\"></output></div><div class=\"surplus-control\"><input type=\"range\" "
         + "class=\"range\" min=\"0\" max=\"100\" step=\"1\"><button type=\"button\" class=\"lock\">"
@@ -4381,18 +4506,17 @@
       const slider = row.querySelector("input");
       slider.id = id;
       slider.disabled = fixed;
-      slider.addEventListener("input", () => moveSurplus(name, Number(slider.value) / 100));
+      slider.addEventListener("input", () => moveSplit(split, position, Number(slider.value) / 100));
       const lock = row.querySelector(".lock");
       lock.setAttribute("aria-pressed", String(isLocked));
       lock.setAttribute("aria-label", (isLocked ? "Unlock " : "Lock ") + name);
       lock.querySelector(".shackle").setAttribute("d", isLocked ? "M8 11V8a4 4 0 0 1 8 0v3" : "M8 11V8a4 4 0 0 1 7.5-2");
-      lock.hidden = names.length === 1;
+      lock.hidden = items.length === 1;
       lock.addEventListener("click", () => {
-        state.surplusLocks = isLocked ? state.surplusLocks.filter((item) => item !== name)
-          : state.surplusLocks.concat([name]);
-        savePrefs();
-        renderSurplus();
-        const again = $("surplusBody").querySelector(".surplus-row[data-position=\"" + position + "\"] .lock");
+        const all = split.locks();
+        split.setLocks(isLocked ? all.filter((item) => item !== keys[position]) : all.concat([keys[position]]));
+        renderSplit(split);
+        const again = $(split.body).querySelector(".surplus-row[data-position=\"" + position + "\"] .lock");
         if (again) again.focus();
       });
       return row;
@@ -4402,48 +4526,44 @@
     footer.innerHTML = "Total <strong></strong>";
     const hint = document.createElement("p");
     hint.className = "field-help";
-    if (names.length === 1) hint.textContent = "Only one account can receive surplus cash, so it takes all of it.";
-    else if (!unlocked.length) hint.textContent = "Every account is locked. Unlock one to change the split.";
-    else if (unlocked.length === 1) hint.textContent = "Every other account is locked, so " + unlocked[0]
-      + " keeps what the locked ones leave. Unlock another account to move it.";
+    const noun = split.noun;
+    if (items.length === 1) hint.textContent = split.only;
+    else if (!unlocked.length) hint.textContent = "Every " + noun + " is locked. Unlock one to change the split.";
+    else if (unlocked.length === 1) hint.textContent = "Every other " + noun + " is locked, so "
+      + items[keys.indexOf(unlocked[0])][0] + " keeps what the locked ones leave. Unlock another " + noun + " to move it.";
     return [bar, ...rows, footer].concat(hint.textContent ? [hint] : []);
   }
 
-  // Send a slider move to wmti (rebalanceSurplus). One move is in flight at a time; while it runs only the newest
-  // position is kept, so the shares always follow the rebalanceSurplus rule step by step.
-  async function moveSurplus(name, share) {
-    if (surplusMove.busy) {
-      surplusMove.pending = { name, share };
-      surplusMove.name = name;
+  // Send a slider move to wmti (the split's `call`, editing.rebalanceShares). One move is in flight at a time; while
+  // it runs only the newest position is kept, so the shares always follow the rebalanceShares rule step by step.
+  async function moveSplit(split, position, share) {
+    const motion = split.motion;
+    motion.position = position;
+    if (motion.busy) {
+      motion.pending = { position, share };
       return;
     }
-    surplusMove.busy = true;
-    surplusMove.name = name;
-    const names = state.notes ? state.notes.surplus.map(([item]) => item) : [];
+    motion.busy = true;
+    const items = split.items() || [];
     let reply = null;
     try {
-      reply = await engine.call("rebalanceSurplus", [JSON.stringify(state.inputs), name, share,
-        JSON.stringify(lockedNames(names))]);
+      reply = await split.call(position, share, lockedKeys(split, split.keys(items)));
     } catch (error) {
       reply = null;
     }
-    surplusMove.busy = false;
+    motion.busy = false;
     if (reply && !reply.value.inputs) {
       state.error = reply.value.error;
       renderSettingsError();
     }
     if (reply && reply.value.inputs) {
-      const accounts = reply.value.inputs.accounts;
-      state.inputs.accounts.forEach((account, position) => {
-        if (accounts[position]) account.surplusShare = accounts[position].surplusShare;
-      });
-      state.notes = Object.assign({}, state.notes, { surplus: reply.value.shares });
+      split.apply(reply.value);
       inputsChanged();
     }
-    const next = surplusMove.pending;
-    surplusMove.pending = null;
-    renderSurplus();
-    if (next) moveSurplus(next.name, next.share);
+    const next = motion.pending;
+    motion.pending = null;
+    renderSplit(split);
+    if (next) moveSplit(split, next.position, next.share);
   }
 
   // ---- Beneficiaries' tax rate in Benefits, Beneficiaries: blank taxes each beneficiary's payout (over 10 years or
@@ -4508,144 +4628,55 @@
     scope.querySelector("#terminal-basis").textContent = advice ? advice.caption + "." : "";
   }
 
-  // ---- Beneficiaries in Benefits, Beneficiaries (stored as `strategies.heirs`): one card per beneficiary with their
-  // name, share, other income, filing status, state (a plain list of the 51 states, blank is Same as household) and
-  // payout; Add and Remove split the shares equally again. A field still at the value it started with is grey
-  // (`.is-default`) until edited. The shares must total 100%: an inline error says so while they do not ----
+  // ---- Beneficiaries in Benefits, Beneficiaries (stored as `strategies.heirs`): a list like Accounts, each row
+  // opening its pop-up (name, other income, filing status, state, payout), Add beneficiary below it, then Split among
+  // beneficiaries, the linked share sliders (HEIR_SPLIT). With Add children as beneficiaries on (Children), each child
+  // has a beneficiary (syncChildHeirs); one kept because you edited it is named in a warning ----
   const HEIRS_PATH = "strategies.heirs";
+  const HEIR_STATE_PATH = /^strategies\.heirs\.\d+\.state$/;
   const SAME_STATE_LABEL = "Same as household";
+  const HEIR_NOTICE_BOXES = ["child-heir-warnings", "heir-warnings"];
 
   function heirFieldsSchema() {
     return state.schema.types.Heir || [];
   }
 
-  function beneficiaryCards() {
-    const listField = state.schema.types.StrategyPlan.find((item) => item.name === "heirs");
-    const wrap = fieldShell(listField.label, listField.help, null);
-    wrap.classList.add("heir-list");
-    const heirs = getPath(state.inputs, HEIRS_PATH) || [];
-    const cards = document.createElement("div");
-    cards.className = "heir-cards";
-    heirs.forEach((heir, position) => cards.append(beneficiaryCard(heirs, position)));
-    const error = document.createElement("p");
-    error.className = "field-error";
-    error.id = "heirs-share-error";
-    error.setAttribute("role", "alert");
-    const add = document.createElement("button");
-    add.type = "button";
-    add.className = "button button-quiet";
-    add.id = "heirs-add";
-    add.textContent = "Add beneficiary";
-    add.disabled = listField.maximum != null && heirs.length >= listField.maximum;
-    add.addEventListener("click", () => {
-      state.inputs.strategies.heirs = rebalanceHeirs(getPath(state.inputs, HEIRS_PATH), heirFieldsSchema());
-      inputsChanged();
-      renderSettings();
-    });
-    wrap.append(cards, error, add);
-    updateHeirShareError(wrap);
-    return wrap;
+  function beneficiaryList() {
+    const field = state.schema.types.StrategyPlan.find((item) => item.name === "heirs");
+    const list = listField(field, HEIRS_PATH, getPath(state.inputs, HEIRS_PATH) || []);
+    list.classList.add("heir-list");
+    const split = splitSection(HEIR_SPLIT, "Split among beneficiaries", "How what is left is split. Drag a slider and "
+      + "the unlocked beneficiaries move so the total stays 100%; lock a beneficiary to keep their share. Adding a "
+      + "beneficiary gives them an equal part and the others keep their split of the rest.");
+    split.classList.add("heir-split");
+    return [list, warningsBox("heir-warnings"), split];
   }
 
-  // Show or hide the shares' inline error. `root` holds it (the page, or the list being built).
-  function updateHeirShareError(root) {
-    const error = (root || document).querySelector("#heirs-share-error");
-    if (!error) return;
-    const { total, ok } = heirShareTotal(getPath(state.inputs, HEIRS_PATH));
-    error.hidden = ok;
-    error.textContent = ok ? "" : "The shares total " + percent(total, 2) + "; change them to total 100%.";
+  // Keep the beneficiaries in step with the children and their shares at 100% (syncChildHeirs). Locks follow
+  // positions, so they are dropped when the list changes length. The warning naming the beneficiaries kept because
+  // you edited them lasts until the switch is turned on again or they are gone.
+  function syncHeirs() {
+    const strategies = state.schema && state.inputs && state.inputs.strategies;
+    if (!strategies) return;
+    const field = (state.schema.types.StrategyPlan || []).find((item) => item.name === "heirs");
+    const { heirs, changed, kept } = syncChildHeirs(state.inputs, heirFieldsSchema(), field && field.maximum);
+    if (changed) {
+      if (heirs.length !== (strategies.heirs || []).length) state.heirLocks = [];
+      strategies.heirs = heirs;
+    }
+    if (strategies.childrenAsHeirs && !state.childHeirsOn) state.heirNotice = [];
+    state.childHeirsOn = Boolean(strategies.childrenAsHeirs);
+    const own = new Set(heirs.filter((heir) => heir.child == null).map((heir) => heir.name));
+    state.heirNotice = kept.length ? kept : state.heirNotice.filter((name) => own.has(name));
+    fillHeirNotice();
   }
 
-  function beneficiaryCard(heirs, position) {
-    const card = document.createElement("div");
-    card.className = "heir-card";
-    card.dataset.position = String(position);
-    const fields = Object.fromEntries(heirFieldsSchema().map((field) => [field.name, field]));
-    const pathOf = (name) => HEIRS_PATH + "." + position + "." + name;
-    const mark = (control, name) => {
-      control.classList.toggle("is-default",
-        heirFieldIsDefault(heirFieldsSchema(), getPath(state.inputs, HEIRS_PATH), position, name));
-      syncReset(control);
-    };
-    const commit = (name, value, control) => {
-      setValue(pathOf(name), value);
-      mark(control, name);
-      if (name === "share") updateHeirShareError();
-    };
-    // A field's reset button puts back the value it started with (heirDefaults), shown as typing it would show.
-    const startOf = (name) => heirDefaults(heirFieldsSchema(), position,
-      (getPath(state.inputs, HEIRS_PATH) || []).length)[name];
-    const resettable = (control, field, name, show) => addResetButton(control, field.label,
-      () => resetValueText(startOf(name), field, control), () => {
-        const start = startOf(name);
-        show(start);
-        commit(name, start, control);
-      });
-    const head = document.createElement("div");
-    head.className = "heir-card-head";
-    const title = document.createElement("span");
-    title.className = "field-label";
-    title.textContent = "Beneficiary " + (position + 1);
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "button button-quiet";
-    remove.textContent = "Remove";
-    remove.setAttribute("aria-label", "Remove beneficiary " + (position + 1));
-    remove.disabled = heirs.length <= 1;
-    remove.addEventListener("click", () => {
-      state.inputs.strategies.heirs = rebalanceHeirs(getPath(state.inputs, HEIRS_PATH), heirFieldsSchema(), position);
-      inputsChanged();
-      renderSettings();
-    });
-    head.append(title, remove);
-    card.append(head);
-    for (const name of ["name", "share", "otherIncome"]) {
-      const field = fields[name];
-      const id = fieldId(pathOf(name));
-      const shell = fieldShell(field.label, field.help, id);
-      if (name === "name") {
-        const input = document.createElement("input");
-        input.className = "input";
-        input.id = id;
-        input.type = "text";
-        input.value = heirs[position].name;
-        input.addEventListener("input", () => commit(name, input.value, input));
-        mark(input, name);
-        shell.append(input);
-        resettable(input, field, name, (start) => { input.value = start == null ? "" : start; });
-      } else {
-        const box = numberInput(id, field, heirs[position][name], (value) => commit(name, value, input));
-        const input = box.querySelector("input");
-        mark(input, name);
-        shell.append(box);
-        resettable(input, field, name, (start) => { input.value = shown(start, scaleOf(field)); });
-      }
-      card.append(shell);
-    }
-    for (const name of ["filingStatus", "state", "payout"]) {
-      const field = fields[name];
-      const id = fieldId(pathOf(name));
-      const shell = fieldShell(field.label, field.help, id);
-      const select = document.createElement("select");
-      select.className = "input";
-      select.id = id;
-      const choices = (field.nullable ? [null] : []).concat(field.choices);
-      for (const choice of choices) {
-        const option = document.createElement("option");
-        option.value = choice == null ? "" : String(choice);
-        option.textContent = choiceLabel(field, choice, SAME_STATE_LABEL);
-        select.append(option);
-      }
-      const value = heirs[position][name];
-      select.value = value == null ? "" : String(value);
-      select.addEventListener("change", () => commit(name, select.value === "" ? null : select.value, select));
-      mark(select, name);
-      shell.append(select);
-      resettable(select, field, name, (start) => { select.value = start == null ? "" : String(start); });
-      if (choices.length > LONG_SELECT_CHOICES) stateCombobox(select);  // the state: one box that filters as you type
-      card.append(shell);
-    }
-    return card;
+  function fillHeirNotice() {
+    const names = state.heirNotice;
+    const text = !names.length ? [] : ["Kept " + names.length + (names.length === 1 ? " beneficiary" : " beneficiaries")
+      + " you edited: " + names.join(", ") + ". Remove " + (names.length === 1 ? "it" : "them")
+      + " in the Beneficiaries list on Benefits if you want."];
+    for (const id of HEIR_NOTICE_BOXES) fillWarnings(id, text);
   }
 
   // ---- Help: an "i" button that shows or hides an explanation in place; one click handler in wire() ----
@@ -5412,7 +5443,8 @@
         select.replaceChildren(...options.map((choice) => {
           const option = document.createElement("option");
           option.value = choice == null ? "" : String(choice);
-          option.textContent = choiceLabel(labelled, choice, NULL_LABELS[field.name]);
+          option.textContent = choiceLabel(labelled, choice,
+            HEIR_STATE_PATH.test(path) ? SAME_STATE_LABEL : NULL_LABELS[field.name]);
           return option;
         }));
         select.value = value == null ? "" : String(value);
@@ -5763,10 +5795,124 @@
         if (redrawn) redrawn.focus();
       });
       if (!(value && value.enabled)) return [gateSwitch];
-      return [gateSwitch, ...groupedFields(children.filter((child) => child !== gate), path, headings, group)];
+      const rest = children.filter((child) => child !== gate);
+      return [gateSwitch, ...pickedFields(field.type, rest, path, headings, group)];
     }
-    return groupedFields(children, path, headings, group);
+    return pickedFields(field.type, children, path, headings, group);
   }
+
+  // An object's fields with its checklist picker (`schema.fieldPickers`, the Roth conversion's limits): the picker is
+  // drawn where its first option comes, then the field of each ticked option (a ticked switch needs none). An option
+  // is ticked while its stored value is set (not null or false); the model reads the values alone.
+  function pickedFields(typeName, children, path, headings, group) {
+    const picker = (state.schema.fieldPickers || {})[typeName];
+    const names = new Set(picker ? picker.options.map((option) => option.name) : []);
+    const first = children.findIndex((child) => names.has(child.name));
+    if (first < 0) return groupedFields(children, path, headings, group);
+    const byName = Object.fromEntries(children.map((child) => [child.name, child]));
+    const others = children.filter((child) => !names.has(child.name));
+    const ticked = picker.options.filter((option) => byName[option.name]
+      && pickerTicked(getPath(state.inputs, path + "." + option.name)));
+    return [...groupedFields(others.filter((child) => children.indexOf(child) < first), path, headings, group),
+      checklistPicker(picker, byName, path),
+      ...ticked.filter((option) => byName[option.name].kind !== "toggle")
+        .map((option) => fieldElement(byName[option.name], path + "." + option.name)),
+      ...groupedFields(others.filter((child) => children.indexOf(child) > first), path, headings, group)];
+  }
+
+  function pickerTicked(value) {
+    return value !== null && value !== undefined && value !== false;
+  }
+
+  // The value a tick stores: the option's own, or the field's first choice where that is not offered (a filing table's
+  // brackets and tiers).
+  function pickerTickValue(option, field) {
+    const byTable = field.choicesByFilingTable;
+    const choices = byTable ? byTable[filingTable(state.inputs.filingStatus)] || [] : field.choices;
+    if (!choices || choices.includes(option.value)) return option.value;
+    return choices.length ? choices[0] : option.value;
+  }
+
+  // A dropdown checklist: a button naming the ticked options (or the picker's `none` text) that opens the list of
+  // checkboxes below it. A tick stores the option's value and an untick the field's default, and the form is drawn
+  // again with the list still open; Escape, the button or a tap outside closes it.
+  const openPickers = new Set();
+
+  function checklistPicker(picker, byName, path) {
+    const id = fieldId(path) + "-picker";
+    const open = openPickers.has(id);
+    const wrap = fieldShell(picker.label, picker.help, null);
+    wrap.classList.add("picker");
+    const title = wrap.querySelector(".field-label");
+    title.id = id + "-label";
+    const table = filingTable(state.inputs.filingStatus);
+    const options = picker.options.filter((option) => byName[option.name]);
+    const chosen = options.filter((option) => pickerTicked(getPath(state.inputs, path + "." + option.name)));
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = id;
+    button.className = "input picker-button";
+    button.setAttribute("aria-expanded", String(open));
+    button.setAttribute("aria-controls", id + "-list");
+    button.setAttribute("aria-labelledby", title.id + " " + id + "-value");
+    button.innerHTML = "<span class=\"picker-value" + (chosen.length ? "" : " is-default") + "\" id=\"" + id
+      + "-value\">" + escapeText(chosen.length ? chosen.map((option) => option.label).join(", ") : picker.none)
+      + "</span>";
+    const list = document.createElement("fieldset");
+    list.className = "picker-list";
+    list.id = id + "-list";
+    list.hidden = !open;
+    list.innerHTML = "<legend class=\"sr-only\">" + escapeText(picker.label) + "</legend>";
+    for (const option of options) {
+      const field = byName[option.name];
+      const optionPath = path + "." + option.name;
+      const ticked = pickerTicked(getPath(state.inputs, optionPath));
+      const unavailable = !ticked && option.unavailable && option.unavailable[table];
+      const row = document.createElement("label");
+      row.className = "picker-option";
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.id = fieldId(optionPath) + "-pick";
+      box.checked = ticked;
+      box.disabled = Boolean(unavailable);
+      const text = document.createElement("span");
+      text.className = "picker-option-text";
+      text.innerHTML = "<span>" + escapeText(option.label) + "</span><span class=\"picker-option-help\">"
+        + escapeText(unavailable || option.help) + "</span>";
+      box.addEventListener("change", () => {
+        setValue(optionPath, box.checked ? pickerTickValue(option, field) : field.default);
+        refreshForm();
+        const redrawn = $(box.id);
+        if (redrawn) redrawn.focus();
+      });
+      row.append(box, text);
+      list.append(row);
+    }
+    button.addEventListener("click", () => setPickerOpen(button, button.getAttribute("aria-expanded") !== "true"));
+    wrap.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || button.getAttribute("aria-expanded") !== "true") return;
+      event.preventDefault();
+      event.stopPropagation();
+      setPickerOpen(button, false);
+      button.focus();
+    });
+    wrap.append(button, list);
+    return wrap;
+  }
+
+  function setPickerOpen(button, open) {
+    button.setAttribute("aria-expanded", String(open));
+    $(button.getAttribute("aria-controls")).hidden = !open;
+    if (open) openPickers.add(button.id);
+    else openPickers.delete(button.id);
+  }
+
+  // A tap or click outside an open picker closes it.
+  document.addEventListener("pointerdown", (event) => {
+    for (const button of document.querySelectorAll(".picker-button[aria-expanded='true']")) {
+      if (!button.closest(".picker").contains(event.target)) setPickerOpen(button, false);
+    }
+  });
 
   // The earnings history on Income: one disclosure, closed until opened, drawn where `earningsHistoryMode` comes, with
   // the Manual entry / Last salary toggle. Manual entry shows the year-by-year table; Last salary the last salary, its
@@ -6075,6 +6221,13 @@
       const to = item.endAge == null ? "open" : String(timelineYear(item.endAge));
       return { name: item.name, detail: "per month · " + from + "-" + to, value: compactMoney(item.monthlyRent) };
     }
+    if (typeName === "Heir") {
+      const fields = Object.fromEntries(heirFieldsSchema().map((field) => [field.name, field]));
+      const words = ["filingStatus", "state", "payout"].map((name) => choiceLabel(fields[name], item[name],
+        SAME_STATE_LABEL));
+      return { name: item.name, detail: words.join(" · ") + (item.child != null ? " · child" : ""),
+        value: percent(Number(item.share) || 0, 0) };
+    }
     if (typeName === "Child") {
       const age = state.inputs.you.currentAge - item.yourAgeAtBirth;
       return { name: item.name, detail: (age < 0 ? "not born yet" : "age " + age + " today") + ", child years up to age "
@@ -6270,7 +6423,15 @@
     add.className = "button button-quiet";
     const homeOwner = homeOfLoans(path);  // a home's own loans (second mortgage, home equity)
     add.textContent = "Add " + (homeOwner ? "loan on this home" : typeWords(field.type));
+    add.disabled = field.maximum != null && value.length >= field.maximum;
     add.addEventListener("click", () => {
+      if (field.type === "Heir") {  // an equal part for the new beneficiary; the others keep their split of the rest
+        beginSheetSession(path);  // Cancel on its sheet removes it again
+        setPath(state.inputs, path, addHeir(getPath(state.inputs, path), heirFieldsSchema()));
+        inputsChanged();
+        openSheet(field, path, getPath(state.inputs, path).length - 1, false, filter);
+        return;
+      }
       // A home, car or rent period is added on its timeline: the first question there asks for its years.
       const timed = { Home: ["Home", null, 0], Car: ["Car", null, null], RentPeriod: ["Home", "rent", 0] }[field.type];
       if (timed) {
@@ -6314,6 +6475,7 @@
   }
 
   function typeWords(typeName) {
+    if (typeName === "Heir") return "beneficiary";  // the code name stays; users read "beneficiary"
     return typeName.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
   }
 
@@ -7622,6 +7784,13 @@
         if (!state.scenarios[name]) continue;
         const reply = await reportMonteCarlo(state.scenarios[name], name);
         configs.push({ name, result: reply.value });
+      }
+      // The settings each one changes from the current settings, as Compare lists them.
+      for (const config of configs) {
+        const found = await ask("compareDifferences", [JSON.stringify(state.inputs),
+          JSON.stringify(state.scenarios[config.name]), state.scenarioName, config.name]);
+        if (found && found.ok) config.differences = found.differences;
+        else config.differencesError = found ? found.error : "no answer";
       }
       if ($("reportProgressText")) $("reportProgressText").textContent = "Drawing the PDF";
       const data = report.buildReport({ scenarioName: state.scenarioName, date: new Date(), inputs: state.inputs,
@@ -9005,18 +9174,20 @@
   // ---- The tour of the controls (the ? button in the top bar) ----
   // One step per control: the main parts first, the pages in bottom-bar order (Setup, Inputs, Outputs), then the
   // supporting tools: the top bar's Undo ("bar"), the menu's items and the ? button (TOUR_PAGES); on a page top to bottom, left to right (a unit test checks `page`
-  // and where `target`, a selector, sits in index.html). `view` is the Outputs view a step shows and `when` (optional)
-  // whether the step applies now and `opens` the closed section its control sits in. Before a step elsewhere the tour
-  // goes there one hop at a time (tourMove: scroll to the control, ring it for a second with "Next: ..." in the card,
-  // then slide the page in as a swipe does, open the menu or the section); only then does the step show. A step
-  // whose control is not drawn is skipped. Done, the close button and Escape put back the tab, view and scroll the
-  // tour started from.
+  // and where `target`, a selector, sits in index.html). `view` is the Outputs view a step shows, `when` (optional)
+  // whether the step applies now, `opens` the closed section its control sits in and `fixed` that its control shows
+  // on every page (the headline strip, the bottom bar), so the step stays where the tour is. Before a step elsewhere
+  // the tour goes there one hop at a time, all within the step (tourMove: scroll to the control, ring it with one
+  // pulse, then hold the ring with a tap badge and "Tap <control> to continue" in the card until the control, the
+  // badge or Next is tapped; then slide the page in as a swipe does, open the menu or the section); only then does the
+  // step's text show. A step whose control is not drawn is skipped. Done, the close button and Escape put back the
+  // tab, view and scroll the tour started from.
   const TOUR_PAGES = ["setup", "inputs", "outputs", "bar", "menu", "help"];
-  const TOUR_PRESS_MS = 1000;  // how long the ring stays on the control pressed before the tour moves on
+  const TOUR_PULSE_MS = 600;  // the ring's one pulse on the control to tap before it holds there
   const TOUR_SCROLL_SPEED = 900;  // px a second the tour scrolls at, so the eye can follow
   const TOUR_SCROLL_MS = [400, 1500];  // the shortest and longest such scroll
   const TOUR_STEPS = [
-    { title: "Headline figures", page: "setup", target: "#pinned",
+    { title: "Headline figures", page: "setup", fixed: true, target: "#pinned",
       text: "The figures across the top sum up your plan: what you are worth today, the median final worth over the "
         + "runs, then two yearly averages such as net withdrawal and expense. They update after every change." },
     { title: "Your scenarios", page: "setup", target: "#savedCard",
@@ -9029,7 +9200,7 @@
       text: "Advanced settings, at the bottom of Setup, holds the run settings: the years to simulate (until you are "
         + "100 unless you change it), how many possible futures (Monte Carlo runs) sit behind every result, more being "
         + "steadier but slower, and the seed; the same seed gives the same random draws each time." },
-    { title: "Setup, Inputs and Outputs", page: "setup", when: () => !wide.on, target: ".tabbar",
+    { title: "Setup, Inputs and Outputs", page: "setup", fixed: true, when: () => !wide.on, target: ".tabbar",
       text: "The bar at the bottom moves between the three parts of the app: Setup (your scenarios and runs), Inputs "
         + "(your settings) and Outputs (the results). Next, Inputs." },
     { title: "Groups of settings", page: "inputs", when: () => state.schema != null, target: "#chips-settings",
@@ -9065,15 +9236,16 @@
     { title: "This tour", page: "help", target: "#helpButton",
       text: "Tap ? any time to see this tour again." },
   ];
+  // `move` is the hop under way on the way to step `pending` (null once the step shows).
   const tour = { steps: [], at: 0, from: null, direction: 1, token: 0, busy: false, skip: null, timers: [],
-    relayoutTimer: 0 };
+    relayoutTimer: 0, move: null, pending: 0 };
 
   const tourTarget = (step) => document.querySelector(step.target);
 
-  // Where a step shows: its tab and Outputs view (the menu and ? stay on the page the tour is on), and whether the
-  // menu is open.
+  // Where a step shows: its tab and Outputs view (the menu, ? and a control on every page stay on the page the tour is
+  // on), and whether the menu is open.
   function tourPlace(step) {
-    if (step.page === "bar" || step.page === "menu" || step.page === "help") {
+    if (step.fixed || step.page === "bar" || step.page === "menu" || step.page === "help") {
       return { tab: state.tab, view: state.view, menu: step.page === "menu" };
     }
     return { tab: step.page, view: step.view || state.view, menu: false };
@@ -9091,7 +9263,7 @@
   function tourStop() {
     for (const timer of tour.timers) clearTimeout(timer);
     tour.timers = [];
-    $("tourRing").classList.remove("tour-press");
+    $("tourRing").classList.remove("tour-pulse");
     for (const panel of document.querySelectorAll(".panel.tour-sliding")) {
       panel.classList.remove("tour-sliding");
       slideTo(panel, null, false);
@@ -9155,7 +9327,7 @@
   // `menu` that it opens the menu, `section` the section it opens, `unfold` that it unfolds Setup.
   function tourHop(step) {
     const to = tourPlace(step);
-    if (step.page === "setup" && wide.on && setupFold.folded) {
+    if (step.page === "setup" && !step.fixed && wide.on && setupFold.folded) {
       return { button: $("setupFold"), label: "Setup", unfold: true };
     }
     if (to.tab !== state.tab) {
@@ -9185,58 +9357,124 @@
   }
 
   // The caption ("Next: <place>") in the card in place of the step's title and text, while the tour moves; Back and
-  // Next then skip to the end of the move (tour.skip).
-  function tourCaption(text, skip) {
+  // Next then skip to the end of the move (tour.skip). With `title` the step's title stays above it (a hop).
+  function tourCaption(text, skip, title) {
     tour.busy = true;
     tour.skip = skip;
-    $("tourTitle").hidden = true;
+    if (title) $("tourTitle").textContent = title;
+    $("tourTitle").hidden = !title;
     $("tourText").hidden = true;
     $("tourNav").hidden = false;
     $("tourNav").textContent = text;
   }
 
-  // Move to `step`'s place, then `done`, one hop at a time (tourHop) so the eye can follow: the card says "Next:
-  // <place>" while the page scrolls to the control pressed at a readable pace (tourScrollInto) and the ring presses
-  // it for TOUR_PRESS_MS (no ring when it is not drawn: the wide layout has no bottom bar); then the page slides in as
-  // a swipe slides it, the menu opens or the section opens, and the next hop starts. The menu closes for a step
-  // outside it. Back or Next during a move skips to its end and shows the step.
-  function tourMove(step, token, done) {
+  // Move to `step`'s place, then `done`, one hop at a time (tourHop) so the eye can follow, all within the step: the
+  // card keeps the step's title and says "Tap <control> to continue" while the page scrolls to the control at a
+  // readable pace (tourScrollInto), the ring pulses on it once and then holds there with a tap badge in its corner
+  // (tourHold). The tour waits: a tap on the control, on the badge or on Next takes the hop (tourAdvance): the page
+  // slides in as a swipe slides it, the menu opens or the section opens, and the next hop starts. Going back
+  // (`direction` -1), and a hop whose control is not drawn (the wide layout has no bottom bar), are taken at once. The
+  // menu closes for a step outside it.
+  function tourMove(step, token, done, direction) {
     if (!tourPlace(step).menu) tourMenu(false);
-    const hop = tourHop(step);
+    let hop = tourHop(step);
+    for (let count = 0; hop && (direction < 0 || !tourShown(hop.button)) && count < 5; count += 1) {
+      tourHopNow(hop);
+      if (!tourPlace(step).menu) tourMenu(false);
+      hop = tourHop(step);
+    }
     if (!hop) {
+      tour.move = null;
+      tourTapOff();
       if (tour.busy) tourCaptionOff();
       done();
       return;
     }
-    tourCaption("Next: " + hop.label, () => {  // skip: every hop left at once, then the step
-      tourStop();
-      for (let next = tourHop(step), count = 0; next && count < 5; next = tourHop(step), count += 1) tourHopNow(next);
-      if (!tourPlace(step).menu) tourMenu(false);
-      tour.token += 1;
-      tourCaptionOff();
-      done();
-    });
+    tour.move = { step, token, done, hop, phase: "scroll" };
+    tourTapOff();
+    tourCaption("Tap " + hop.label + " to continue", null, step.title);
+    $("tourRing").hidden = true;
+    tourScrollInto(hop.button, token, () => tourHold(tour.move));
+  }
+
+  // Ring the control a hop taps with one pulse (none with reduced motion), then hold the ring there with the tap
+  // badge until a tap or Next takes the hop; a control that cannot be ringed is tapped at once.
+  function tourHold(move) {
+    if (!move || move !== tour.move || move.token !== tour.token) return;
     const ring = $("tourRing");
-    const press = () => {
-      if (tourShown(hop.button) && ringOver(hop.button)) {
-        ring.style.animationDuration = tourMs(TOUR_PRESS_MS) / 2 + "ms";
-        ring.classList.add("tour-press");
-      } else {
-        ring.hidden = true;
-      }
-      tourLater(token, tourMs(TOUR_PRESS_MS), () => {
-        ring.classList.remove("tour-press");
-        ring.style.animationDuration = "";
-        const next = () => tourMove(step, token, done);
-        if (hop.go) { tourSlide(hop.go, token, next); return; }
-        tourHopNow(hop);
-        if (hop.menu) { tourLater(token, tourMs(BUBBLE_MS), next); return; }  // the menu has opened
-        requestAnimationFrame(() => { if (token === tour.token) next(); });  // the section has opened
-      });
-    };
-    ring.hidden = true;
-    if (tourShown(hop.button)) tourScrollInto(hop.button, token, press);
-    else press();
+    if (!ringOver(move.hop.button)) {
+      if (move.retried) { tourAdvance(); return; }
+      move.retried = true;  // the layout changed under the scroll: there at once, once it has settled
+      move.hop.button.scrollIntoView({ block: "center", inline: "nearest" });
+      tourSettle(move.hop.button, () => tourHold(move));
+      return;
+    }
+    move.phase = "held";
+    const pulse = !reducedMotion() && tourMs(1) > 0;
+    $("tour").style.setProperty("--tour-pulse-ms", (pulse ? tourMs(TOUR_PULSE_MS) : 0) + "ms");
+    ring.classList.remove("tour-pulse");
+    if (pulse) {
+      void ring.offsetWidth;  // the pulse starts afresh on each hop
+      ring.classList.add("tour-pulse");
+    }
+    $("tourTap").hidden = false;
+    placeTourTap();
+    $("tour").dataset.hop = "held";
+  }
+
+  // Take the hop under way: the place slides in, the menu or the section opens, then the next hop (or the step). A
+  // second Next while it moves finishes it at once.
+  function tourAdvance() {
+    const move = tour.move;
+    if (!move) return;
+    const { step, done, hop } = move;
+    const quick = move.phase === "going";
+    tourStop();
+    tourTapOff();
+    const token = ++tour.token;
+    move.token = token;
+    move.phase = "going";
+    const next = () => tourMove(step, token, done, 1);
+    if (hop.go && !quick) { tourSlide(hop.go, token, next); return; }
+    tourHopNow(hop);
+    if (hop.menu && !quick) { tourLater(token, tourMs(BUBBLE_MS), next); return; }  // the menu opens
+    requestAnimationFrame(() => { if (token === tour.token) next(); });  // the section has opened
+  }
+
+  // The tap badge off and the hop no longer held.
+  function tourTapOff() {
+    $("tourTap").hidden = true;
+    delete $("tour").dataset.hop;
+  }
+
+  // The tap badge on a corner of the ring: the top right, or the side and edge with room on the screen.
+  function placeTourTap() {
+    const ring = $("tourRing");
+    const tap = $("tourTap");
+    const size = 30;
+    const half = size / 2;
+    const left = parseFloat(ring.style.left);
+    const top = parseFloat(ring.style.top);
+    const right = left + parseFloat(ring.style.width);
+    const bottom = top + parseFloat(ring.style.height);
+    const x = right + half <= window.innerWidth - 4 || left - half < 4 ? right : left;
+    const y = top - half >= 4 || bottom + half > window.innerHeight - 4 ? top : bottom;
+    tap.style.left = Math.max(4, Math.min(window.innerWidth - 4 - size, x - half)) + "px";
+    tap.style.top = Math.max(4, Math.min(window.innerHeight - 4 - size, y - half)) + "px";
+  }
+
+  // After a turn of the screen or a resize during a hop: the held ring and badge on its control where it is now, or
+  // the hop worked out afresh (scrolled to again) when the new layout moved it or has another control to tap.
+  function tourRehold() {
+    const move = tour.move;
+    if (!move || move.phase === "going" || $("tour").hidden) return;
+    const hop = tourHop(move.step);
+    if (move.phase === "held" && hop && hop.button === move.hop.button && tourVisibleBox(hop.button)) {
+      placeTourRing();
+      return;
+    }
+    tourStop();
+    tourMove(move.step, ++tour.token, move.done, 1);
   }
 
   // The nearest box around `element` that scrolls up and down (a wide layout column), or null for the page.
@@ -9378,6 +9616,12 @@
   const TOUR_RELAYOUT_MS = 350;
   function tourRelayout() {
     if ($("tour").hidden) return;
+    if (tour.move) {
+      tourRehold();
+      clearTimeout(tour.relayoutTimer);
+      tour.relayoutTimer = setTimeout(tourRehold, TOUR_RELAYOUT_MS);
+      return;
+    }
     tourFocusTarget(true);
     clearTimeout(tour.relayoutTimer);
     tour.relayoutTimer = setTimeout(() => tourFocusTarget(true), TOUR_RELAYOUT_MS);
@@ -9419,6 +9663,8 @@
     tour.token += 1;  // a move under way stops here
     clearTimeout(tour.relayoutTimer);
     tourStop();
+    tour.move = null;
+    tourTapOff();
     tourCaptionOff();
     $("tourRing").hidden = false;
     delete $("tour").dataset.ready;
@@ -9440,11 +9686,15 @@
     if (at < 0 || at >= tour.steps.length) { closeTour(); return; }
     const token = ++tour.token;
     tourStop();
+    tour.move = null;
+    tourTapOff();
     delete $("tour").dataset.ready;
+    tour.pending = at;
     $("tourCount").textContent = (at + 1) + " of " + tour.steps.length;
+    $("tourBack").disabled = at === 0;
     const step = tour.steps[at];
     tourMove(step, token, () => {
-      if (step.page === "setup") revealSetup();
+      if (step.page === "setup" && !step.fixed) revealSetup();
       if (!tourShown(tourTarget(step))) { showTourStep(at + direction, direction); return; }
       tour.at = at;
       tour.direction = direction;
@@ -9454,13 +9704,18 @@
       $("tourBack").disabled = at === 0;
       $("tourNext").textContent = at === tour.steps.length - 1 ? "Done" : "Next";
       tourFocusTarget();
-    });
+    }, direction);
   }
 
   // The ring over the visible part of the shown control (kept inside the screen), and the card on the half of the
   // screen it leaves free; left alone while a move to another page holds it on the button pressed.
   function placeTourRing() {
-    if ($("tour").hidden || tour.busy) return;
+    if ($("tour").hidden) return;
+    if (tour.move && tour.move.phase === "held") {
+      if (ringOver(tour.move.hop.button)) placeTourTap();
+      return;
+    }
+    if (tour.busy) return;
     const step = tour.steps[tour.at];
     const target = step && tourTarget(step);
     if (tourShown(target)) ringOver(target);
@@ -9489,14 +9744,28 @@
     $("helpButton").setAttribute("aria-expanded", "false");
     $("helpButton").addEventListener("click", openTour);
     $("tourClose").addEventListener("click", closeTour);
-    // Back and Next during a move or a scroll skip to its end and show the step (tour.skip); pressed again they move on.
+    // A held hop: a tap on its control (under the ring) or on the tap badge takes it, as Next does.
+    $("tour").addEventListener("click", (event) => {
+      const move = tour.move;
+      if (!move || move.phase !== "held" || $("tourCard").contains(event.target)) return;
+      const ring = $("tourRing").getBoundingClientRect();
+      const onRing = event.clientX >= ring.left && event.clientX <= ring.right && event.clientY >= ring.top
+        && event.clientY <= ring.bottom;
+      if (onRing || $("tourTap").contains(event.target)) tourAdvance();
+    });
+    // During a hop Next takes it and Back goes to the step before; during a scroll to the step's control either skips
+    // to its end and shows the step (tour.skip); pressed again they move on.
     const skipped = () => {
       if (!tour.busy) return false;
       if (tour.skip) tour.skip();
       return true;
     };
-    $("tourBack").addEventListener("click", () => { if (!skipped()) showTourStep(tour.at - 1, -1); });
+    $("tourBack").addEventListener("click", () => {
+      if (tour.move) { if (tour.pending > 0) showTourStep(tour.pending - 1, -1); return; }
+      if (!skipped()) showTourStep(tour.at - 1, -1);
+    });
     $("tourNext").addEventListener("click", () => {
+      if (tour.move) { tourAdvance(); return; }
       if (skipped()) return;
       if (tour.at >= tour.steps.length - 1) closeTour();
       else showTourStep(tour.at + 1, 1);

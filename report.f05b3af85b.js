@@ -12,7 +12,7 @@
 
   const shared = typeof module !== "undefined" && module.exports ? require("./shared.js") : root.WmtiShared;
   const insightRules = typeof module !== "undefined" && module.exports ? require("./insights.js") : root.WmtiInsights;
-  const { fullMoney, percent, formatValue, getPath, hiddenReason, unfilledSuggestion } = shared;
+  const { fullMoney, percent, formatValue, getPath, hiddenReason, unfilledSuggestion, dollarsNote } = shared;
 
   const MAX_SAVED = 4;  // saved scenarios the report can compare with the current settings
   // The body's charts, in order, by the Monte Carlo result's chart ids; one-line captions.
@@ -225,6 +225,56 @@
     rows: configs.map((config) => [config.name, fullMoney(percentileValue(config.result, 50)),
       fullMoney(afterTaxValue(config.result)), percent(successShare(config.result), 0),
       fullMoney(percentileValue(config.result, 10)), fullMoney(percentileValue(config.result, 90))]) };
+  }
+
+  // The settings that differ between the current settings and each saved scenario compared, from Compare's own
+  // differences (`compareDifferences` of the current settings against each; `a` is the current settings' text, `b` the
+  // scenario's). `configs` is the report's list, the current settings first; a saved one carries `differences` (or
+  // `differencesError`). One table per settings panel, in the panels' order: a row per setting that differs in any of
+  // them, a column per configuration with its value (the current settings' value where one does not differ).
+  function differenceTables(configs) {
+    const saved = configs.slice(1).filter((config) => Array.isArray(config.differences));
+    const union = [];  // [{id, section, label, current}], each config's order kept: a new one goes after its predecessor
+    for (const config of saved) {
+      let after = -1;
+      for (const difference of config.differences) {
+        let at = union.findIndex((item) => item.id === difference.id);
+        if (at < 0) {
+          at = after + 1;
+          union.splice(at, 0, { id: difference.id, section: difference.section, label: difference.label,
+            current: difference.a });
+        }
+        after = at;
+      }
+    }
+    const sections = new Map();
+    for (const item of union) {
+      if (!sections.has(item.section)) sections.set(item.section, []);
+      sections.get(item.section).push(item);
+    }
+    const columns = ["Setting"].concat(configs[0].name, saved.map((config) => config.name));
+    return [...sections].map(([section, items]) => ({ title: "Settings that differ: " + section, columns,
+      rows: items.map((item) => [item.label, item.current].concat(saved.map((config) => {
+        const found = config.differences.find((difference) => difference.id === item.id);
+        return found ? found.b : item.current;
+      }))),
+      brief: "The settings under " + section + " that are not the same in every configuration, with each one's "
+        + "value; a configuration that matches the current settings shows the same value." }));
+  }
+
+  // One sentence per saved scenario under the comparison chart: how many settings it changes from the current ones.
+  function differenceLines(configs) {
+    return configs.slice(1).filter((config) => config.differences || config.differencesError).map((config) => {
+      if (!Array.isArray(config.differences)) {
+        return config.name + ": its settings that differ could not be listed (" + (config.differencesError
+          || "no answer") + ").";
+      }
+      const count = config.differences.length;
+      if (!count) return config.name + " has the same settings as the current ones.";
+      const sections = [...new Set(config.differences.map((difference) => difference.section))];
+      return config.name + " differs in " + count + " setting" + (count === 1 ? "" : "s") + " (" + sections.join(", ")
+        + "); see Settings that differ in the addendum.";
+    });
   }
 
   function humanize(key) {
@@ -750,9 +800,11 @@
       summary: comparisonSummary(configs),
       lines: configs.map((config) => config.name + ": median " + fullMoney(percentileValue(config.result, 50))
         + " · beneficiaries keep " + fullMoney(afterTaxValue(config.result)) + " · success "
-        + percent(successShare(config.result), 0)) } : null;
+        + percent(successShare(config.result), 0)), differences: differenceLines(configs) } : null;
+    const differences = configs.length ? differenceTables(configs) : [];
     const tables = monteCarlo.tables || {};
     const money = moneyNote(monteCarlo.dollars);
+    const dollarsLine = dollarsNote(data.inputs, monteCarlo.dollars);
     const Money = money.charAt(0).toUpperCase() + money.slice(1) + ".";
     const perYear = " One row per year, led by your age; " + money + ".";
     const settings = inputTables(data.inputs, data.schema, data.rules);
@@ -778,7 +830,8 @@
       + "runs. " + Money)] : [];
     const part = (heading, list) => ({ heading, tables: list.filter((table) => table.rows.length) });
     const sections = [
-      { heading: "Your settings", intro: "The settings this report was run with; fields the app hides now are left out.",
+      { heading: "Your settings", intro: "The settings this report was run with (fields the app hides now are left "
+        + "out); " + dollarsLine.charAt(0).toLowerCase() + dollarsLine.slice(1),
         parts: [part("Single settings by group", settings.filter((table) => !table.list)),
           part("Lists", settings.filter((table) => table.list))] },
       { heading: "Year by year results (middle half average of the runs)",
@@ -789,7 +842,8 @@
       { heading: "End of the plan", intro: "How the plan ends across all the runs.",
         parts: [part("Range of outcomes", outcomes), part("What beneficiaries receive", inheritance)] },
       { heading: "Comparison", intro: "The current settings beside the saved scenarios picked for this report.",
-        parts: [part(null, configs.length ? [{ ...comparisonTable(configs), brief: "Each configuration's median "
+        parts: [part("Settings that differ", differences), part(differences.length ? "Results" : null,
+          configs.length ? [{ ...comparisonTable(configs), brief: "Each configuration's median "
           + "final worth, what beneficiaries keep, chance of success and 10th and 90th percentile final worth. All of them use "
           + "the same runs and seed." }] : [])] },
     ].map((section) => {
@@ -799,7 +853,7 @@
     return {
       title: data.scenarioName, filename: reportFilename(data.scenarioName, data.date), date: isoDate(data.date),
       household: householdLine(data.inputs), runs: monteCarlo.runs, seed: monteCarlo.seed,
-      dollars: monteCarlo.dollars === "future" ? "Inflation adjusted" : "Today's value",
+      dollars: monteCarlo.dollars === "future" ? "Inflation adjusted" : "Today's value", dollarsNote: dollarsLine,
       headlines: headlineFigures(monteCarlo, data.single), keyResults: keyResults(monteCarlo),
       insights: insightRules.insights(data.inputs, monteCarlo), plots, comparison, addendum: sections, notice: NOTICE,
     };
@@ -864,7 +918,7 @@
     brief: { size: 7.5, style: "normal", color: MUTED, after: 4 } };
   const KEEP_ROWS = 4;  // a table's title and headings stay on the page with its header row and this many rows
   const LATIN = { "→": "->", "–": "-", "—": "-", "‘": "'", "’": "'", "“": "\"", "”": "\"", "…": "...", "≥": ">=",
-    "≤": "<=", "−": "-" };
+    "≤": "<=", "−": "-", "›": ">" };
 
   // Text the standard PDF fonts can show (Latin-1); a few common signs are spelled out, anything else is "?".
   function plain(text) {
@@ -906,7 +960,14 @@
     font(8.5, "normal", MUTED);
     doc.text(fitText(doc, [report.date, report.household, report.runs + " runs, seed " + report.seed, report.dollars]
       .filter(Boolean).join(" · "), width), PAGE.margin, y + 8);
-    y += 18;
+    y += 12;
+    if (report.dollarsNote) {  // what the dollars are: today's, with the average inflation taken out, or adjusted
+      for (const line of doc.splitTextToSize(plain(report.dollarsNote), width)) {
+        doc.text(line, PAGE.margin, y + 8);
+        y += 10;
+      }
+    }
+    y += 6;
     if (report.headlines.length) {
       const gap = 8;
       const tile = (width - gap * (report.headlines.length - 1)) / report.headlines.length;
@@ -1030,6 +1091,15 @@
       doc.text("Comparison", PAGE.margin, y + 12);
       y += 20;
       drawChart(report.comparison.spec, report.comparison.caption, report.comparison.lines, report.comparison.summary);
+      // How many settings each saved scenario changes; the settings themselves are in the addendum.
+      font(8, "normal", MUTED);
+      for (const text of report.comparison.differences || []) {
+        for (const line of doc.splitTextToSize(plain(text), width)) {
+          if (y + 11 > bottom) newPage();
+          doc.text(line, PAGE.margin, y + 8);
+          y += 11;
+        }
+      }
     }
     const bodyPages = doc.getNumberOfPages();
 
@@ -1152,7 +1222,7 @@
   }
 
   const api = { MAX_SAVED, PLOTS, NOTICE, IMAGE_SIZE, capSelection, reportFilename, householdLine, headlineFigures,
-    keyResults, compareSpec, inputTables, recordTable, yearlyTables, fitColumns, splitTable, buildReport, standaloneSvg,
+    keyResults, compareSpec, differenceTables, differenceLines, inputTables, recordTable, yearlyTables, fitColumns, splitTable, buildReport, standaloneSvg,
     legendItems, plain, drawReport, JUMP_SHARE, JUMP_FLOOR, DROP_SHARE, DROP_FLOOR, EMPTY_BALANCE, jumpAt, dropAt,
     emptiesAt, stopsAfter, startsAt, bandsSummary, histogramSummary, balancesSummary, cashFlowSummary, taxesSummary,
     expensesSummary, comparisonSummary, plotSummary };

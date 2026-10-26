@@ -24,13 +24,13 @@ self.fetch = (input, init) => {
 
 const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "checkInputs", "applySettings",
   "setPartner", "syncRollover", "importScenario", "exportScenario", "runSingle", "runTables", "runFrames", "rebalanceSurplus",
-  "settingsNotes", "compareVariants", "benefitTables", "earningsPreview", "depositSliders", "moveDeposit",
+  "rebalanceHeirShares", "settingsNotes", "compareVariants", "benefitTables", "earningsPreview", "depositSliders", "moveDeposit",
   "matchProblems", "compareDifferences", "mergeCompareDifference",
   "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply", "optimizeInfo",
   "optimizeAvailability", "applyOptimum"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
-const MODEL_FILE = "wmti.7bad4d7250.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.ca78c6d78c.wasm";  // the build gives it a content-hashed name
 const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;

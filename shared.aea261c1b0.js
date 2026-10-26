@@ -201,6 +201,10 @@
       if (name === "costBasis" && item.kind !== rules.costBasisKind) return rules.costBasisKind + " accounts only";
       if (name === "iraBasis" && item.kind !== rules.iraBasisKind) return rules.iraBasisKind + " accounts only";
     }
+    if (typeName === "Heir") {
+      if (name === "share") return "set under Split among beneficiaries, below the list";
+      if (name === "child") return "set by Add children as beneficiaries";
+    }
     if (typeName === "ExpenseItem") {
       if ((name === "year" || name === "toAge") && item.category === rules.charityCategory) {
         return "not for " + rules.charityCategory + " rows";
@@ -451,7 +455,7 @@
   }
 
   // The values a beneficiary at `position` of `count` starts with: the schema's Heir defaults, named "Beneficiary
-  // <n>", with an equal share. A field still at this value is shown as a default (`.is-default`).
+  // <n>", with an equal share.
   function heirDefaults(heirFields, position, count) {
     const item = {};
     for (const field of heirFields || []) item[field.name] = field.default === undefined ? null : field.default;
@@ -460,20 +464,112 @@
     return item;
   }
 
-  // Whether a beneficiary's field still holds the value it started with (a share within the tolerance).
-  function heirFieldIsDefault(heirFields, heirs, position, name) {
-    const start = heirDefaults(heirFields, position, heirs.length)[name];
-    const value = heirs[position][name];
-    if (name === "share") return Math.abs(Number(value) - start) <= SHARE_TOLERANCE;
-    return value === start;
+  // The shares scaled to total 100% (equal when they total 0); shares already at 100% are left exactly as they are.
+  function scaleHeirShares(heirs) {
+    const { total, ok } = heirShareTotal(heirs);
+    if (ok) return heirs;
+    return heirs.map((heir) => ({ ...heir, share: total > 0 ? (Number(heir.share) || 0) / total : 1 / heirs.length }));
   }
 
-  // The beneficiaries with one added (or the one at `removeAt` taken out), the shares split equally again so they
-  // total 100%; a new beneficiary takes the schema defaults.
-  function rebalanceHeirs(heirs, heirFields, removeAt) {
-    const kept = removeAt == null ? heirs.concat([heirDefaults(heirFields, heirs.length, heirs.length + 1)])
-      : heirs.filter((_, position) => position !== removeAt);
-    return kept.map((heir) => ({ ...heir, share: 1 / kept.length }));
+  // The beneficiaries with a new one added ("Beneficiary <n>", the schema defaults): it takes an equal part, 1 / (n
+  // + 1), and the others keep their split of the rest, so an equal split stays equal.
+  function addHeir(heirs, heirFields) {
+    const count = heirs.length + 1;
+    return heirs.map((heir) => ({ ...heir, share: (Number(heir.share) || 0) * (count - 1) / count }))
+      .concat([heirDefaults(heirFields, heirs.length, count)]);
+  }
+
+  // Whether a beneficiary differs from what `defaults` gave it, other than its name and share.
+  function heirTermsEdited(heir, defaults) {
+    return Object.keys(defaults).some((name) => !["name", "share", "child"].includes(name)
+      && (heir[name] === undefined ? null : heir[name]) !== defaults[name]);
+  }
+
+  // Whether a child's beneficiary was edited: a name other than the child's, an unequal share of the `count`
+  // beneficiaries, or any other field off the schema default.
+  function childHeirEdited(heir, heirFields, count) {
+    return heir.name !== heir.child || Math.abs(Number(heir.share) - 1 / count) > SHARE_TOLERANCE
+      || heirTermsEdited(heir, heirDefaults(heirFields, 0, 1));
+  }
+
+  // The untouched beneficiary a new plan starts with ("Beneficiary 1" with every default), which the children replace.
+  function isStartHeir(heir, heirFields) {
+    return heir.child == null && heir.name === "Beneficiary 1" && !heirTermsEdited(heir, heirDefaults(heirFields, 0, 1));
+  }
+
+  // Keep the beneficiaries in step with the children (Children, Add children as beneficiaries; `child` names the child
+  // a beneficiary was added for). While the switch is on, each child has one: matched by the child's name, else in
+  // order (a renamed child; an unedited name follows it), and a new child gets one with the defaults, an equal part
+  // and Same as household. A child's beneficiary left without its child (the child removed, or the switch off) is
+  // removed unless edited (`childHeirEdited`); an edited one is kept as your own and named in `kept`. The start
+  // beneficiary gives way to the first children. The shares always total 100% (`scaleHeirShares`) and the list is
+  // never empty. Returns {heirs, changed, kept}; the inputs are not changed.
+  function syncChildHeirs(inputs, heirFields, maximum) {
+    const strategies = (inputs && inputs.strategies) || {};
+    const before = strategies.heirs || [];
+    const count = before.length;
+    const children = strategies.childrenAsHeirs ? (inputs.children || []).map((child) => String(child.name)) : [];
+    const free = children.map((_, position) => position);
+    const copies = before.map((heir) => ({ ...heir }));
+    const pairs = new Map();
+    const pair = (heir, test) => {
+      const at = free.findIndex((position) => test(children[position]));
+      if (at >= 0) pairs.set(heir, free.splice(at, 1)[0]);
+    };
+    for (const heir of copies) if (heir.child != null) pair(heir, (name) => name === heir.child);
+    // One of your own named as a child that has none (kept when the switch went off) is that child's again.
+    for (const heir of copies) {
+      if (heir.child != null) continue;
+      pair(heir, (name) => name === heir.name);
+      if (pairs.has(heir)) heir.child = heir.name;
+    }
+    for (const heir of copies) if (heir.child != null && !pairs.has(heir) && free.length) pairs.set(heir, free.shift());
+    const kept = [];
+    let heirs = copies.filter((heir) => {
+      if (heir.child == null) return true;
+      if (pairs.has(heir)) {
+        const name = children[pairs.get(heir)];
+        if (heir.name === heir.child) heir.name = name;
+        heir.child = name;
+        return true;
+      }
+      if (!childHeirEdited(heir, heirFields, count)) return false;
+      kept.push(heir.name);
+      heir.child = null;
+      return true;
+    });
+    if (free.length && heirs.length === 1 && isStartHeir(heirs[0], heirFields)) heirs = [];
+    heirs = scaleHeirShares(heirs);
+    for (const position of free) {
+      if (maximum != null && heirs.length >= maximum) break;
+      heirs = addHeir(heirs, heirFields);
+      Object.assign(heirs[heirs.length - 1], { name: children[position], child: children[position] });
+    }
+    if (!heirs.length) heirs = [heirDefaults(heirFields, 0, 1)];
+    heirs = scaleHeirShares(heirs);
+    return { heirs, changed: JSON.stringify(heirs) !== JSON.stringify(before), kept };
+  }
+
+  // The mean of the inflation range (triangular: the average of its three points), the rate the model takes out of
+  // returns, interest and raises in today's dollars; null without a range.
+  function meanInflation(inputs) {
+    const range = inputs && inputs.inflation;
+    if (!range) return null;
+    const points = [range.minimum, range.mode, range.maximum].map(Number);
+    return points.every(Number.isFinite) ? (points[0] + points[1] + points[2]) / 3 : null;
+  }
+
+  // The line that says what the results' dollars are, by the result's `dollars` ("future" when inflation adjusted)
+  // and the inputs it ran on (for the average inflation).
+  function dollarsNote(inputs, dollars) {
+    const mean = meanInflation(inputs);
+    const average = mean == null ? "" : " (" + percent(mean, 1) + ")";
+    if (dollars === "future") {
+      return "Amounts are inflation adjusted: each year's dollars, with inflation drawn from its range (average"
+        + (mean == null ? "" : " " + percent(mean, 1)) + ").";
+    }
+    return "Amounts are in today's dollars. Average inflation" + average + " is taken out of market returns, interest, "
+      + "raises and other growth rates.";
   }
 
   // What the after-tax caption says the beneficiaries' payout is while no flat rate is set.
@@ -1716,7 +1812,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, heirFieldIsDefault, rebalanceHeirs, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,

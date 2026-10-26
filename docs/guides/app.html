@@ -240,11 +240,12 @@ device, each with a “…” menu) and the New and Import buttons (see Scenario
 Household:
 the “Include a partner” switch, Your age
 and Partner age (the current ages; Partner age only with a partner),
-filing status (filing separately splits joint accounts 50/50) and home state; then the Inflation card with the
-inflation adjusted switch (amounts in today’s value when off) and the Inflation range under it, and Start
-over. Last, <strong>Advanced settings</strong> (“Years to simulate, Monte Carlo runs and seed, for people who know what
-they change”), shut until opened and kept open or shut on this device (<code class="docutils literal notranslate"><span class="pre">wmti.advanced.v1</span></code>), holds the Run
-card: Years to simulate (blank by default: until you are 100, that is 100 less your age, shown in grey and
+filing status (filing separately splits joint accounts 50/50) and home state; then Start
+over. Last, <strong>Advanced settings</strong> (“Inflation, years to simulate, Monte Carlo runs and seed, for people who
+know what they change”), shut until opened and kept open or shut on this device (<code class="docutils literal notranslate"><span class="pre">wmti.advanced.v1</span></code>), holds
+the Inflation card, with the <em>Inflation-adjusted dollars</em> switch (off by default: amounts in today’s dollars)
+and the Inflation range under it (shown only while the switch is on; off, its mean is still used), then the
+Run card: Years to simulate (blank by default: until you are 100, that is 100 less your age, shown in grey and
 following your age; a typed number is kept and a reset button puts the default back; saved as <code class="docutils literal notranslate"><span class="pre">null</span></code> in a
 scenario file, see <code class="docutils literal notranslate"><span class="pre">yearsToAge100</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>), the Seed (a whole number of 0 or
 more; of the single run behind the headline figures and of the Monte Carlo, whose first run is that single
@@ -326,7 +327,11 @@ leaves the shipped defaults and the button puts them all back. Retirement holds,
 person’s benefit basis, benefit table and claim age (labelled Your and
 Partner; the partner’s only with a partner) under a “You” and a “Partner”
 sub-heading, the Partner one below a divider (the panel’s <cite>headings</cite>), then under a “Medicare”
-heading the Medicare age, the Medicare type, Part B, the Part D premium,
+heading the Medicare age, the Medicare type, Part B (while it is on, a
+read-only line under the switch shows the law data’s standard premium
+per person per month, its year and the yearly deductible, from
+<code class="docutils literal notranslate"><span class="pre">appInfo</span></code>’s <code class="docutils literal notranslate"><span class="pre">medicarePartB</span></code>, noting that the model adds IRMAA on
+higher incomes), the Part D premium (plan-specific, entered),
 the coinsurance and the out-of-pocket maximum, with the
 warning that the IRMAA tier of the first two years is estimated (from
 <code class="docutils literal notranslate"><span class="pre">settingsNotes</span></code>’ <code class="docutils literal notranslate"><span class="pre">medicareWarnings</span></code>) when it applies, then a
@@ -480,7 +485,18 @@ Children has the child inflation factor (only while there is a child:
 the panel’s <code class="docutils literal notranslate"><span class="pre">conditions</span></code> with <code class="docutils literal notranslate"><span class="pre">notEmpty</span></code>) and one card per child, giving
 the child’s age today (or “not born yet”) and the age its child years
 end; Add child starts a child born this year (your age at birth set to
-your age today), in its child years up to age 21 (inclusive). A child’s sheet holds
+your age today), in its child years up to age 21 (inclusive). Under the list, the
+<em>Add children as beneficiaries</em> switch (<code class="docutils literal notranslate"><span class="pre">strategies.childrenAsHeirs</span></code>; on in a new plan
+and the example household, off in a file saved before schema version 56) keeps one
+beneficiary per child in Benefits, Beneficiaries (<code class="docutils literal notranslate"><span class="pre">syncChildHeirs</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>, run on every edit): a new child gets one with the child’s name,
+an equal part and <em>Same as household</em>; a renamed child renames its beneficiary unless that
+name was edited; a removed child takes its beneficiary away. Each such beneficiary carries
+the child’s name in <code class="docutils literal notranslate"><span class="pre">Heir.child</span></code> (never shown). Switched off, the children’s beneficiaries
+still at what they were given are removed; one you edited (name, share, or any other field)
+is kept as your own, and a warning on Children and on Beneficiaries names it (“Kept 1
+beneficiary you edited: Sam. Remove it in the Beneficiaries list on Benefits if you want.”).
+Switched on again, a kept one named as a child is that child’s again. A child’s sheet holds
 its name, your age at birth and its child years first, then a <em>Daycare</em>
 section (start age, end age, cost per year) and a <em>College</em> section
 (start age, years, cost per year, and <em>529 account</em>, a select of the
@@ -601,14 +617,19 @@ switch saying whether the household has that benefit (the section’s
 switch. Benefits ends with the Beneficiaries section (no switch; the beneficiaries are
 not a strategy), its note on screen under its title: “Beneficiaries set how the after-tax
 final value is measured (the tax they pay when they inherit Traditional money); they do
-not change the plan itself.” It shows one card per beneficiary (<code class="docutils literal notranslate"><span class="pre">strategies.heirs</span></code>):
-<em>Name</em>, <em>Share of the estate</em>, <em>Other income</em>, <em>Filing status</em>, <em>State</em> (the state combobox
-below: <em>Same as household</em>, then the 51 labelled states) and <em>Takes Traditional
-money</em> (<em>Over 10 years</em> or <em>All at once</em>), with <em>Remove</em> on each card (not on the last one)
-and <em>Add beneficiary</em> below (up to 20); Add and Remove split the shares equally again. A
-field still at its start value is grey (<code class="docutils literal notranslate"><span class="pre">.is-default</span></code>) until edited. While the shares do
-not total 100% an inline error says “The shares total 90%; change them to total 100%.”
-The beneficiaries’ tax rate box comes under the cards: blank taxes each payout at the
+not change the plan itself.” The beneficiaries (<code class="docutils literal notranslate"><span class="pre">strategies.heirs</span></code>) are a list like
+Accounts: one row each (name; filing status, state and payout; share), a tap opening its
+pop-up with <em>Name</em>, <em>Other income</em>, <em>Filing status</em>, <em>State</em> (the state combobox below:
+<em>Same as household</em>, then the 51 labelled states) and <em>Takes Traditional money</em> (<em>Over 10
+years</em> or <em>All at once</em>), Save and Cancel in its footer and Remove among its actions; the
+tick boxes and drag handles reorder them, and <em>Add beneficiary</em> below (up to 20) opens the
+new one’s pop-up, giving it an equal part while the others keep their split of the rest.
+The share is not in the pop-up: <em>Split among beneficiaries</em>, under the list, has a linked
+slider and a lock per beneficiary, drawn and moved by the same code as Where surplus cash
+goes (<code class="docutils literal notranslate"><span class="pre">splitRows</span></code> and <code class="docutils literal notranslate"><span class="pre">moveSplit</span></code>; <code class="docutils literal notranslate"><span class="pre">rebalanceHeirShares</span></code> moves a share with
+<code class="docutils literal notranslate"><span class="pre">editing.rebalanceShares</span></code>), so the shares always total 100% (a removed beneficiary’s
+share passes to the others in proportion). A share may be 0%.
+The beneficiaries’ tax rate box comes under the sliders: blank taxes each payout at the
 beneficiary’s brackets (placeholder “Blank: beneficiaries’ payout”; the caption names the
 payouts and gives the model’s flat estimate as a guide, how it was found behind its “i”), a
 typed rate is charged flat instead, whichever the payouts, and Use the beneficiaries’ payout
@@ -618,10 +639,19 @@ one section per strategy (Roth conversion, Roth backdoor, QCD), each
 showing its switch and, only while the switch is on, its settings (the
 after-tax IRA basis is on each Traditional IRA’s account sheet). The Roth
 conversion section shows its rule on screen under its title (the
-section’s <code class="docutils literal notranslate"><span class="pre">lead</span></code> in the schema), then the <em>Yearly amount</em> and the ceiling
-categories (<em>Social Security taxation</em>, <em>Capital gains</em>, <em>Tax bracket</em>,
-<em>Medicare IRMAA</em>, <em>Custom AGI ceiling</em>) as sub-headings with an “i”, from the
-panel’s <code class="docutils literal notranslate"><span class="pre">headings</span></code> keyed by the full field path. The Roth
+section’s <code class="docutils literal notranslate"><span class="pre">lead</span></code> in the schema), its start and end ages, then <em>Convert
+up to</em>: a dropdown checklist of the limits (<em>A fixed amount each year</em>,
+<em>Social Security tax limit</em>, <em>0% capital gains limit</em>, <em>Top of a tax
+bracket</em>, <em>Below an IRMAA tier</em>, <em>A custom income ceiling</em>, from the
+schema’s <code class="docutils literal notranslate"><span class="pre">fieldPickers</span></code>). Its button names the ticked limits, or reads
+<em>None chosen</em>, and opens the list of checkboxes under it, by tap or click;
+Escape, the button or a tap outside closes it. Only a ticked limit’s own
+setting shows below the picker (the 0% gains limit is the tick alone). A
+tick stores a starting value ($20,000, the lower Social Security tier, the
+22% bracket, the first IRMAA tier, a $100,000 ceiling) and an untick puts
+the field back to blank, which the model ignores: the ticks are read from
+the stored values, so the saved settings are unchanged. The Social Security
+limit cannot be ticked while filing separately. The Roth
 conversion switch calls <code class="docutils literal notranslate"><span class="pre">syncRollover</span></code>, which adds or removes the
 <em>Rollover account</em> (a Roth IRA for an owner of Traditional money with no
 Roth account), and the account list shows the change at once; editing
@@ -714,7 +744,12 @@ which is before those taxes and selling costs; the median of the runs
 with their middle half, 25th to 75th percentile, under it; each tile’s
 “i” says why it can be above the accounts-only figure)
 and the chance of running out, then the single-run
-headline figures with their change from the loaded scenario; the Insights
+headline figures with their change from the loaded scenario; one line under the tiles saying what
+the dollars are (<code class="docutils literal notranslate"><span class="pre">dollarsNote</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; the PDF report has the same line under
+its title and in its Your settings intro): with Inflation-adjusted dollars off, “Amounts are in today’s
+dollars. Average inflation (3.3%) is taken out of market returns, interest, raises and other growth
+rates.” (the mean of the inflation range), on, “Amounts are inflation adjusted: each year’s dollars,
+with inflation drawn from its range (average 3.3%).”; the Insights
 card (see <a class="reference internal" href="#app-insights"><span class="std std-ref">Insights</span></a>); then the line “Detailed tables are in
 the Final report (PDF) in the menu.” with an <em>Open the Final report</em>
 button. The
@@ -1024,31 +1059,39 @@ tries and Find best settings); then the supporting tools: Undo at the top
 left, the menu’s Walk me through it (Go deeper),
 Documentation, Appearance and Final report (PDF), each item ringed in turn; and
 last the <strong>?</strong> button itself. Minor inputs such as Relocation and Beneficiaries
-are left to the walkthrough. The tour moves the way a person would, one hop at a
-time, so the eye can follow it: before a step on another page, Outputs view, in
-the menu or in the shut Advanced settings, the card says “Next: Inputs” (a polite
-live region), the page scrolls at a readable pace (about 900 px a second, 0.4 to
-1.5 s, eased) to the control it is about to press, the ring presses that control
-for one second (the bottom tab, the view’s chip, the menu button or the section’s
-header), then the page slides in as a swipe slides it (opened at its top), the
-menu opens or the section opens, and the next hop starts (Setup to Plots is the
-Outputs tab, then the Plots chip); only then does the step show. A step’s control
-further down its page is scrolled to the same way (“Next: <em>step</em>”, no ring) before
-its ring and text show. It never goes back to an earlier page. With reduced
-motion the caption still shows but nothing slides and scrolls jump; in the wide
-layout, with no bottom bar, a tab hop shows only the caption. Back or Next during
-a move or a scroll skips to its end and shows the step (pressed again, they move
+are left to the walkthrough. The headline figures and the bottom bar show on
+every page, so their steps stay where the tour is (<code class="docutils literal notranslate"><span class="pre">fixed</span></code> in <code class="docutils literal notranslate"><span class="pre">TOUR_STEPS</span></code>):
+the first step no longer opens Setup first. The tour moves the way a person
+would, one hop at a time, and lets the person make each move, all within the
+step it leads to (the “n of N” count does not change): before a step on another
+page, Outputs view, in the menu or in the shut Advanced settings, the card keeps
+the step’s title and says “Tap Inputs to continue” (a polite live region), the
+page scrolls at a readable pace (about 900 px a second, 0.4 to 1.5 s, eased) to
+the control to tap (the bottom tab, the view’s chip, the menu button or the
+section’s header), the ring pulses on it once and then holds there with a tap
+badge (a hand) on its corner. Nothing moves on by itself: a tap on the control,
+on the badge or on Next takes the hop, the page slides in as a swipe slides it
+(opened at its top), the menu opens or the section opens, and the next hop holds
+the same way (Setup to Plots is the Outputs tab, then the Plots chip); only then
+does the step’s text show. Back during a hop goes to the step before, taking any
+hops back at once. A step’s control further down its page is scrolled to the
+same way (“Next: <em>step</em>”, no ring) before its ring and text show. It never goes
+back to an earlier page. With reduced motion the ring and badge just appear (no
+pulse), nothing slides and scrolls jump; in the wide layout, with no bottom bar,
+a tab hop is taken at once. Back or Next during a scroll to a step’s control
+skips to its end and shows the step (pressed again, they move
 on). Each step then scrolls any sideways chips row to its control, waits for the
 scroll to settle and only then rings the part of the control that shows. A
 resize, a turn of the screen (<code class="docutils literal notranslate"><span class="pre">resize</span></code>, <code class="docutils literal notranslate"><span class="pre">orientationchange</span></code>, the visual
 viewport’s <code class="docutils literal notranslate"><span class="pre">resize</span></code>) or a switch between the phone and wide layouts rings the
-control again where it is now, at once and once more 350 ms after the turn ends:
+control again where it is now (a held hop’s control and badge too, or the hop
+worked out afresh for the new layout), at once and once more 350 ms after the turn ends:
 the wide layout’s class is set by its media query listener after the resize
 handlers run, so a ring measured only at the resize stayed where the control was
 in the old layout (on an iPad turned mid-tour, a corner of the new one). A control
 that is not drawn, or still not in view after that, is skipped rather than
-ringed over nothing. <code class="docutils literal notranslate"><span class="pre">window.WMTI_TOUR_SPEED</span></code> (tests only) scales the presses
-and scrolls. Done, the close button and Escape put back the tab, view
+ringed over nothing. <code class="docutils literal notranslate"><span class="pre">window.WMTI_TOUR_SPEED</span></code> (tests only) scales the pulse,
+slides and scrolls. Done, the close button and Escape put back the tab, view
 and scroll it started from (a move under way stops), and focus returns to the
 <strong>?</strong> button (<code class="docutils literal notranslate"><span class="pre">TOUR_STEPS</span></code>, <code class="docutils literal notranslate"><span class="pre">tourMove</span></code>, <code class="docutils literal notranslate"><span class="pre">openTour</span></code> and <code class="docutils literal notranslate"><span class="pre">closeTour</span></code> in
 <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>; the order is checked by
@@ -1473,8 +1516,16 @@ refuses shows its reason and changes nothing. The example household is never
 changed: its buttons are off with the reason. “Undo last merge (n)”
 steps back through the last 20 merges; a config edited since its merge is left
 alone and the page says so. The comparison is not run again; its results show as
-changed until you press Run. With Auto-save on, a merge into the saved copy of the
-open scenario is replaced by the next settled edit, as a make-match is.</p>
+changed until you press Run. With Auto-save on, a merge (or make-match) into the
+saved copy of the open scenario is also written to the working settings, so the
+next Auto-save and the next page load keep it (before, only the copy changed and
+the next Auto-save put the working settings back over it); an edit still settling
+is saved first, so the merge starts from it. Merges wait in line: a second tap
+before the first is back starts from the settings the first wrote, so both hold
+(make-match and Undo last merge are off until the line is empty). While a
+comparison runs, the merge and make-match buttons are off with “Off while the
+comparison runs; wait for it or cancel it.”; a merge whose config changed while it
+was worked out changes nothing and says so.</p>
 <p>Settings that differ also has two make-match buttons, “A → B”
 (“Make B match A”, its accessible name) and “A ← B” (“Make A match B”); the
 arrow points the copy direction. A first tap asks for a second; the second
@@ -1593,7 +1644,9 @@ sentences under it (the Taxes caption says the hatched bar is sales tax, already
 in expenses, shown for records; its legend key is hatched and its summary leaves
 it out); with scenarios ticked, one Comparison chart (every
 configuration’s median and 10th to 90th percentile band), its summary and one
-line of numbers per configuration follow.</p>
+line of numbers per configuration follow, then one line per ticked scenario with how many
+settings it changes from the current settings and their panels (for example “Spend down
+differs in 2 settings (Accounts)”).</p>
 <p>Each summary is built by fixed rules from the run’s own data (the charts and the
 yearly table), never written by hand. The rules find:</p>
 <ul class="simple">
@@ -1615,7 +1668,13 @@ each page, grouped under headings and subheadings: <em>Your settings</em> (<em>S
 settings by group</em>, <em>Lists</em>), <em>Year by year results (middle half average of the
 runs)</em> (<em>Cash flow by type</em>, <em>Accounts</em>, <em>Deductions</em>), <em>End of the plan</em>
 (<em>Range of outcomes</em>, <em>What beneficiaries receive</em>) and, with scenarios ticked,
-<em>Comparison</em>; a heading with no tables is left out. Each heading has a short
+<em>Comparison</em> (<em>Settings that differ</em>, then <em>Results</em>); a heading with no tables is
+left out. <em>Settings that differ</em> reuses Compare’s own list (<code class="docutils literal notranslate"><span class="pre">compareDifferences</span></code>
+of the current settings against each ticked scenario): one table per settings
+panel (<em>Settings that differ: Accounts</em> and so on, in the panels’ order), a row per
+setting that differs in any configuration, with Compare’s label, and a column per
+configuration with its value (the current settings’ value where a scenario does not
+differ there); with many configurations it splits into blocks like any wide table. Each heading has a short
 intro line, and each table a one or two sentence brief under its title saying
 what it shows and how to read it: one row per year led by your age, amounts in
 today’s value or inflation adjusted as the run is, or settings as entered in the

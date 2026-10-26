@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-1NlIi7tSZaG7aTk3U2ghPTT0tlM8SpfM3LPIyFE5Rps=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-Wxd4uNs56HTPv/cXVxmAVS0luF2tMolnJ5cX88ZSjik=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -546,6 +546,25 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 select.combo-native { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important;
   padding: 0 !important; border: 0 !important; margin: 0 !important; opacity: 0; pointer-events: none; overflow: hidden; }
 .has-reset.reset-shown > .combo > .combo-input { padding-right: 64px; }
+/* A dropdown checklist (checklistPicker in app.js, the Roth conversion's limits): a box-shaped button naming the ticked
+   options with a chevron, and the checklist opening under it in the flow, so each ticked option's field shows below. */
+.picker-button { position: relative; display: flex; align-items: center; text-align: left; padding-right: 36px;
+  color: var(--ink); cursor: pointer; font: inherit; }
+.picker-button::after { content: ""; position: absolute; top: 50%; right: 14px; width: 7px; height: 7px;
+  margin-top: -6px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); }
+.picker-button[aria-expanded="true"]::after { margin-top: -2px; transform: rotate(-135deg); }
+.picker-value { min-width: 0; overflow-wrap: anywhere; }
+.picker-value.is-default { color: var(--muted); }
+.picker-list { margin: 0; padding: 4px 0; min-width: 0; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 18px rgb(0 0 0 / 0.12); }
+.picker-list[hidden] { display: none; }
+.picker-option { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 8px 12px;
+  cursor: pointer; }
+.picker-option:hover { background: var(--surface-2); }
+.picker-option input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--accent); }
+.picker-option:has(input:disabled) { cursor: default; color: var(--muted); }
+.picker-option-text { display: grid; gap: 2px; min-width: 0; }
+.picker-option-help { font-size: 13px; color: var(--muted); }
 /* The optimizer's States list: the states to tick, in a short scrolling box. */
 .state-picks { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
 .state-pick { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
@@ -613,6 +632,8 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; width: 100%; min-height: 56px;
   text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); cursor: pointer; }
 .item-readonly { cursor: default; background: var(--surface-2); border-style: dashed; margin-top: 6px; }
+.part-b-row { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+.part-b-row .item-name { white-space: normal; font-weight: 500; }
 .mortgage-rows > .button { justify-self: start; margin-top: 6px; }
 .item-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item-detail { font-size: 12.5px; color: var(--muted); grid-column: 1; }
@@ -906,10 +927,21 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .tour-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tour-count { margin: 0; }
 .tour-title { margin: 0; font-size: 18px; }
-/* The move to another page: the caption in the card and a press on the ring over the button being pressed. */
-.tour-nav { margin: 0; font-size: 18px; font-weight: 600; color: var(--ink); }
-.tour-ring.tour-press { animation: tour-press 360ms ease-in-out 2; }
-@keyframes tour-press { 50% { transform: scale(0.9); } }
+/* A hop to another page: the caption in the card ("Tap Outputs to continue"), one pulse of the ring over the control
+   to tap, then the ring held there with a tap badge on its corner (accent fill, edged in the card colour so it stands
+   off both the dimmed page and the ring in every scheme); with reduced motion no pulse and the badge just shows. */
+.tour-nav { margin: 0; font-size: 16px; font-weight: 600; color: var(--accent); }
+.tour-ring.tour-pulse { animation: tour-pulse var(--tour-pulse-ms, 600ms) ease-in-out 1; }
+@keyframes tour-pulse { 45% { transform: scale(1.08);
+  box-shadow: 0 0 0 4px var(--accent), 0 0 30px 12px color-mix(in srgb, var(--accent) 70%, transparent),
+  0 0 0 100vmax rgb(0 0 0 / 0.5); } }
+.tour-tap { position: fixed; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); box-shadow: 0 0 0 2px var(--surface), 0 2px 8px rgb(0 0 0 / 0.35);
+  cursor: pointer; animation: tour-tap-in 200ms ease-out var(--tour-pulse-ms, 600ms) both; }
+.tour-tap[hidden] { display: none; }
+.tour-tap svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round;
+  stroke-linejoin: round; }
+@keyframes tour-tap-in { from { transform: scale(0); opacity: 0; } }
 .tour-text { margin: 0; color: var(--ink-2); }
 .tour-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .tour-actions .button:disabled { opacity: 0.45; cursor: default; }
@@ -1252,6 +1284,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
   .walk-stage .walk-screen.fading-out, .walk-stage .walk-screen.fading-in { animation-duration: 300ms !important; }
   /* A changed question total stays highlighted for the flash's second, without fading. */
   .walk-count-total.walk-count-flash { animation: none !important; background: var(--accent); color: var(--accent-ink); }
+  .tour-ring.tour-pulse, .tour-tap { animation: none !important; }
 }
 
 /* Setup's Advanced settings at the bottom: a closed card (open or shut kept per device) holding the Run settings. */
@@ -1259,6 +1292,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .advanced-hint { font-size: 13.5px; font-weight: 400; color: var(--ink-2); }
 .run-card { display: grid; gap: 12px; min-width: 0; }
 .run-card > h2 { margin: 0; }
+.run-card + .run-card { margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
 
 /* The headline figures: each one a block like the Summary tiles (the surface, its edge, label over value, a rounded
    box), and a line under the top bar that sets them apart from the rest of the app (phone and wide layouts). */
@@ -1376,10 +1410,6 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <div class="banner banner-error" id="household-error" role="alert" hidden></div>
         <form id="household-body" class="settings" novalidate></form>
       </div>
-      <div class="card" id="inflationCard">
-        <h2>Inflation</h2>
-        <div id="inflation-body"></div>
-      </div>
       <div class="card">
         <div class="title-help"><h2>Start over</h2><button type="button" class="help-button" aria-expanded="false" aria-controls="help-reset" aria-label="About Start over"><span>i</span></button></div>
         <p class="field-help" id="help-reset" hidden>Replace your settings with the example household that ships with the model (its figures are fictional). Clear all data removes everything this app keeps in this browser: your settings, saved scenarios, walkthrough progress, preferences, your agreement to the Terms and the offline copy; use it on a shared device when you finish.</p>
@@ -1390,7 +1420,11 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <p class="banner" id="clearMessage" role="status" hidden></p>
       </div>
       <details class="card disclosure advanced" id="advancedSettings">
-        <summary id="advancedSummary"><span class="advanced-head"><span>Advanced settings</span><span class="advanced-hint">Years to simulate, Monte Carlo runs and seed, for people who know what they change</span></span></summary>
+        <summary id="advancedSummary"><span class="advanced-head"><span>Advanced settings</span><span class="advanced-hint">Inflation, years to simulate, Monte Carlo runs and seed, for people who know what they change</span></span></summary>
+        <div class="run-card" id="inflationCard">
+          <h2>Inflation</h2>
+          <div id="inflation-body"></div>
+        </div>
         <div class="run-card" id="runCard">
           <h2>Run</h2>
           <div id="run-body"></div>
@@ -1552,18 +1586,19 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 
 <!-- The tour of the controls (the ? button): a ring over one control at a time and a card that names it, with Back,
      Next (Done on the last step) and a close button; the page is inert meanwhile. Before a step on another page the
-     card shows only the caption ("Next: Inputs") while the ring is on the button pressed and the page slides in. app.js
-     fills it (TOUR_STEPS). -->
+     card shows the step's title and "Tap Inputs to continue" while the ring, after one pulse, holds on the control to
+     tap with the tap badge (tourTap) on its corner; a tap there or Next goes on. app.js fills it (TOUR_STEPS). -->
 <div class="tour" id="tour" hidden>
   <div class="tour-ring" id="tourRing" aria-hidden="true"></div>
+  <div class="tour-tap" id="tourTap" aria-hidden="true" hidden><svg viewBox="0 0 24 24"><path d="M9 14.6V7.2a1.5 1.5 0 0 1 3 0v4.6l3.7.6a2 2 0 0 1 1.7 2.3l-.7 4a2.5 2.5 0 0 1-2.5 2.1H11a2.5 2.5 0 0 1-2-1l-3-4a1.4 1.4 0 0 1 2.1-1.9z"/><path d="M10.5 1.8v1.7M6.4 3.4l1.2 1.2M14.6 3.4l-1.2 1.2"/></svg></div>
   <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText" tabindex="-1">
     <div class="tour-head">
       <p class="eyebrow tour-count" id="tourCount"></p>
       <button type="button" class="walk-icon tour-close" id="tourClose" aria-label="Close the tour">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
-    <p class="tour-nav" id="tourNav" aria-live="polite" hidden></p>
     <h2 class="tour-title" id="tourTitle"></h2>
+    <p class="tour-nav" id="tourNav" aria-live="polite" hidden></p>
     <p class="tour-text" id="tourText" aria-live="polite"></p>
     <div class="tour-actions">
       <button type="button" class="button button-quiet" id="tourBack">Back</button>
@@ -1628,14 +1663,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "fd23d960f106", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "e86d249617f2", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.fc00a84ec7.js"></script>
+<script src="shared.aea261c1b0.js"></script>
 <script src="charts.a657ac5f08.js"></script>
 <script src="insights.ee50546e73.js"></script>
-<script src="report.f9e7f3363e.js"></script>
+<script src="report.f05b3af85b.js"></script>
 <script src="jspdf.e6551fcdc3.js"></script>
-<script src="app.77f082e570.js"></script>
+<script src="app.29949f779b.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
