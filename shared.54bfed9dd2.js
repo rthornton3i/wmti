@@ -1687,10 +1687,107 @@
   // The name an imported scenario opens under: `name` (the file's), unless Auto-save is on for it (not in
   // `autoSaveOff`) and `saved` (name to saved settings) holds different settings under it; then the next free
   // "_1", "_2" (numberedName, `taken` the names in use), so the save that follows at once never writes over them.
+  // The settings alone are compared: an experience block (effort, style, walkthrough progress) on either side, or
+  // missing from one, never makes a copy.
   function importedName(name, inputs, saved, autoSaveOff, taken) {
     const copy = Object.prototype.hasOwnProperty.call(saved, name) ? saved[name] : null;
-    if (copy == null || autoSaveOff.includes(name) || sameValue(copy, inputs)) return name;
+    if (copy == null || autoSaveOff.includes(name)
+      || sameValue(splitExperience(copy).inputs, splitExperience(inputs).inputs)) return name;
     return numberedName(name, taken, true);
+  }
+
+  // The app's experience block (wmti.inputs.retirementInputs.Experience: effort, style, riskComfort, progress,
+  // tierOverrides, walk) travels with a saved scenario but is never part of the settings the model runs on.
+  // `splitExperience` takes it off: {inputs (a copy without the key), experience (the block as found, or null)}.
+  function splitExperience(data) {
+    if (data == null || typeof data !== "object" || Array.isArray(data)) return { inputs: data, experience: null };
+    const inputs = {};
+    for (const key of Object.keys(data)) if (key !== "experience") inputs[key] = data[key];
+    const block = data.experience;
+    return { inputs, experience: block != null && typeof block === "object" && !Array.isArray(block) ? block : null };
+  }
+
+  // Settings with an experience block put back on, last (a null block leaves the settings unchanged).
+  function joinExperience(inputs, experience) {
+    if (experience == null || inputs == null) return inputs;
+    return { ...splitExperience(inputs).inputs, experience };
+  }
+
+  // The block of a scenario saved before the effort and style pickers: High and Accountant, nothing else kept.
+  function defaultExperience() {
+    return { effort: "high", style: "accountant", riskComfort: null, progress: {}, tierOverrides: {}, walk: null };
+  }
+
+  // The block as a saved scenario or a file keeps it: the walkthrough's `before` (a full copy of the settings, for
+  // its Undo) stays in the draft on this device only.
+  function storedExperience(experience) {
+    if (experience == null) return null;
+    const copy = JSON.parse(JSON.stringify(experience));
+    if (copy.walk != null && typeof copy.walk === "object") delete copy.walk.before;
+    return copy;
+  }
+
+  // An effort's place in low < medium < high (wmti.inputs.retirementInputs.EFFORTS); anything else counts as high.
+  const EFFORT_ORDER = ["low", "medium", "high"];
+  function effortRank(effort) {
+    const rank = EFFORT_ORDER.indexOf(effort);
+    return rank < 0 ? EFFORT_ORDER.length - 1 : rank;
+  }
+
+  // Whether an input or a question of `tier` is shown at `effort`: its tier is not above the effort.
+  function tierShown(tier, effort) {
+    return effortRank(tier) <= effortRank(effort);
+  }
+
+  // How many inputs are left at the example household's values because the effort does not show them: the panel
+  // entries (each schema panel's `fields`, tiered in its `tiers`) above `effort` whose value in `inputs` equals the
+  // one in `defaults`. None at High.
+  function defaultedInputCount(schema, inputs, defaults, effort) {
+    if (!schema || !inputs || !defaults) return 0;
+    let count = 0;
+    for (const panel of schema.panels || []) {
+      const tiers = panel.tiers || {};
+      for (const name of panel.fields || []) {
+        if (!Object.prototype.hasOwnProperty.call(tiers, name) || tierShown(tiers[name], effort)) continue;
+        if (sameValue(getPath(inputs, name), getPath(defaults, name))) count += 1;
+      }
+    }
+    return count;
+  }
+
+  // The first walkthrough question (a `walkthroughPlan` row, which carries its `tier`) that raising the effort from
+  // `previous` to `effort` unlocked: shown now, not shown before. Null when the raise unlocked none.
+  function firstUnlocked(rows, previous, effort) {
+    const row = (rows || []).find((item) => tierShown(item.tier, effort) && !tierShown(item.tier, previous));
+    return row ? row.id : null;
+  }
+
+  // A new scenario's block: the same effort, style, risk comfort and tier overrides, no progress and no walkthrough.
+  function carriedExperience(experience) {
+    const base = { ...defaultExperience(), ...(experience || {}) };
+    return { effort: base.effort, style: base.style, riskComfort: base.riskComfort,
+      progress: {}, tierOverrides: JSON.parse(JSON.stringify(base.tierOverrides || {})), walk: null };
+  }
+
+  // Whether a scenario's experience block (`found`) holds an effort and a style both offered (`offered`:
+  // appInfo().experience) and either differs from `current` ({effort, style}): only then is the user asked which to
+  // keep when it opens.
+  function experienceDiffers(found, current, offered) {
+    if (!found || typeof found !== "object" || Array.isArray(found)) return false;
+    const known = offered.efforts.some((item) => item.id === found.effort)
+      && offered.styles.some((item) => item.id === found.style);
+    return known && (found.effort !== current.effort || found.style !== current.style);
+  }
+
+  // The block to adopt: the scenario's own (`found`), or with Keep mine its effort and style replaced by `current`.
+  function experienceChoice(found, current, keepMine) {
+    return keepMine ? { ...found, effort: current.effort, style: current.style } : found;
+  }
+
+  // An {effort, style} in words, from the offered labels: "High effort, Accountant style".
+  function experienceWords(experience, offered) {
+    const label = (items, id) => (items.find((item) => item.id === id) || { label: id }).label;
+    return label(offered.efforts, experience.effort) + " effort, " + label(offered.styles, experience.style) + " style";
   }
 
   // The undo history of the open scenario: `current` (the settled settings as JSON text) and `stack` (earlier settled
@@ -1854,7 +1951,10 @@
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName, yearsToAge100, planYears, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
+    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName,
+    splitExperience, joinExperience, defaultExperience, storedExperience, carriedExperience, experienceDiffers, experienceChoice, experienceWords,
+    effortRank, tierShown,
+    defaultedInputCount, firstUnlocked, yearsToAge100, planYears, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-pxHlTBj/TeyFKbALS44+16aWO/zugGd0efNPJvWwJyo=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-ykdJZMuT23gbfvS5NHXEsjJPZAljSFMXv+mFTBU8ifQ=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -241,7 +241,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .pin { min-width: 0; }
 .pin-label { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 11px; color: var(--band-sub);
   line-height: 1.2; overflow: hidden; min-height: 2.4em; }
-.pin-value { display: block; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pin-value { display: block; font-size: clamp(11px, 3.4vw, 15px); font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pin-sub { display: block; font-size: 11px; color: var(--band-sub); font-variant-numeric: tabular-nums; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; }
 .app.stale .pin-value, .app.stale .tile-value, .app.stale .chart-plot { opacity: 0.45; }
@@ -767,6 +767,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 18px 4px color-mix(in srgb, var(--accent) 55%, transparent); } }
 .open-label { margin: 0; }
 .open-name { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
+.example-tag { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 600; color: var(--warn); }
 .open-status { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; color: var(--ink-2);
   flex-wrap: wrap; }
 .open-status > [role="status"] { flex: 1; min-width: 0; }
@@ -842,6 +843,17 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   padding: 10px 16px 16px; border-top: 1px solid var(--line); }
 .dialog-actions .button { padding-inline: 8px; justify-self: stretch; }
 .dialog-wide { width: 100%; }
+/* Effort and style: two radio groups (Setup's card and the picker), each choice with its one-line blurb */
+.experience-choices { display: grid; gap: 12px; }
+.experience-group { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 0; }
+.experience-group > legend { font-weight: 650; font-size: 15px; padding: 0 0 4px; }
+.experience-option { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 2px 10px; align-items: start;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); cursor: pointer; }
+.experience-option:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.experience-option input { width: 20px; height: 20px; margin: 1px 0 0; grid-row: span 2; accent-color: var(--accent); }
+.experience-label { font-weight: 600; overflow-wrap: anywhere; }
+.experience-blurb { grid-column: 2; font-size: 13px; color: var(--ink-2); }
+.experience-notice { padding-block: 0; }
 .finish-setup strong { color: var(--ink); }
 
 /* Bottom tab bar */
@@ -1051,7 +1063,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .walk-tag { flex: none; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); font-size: 0.8rem; }
 .walk-tag[data-status="answered"] { background: var(--accent-soft); color: var(--accent); }
 .walk-tag[data-status="now"] { background: var(--accent); color: var(--accent-ink); }
-.walk-review-row { display: flex; align-items: center; gap: 10px; min-height: 56px; padding-block: 6px; }
+.walk-review-row { display: flex; align-items: center; gap: 10px; min-height: 48px; padding-block: 4px; }
 .walk-change { flex: none; min-height: 44px; min-width: 44px; padding: 0 10px; border: 0; border-radius: 10px;
   background: transparent; color: var(--accent); font-weight: 600; cursor: pointer; }
 .walk-resume { position: fixed; z-index: 75; left: 50%; transform: translateX(-50%);
@@ -1302,6 +1314,9 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .pin { display: grid; align-content: start; gap: 2px; padding: 7px 10px; border-radius: 14px; background: var(--surface);
   color: var(--ink); box-shadow: 0 0 0 1px var(--panel-edge); }
 .pin .pin-label { color: var(--ink-2); }
+@media (max-width: 480px) { .pin { padding: 7px 6px; } }
+/* A 320 px phone: the widest values (such as -$115.93k) need a little more room than the tiles leave. */
+@media (max-width: 340px) { .pinned { gap: 6px; } .pin { padding: 7px 4px; } .pin-value { font-size: 10px; } }
 .wide .topbar > .pinned { padding-top: 0; }
 .wide .pin { padding: 6px 12px; }
 
@@ -1347,13 +1362,13 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <button type="button" role="tab" class="chip view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-optimize" data-view="optimize" aria-controls="view-optimize">Optimize</button>
       </div>
-      <button type="button" class="chips-pin" id="chipsPinOut" aria-pressed="true" aria-label="Unpin tabs">
+      <button type="button" class="chips-pin" id="chipsPinOut" aria-pressed="true" aria-label="Unpin groups">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
       <div class="chips-track" aria-hidden="true"><span></span></div>
     </div>
     <div class="chips-wrap" data-place="inputs">
       <div class="chips" role="tablist" aria-label="Settings groups" id="chips-settings"></div>
-      <button type="button" class="chips-pin" id="chipsPin" aria-pressed="true" aria-label="Unpin tabs">
+      <button type="button" class="chips-pin" id="chipsPin" aria-pressed="true" aria-label="Unpin groups">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
       <div class="chips-track" aria-hidden="true"><span></span></div>
     </div>
@@ -1376,6 +1391,8 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
         <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, Clear empties every setting (Undo, top left, brings them back) and Export saves it as a file that Import opens again. Other scenarios lists the copies kept here: tap one to open it, the bin to delete it, or use its ... menu. Your current settings are also kept as you edit.</p>
         <p class="open-name" id="loadedName"></p>
+        <p class="example-tag" id="exampleTag" hidden><span>Tough example</span><button type="button" class="help-button" aria-expanded="false" aria-controls="help-example" aria-label="About the tough example"><span>i</span></button></p>
+        <p class="field-help" id="help-example" hidden>This example household runs out of money in many of the Monte Carlo runs, so its first results look like a plan in trouble. That is on purpose: it shows what a struggling plan looks like. Its figures are fictional. Change them, or start a new scenario, to try your own.</p>
         <div class="open-status">
           <span class="dirty-dot" id="dirtyDot" aria-hidden="true"></span><span id="saveStatus" role="status"></span>
           <label class="mini-switch"><span>Auto-save</span><button type="button" class="mini-toggle" id="autoSave" role="switch" aria-checked="false" aria-label="Auto-save"></button></label>
@@ -1405,6 +1422,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M12 18v-7M9 14l3-3 3 3"/></svg><span>Import</span></button>
         </div>
         <input id="importFile" type="file" hidden>
+      </div>
+      <!-- Effort and style (app.js renderExperienceCard): how much the app asks and how it talks; never the results. -->
+      <div class="card experience-card" id="experienceCard">
+        <div class="title-help"><h2>Effort and style</h2><button type="button" class="help-button" aria-expanded="false" aria-controls="help-experience" aria-label="About effort and style"><span>i</span></button></div>
+        <p class="field-help" id="help-experience" hidden>Effort sets how much the app asks you: Low asks the basics, High every input. Style sets how it talks to you. Neither changes your results, and both are saved with the scenario.</p>
+        <div class="experience-choices" id="experienceCardChoices"></div>
+        <p class="note experience-notice">You can switch effort and style any time on Setup or in the menu. Your answers are kept.</p>
+        <p class="note" id="defaultsNotice" role="status" hidden></p>
       </div>
       <div class="settings" id="householdCard">
         <div class="banner banner-error" id="household-error" role="alert" hidden></div>
@@ -1549,12 +1574,26 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
     </div>
     <div class="dialog-actions" id="dialogActions"></div>
   </div>
+  <!-- The effort and style picker (app.js openExperiencePicker): from the menu with Save and Cancel, and with Continue
+       once at start-up until it has been kept (a new user's first launch, or once for a returning user). -->
+  <div class="dialog-backdrop" id="experienceBackdrop" hidden></div>
+  <div class="dialog experience-dialog" id="experience" role="dialog" aria-modal="true" aria-labelledby="experienceTitle" hidden>
+    <div class="dialog-head"><h2 id="experienceTitle">Effort and style</h2></div>
+    <div class="dialog-scroll">
+      <p class="muted" id="experienceIntro"></p>
+      <div class="experience-choices" id="experienceChoices"></div>
+      <p class="note experience-notice">You can switch effort and style any time on Setup or in the menu. Your answers are kept.</p>
+    </div>
+    <div class="dialog-actions" id="experienceActions"></div>
+  </div>
   <div class="row-menu" id="rowMenu" role="menu" hidden></div>
 
   <div class="menu-backdrop" id="menuBackdrop" hidden></div>
   <div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
     <button type="button" class="menu-item" id="menuWalk">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20c2-6 5-4 7-9s4-6 7-7"/><circle cx="5" cy="20" r="1.5"/><circle cx="19" cy="4" r="1.5"/></svg><span id="menuWalkText">Walk me through it...</span></button>
+    <button type="button" class="menu-item" id="menuExperience">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Effort and style...</span></button>
     <a class="menu-item" id="menuDocs" href="#" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/></svg><span>Documentation</span></a>
     <div class="menu-group" id="menuScheme" role="radiogroup" aria-labelledby="schemeTitle">
@@ -1571,7 +1610,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
     <ul class="menu-help" id="menuHelp" hidden>
       <li>Tap the "i" beside a field or a heading for its help.</li>
       <li>Swipe a row of chips sideways for more groups; the bar under it shows where you are.</li>
-      <li>Swipe sideways to move between tabs.</li>
+      <li>Swipe the page sideways on Inputs or Outputs to move to the next group or view.</li>
       <li>Outputs reruns on its own after every change. Setup holds your scenarios (open, saved, new and imported) and the run; Undo (top left) steps back through your last changes.</li>
       <li>Tap ? (top right) for a short tour of the controls.</li>
     </ul>
@@ -1635,7 +1674,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
       <span class="walk-topic" id="walkTopic"></span>
       <button type="button" class="walk-icon" id="walkMapButton" aria-label="Your trail" aria-haspopup="dialog" aria-expanded="false" aria-controls="walkMap">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c4 0 3-7 7-7s3-7 7-7"/><circle cx="5" cy="19" r="1.6"/><circle cx="19" cy="5" r="1.6"/></svg></button>
       <button type="button" class="walk-icon" id="walkClose" aria-label="Leave the walkthrough">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
@@ -1663,14 +1702,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "1ae3b561c52a", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "f3578ea39e0f", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.d1342bfecc.js"></script>
+<script src="shared.54bfed9dd2.js"></script>
 <script src="charts.e4e014563a.js"></script>
 <script src="insights.2a08d5493d.js"></script>
 <script src="report.bf76f1ef9d.js"></script>
-<script src="jspdf.e6551fcdc3.js"></script>
-<script src="app.388af46e46.js"></script>
+<script src="jspdf.822d41ab6f.js"></script>
+<script src="app.3d269cf5b8.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

@@ -22,25 +22,30 @@ self.fetch = (input, init) => {
   return realFetch(String(input).replace(/\.(whl|zip)$/, "_$1.wasm"), init);
 };
 
-const WEB_FUNCTIONS = new Set(["appInfo", "settingsSchema", "defaultInputs", "checkInputs", "applySettings",
-  "setPartner", "syncRollover", "importScenario", "exportScenario", "runSingle", "runTables", "runFrames", "rebalanceSurplus",
-  "rebalanceHeirShares", "settingsNotes", "compareVariants", "benefitTables", "earningsPreview", "depositSliders", "moveDeposit",
-  "matchProblems", "compareDifferences", "mergeCompareDifference",
-  "walkthroughTree", "walkthroughPlan", "walkthroughApply", "timelineView", "timelineApply", "optimizeInfo",
-  "optimizeAvailability", "applyOptimum"]);
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
-const MODEL_FILE = "wmti.620628e52a.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.1c3a6bea9a.wasm";  // the build gives it a content-hashed name
 const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;
 let web = null;
 let batched = null;
 let pumping = false;
+let allowedCalls = new Set();  // the calls wmti.dashboard.web allows (appInfo's exports), set at start-up
+const bound = new Map();  // each web function's proxy, read once so no call leaves a new one behind
 
 const post = (message) => self.postMessage(message);
 const yieldToMessages = () => new Promise((resolve) => setTimeout(resolve, 0));
 const errorText = (error) => String((error && error.message) || error).slice(-2000);
+
+function webCall(name) {
+  let call = bound.get(name);
+  if (!call) {
+    call = web[name];
+    bound.set(name, call);
+  }
+  return call;
+}
 
 async function step(key, label, work) {
   post({ kind: "step", key, label, status: "wait" });
@@ -75,6 +80,7 @@ async function boot() {
       info: JSON.parse(web.appInfo()), schema: JSON.parse(web.settingsSchema()),
       defaults: JSON.parse(web.defaultInputs()), walkthrough: JSON.parse(web.walkthroughTree()),
     }));
+    allowedCalls = new Set(startup.info.exports);
     post({ kind: "ready", ...startup, bootMs: Math.round(performance.now() - started),
       pyodideVersion: pyodide.version });
     pump();
@@ -84,14 +90,14 @@ async function boot() {
 }
 
 function callWeb(job) {
-  if (!WEB_FUNCTIONS.has(job.fn)) throw new Error("unknown call " + job.fn);
+  if (!allowedCalls.has(job.fn)) throw new Error("unknown call " + job.fn);
   const started = performance.now();
-  const text = web[job.fn](...(job.args || []));
+  const text = webCall(job.fn)(...(job.args || []));
   return { value: JSON.parse(text), ms: Math.round(performance.now() - started) };
 }
 
 function startBatched(job) {
-  batched = { id: job.id, fn: job.fn, batches: web[BATCHED[job.fn]](...job.args), started: performance.now() };
+  batched = { id: job.id, fn: job.fn, batches: webCall(BATCHED[job.fn])(...job.args), started: performance.now() };
 }
 
 function stopBatched(reply) {

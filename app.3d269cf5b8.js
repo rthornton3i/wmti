@@ -11,7 +11,9 @@
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
-    blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName, planYears, undoRecord, undoStep, mergeUndoPush,
+    blankInputs, needsSetup, splitExperience, joinExperience, defaultExperience, storedExperience, carriedExperience,
+    experienceDiffers, experienceChoice, experienceWords, defaultedInputCount, firstUnlocked, effortRank,
+    otherScenarioNames, benefitAccounts, freeName, numberedName, importedName, planYears, undoRecord, undoStep, mergeUndoPush,
     mergeUndoPop, changedPaths, optimizeStepText, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, spendingStartAge, spendingChangeRows,
     spendingChangePreview, docsLink, stateRulesText } = window.WmtiShared;
   const charts = window.WmtiCharts;
@@ -60,12 +62,14 @@
   const UNDO_LIMIT = 20;  // input states of the open scenario that Undo can step back through
   const MC_DELAY_MS = 1500;  // the pause after the single run before the Monte Carlo starts on its own
   const EXAMPLE_NAME = "Example household";
+  const EXPERIENCE_VERSION = 57;  // the first schemaVersion with an experience block (an older file has none)
   const DRAFT_KEY = "wmti.draft.v1";
   const SCENARIOS_KEY = "wmti.scenarios.v1";
   const PREFS_KEY = "wmti.prefs.v1";
   const WALK_KEY = "wmti.walk.v1";  // the walkthrough's progress
   const TOUR_KEY = "wmti.tour.v1";  // "seen" once the tour has opened by itself after the first walkthrough
   const TERMS_KEY = "wmti.terms.v1";  // the Terms acceptance: {version, textHash, buildId, acceptedAt}
+  const PICKER_KEY = "wmti.picker.v1";  // "done" once the effort and style picker has been kept
   // The key points at the top of the Terms step and of the Legal window, one line each, then a pointer to the full Terms.
   const LEGAL_SUMMARY = [
     "This app is for educational and non-commercial use only and is not to be considered financial, tax, investment or legal advice.",
@@ -90,7 +94,8 @@
   const ADVANCED_KEY = "wmti.advanced.v1";  // whether Setup's Advanced settings is open: "open" or "closed"
   const LAW_STATE_PATHS = ["homeState", "strategies.relocation.state"];  // state selects with a "See this state's rules" link
   const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
-    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY, SPLIT_KEY, SETUP_FOLD_KEY, HEIRS_MARK_KEY, ADVANCED_KEY];
+    OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY, SPLIT_KEY, SETUP_FOLD_KEY, HEIRS_MARK_KEY, ADVANCED_KEY,
+    PICKER_KEY];
   // Keys kept before the rename (fpt.*) move to these once, before anything reads them.
   try {
     migrateLegacyStorage(localStorage, TERMS_KEY, (window.WMTI_LEGAL || {}).textHash || "");
@@ -132,6 +137,7 @@
 
   const state = {
     info: null, schema: null, defaults: null, inputs: null, base: null, scenarioName: EXAMPLE_NAME, seed: 1,
+    experience: null, defaultExperience: null,  // the open scenario's experience block, and a block-less scenario's
     walkTree: null, result: null, error: null, lastRunMs: null, bootMs: null, pyodideVersion: null,
     notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, planOpen: false,
     heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
@@ -155,8 +161,11 @@
     if (state.clearing) return;
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (error) { /* storage blocked: keep going */ }
   }
+  // The draft keeps the open scenario's experience block (state.experience, never inside state.inputs) with its
+  // settings, the walkthrough's `before` included.
   function saveDraft() {
-    store(DRAFT_KEY, { inputs: state.inputs, base: state.base, scenarioName: state.scenarioName, seed: state.seed });
+    store(DRAFT_KEY, { inputs: joinExperience(state.inputs, state.experience), base: state.base,
+      scenarioName: state.scenarioName, seed: state.seed });
   }
   function savePrefs() {
     const compare = state.compare;
@@ -174,7 +183,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.401dad1fe2.js");
+      worker = new Worker("worker.313ee3b371.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -267,12 +276,22 @@
   // ---- Start-up ----
   async function onReady(message) {
     clearInterval(bootTimer);
-    Object.assign(state, { info: message.info, schema: message.schema, defaults: message.defaults,
+    // The example household's experience block is kept apart from its settings (state.experience is never inside
+    // state.inputs): it is the block of a scenario that has none.
+    const example = splitExperience(message.defaults);
+    Object.assign(state, { info: message.info, schema: message.schema, defaults: example.inputs,
+      defaultExperience: example.experience || defaultExperience(),
       walkTree: message.walkthrough, bootMs: message.bootMs, pyodideVersion: message.pyodideVersion,
       seed: message.info.defaultSeed });
-    // A first visit: no saved draft and no walkthrough progress, decided before the draft is restored.
+    state.experience = clone(state.defaultExperience);
+    // A new user's first launch: no saved draft, no walkthrough progress (an older page's, under WALK_KEY, counts:
+    // it is moved into the draft only by loadWalk below) and no saved scenario, decided before the draft is restored.
     const draftRead = readDraft();
-    const firstVisit = draftRead.draft == null && !draftRead.unreadable && load(WALK_KEY) == null;
+    const savedBefore = load(SCENARIOS_KEY);
+    const firstVisit = draftRead.draft == null && !draftRead.unreadable && load(WALK_KEY) == null
+      && !(isObject(savedBefore) && Object.keys(savedBefore).length);
+    let pickerDone = false;  // the effort and style picker is shown once to every user
+    try { pickerDone = localStorage.getItem(PICKER_KEY) === "done"; } catch (error) { /* storage blocked: shown */ }
     state.mc.runs = message.info.monteCarlo.defaultRuns;
     let notice = null;
     try {
@@ -320,8 +339,14 @@
     selectTab(state.tab, false);
     runNow();
     loadWalk();
-    await termsAgreed;  // the Terms step comes first; the walkthrough only after it
-    if (firstVisit) walk.tourAfter = !tourSeen();  // the first walkthrough ends with the tour, once per device
+    // The Terms step comes first; then, until it has been kept once, the effort and style picker (a returning user's
+    // with High and Accountant chosen); on a first launch then the walkthrough, then the tour (once per device).
+    await termsAgreed;
+    if (firstVisit || !pickerDone) {
+      await openExperiencePicker(firstVisit ? "firstLaunch" : "returning");
+      try { localStorage.setItem(PICKER_KEY, "done"); } catch (error) { /* storage blocked */ }
+    }
+    if (firstVisit) walk.tourAfter = !tourSeen();
     if (firstVisit || location.hash === "#walkthrough" || (walk.saved && walk.saved.status === "active")) openWalk();
   }
 
@@ -343,9 +368,17 @@
     try { localStorage.removeItem(DRAFT_KEY); } catch (error) { /* storage blocked: nothing to remove */ }
     state.inputs = clone(state.defaults);
     state.base = clone(state.defaults);
+    state.experience = clone(state.defaultExperience);
     state.scenarioName = EXAMPLE_NAME;
     state.seed = state.info.defaultSeed;
     return "Saved settings could not be read; defaults loaded.";
+  }
+
+  // Whether an experience block holds an effort and a style the pickers offer (appInfo().experience).
+  function knownExperience(experience) {
+    const offered = state.info.experience;
+    return isObject(experience) && offered.efforts.some((item) => item.id === experience.effort)
+      && offered.styles.some((item) => item.id === experience.style);
   }
 
   // Whether a current-version draft has the settings' shape: every top-level field of the example household, each
@@ -367,7 +400,9 @@
   // Bring back the draft saved on this device. A draft that is not JSON or not a settings object, one from an older
   // version that wmti cannot upgrade, or a current one without the settings' shape is discarded. A current draft
   // with a value that fails a check is kept, so an edit in progress survives a reload and its message shows as usual.
-  // An upgraded draft is saved again at once in the current format.
+  // An upgraded draft is saved again at once in the current format. The draft's experience block becomes
+  // state.experience (split off before the shape check); a draft without one gets the block of a scenario saved
+  // before the pickers, and a block with an effort or style the app does not offer discards the draft.
   async function restoreDraft() {
     const { draft, unreadable } = readDraft();
     state.inputs = clone(state.defaults);
@@ -375,18 +410,20 @@
     if (unreadable) return discardDraft();
     if (draft == null) return null;
     if (!isObject(draft) || !isObject(draft.inputs)) return discardDraft();
-    let inputs = draft.inputs;
+    let { inputs, experience } = splitExperience(draft.inputs);
     const upgraded = inputs.schemaVersion !== state.info.inputsSchemaVersion;
     if (upgraded) {
-      const reply = await ask("importScenario", [JSON.stringify(inputs)]);
+      const reply = await ask("importScenario", [JSON.stringify(draft.inputs)]);
       if (!reply || !reply.ok) return discardDraft();
-      inputs = reply.inputs;
+      ({ inputs, experience } = splitExperience(reply.inputs));
     } else if (!sameShape(state.defaults, inputs)) {
       return discardDraft();
     }
+    if (experience != null && !knownExperience(experience)) return discardDraft();
     state.inputs = inputs;
-    state.base = isObject(draft.base) && draft.base.schemaVersion === state.info.inputsSchemaVersion ? draft.base
-      : clone(inputs);
+    state.experience = experience ? clone(experience) : clone(state.defaultExperience);
+    const base = splitExperience(draft.base).inputs;
+    state.base = isObject(base) && base.schemaVersion === state.info.inputsSchemaVersion ? base : clone(inputs);
     state.scenarioName = typeof draft.scenarioName === "string" && draft.scenarioName ? draft.scenarioName : EXAMPLE_NAME;
     if (Number.isInteger(draft.seed)) state.seed = draft.seed;
     if (upgraded) saveDraft();
@@ -431,6 +468,7 @@
     if (summaryCard) fillExpenseSummary(summaryCard);
     refreshSpending();  // the Spending in retirement amounts follow every edit (a percent, the start or stop age)
     refreshYearsDefault();  // a blank Years to simulate follows your age
+    refreshDefaultsNotice();  // Using defaults for N inputs follows every edit
     syncInflationRange();  // the inflation range shows only with Inflation-adjusted dollars on
     updateTerminalRate();  // the beneficiaries' caption follows their payouts
     renderSplit(HEIR_SPLIT);  // the beneficiaries' sliders follow their names and shares
@@ -1295,7 +1333,7 @@
   function markTabsPin() {
     for (const button of document.querySelectorAll(".chips-pin")) {
       button.setAttribute("aria-pressed", String(tabsPin.on));
-      button.setAttribute("aria-label", tabsPin.on ? "Unpin tabs" : "Pin tabs");
+      button.setAttribute("aria-label", tabsPin.on ? "Unpin groups" : "Pin groups");
     }
   }
 
@@ -1360,6 +1398,7 @@
     renderSaved();
     renderAbout();
     renderLoaded();
+    renderExperienceCard();
   }
 
   // ---- Setup: the open scenario card, the seed and runs, and the Inflation card (the inflation adjusted switch and
@@ -1373,10 +1412,11 @@
     return name === EXAMPLE_NAME && (!state.exampleHidden || name === state.scenarioName) ? state.defaults : null;
   }
 
-  // Whether the open scenario differs from its saved copy, or has none yet.
+  // Whether the open scenario differs from its saved copy, or has none yet. The settings alone are compared: the
+  // experience block (effort, style, walkthrough progress) never makes a scenario unsaved.
   function hasUnsavedChanges() {
     const copy = savedCopy(state.scenarioName);
-    return !copy || !sameValue(copy, state.inputs);
+    return !copy || !sameValue(splitExperience(copy).inputs, state.inputs);
   }
 
   function renderLoaded() {
@@ -1391,6 +1431,13 @@
     const unsaved = hasUnsavedChanges();
     $("loadedName").textContent = state.scenarioName;
     $("setupFoldName").textContent = state.scenarioName;
+    // The shipped example household, unedited, carries a "Tough example" tag; its (i) explains why.
+    const tough = state.scenarioName === EXAMPLE_NAME && state.defaults != null && sameValue(state.inputs, state.defaults);
+    $("exampleTag").hidden = !tough;
+    if (!tough) {
+      $("help-example").hidden = true;
+      $("exampleTag").querySelector(".help-button").setAttribute("aria-expanded", "false");
+    }
     $("saveStatus").textContent = autoSaveOn() ? "Saved automatically" : unsaved ? "Unsaved changes"
       : state.savedJustNow ? "Saved just now" : "Saved";
     $("dirtyDot").hidden = autoSaveOn() || !unsaved;
@@ -1561,6 +1608,213 @@
   // Where the tables went: one line and a button that opens the Final report (PDF) picker (wired once in wire()).
   const REPORT_POINTER_HTML = "<div class=\"card report-pointer\"><p>Detailed tables are in the Final report (PDF) in "
     + "the menu.</p><button type=\"button\" class=\"button button-quiet open-report\">Open the Final report</button></div>";
+
+  // ---- Effort and style: Setup's card, the picker and "Using defaults for N inputs" ----
+  // Effort (how much the app asks) and style (how it talks) are the open scenario's experience block
+  // (state.experience); the choices and their blurbs come from appInfo().experience. Changing either saves the block
+  // (saveExperience): no run, no undo step and no unsaved mark. The same radio groups are drawn on Setup's card and in
+  // the picker, which opens from the menu (Save and Cancel) and once at start-up until it has been kept (Continue: a
+  // new user's first launch, or a returning user's first visit since the picker came, wmti.picker.v1). Opening or
+  // importing a scenario with another effort or style asks which to keep (askExperience).
+  const experiencePicker = { mode: null, resolve: null, choice: null, returnFocus: null };
+
+  // The two radio groups, Effort then Style, marking `choice` ({effort, style}); `onPick` gets {effort} or {style}.
+  // `prefix` keeps the ids and radio names of the card and the picker apart.
+  function experienceGroups(prefix, choice, onPick) {
+    const offered = state.info.experience;
+    const group = (key, title, items) => {
+      const fieldset = document.createElement("fieldset");
+      fieldset.className = "experience-group";
+      fieldset.id = prefix + "-" + key;
+      const legend = document.createElement("legend");
+      legend.textContent = title;
+      fieldset.append(legend);
+      for (const item of items) {
+        const option = document.createElement("label");
+        option.className = "experience-option";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = prefix + "-" + key;
+        input.id = prefix + "-" + key + "-" + item.id;
+        input.value = item.id;
+        input.checked = choice[key] === item.id;
+        input.addEventListener("change", () => { if (input.checked) onPick({ [key]: item.id }); });
+        const label = document.createElement("span");
+        label.className = "experience-label";
+        label.textContent = item.label;
+        const blurb = document.createElement("span");
+        blurb.className = "experience-blurb";
+        blurb.textContent = item.blurb;
+        option.append(input, label, blurb);
+        fieldset.append(option);
+      }
+      return fieldset;
+    };
+    return [group("effort", "Effort", offered.efforts), group("style", "Style", offered.styles)];
+  }
+
+  // The effort and style shown for the open scenario: High and Accountant when its block holds one the app does not
+  // offer.
+  function shownExperience() {
+    const offered = state.info.experience;
+    const experience = state.experience || {};
+    const effort = offered.efforts.some((item) => item.id === experience.effort) ? experience.effort : "high";
+    const style = offered.styles.some((item) => item.id === experience.style) ? experience.style : "accountant";
+    return { effort, style };
+  }
+
+  function renderExperienceCard() {
+    const holder = $("experienceCardChoices");
+    if (!holder || !state.info || !state.experience) return;
+    holder.replaceChildren(...experienceGroups("xpCard", shownExperience(), setExperience));
+    refreshDefaultsNotice();
+  }
+
+  // Below High, how many inputs the effort leaves at the example household's values (defaultedInputCount); hidden at
+  // High and when there are none. Follows every edit and every effort change.
+  function refreshDefaultsNotice() {
+    const notice = $("defaultsNotice");
+    if (!notice || !state.schema || !state.inputs || !state.experience) return;
+    const effort = shownExperience().effort;
+    const count = effort === "high" ? 0 : defaultedInputCount(state.schema, state.inputs, state.defaults, effort);
+    notice.hidden = count === 0;
+    notice.textContent = count ? "Using defaults for " + count + (count === 1 ? " input" : " inputs") : "";
+  }
+
+  // Change the open scenario's effort or style (`patch`: {effort} and/or {style}, each an id appInfo offers; others
+  // are ignored) and save the block.
+  function setExperience(patch) {
+    const offered = state.info.experience;
+    const change = {};
+    if (offered.efforts.some((item) => item.id === patch.effort)) change.effort = patch.effort;
+    if (offered.styles.some((item) => item.id === patch.style)) change.style = patch.style;
+    if (!Object.keys(change).length) return;
+    const previous = shownExperience().effort;
+    saveExperience(change);
+    if (change.effort && effortRank(change.effort) > effortRank(previous)) walkEffortRaised(previous);
+    renderExperienceCard();
+  }
+
+  // Open the picker: "settings" (from the menu: the current choice, Save keeps it and Cancel discards it),
+  // "firstLaunch" (a new user's first launch: Low and Coach chosen, Continue keeps the choice) or "returning" (a
+  // returning user's one showing: High and Accountant chosen, Continue keeps it). Returns a promise of the choice
+  // kept ({effort, style}), or null when it was cancelled.
+  function openExperiencePicker(mode) {
+    if (!$("experience").hidden) closeExperiencePicker(null);
+    const returning = mode === "returning";
+    const first = mode === "firstLaunch" || returning;  // a single Continue; Escape and the backdrop do nothing
+    const active = document.activeElement;
+    experiencePicker.returnFocus = active && active !== document.body ? active : null;
+    experiencePicker.mode = first ? mode : "settings";
+    const offered = state.info.experience;
+    experiencePicker.choice = returning ? { ...offered.existingDefault }
+      : first ? { ...offered.newUserDefault } : shownExperience();
+    $("experienceIntro").textContent = returning
+      ? "Choose how much the app asks and how it talks to you. Your results do not change."
+      : first ? "Choose how much the app asks and how it talks to you. Neither changes your results."
+        : "How much the app asks and how it talks to you. Neither changes your results.";
+    const pick = (change) => Object.assign(experiencePicker.choice, change);
+    $("experienceChoices").replaceChildren(...experienceGroups("xpPick", experiencePicker.choice, pick));
+    const button = (label, className, id, onClick) => {
+      const element = document.createElement("button");
+      element.type = "button";
+      element.className = className;
+      element.id = id;
+      element.textContent = label;
+      element.addEventListener("click", onClick);
+      return element;
+    };
+    const keep = () => closeExperiencePicker({ ...experiencePicker.choice });
+    $("experienceActions").replaceChildren(...(first ? [button("Continue", "button", "experienceContinue", keep)]
+      : [button("Cancel", "button button-quiet", "experienceCancel", () => closeExperiencePicker(null)),
+        button("Save", "button", "experienceSave", keep)]));
+    $("experience").hidden = false;
+    $("experienceBackdrop").hidden = false;
+    $("experience").querySelector("input:checked").focus();
+    return new Promise((resolve) => { experiencePicker.resolve = resolve; });
+  }
+
+  // Opening or importing a scenario (`name`) whose block (`found`) holds another offered effort or style than the
+  // current ones asks which to keep. Returns a promise of the block to adopt: `found` itself (also at once, with no
+  // dialog, when nothing differs or there is no block to compare), or its copy with the current effort and style for
+  // Keep mine; false when the user cancelled (Cancel, Escape or the backdrop).
+  function askExperience(name, found) {
+    const offered = state.info.experience;
+    const current = shownExperience();
+    if (!experienceDiffers(found, current, offered)) return Promise.resolve(found);
+    // An import from the walkthrough's first step: the walkthrough keeps the page (#app, which holds the dialog) inert,
+    // so it is lifted while the dialog shows (its backdrop covers the walkthrough) and put back unless the walkthrough
+    // has closed.
+    const lifted = $("app").inert;
+    if (lifted) $("app").inert = false;
+    return new Promise((settle) => {
+      let settled = false;
+      const resolve = (block) => {
+        if (settled) return;
+        settled = true;
+        if (lifted && walk.open) $("app").inert = true;
+        settle(block);
+      };
+      const option = (id, text, checked) => {
+        const row = document.createElement("label");
+        row.className = "experience-option";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "xpAsk";
+        input.id = id;
+        input.checked = checked;
+        const label = document.createElement("span");
+        label.className = "experience-label";
+        label.textContent = text;
+        row.append(input, label);
+        return row;
+      };
+      const theirs = option("xpAsk-scenario", "Use the scenario's: " + experienceWords(found, offered), true);
+      const mine = option("xpAsk-mine", "Keep mine: " + experienceWords(current, offered), false);
+      const choices = document.createElement("div");
+      choices.className = "experience-choices";
+      choices.append(theirs, mine);
+      openDialog({ title: "Effort and style", text: name + " was saved with a different effort or style.",
+        body: [choices], focus: theirs.querySelector("input"),
+        actions: [["Cancel", "button button-quiet", () => { resolve(false); return true; }, "experienceAskCancel"],
+          ["Open", "button", () => {
+            resolve(experienceChoice(found, current, $("xpAsk-mine").checked));
+            return true;
+          }, "experienceAskOpen"]] });
+      dialog.onClose = () => resolve(false);  // Escape and the backdrop cancel; after Open or Cancel it does nothing
+    });
+  }
+
+  // Close the picker; a kept `choice` is saved (setExperience) before the promise resolves.
+  function closeExperiencePicker(choice) {
+    if ($("experience").hidden) return;
+    $("experience").hidden = true;
+    $("experienceBackdrop").hidden = true;
+    $("experienceChoices").replaceChildren();
+    $("experienceActions").replaceChildren();
+    if (choice) setExperience(choice);
+    const resolve = experiencePicker.resolve;
+    experiencePicker.resolve = null;
+    experiencePicker.mode = null;
+    const back = experiencePicker.returnFocus;
+    experiencePicker.returnFocus = null;
+    if (back && document.contains(back)) back.focus();
+    if (resolve) resolve(choice);
+  }
+
+  // Escape and the backdrop cancel the menu's picker; the start-up one waits for Continue. True when the picker
+  // was open.
+  function experienceEscape() {
+    if ($("experience").hidden) return false;
+    if (experiencePicker.mode === "settings") closeExperiencePicker(null);
+    return true;
+  }
+
+  function wireExperience() {
+    $("menuExperience").addEventListener("click", () => { closeMenu(); openExperiencePicker("settings"); });
+    $("experienceBackdrop").addEventListener("click", () => experienceEscape());
+    $("experience").addEventListener("keydown", (event) => trapFocus(event, $("experience")));
+  }
 
   // ---- Monte Carlo: runs on its own after every change (and on Run), in batches, with progress and cancel;
   // results kept per inputs ----
@@ -1747,7 +2001,7 @@
   function compareRequest() {
     const selected = selectedScenarios().filter((name) => name != null);
     const saved = Object.create(null);
-    for (const name of selected) if (state.scenarios[name]) saved[name] = state.scenarios[name];
+    for (const name of selected) if (state.scenarios[name]) saved[name] = splitExperience(state.scenarios[name]).inputs;
     return { source: "saved", selected, saved };
   }
 
@@ -2454,12 +2708,13 @@
     renderOptimize();
   }
 
-  // The inputs a config name stands for, as stored now (no upgrade): the key the differences were found for.
+  // The inputs a config name stands for, as stored now (no upgrade, no experience block): the key the differences
+  // were found for.
   function storedConfig(name) {
     const info = state.info.compare;
     if (name === info.currentName) return state.inputs;
     if (name === info.defaultName) return state.defaults;
-    return hasOwn(state.scenarios, name) ? state.scenarios[name] : null;
+    return hasOwn(state.scenarios, name) ? splitExperience(state.scenarios[name]).inputs : null;
   }
 
   function diffKeyNow() {
@@ -2573,20 +2828,23 @@
 
   // Write a config's settings: the working settings for the current settings, else the scenario saved on this device.
   // The open scenario's saved copy with Auto-save on is its working settings too: writing only the copy would be undone
-  // by the next Auto-save (the next edit, or the next page load), which keeps the working settings as the copy.
+  // by the next Auto-save (the next edit, or the next page load), which keeps the working settings as the copy. The
+  // target keeps its own experience block, never the source's nor the one a merge reply carries.
   function writeConfig(name, inputs) {
     const open = name === state.scenarioName && autoSaveOn();
+    const settings = splitExperience(inputs).inputs;
     if (name === state.info.compare.currentName || open) {
       if (open) {
-        state.scenarios[name] = clone(inputs);
+        putScenario(name, settings);
         storeScenarios();
       }
-      state.inputs = clone(inputs);  // the loaded scenario stays the base, so Outputs shows the settings as edited
+      state.inputs = clone(settings);  // the loaded scenario stays the base, so Outputs shows the settings as edited
       takeHeirsAsLoaded();
       renderSettings();
       inputsChanged();
     } else {
-      state.scenarios[name] = clone(inputs);
+      const own = hasOwn(state.scenarios, name) ? splitExperience(state.scenarios[name]).experience : null;
+      putScenario(name, settings, own);
       storeScenarios();
       renderSaved();
     }
@@ -2684,23 +2942,26 @@
   }
 
   // The inputs a config name stands for: the current settings, the example household or a scenario saved on this
-  // device (an older version is upgraded first).
+  // device (an older version is upgraded first), without the experience block.
   async function configInputs(name) {
     const info = state.info.compare;
     if (name === info.currentName) return { ok: true, inputs: state.inputs };
     if (name === info.defaultName) return { ok: true, inputs: state.defaults };
     const inputs = state.scenarios[name];
     if (!inputs) return { ok: false, error: name + ": no saved scenario has this name on this device" };
-    if (isObject(inputs) && inputs.schemaVersion === state.info.inputsSchemaVersion) return { ok: true, inputs };
+    if (isObject(inputs) && inputs.schemaVersion === state.info.inputsSchemaVersion) {
+      return { ok: true, inputs: splitExperience(inputs).inputs };
+    }
     const reply = await ask("importScenario", [JSON.stringify(inputs)]);
     if (reply && reply.ok) keepUpgradedScenario(name, reply.inputs);
-    return reply && reply.ok ? { ok: true, inputs: reply.inputs }
+    return reply && reply.ok ? { ok: true, inputs: splitExperience(reply.inputs).inputs }
       : { ok: false, error: reply ? reply.error : name + " could not be read; try again." };
   }
 
-  // A saved scenario upgraded from an older version is saved again at once in the current format.
+  // A saved scenario upgraded from an older version is saved again at once in the current format, with the
+  // experience block the upgrade gave it.
   function keepUpgradedScenario(name, inputs) {
-    state.scenarios[name] = clone(inputs);
+    putScenario(name, inputs, splitExperience(inputs).experience);
     storeScenarios();
   }
 
@@ -2740,6 +3001,39 @@
     store(SCENARIOS_KEY, state.scenarios);
   }
 
+  // Every saved copy is written here: the settings (any experience block they carry taken off) with `experience`
+  // joined last, as a file keeps it (storedExperience: no walkthrough `before`); the open scenario's block unless
+  // another is given, and none when null is. The caller stores the list.
+  function putScenario(name, inputs, experience = state.experience) {
+    state.scenarios[name] = joinExperience(clone(splitExperience(inputs).inputs), storedExperience(experience));
+  }
+
+  // The open scenario's experience changed (effort, style, walkthrough progress): kept in the draft and, when the
+  // scenario has a saved copy, in that copy's block alone. No run, no undo step and no unsaved mark follow.
+  function saveExperience(patch) {
+    if (patch) Object.assign(state.experience, patch);
+    saveDraft();
+    const name = state.scenarioName;
+    if (!hasOwn(state.scenarios, name)) return;
+    putScenario(name, state.scenarios[name]);
+    storeScenarios();
+  }
+
+  // Another scenario is open: its own experience block when it has one (`found`), else the open one's effort, style,
+  // risk comfort and overrides with no progress and no walkthrough (carriedExperience). `keepWalk` keeps the
+  // walkthrough in progress (an import from its first step). A walkthrough left active in a file is paused, so
+  // opening or importing a scenario never opens it by itself.
+  function adoptExperience(found, keepWalk) {
+    const walkNow = state.experience ? state.experience.walk : null;
+    const next = isObject(found) ? { ...carriedExperience(found), ...clone(found) }
+      : carriedExperience(state.experience);
+    if (keepWalk) next.walk = walkNow;
+    else if (isObject(next.walk) && next.walk.status === "active") next.walk.status = "paused";
+    state.experience = next;
+    loadWalk();  // the walkthrough's progress is the scenario's own
+    renderExperienceCard();
+  }
+
   function savedMessage(text, isError) {
     const message = $("savedMessage");
     message.hidden = false;
@@ -2754,7 +3048,7 @@
     if (!hasOwn(state.scenarios, name) && Object.keys(state.scenarios).length >= SAVED_LIMIT) {
       return "This device keeps at most " + SAVED_LIMIT + " scenarios. Delete one first.";
     }
-    state.scenarios[name] = clone(state.inputs);
+    putScenario(name, state.inputs);
     storeScenarios();
     return null;
   }
@@ -2940,12 +3234,21 @@
   }
 
   // ---- The scenario dialog: one centered window for New, Import, Rename, Clear, Delete and unsaved changes ----
-  const dialog = { returnFocus: null };
+  // `onClose`: called once when the dialog closes or is replaced by another (set by askExperience, whose Escape and
+  // backdrop answer Cancel).
+  const dialog = { returnFocus: null, onClose: null };
+
+  function settleDialogClose() {
+    const hook = dialog.onClose;
+    dialog.onClose = null;
+    if (hook) hook();
+  }
 
   // Show the dialog: `title`, `text`, `body` (elements under the text) and `actions`, each [label, class, onClick,
   // id]; an action closes the dialog unless its onClick returns false. Focus goes to `focus` (else the first field or
   // button), stays inside while it is open (Tab wraps) and goes back to the opener when it closes.
   function openDialog({ title, text, body = [], actions, focus }) {
+    settleDialogClose();
     const active = document.activeElement;
     if (active && active !== document.body && !$("dialog").contains(active)) dialog.returnFocus = active;
     closeRowMenu(false);
@@ -2971,6 +3274,7 @@
   }
 
   function closeDialog(restoreFocus) {
+    settleDialogClose();
     if ($("dialog").hidden) return;
     $("dialog").hidden = true;
     $("dialogBackdrop").hidden = true;
@@ -3058,18 +3362,22 @@
         }, "dialogSave"]] });
   }
 
-  // The settings a listed scenario stands for: its saved copy (upgraded first when it is from an older version), or
-  // the example household. Null, with the message shown, when it cannot be read.
+  // The settings a listed scenario stands for, as saved (its experience block included): its saved copy (upgraded
+  // first when it is from an older version), or the example household, as {inputs, legacy}: `legacy` when the copy
+  // was upgraded from a version before the experience block (its block is a default, not a choice). Null, with the
+  // message shown, when it cannot be read.
   async function listedInputs(name) {
     let inputs = savedCopy(name);
     if (!inputs) return null;
+    let legacy = false;
     if (!isObject(inputs) || inputs.schemaVersion !== state.info.inputsSchemaVersion) {
       const reply = await ask("importScenario", [JSON.stringify(inputs)]);
       if (!reply || !reply.ok) { savedMessage(reply ? reply.error : name + " could not be read; try again.", true); return null; }
+      legacy = reply.fromVersion < EXPERIENCE_VERSION;
       inputs = reply.inputs;
       keepUpgradedScenario(name, inputs);
     }
-    return clone(inputs);
+    return { inputs: clone(inputs), legacy };
   }
 
   // ---- The opened scenario: its card glows for a second ----
@@ -3082,14 +3390,22 @@
     if (card.getClientRects().length) card.scrollIntoView({ block: "nearest" });
   }
 
-  async function openSaved(name) {
-    const inputs = await listedInputs(name);
-    if (!inputs) return;
+  // Open a listed scenario. When its effort or style differ from the current ones the user is asked which to keep
+  // (askExperience; Cancel leaves the open scenario as it is), except for a Duplicate (`askFirst` false) and a copy
+  // saved before the experience block. The block adopted is saved, so the copy does not ask again.
+  async function openSaved(name, askFirst = true) {
+    const listed = await listedInputs(name);
+    if (!listed) return;
+    const { inputs, experience } = splitExperience(listed.inputs);
+    const block = askFirst ? await askExperience(name, listed.legacy ? null : experience) : experience;
+    if (block === false) return;
+    forgetBlankWalk();
     state.inputs = inputs;
     takeHeirsAsLoaded();
     state.base = clone(inputs);
     state.scenarioName = name;
-    forgetBlankWalk();
+    adoptExperience(block, false);
+    saveExperience();
     savedMessage("Opened " + name + ".", false);
     renderSettings();
     inputsChanged();
@@ -3112,9 +3428,11 @@
   }
 
   function createScenario(name) {
-    state.inputs = blankInputs(state.schema);
+    forgetBlankWalk();
+    state.inputs = splitExperience(blankInputs(state.schema)).inputs;
     state.base = clone(state.inputs);
     state.scenarioName = name;
+    adoptExperience(null, false);
     savedMessage("Created " + name + ".", false);
     renderSettings();
     inputsChanged();
@@ -3205,7 +3523,7 @@
 
   function clearOpen() {
     if (settleTimer) settle();
-    state.inputs = blankInputs(state.schema);
+    state.inputs = splitExperience(blankInputs(state.schema)).inputs;
     renderSettings();
     inputsChanged();
     settle();  // at once, so Undo steps back to the settings before the clear
@@ -3222,7 +3540,7 @@
     }
     if (settleTimer) settle();
     const copy = numberedName(state.scenarioName, takenNames(), false);
-    state.scenarios[copy] = clone(state.inputs);
+    putScenario(copy, state.inputs);  // the copy keeps the open scenario's experience block
     storeScenarios();
     showFileMessage("Saved a copy of " + state.scenarioName + " as " + copy + ".", false);
     renderSaved();
@@ -3237,12 +3555,13 @@
       return;
     }
     const copy = numberedName(name, takenNames(), false);
-    state.scenarios[copy] = clone(savedCopy(name));
+    const source = splitExperience(savedCopy(name));
+    putScenario(copy, source.inputs, source.experience);  // the copy keeps that scenario's experience block, if any
     storeScenarios();
     savedMessage("Saved a copy of " + name + " as " + copy + ".", false);
     renderSaved();
     renderCompare();
-    leaveOpen(() => openSaved(copy));
+    leaveOpen(() => openSaved(copy, false));  // never asks: the copy holds the block of the scenario it copies
   }
 
   function deleteDialog(name) {
@@ -3271,8 +3590,8 @@
   }
 
   async function exportListed(name) {
-    const inputs = await listedInputs(name);
-    if (inputs) exportScenario(inputs, name);
+    const listed = await listedInputs(name);
+    if (listed) exportScenario(listed.inputs, name);
   }
 
   // ---- A row's "..." menu: Duplicate, Rename, Export, Delete (the example household: Duplicate, Export, Delete) ----
@@ -7916,8 +8235,10 @@
 
   // Export settings as a scenario file named after the scenario: the open one (the card's Export) by default. The file
   // is saved through the host's downloads when it offers them, else downloaded by the browser; where neither works the
-  // text opens in a dialog to copy. A message under the card always says what happened.
-  async function exportScenario(inputs = state.inputs, name = state.scenarioName) {
+  // text opens in a dialog to copy. A message under the card always says what happened. The file carries the
+  // scenario's experience block (the open scenario's from state.experience, without the walkthrough's `before`).
+  async function exportScenario(inputs = joinExperience(state.inputs, storedExperience(state.experience)),
+    name = state.scenarioName) {
     const check = checkScenarioName(name, state.info.scenarioName);
     if (!check.ok) { showFileMessage(name + ": " + check.error + " Rename it, then export.", true); return; }
     const file = await ask("exportScenario", [JSON.stringify(inputs), check.name]);
@@ -7981,12 +8302,25 @@
       if (walk.open && walk.importing) { walk.importing = false; walkError(message); }
       return false;
     }
-    state.inputs = reply.inputs;
+    const { inputs, experience } = splitExperience(reply.inputs);
+    // The file's own effort and style, unless it was saved before the pickers (it keeps the current ones then); when
+    // they differ from the current ones the user is asked which to keep, and Cancel leaves everything as it was.
+    const block = reply.fromVersion < EXPERIENCE_VERSION ? null : await askExperience(fileName
+      ? fileName.replace(/\.json$/i, "") : "Pasted scenario", experience);
+    if (block === false) {
+      showFileMessage("Import cancelled.", false);
+      closeDialog();
+      if (walk.open && walk.importing) walk.importing = false;
+      return false;
+    }
+    forgetBlankWalk();
+    state.inputs = inputs;
     state.base = clone(state.inputs);
     // Auto-save keeps it at once (resetUndo below), under a free name when another saved scenario has the file's.
     state.scenarioName = importedName(fileName ? fileName.replace(/\.json$/i, "") : "Pasted scenario", reply.inputs,
       state.scenarios, state.autoSaveOff, takenNames());
-    forgetBlankWalk();
+    // A walkthrough in progress keeps going when the file came from its first step.
+    adoptExperience(block, walk.open && walk.importing);
     const upgraded = reply.fromVersion !== reply.inputs.schemaVersion;
     showFileMessage("Opened " + state.scenarioName + "."
       + (upgraded ? " Upgraded to the current format; export to save the new file." : ""), false);
@@ -8083,14 +8417,15 @@
     }
     button.dataset.armed = "false";
     button.textContent = "Load example household";
+    forgetBlankWalk();
     state.inputs = clone(state.defaults);
     takeHeirsAsLoaded();
     state.base = clone(state.defaults);
     state.scenarioName = EXAMPLE_NAME;
+    adoptExperience(null, false);  // the example household has no block: the effort and style stay
     state.exampleHidden = false;
     savePrefs();
     state.seed = state.info.defaultSeed;
-    forgetBlankWalk();
     showFileMessage("The example household is loaded.", false);
     renderSettings();
     inputsChanged();
@@ -8357,26 +8692,62 @@
   // The questions, their order and every answer's check come from wmti.dashboard.walkthrough (walkthroughTree at
   // start-up, walkthroughPlan and walkthroughApply through the worker); each answer is written to the real inputs at
   // once, and `before` (the inputs when the walkthrough started) lets "Undo my answers" put them back. Progress is
-  // kept on this device under WALK_KEY: {v, tree, status (active, paused, done or skipped), current (a question id,
-  // "start", "welcome" or "review"), trail (the screens visited, for Back), opened (questions and optional topics whose deeper
-  // questions are open), answers (id to {status, values}), before}.
+  // the open scenario's experience block's `walk` (state.experience.walk, saved with saveExperience; `before` stays in
+  // the draft on this device, never in a saved copy or a file): {v, tree, status (active, paused, done or skipped),
+  // current (a question id, "start", "welcome" or "review"), trail (the screens visited, for Back), opened (questions
+  // and optional topics whose deeper questions are open), answers (id to {status, values}), before}. Before the
+  // experience block it was kept per device under WALK_KEY, moved into the block once at start-up.
   const WALK_SWAP_MS = 340;  // the overlapping slide and fade between two screens
   const WALK_FLASH_MS = 1000;  // the highlight of a question total that changed
   const WALK_SCREENS = ["start", "welcome", "review"];  // the screens that are not questions
+  // The effort the walkthrough's questions are filtered at, by the scenario's effort. The Low filter is held until
+  // G-B: Low asks the Medium questions meanwhile.
+  const WALK_PLAN_EFFORT = { low: "medium" };
   const walk = { saved: null, index: null, plan: null, open: false, busy: false, pending: null, swap: 0,
-    mapReturn: null, importing: false, lastTotal: null, flashTimer: null };
+    mapReturn: null, importing: false, lastTotal: null, flashTimer: null, unlockFrom: null };
 
   function walkSave() {
-    store(WALK_KEY, walk.saved);  // with storage blocked `walk.saved` still keeps this visit consistent
+    saveExperience({ walk: walk.saved });  // with storage blocked `walk.saved` still keeps this visit consistent
   }
 
+  // Read the open scenario's walkthrough progress (state.experience.walk). Progress an older page kept per device
+  // (WALK_KEY) is moved into the block once, when the block has none, and the key is removed.
   function loadWalk() {
     if (!state.walkTree) return;
     walk.index = walkIndex(state.walkTree);
-    const saved = load(WALK_KEY);
-    if (!isObject(saved) || saved.v !== 1) { walk.saved = null; return; }
-    const topicIds = state.walkTree.topics.map((topic) => topic.id);
-    walk.saved = { ...walkClean(saved, walk.index, topicIds), tree: state.walkTree.version };
+    walk.unlockFrom = null;
+    let saved = state.experience ? state.experience.walk : null;
+    const legacy = load(WALK_KEY);
+    const moved = !isObject(saved) && isObject(legacy) && legacy.v === 1;
+    if (moved) saved = legacy;
+    if (!isObject(saved) || saved.v !== 1) {
+      walk.saved = null;
+    } else {
+      const topicIds = state.walkTree.topics.map((topic) => topic.id);
+      walk.saved = { ...walkClean(saved, walk.index, topicIds), tree: state.walkTree.version };
+    }
+    if (state.experience) state.experience.walk = walk.saved;
+    if (moved) saveExperience();
+    if (legacy !== null) {
+      try { localStorage.removeItem(WALK_KEY); } catch (error) { /* storage blocked: nothing kept */ }
+    }
+  }
+
+  // The effort walkthroughPlan filters the questions at, for the scenario's effort (WALK_PLAN_EFFORT).
+  function walkPlanEffort(effort) {
+    return hasOwn(WALK_PLAN_EFFORT, effort) ? WALK_PLAN_EFFORT[effort] : effort;
+  }
+
+  // The effort was raised from `previous`: a walkthrough that exists (not skipped) is offered again as "Continue the
+  // walkthrough..." and, when opened, goes to the first question the raise unlocked (firstUnlocked). Lowering the
+  // effort keeps every answer.
+  function walkEffortRaised(previous) {
+    if (!walk.saved || walk.saved.status === "skipped") return;
+    walk.unlockFrom = walk.unlockFrom || previous;
+    if (walk.saved.status === "done") {
+      walk.saved.status = "paused";
+      walkSave();
+    }
   }
 
   // A new scenario's walkthrough: a fresh start at the first question, its blank numbers shown as empty boxes.
@@ -8421,7 +8792,9 @@
   }
 
   async function walkReplan() {
-    const reply = await ask("walkthroughPlan", [JSON.stringify(state.inputs), JSON.stringify(walk.saved.opened)]);
+    const effort = walkPlanEffort(state.experience ? state.experience.effort : "high");
+    const reply = await ask("walkthroughPlan", [JSON.stringify(state.inputs), JSON.stringify(walk.saved.opened),
+      effort]);
     if (reply && reply.ok) walk.plan = reply;
     else if (!walk.plan) walk.plan = { questions: [], basicCount: 0, facts: null };
   }
@@ -8448,6 +8821,12 @@
     let target = walk.saved.current;
     if (target === "start" && !walk.plan.offerImport) target = "welcome";
     if (!target || (!WALK_SCREENS.includes(target) && !walkRow(target))) target = firstUnanswered();
+    if (walk.unlockFrom) {  // a raised effort: on to the first question it unlocked
+      const unlocked = firstUnlocked(walkRows(), walkPlanEffort(walk.unlockFrom),
+        walkPlanEffort(state.experience.effort));
+      walk.unlockFrom = null;
+      if (unlocked) target = unlocked;
+    }
     showWalkScreen(target, "forward", false);
   }
 
@@ -8608,7 +8987,8 @@
     walk.flashTimer = setTimeout(() => total.classList.remove("walk-count-flash"), WALK_FLASH_MS);
   }
 
-  // The first step: import an existing scenario file (the Setup import's file picker), or continue to the welcome.
+  // The first step: start fresh (the primary button, on to the welcome), or open an existing scenario file (the Setup
+  // import's file picker).
   function startScreen() {
     const start = state.walkTree.start;
     const element = document.createElement("div");
@@ -8619,11 +8999,11 @@
     element.append(walkEyebrow("Before you start"), walkHeading(start.prompt), walkParagraph(start.lede, "walk-lede"),
       error);
     walk.errorText = null;
-    const importButton = walkButton(start.importLabel, "button walk-primary", walkImport);
-    importButton.id = "walkImport";
-    const continueButton = walkButton(start.continueLabel, "button button-quiet", null, true);
+    const continueButton = walkButton(start.continueLabel, "button walk-primary", null, true);
     continueButton.id = "walkContinue";
-    return { element, actions: [importButton, continueButton] };
+    const importButton = walkButton(start.importLabel, "button button-quiet", walkImport);
+    importButton.id = "walkImport";
+    return { element, actions: [continueButton, importButton] };
   }
 
   function walkImport() {
@@ -8633,8 +9013,8 @@
     // Only a hint: `walk.importing` stays set, since iPad Safari's picker sends the page no blur and its file arrives
     // after the pause; leaving the first step (showWalkScreen) or closing the walkthrough clears it.
     pickScenarioFile(() => {
-      walkError("This browser did not open a file picker. Continue the walkthrough, then paste the scenario text "
-        + "under Setup, Import.");
+      walkError("This browser did not open a file picker. Tap Start fresh, then paste the scenario text under "
+        + "Setup, Import.");
     });
   }
 
@@ -8656,8 +9036,9 @@
     const element = document.createElement("div");
     element.className = "walk-screen";
     element.append(walkEyebrow("About 10 minutes"), walkHeading("Let's set up your plan"),
-      walkParagraph("Each question is filled in with what your settings hold now: Continue takes what is shown, "
-        + "changed or not, and Skip leaves it as it is. You can change any answer later.", "walk-lede"));
+      walkParagraph("Each answer starts with your current setting, or an example if you have not entered one. "
+        + "Change it to yours and tap Continue. Skip keeps what is shown. You can change anything later.",
+        "walk-lede"));
     const start = walkButton("Start", "button walk-primary", null, true);
     const skip = walkButton("Skip for now", "walk-quiet", () => {
       const hinted = walk.saved.hinted;
@@ -8954,12 +9335,13 @@
     actions.push(walkButton("Continue", "button walk-primary", null, true));
     if (row.hasDeeper && node.offer && !walk.saved.opened.includes(id)) {
       // With preview bullets the button just says "Go deeper" (the bullets say what it covers); else it names the offer.
+      // It sits in the scrolling question, under the answer, so the pinned actions stay short on a phone.
       const hasPreview = Boolean(node.preview && node.preview.length);
       const deeper = walkButton(hasPreview ? "Go deeper" : "Go deeper: " + node.offer,
         "button button-quiet walk-deeper-button", walkDeeper);
       if (hasPreview) deeper.setAttribute("aria-label", "Go deeper: " + node.offer);
-      actions.push(deeper);
-      if (hasPreview) actions.push(walkPreview(node.preview));
+      element.append(deeper);
+      if (hasPreview) element.append(walkPreview(node.preview));
     }
     const quiet = document.createElement("div");
     quiet.className = "walk-quiet-row";
@@ -9104,8 +9486,9 @@
           const node = walk.index[item.id].node;
           const answer = item.status === "todo" && !review ? "Not yet"
             : answerText(node, state.inputs, facts, state.info.sheetRules);
-          const tag = "<span class=\"walk-tag\" data-status=\"" + item.status + "\">" + WALK_TAGS[item.status]
-            + "</span>";
+          // The review leaves out the Answered pill (Skipped and Not yet keep theirs); the Trail shows every tag.
+          const tag = review && item.status === "answered" ? ""
+            : "<span class=\"walk-tag\" data-status=\"" + item.status + "\">" + WALK_TAGS[item.status] + "</span>";
           const text = "<span class=\"walk-row-text\"><span class=\"walk-row-label\">" + escapeText(item.label)
             + "</span><span class=\"walk-row-answer\">" + escapeText(answer) + "</span></span>";
           if (review) {
@@ -9141,8 +9524,8 @@
     const element = document.createElement("div");
     element.className = "walk-screen walk-review";
     element.append(walkEyebrow("Review"), walkHeading("Here is your plan"),
-      walkParagraph("Every answer is already in your settings. Change any of them, or go deeper. Finish shows your "
-        + "results; the plan reruns itself whenever you change a setting.", "walk-lede"));
+      walkParagraph("Check your answers, and tap Change to edit one. Go deeper adds extra questions on a topic. "
+        + "Finish shows your results.", "walk-lede"));
     const list = document.createElement("ol");
     list.className = "walk-trail";
     list.innerHTML = trailHtml(true) + exampleLeftovers();
@@ -9237,11 +9620,13 @@
   }
 
   // ---- The tour of the controls (the ? button in the top bar) ----
-  // One step per control: the main parts first, the pages in bottom-bar order (Setup, Inputs, Outputs), then the
-  // supporting tools: the top bar's Undo ("bar"), the menu's items and the ? button (TOUR_PAGES); on a page top to bottom, left to right (a unit test checks `page`
-  // and where `target`, a selector, sits in index.html). `view` is the Outputs view a step shows, `when` (optional)
-  // whether the step applies now, `opens` the closed section its control sits in and `fixed` that its control shows
-  // on every page (the headline strip, the bottom bar), so the step stays where the tour is. Before a step elsewhere
+  // One step per control: first the steps on what shows on every page (`fixed`: the bottom bar on a phone or the
+  // three columns wide, then the headline strip), so they stay where the tour is; then the main parts, the pages in
+  // bottom-bar order (Setup, Inputs, Outputs), then the supporting tools: the top bar's Undo ("bar"), the menu's items
+  // and the ? button (TOUR_PAGES); on a page top to bottom, left to right (a unit test checks the `fixed` steps come
+  // first, then `page` and where `target`, a selector, sits in index.html). `view` is the Outputs view a step shows,
+  // `when` (optional) whether the step applies now, `opens` the closed section its control sits in and `place`
+  // (optional, "top" or "bottom") where the card goes when the half the ring leaves free is not the right one. Before a step elsewhere
   // the tour goes there one hop at a time, all within the step (tourMove: scroll to the control, ring it with one
   // pulse, then hold the ring with a tap badge and "Tap <control> to continue" in the card until the control, the
   // badge or Next is tapped; then slide the page in as a swipe does, open the menu or the section); only then does the
@@ -9252,41 +9637,43 @@
   const TOUR_SCROLL_SPEED = 900;  // px a second the tour scrolls at, so the eye can follow
   const TOUR_SCROLL_MS = [400, 1500];  // the shortest and longest such scroll
   const TOUR_STEPS = [
+    { title: "The three columns", page: "setup", fixed: true, when: () => wide.on, target: "#app",
+      place: "bottom",  // the ring is the whole screen; the card at the top would cover the headline figures
+      text: "Setup is on the left, your settings (Inputs) in the middle and your results (Outputs) on the right." },
+    { title: "Setup, Inputs and Outputs", page: "setup", fixed: true, when: () => !wide.on, target: ".tabbar",
+      text: "The bar at the bottom moves between the three parts of the app: Setup (your scenarios and runs), Inputs "
+        + "(your settings) and Outputs (your results)." },
     { title: "Headline figures", page: "setup", fixed: true, target: "#pinned",
-      text: "The figures across the top sum up your plan: what you are worth today, the median final worth over the "
-        + "runs, then two yearly averages such as net withdrawal and expense. They update after every change." },
+      text: "These figures sum up your plan: what you are worth today, a typical final worth, and what you earn or "
+        + "take out and spend in an average year. They update after every change." },
     { title: "Your scenarios", page: "setup", target: "#savedCard",
       text: "Setup shows the scenario you are working on: save, rename, duplicate, clear or export it. Below it you "
         + "can open another scenario, start a new one or import a file." },
     { title: "Your household", page: "setup", target: "#householdCard legend",
-      text: "Household on Setup holds the basics: whether there is a partner, your ages, filing status and home "
-        + "state." },
-    { title: "Advanced settings", page: "setup", target: "#runCard", opens: "#advancedSettings",
-      text: "Advanced settings, at the bottom of Setup, holds the run settings: the years to simulate (until you are "
-        + "100 unless you change it), how many possible futures (Monte Carlo runs) sit behind every result, more being "
-        + "steadier but slower, and the seed; the same seed gives the same random draws each time." },
-    { title: "Setup, Inputs and Outputs", page: "setup", fixed: true, when: () => !wide.on, target: ".tabbar",
-      text: "The bar at the bottom moves between the three parts of the app: Setup (your scenarios and runs), Inputs "
-        + "(your settings) and Outputs (the results). Next, Inputs." },
+      text: "Household holds your partner, your ages, how you file taxes and your home state." },
+    { title: "Advanced settings", page: "setup", target: "#advancedSettings", opens: "#advancedSettings",
+      text: "Advanced settings hold how every result is worked out: the Inflation-adjusted dollars switch (off shows "
+        + "today's dollars), the years to plan for, how many runs (possible futures) sit behind each result, and the "
+        + "random seed. The defaults suit most people." },
     { title: "Groups of settings", page: "inputs", when: () => state.schema != null, target: "#chips-settings",
-      text: "On Inputs each bubble opens one group of settings. Tap a bubble, or slide the row sideways to see more. "
-        + "Swipe sideways to move between tabs." },
-    { title: "Pin the tabs", page: "inputs", when: () => state.schema != null && !wide.on, target: "#chipsPin",
-      text: "The pin keeps the bubbles under the top bar while you scroll. Tap it to let them scroll away with the page." },
+      text: "Your settings are in groups such as Income, Home and Retirement. Tap a group to open it, or slide the "
+        + "row sideways to see more." },
+    { title: "Pin the groups", page: "inputs", when: () => state.schema != null && !wide.on, target: "#chipsPin",
+      text: "The pin keeps the groups under the top bar while you scroll. Tap it to let them scroll away with the page." },
     { title: "Outputs views", page: "outputs", view: "summary", target: "#views-outputs",
       text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
-    { title: "Summary", page: "outputs", view: "summary", target: "#sub-summary",
-      text: "Summary shows the results over all the runs: final worth before and after tax with its range, warnings "
-        + "and opportunities for your plan. The detailed tables are in the Final report (PDF) in the menu." },
-    { title: "Plots", page: "outputs", view: "plots", target: "#sub-plots",
+    { title: "Summary", page: "outputs", view: "summary", target: "#view-summary",
+      text: "Summary shows the results over all the runs: final worth before and after tax with its range, plus "
+        + "warnings and opportunities for your plan." },
+    { title: "Plots", page: "outputs", view: "plots", target: "#view-plots",
       text: "Plots draws the plan year by year: the total balance over the runs, each account's balance, cash flow, "
         + "deposits and withdrawals, taxes and expenses." },
-    { title: "Compare", page: "outputs", view: "compare", target: "#sub-compare",
-      text: "Compare runs two saved scenarios side by side: duplicate your plan on Setup, change one thing, then "
-        + "compare." },
-    { title: "Optimize", page: "outputs", view: "optimize", target: "#sub-optimize",
-      text: "Optimize tries other choices for you (when to claim Social Security, which state to retire in, how to "
-        + "draw down) and shows what each would be worth. Tick what you would consider and tap Find best settings." },
+    { title: "Compare", page: "outputs", view: "compare", target: "#view-compare",
+      text: "Compare puts two saved scenarios side by side. With only one so far, go to Setup and tap Duplicate, "
+        + "change one thing in the copy, then compare." },
+    { title: "Optimize", page: "outputs", view: "optimize", target: "#view-optimize",
+      text: "Optimize tries other choices for you, such as when to claim Social Security or which state to retire "
+        + "in, and shows what each would be worth. Tick what you would consider, then tap Find best settings." },
     { title: "Undo", page: "bar", target: "#undoButton",
       text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
     { title: "Walk me through it", page: "menu", target: "#menuWalk",
@@ -9297,7 +9684,7 @@
     { title: "Appearance", page: "menu", target: "#menuScheme",
       text: "Appearance picks the app's color scheme." },
     { title: "Final report (PDF)", page: "menu", target: "#menuReport",
-      text: "Final report (PDF) makes a printable summary of this plan." },
+      text: "Final report (PDF) makes a printable summary of this plan, with the detailed tables." },
     { title: "This tour", page: "help", target: "#helpButton",
       text: "Tap ? any time to see this tour again." },
   ];
@@ -9643,7 +10030,10 @@
     delete $("tour").dataset.ready;
     const step = tour.steps[tour.at];
     const target = step && tourTarget(step);
-    if (!tourShown(target)) { showTourStep(tour.at + tour.direction, tour.direction); return; }
+    if (!tourShown(target) || (step.when && !step.when())) {
+      showTourStep(tour.at + tour.direction, tour.direction);
+      return;
+    }
     const seen = tourVisibleBox(target);
     const box = target.getBoundingClientRect();
     const across = !seen || seen.left > box.left + 1 || seen.right < box.right - 1;
@@ -9739,6 +10129,7 @@
     $("helpButton").setAttribute("aria-expanded", "false");
     const from = tour.from;
     if (from && (from.tab !== state.tab || from.view !== state.view)) goTo(from.tab, from.view);
+    if (from) centerSwipedChips();  // each chips row back on its selected chip
     if (from) $("advancedSettings").open = from.advanced;  // shut again when the tour opened it
     if (from) window.scrollTo(0, from.scroll);
     $("helpButton").focus();
@@ -9758,6 +10149,7 @@
     $("tourCount").textContent = (at + 1) + " of " + tour.steps.length;
     $("tourBack").disabled = at === 0;
     const step = tour.steps[at];
+    if (step.when && !step.when()) { showTourStep(at + direction, direction); return; }  // no longer applies (a turn)
     tourMove(step, token, () => {
       if (step.page === "setup" && !step.fixed) revealSetup();
       if (!tourShown(tourTarget(step))) { showTourStep(at + direction, direction); return; }
@@ -9783,11 +10175,12 @@
     if (tour.busy) return;
     const step = tour.steps[tour.at];
     const target = step && tourTarget(step);
-    if (tourShown(target)) ringOver(target);
+    if (tourShown(target)) ringOver(target, step.place);
   }
 
-  // Put the ring over the visible part of `element`; false (the ring left as it is) when nothing of it shows.
-  function ringOver(element) {
+  // Put the ring over the visible part of `element`; false (the ring left as it is) when nothing of it shows. The
+  // card goes to `place` when given, else to the half of the screen the ring leaves free.
+  function ringOver(element, place) {
     const box = tourVisibleBox(element);
     if (!box) return false;
     const pad = 6;
@@ -9801,7 +10194,7 @@
     ring.style.width = Math.max(0, right - left) + "px";
     ring.style.height = Math.max(0, bottom - top) + "px";
     ring.hidden = false;
-    $("tourCard").dataset.place = (top + bottom) / 2 < window.innerHeight / 2 ? "bottom" : "top";
+    $("tourCard").dataset.place = place || ((top + bottom) / 2 < window.innerHeight / 2 ? "bottom" : "top");
     return true;
   }
 
@@ -9884,6 +10277,7 @@
       if (event.key !== "Escape") return;
       if (!$("rowMenu").hidden) { closeRowMenu(); return; }
       if (!$("dialog").hidden) { closeDialog(); return; }
+      if (experienceEscape()) return;
       if (walkEscape()) return;
       closeMenu();
       closeAbout();
@@ -9910,6 +10304,7 @@
     $("menuHelpButton").addEventListener("click", () => toggleHelp($("menuHelpButton")));
     wireInstall();
     wireWalk();
+    wireExperience();
     markScheme();
     wireWide();
     wireTabsPin();

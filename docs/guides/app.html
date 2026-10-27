@@ -57,6 +57,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#swapping-tabs">Swapping tabs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#look-and-color-scheme">Look and color scheme</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#terms-and-agreement">Terms and agreement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#effort-and-style">Effort and style</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#walkthrough">Walkthrough</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#help">Help</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#where-surplus-cash-goes">Where surplus cash goes</a></li>
@@ -194,7 +195,7 @@ two fifths of the width, but Setup never narrower than 340 px, so on an iPad
 in landscape Inputs and Outputs share what is left), each down to the bottom of the window and scrolling
 on its own under its chips rows. There is no bottom bar, pin button or sideways
 swipe between panels, and the tour skips its bottom-bar and pin steps. A
-narrower window is the phone layout (<code class="docutils literal notranslate"><span class="pre">wireWide</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+narrower window is the phone layout (<code class="docutils literal notranslate"><span class="pre">wireWide</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/20-layout.js</span></code>).</p>
 <p>In the wide layout a divider runs down between the Inputs and Outputs columns,
 like the bar between two snapped windows. Drag it (mouse, pen or finger) to give
 one column more room; each open column keeps at least 280 px, and dragging a
@@ -206,7 +207,7 @@ divider is a separator: Left and Right move it, Home shows only Outputs, End
 only Inputs and Enter splits equally. The split is kept on this device for the
 next visit (<code class="docutils literal notranslate"><span class="pre">wmti.split.v1</span></code>, cleared by Clear all data); a link that opens a
 closed column splits equally again, and the phone layout ignores the split
-(<code class="docutils literal notranslate"><span class="pre">wireSplit</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>, the <code class="docutils literal notranslate"><span class="pre">split*</span></code> helpers in
+(<code class="docutils literal notranslate"><span class="pre">wireSplit</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/20-layout.js</span></code>, the <code class="docutils literal notranslate"><span class="pre">split*</span></code> helpers in
 <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>).</p>
 <p>Setup can be folded away in the wide layout. Click the bar above its column
 (“Setup” with a chevron, also reached with Tab and pressed with Enter or Space)
@@ -218,7 +219,7 @@ to Setup unfolds it first: a link to <code class="docutils literal notranslate">
 tour’s Setup steps, opening, duplicating or importing a scenario and the
 export or import message. The choice is kept on this device
 (<code class="docutils literal notranslate"><span class="pre">wmti.setupFold.v1</span></code>, cleared by Clear all data); the phone layout has no fold
-(<code class="docutils literal notranslate"><span class="pre">wireSetupFold</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+(<code class="docutils literal notranslate"><span class="pre">wireSetupFold</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/20-layout.js</span></code>).</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 18.0%" />
@@ -682,7 +683,7 @@ Every state choice (home state, a beneficiary’s state, the state you move to, 
 or rent period’s state, the walkthrough’s state question) offers
 the 51 states (50 and DC) by code, each labelled like <em>NJ - New Jersey</em> (the field’s
 <code class="docutils literal notranslate"><span class="pre">choiceLabels</span></code> in the schema), in one box, a combobox (<code class="docutils literal notranslate"><span class="pre">stateCombobox</span></code> in
-<code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>, the same on the phone and wide layouts): the box shows the chosen
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/81-help.js</span></code>, the same on the phone and wide layouts): the box shows the chosen
 state’s name; a tap or focus opens the list under it, floating over the page; typing
 filters the list to the states whose name or code starts with what is typed
 (<code class="docutils literal notranslate"><span class="pre">comboOptions</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>); the arrow keys, Home and End move the
@@ -769,8 +770,8 @@ starting balance, the HSA among them, plus the homes and cars owned today, less 
 home or car bought later, a leased car, a loan that starts later and a loan whose payments are in the
 Expenses rows count nothing, as in the model’s net worth; <code class="docutils literal notranslate"><span class="pre">netWorthToday</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.simulation.model</span></code>,
 sent as <code class="docutils literal notranslate"><span class="pre">netWorthToday</span></code> by <code class="docutils literal notranslate"><span class="pre">runSingle</span></code>), then the median final worth of the last Monte Carlo
-(dimmed when stale) and the two single-run figures (average net earnings or
-withdrawal, and average annual expense); What beneficiaries keep is on Summary, not in the strip. While a
+(dimmed when stale) and the two single-run figures (average net earnings after
+withdrawals, where a negative value is a shortfall the accounts could not pay, and average annual expense); What beneficiaries keep is on Summary, not in the strip. While a
 run after a change is under way a figure reads “Running…” instead of its value (the single run’s figures
 until it is back; the median before the first Monte Carlo and while a stale one is being replaced), in a
 block of the same size; the strip is a polite live region, and the status pill still says “Updating”.
@@ -853,6 +854,10 @@ file.”</p>
 “Unsaved changes” with a dot while the settings differ from the copy saved on
 this device (or none is saved yet), “Saved” or “Saved just now” once they match,
 and “Saved automatically” while the small <strong>Auto-save</strong> switch beside it is on.
+While the open scenario is the unedited example household, a “Tough example”
+tag with an (i) under the name says it runs short of money in many runs on
+purpose (any edit, a rename or a duplicate removes the tag; Load example
+household brings it back).
 Auto-save is on by default for every scenario: on a first visit, for a new
 scenario, a duplicate and an imported file (from Setup’s Import or the
 walkthrough’s first step). Turned off, it stays off for that scenario only (its
@@ -864,7 +869,9 @@ is hidden; a scenario that opens (a new one, a duplicate, an import) is saved
 under its name at once, so a reload keeps it. An imported file whose name is
 already a saved scenario with other settings opens as “<em>name*_1” (the next free
 number) instead of writing over it (``importedName`` in
-``frontend/src/shared.js``). Under the status line one flat strip of equal-width
+``frontend/src/shared.js``); only the settings count, so a file that differs
+only in effort, style or walkthrough progress (or has none, from before the
+pickers) replaces the saved copy. Under the status line one flat strip of equal-width
 icon buttons holds **Save*</em> (keep the settings on this device under the open
 scenario’s name; at most 50 scenarios), <strong>Rename</strong>, <strong>Duplicate</strong>, <strong>Clear</strong>
 and <strong>Export</strong>; on a phone narrower than 380 px the labels shrink so the five
@@ -923,7 +930,7 @@ is scrolled into view (when Setup shows) and its edge glows in the accent
 colour, fading out over about a second, the same flash Undo gives a field;
 with reduced motion the glow holds still for that second. Nothing covers the
 page while the scenario loads, and nothing glows at start-up, on Save or for an
-edit (<code class="docutils literal notranslate"><span class="pre">highlightOpenCard</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+edit (<code class="docutils literal notranslate"><span class="pre">highlightOpenCard</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/60-scenarios.js</span></code>).</p>
 <p>A scenario file has limits
 (<code class="docutils literal notranslate"><span class="pre">LIST_LIMITS</span></code> and <code class="docutils literal notranslate"><span class="pre">OTHER_LIST_LIMIT</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>,
 sent to the page as <code class="docutils literal notranslate"><span class="pre">listLimits</span></code> by <code class="docutils literal notranslate"><span class="pre">appInfo</span></code>): at most 50 accounts, 50
@@ -954,7 +961,7 @@ shrank is shown whole), and the field scrolls into view. Every changed field
 then in view gets an accent tint that fades over one second (held for that
 second without fading when the device asks for reduced motion). The changed
 fields are <code class="docutils literal notranslate"><span class="pre">changedPaths</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code> (the settings forms’
-path keys); <code class="docutils literal notranslate"><span class="pre">showUndone</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code> finds and tints them.
+path keys); <code class="docutils literal notranslate"><span class="pre">showUndone</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/60-scenarios.js</span></code> finds and tints them.
 Every dialog keeps the focus inside it
 while open, closes on Escape, Cancel or a tap outside, and gives the focus back
 to the button that opened it.</p>
@@ -968,7 +975,7 @@ typed equals the default (<code class="docutils literal notranslate"><span class
 what <code class="docutils literal notranslate"><span class="pre">sheetResetTarget</span></code> and <code class="docutils literal notranslate"><span class="pre">panelResetTarget</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>
 (or <code class="docutils literal notranslate"><span class="pre">heirDefaults</span></code>) say: a blank-means-source field gets its blank back, not a
 copy of the number, so it follows its source again. The reset goes through the
-field’s own edit path (<code class="docutils literal notranslate"><span class="pre">addResetButton</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>), so it
+field’s own edit path (<code class="docutils literal notranslate"><span class="pre">addResetButton</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/81-help.js</span></code>), so it
 saves, reruns and is an undo step like typing. Emptying a number field that has
 a default stores its blank too (<code class="docutils literal notranslate"><span class="pre">sheetBlank</span></code>; a car’s <em>Replacement price</em> and
 <em>Value today</em> store 0, which follows the purchase price or the estimate), even
@@ -1003,10 +1010,10 @@ and a bar under a chips row that does not fit shows how much of it is in view
 and where. On Inputs and Outputs the chips rows stay in view under the headline figures as
 the page scrolls (the title and subtitle still scroll away) while they are pinned,
 which is the default; a pin button at the right end of the Inputs chips row and of the
-Outputs view row (“Unpin tabs” or “Pin tabs”, pressed while pinned; one shared choice)
+Outputs view row (“Unpin groups” or “Pin groups”, pressed while pinned; one shared choice)
 lets them scroll away to give the page more room.
 The choice is kept on this device (<code class="docutils literal notranslate"><span class="pre">wmti.tabsPin.v1</span></code>; <code class="docutils literal notranslate"><span class="pre">placeBand</span></code> in
-<code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>). On Outputs the Summary | Plots | Compare | Optimize row has the
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/30-swipe-menu.js</span></code>). On Outputs the Summary | Plots | Compare | Optimize row has the
 same look as the Inputs chips (an icon and a label each, and the same bubble
 over the open view). The chips under it are one
 row of underline text tabs on a thin line (the open one underlined in the band’s
@@ -1047,28 +1054,35 @@ hears the group’s or sub-tab’s name (led by the view’s name when the view
 changed); a tap on a chip glides the bubble there the same way. With reduced motion nothing stretches or slides and the bubble moves at
 once. The chips (still tabs with <code class="docutils literal notranslate"><span class="pre">aria-selected</span></code>), the bottom bar and the
 walkthrough’s buttons do everything a swipe does (<code class="docutils literal notranslate"><span class="pre">wireSwipe</span></code>,
-<code class="docutils literal notranslate"><span class="pre">swipeTarget</span></code>, <code class="docutils literal notranslate"><span class="pre">outputSteps</span></code> and <code class="docutils literal notranslate"><span class="pre">placeBubble</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>).</p>
+<code class="docutils literal notranslate"><span class="pre">swipeTarget</span></code> and <code class="docutils literal notranslate"><span class="pre">outputSteps</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/30-swipe-menu.js</span></code>, <code class="docutils literal notranslate"><span class="pre">placeBubble</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/20-layout.js</span></code>).</p>
 <p>The <strong>?</strong> button left of the menu opens a tour of the controls: a ring over one
 control at a time with a card that names it, “n of N”, Back, Next (Done on the
 last step) and a close button. On a first visit it also opens by itself once the
 first walkthrough ends (finished, skipped or closed; not after a hand-off to an
 Inputs page or an import), once per device (<code class="docutils literal notranslate"><span class="pre">wmti.tour.v1</span></code>; without storage it
 may show again); never after loading a config or a later walkthrough. It covers
-the app’s main parts first, eighteen steps on a phone and sixteen in the wide
-layout, in the order of the bottom bar and, on each page, top to bottom: on
-Setup, the headline figures across the top, the scenario card, the household (partner,
-ages, filing status, home state), Advanced settings (opened by the tour and shut again
-when it ends: the years to simulate, how many Monte Carlo runs, and the seed)
-and the bottom bar; on Inputs, the bubbles (with one line, “Swipe sideways to
-move between tabs.”) and pin; on Outputs, the views, then Summary, Plots,
-Compare (duplicate a plan, change one thing, compare) and Optimize (what it
-tries and Find best settings); then the supporting tools: Undo at the top
+the app’s main parts first, eighteen steps on a phone and seventeen in the wide
+layout. It starts with what shows on every page: the bottom bar on a phone, or
+the three columns (Setup, Inputs, Outputs) in the wide layout, then the headline
+figures across the top. Then it goes in the order of the bottom bar and, on each
+page, top to bottom: on Setup, the scenario card, the household (partner,
+ages, filing status, home state) and Advanced settings (opened by the tour and shut again
+when it ends, and ringed whole: the Inflation-adjusted dollars switch, the years
+to plan for, how many runs, and the seed);
+on Inputs, the groups of settings and the pin (“Pin the groups”); on Outputs,
+the views, then Summary, Plots, Compare (with only one scenario, tap Duplicate
+on Setup, change one thing in the copy, then compare) and Optimize (what it
+tries and Find best settings), each ringing its whole view (the part that
+shows), not its chip; then the supporting tools: Undo at the top
 left, the menu’s Walk me through it (Go deeper),
 Documentation, Appearance and Final report (PDF), each item ringed in turn; and
 last the <strong>?</strong> button itself. Minor inputs such as Relocation and Beneficiaries
-are left to the walkthrough. The headline figures and the bottom bar show on
-every page, so their steps stay where the tour is (<code class="docutils literal notranslate"><span class="pre">fixed</span></code> in <code class="docutils literal notranslate"><span class="pre">TOUR_STEPS</span></code>):
-the first step no longer opens Setup first. The tour moves the way a person
+are left to the walkthrough. The bottom bar, the three columns and the headline
+figures show on every page, so their steps stay where the tour is (<code class="docutils literal notranslate"><span class="pre">fixed</span></code> in
+<code class="docutils literal notranslate"><span class="pre">TOUR_STEPS</span></code>, always first): the tour moves to Setup only at the scenario card.
+A step that no longer applies after a turn of the screen (the three columns once
+an iPad turns upright) is skipped. The tour moves the way a person
 would, one hop at a time, and lets the person make each move, all within the
 step it leads to (the “n of N” count does not change): before a step on another
 page, Outputs view, in the menu or in the shut Advanced settings, the card keeps
@@ -1099,14 +1113,17 @@ in the old layout (on an iPad turned mid-tour, a corner of the new one). A contr
 that is not drawn, or still not in view after that, is skipped rather than
 ringed over nothing. <code class="docutils literal notranslate"><span class="pre">window.WMTI_TOUR_SPEED</span></code> (tests only) scales the pulse,
 slides and scrolls. Done, the close button and Escape put back the tab, view
-and scroll it started from (a move under way stops), and focus returns to the
+and scroll it started from (a move under way stops), scroll each chips row back
+to its selected chip, and focus returns to the
 <strong>?</strong> button (<code class="docutils literal notranslate"><span class="pre">TOUR_STEPS</span></code>, <code class="docutils literal notranslate"><span class="pre">tourMove</span></code>, <code class="docutils literal notranslate"><span class="pre">openTour</span></code> and <code class="docutils literal notranslate"><span class="pre">closeTour</span></code> in
-<code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>; the order is checked by
-<code class="docutils literal notranslate"><span class="pre">frontend/tests/unit/tour.test.mjs</span></code>).</p>
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/96-tour.js</span></code>; the order and the step texts are checked by
+<code class="docutils literal notranslate"><span class="pre">frontend/tests/unit/tour.test.mjs</span></code>). On a narrow phone the headline tiles’
+values shrink with the screen (down to 11 px) so even “Running…” fits.</p>
 <p>The top bar has no account button: scenarios live on Setup. The menu button opens a
-menu: Walk me through it… (see Walkthrough below), Documentation (see
+menu: Walk me through it… (see Walkthrough below), Effort and style… (see
+<a class="reference internal" href="#app-experience"><span class="std std-ref">Effort and style</span></a> below), Documentation (see
 <a class="reference internal" href="#app-documentation"><span class="std std-ref">Documentation</span></a> below), Appearance, Help and tips (a few
-lines in the menu; swiping is one line, “Swipe sideways to move between tabs.”), Install app (only in the GitHub Pages build, the installable web app), About, which opens in its own window (Close, a tap outside or
+lines in the menu; swiping is one line, “Swipe the page sideways on Inputs or Outputs to move to the next group or view.”), Install app (only in the GitHub Pages build, the installable web app), About, which opens in its own window (Close, a tap outside or
 Escape closes it), and Legal, a window with a short disclaimer, the date the
 Terms were agreed to and each legal document as plain text (see
 <a class="reference internal" href="legal.html"><span class="doc">Legal</span></a>). Items that only led back to Setup are not in the menu. Escape or a tap
@@ -1167,28 +1184,82 @@ the example household’s figures (the same list as the walkthrough review’s
 in use for: …”), since those figures are fictional. The
 browser tests’ <code class="docutils literal notranslate"><span class="pre">openPage</span></code> seeds an acceptance of the current version.</p>
 </section>
+<section id="effort-and-style">
+<span id="app-experience"></span><h3>Effort and style<a class="headerlink" href="#effort-and-style" title="Link to this heading"></a></h3>
+<p><em>Effort</em> sets how much the app asks: <strong>Low</strong> (just the basics), <strong>Medium</strong> (the
+usual detail behind them) or <strong>High</strong> (every input). <em>Style</em> sets how it talks:
+<strong>Accountant</strong> (plain figures), <strong>Coach</strong> (guidance and tips) or <strong>Gamer</strong>
+(progress and milestones). Neither changes a result. In this release nothing is
+hidden by effort yet and Coach and Gamer talk like Accountant; the choice is
+kept so later releases can use it. The choices and their one-line blurbs come
+from <code class="docutils literal notranslate"><span class="pre">appInfo().experience</span></code> (<code class="docutils literal notranslate"><span class="pre">EFFORT_CHOICES</span></code> and <code class="docutils literal notranslate"><span class="pre">STYLE_CHOICES</span></code> in
+<code class="docutils literal notranslate"><span class="pre">wmti.dashboard.web</span></code>).</p>
+<p>The <strong>Effort and style</strong> card on Setup, below the Scenarios card, shows the two
+choices as radio groups with their blurbs and the note “You can switch effort
+and style any time on Setup or in the menu. Your answers are kept.” The menu’s
+<strong>Effort and style…</strong> opens the same choice as a pop-up: <strong>Save</strong> keeps it,
+<strong>Cancel</strong> (or Escape, or a tap outside) discards it. Below High the card reads
+“Using defaults for <em>N</em> inputs”: the Inputs entries the effort would not show
+whose value still equals the example household’s (<code class="docutils literal notranslate"><span class="pre">defaultedInputCount</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; each field’s tier comes from
+<code class="docutils literal notranslate"><span class="pre">wmti.dashboard.tiers</span></code> through <code class="docutils literal notranslate"><span class="pre">settingsSchema</span></code>). The line follows every
+edit and effort change and is hidden at High and when <em>N</em> is 0.</p>
+<p>A change runs nothing, adds no Undo step and marks nothing unsaved: the choice
+is the open scenario’s <em>experience block</em> (effort, style and the walkthrough’s
+progress, <code class="docutils literal notranslate"><span class="pre">Experience</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>), which the page
+keeps apart from the settings the model runs on (<code class="docutils literal notranslate"><span class="pre">state.experience</span></code>,
+<code class="docutils literal notranslate"><span class="pre">splitExperience</span></code> and <code class="docutils literal notranslate"><span class="pre">joinExperience</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>) and
+joins back only where a scenario is saved on this device or exported
+(<code class="docutils literal notranslate"><span class="pre">saveExperience</span></code> and <code class="docutils literal notranslate"><span class="pre">putScenario</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/60-scenarios.js</span></code>; the card and the pop-up are
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/45-experience.js</span></code>). Each scenario keeps its own effort and
+style. Opening a saved scenario or importing a file whose effort or style differ
+from the current ones asks each time, in a pop-up titled <em>Effort and style</em>:
+“Use the scenario’s” (chosen first) opens it with its own, “Keep mine” opens it
+with the current effort and style (its walkthrough and other progress kept), and
+<strong>Cancel</strong> opens nothing (an import says “Import cancelled.”).
+The same effort and style, a file or saved copy from before the pickers (it
+keeps the current choice), Duplicate, New scenario and Load example household
+never ask (<code class="docutils literal notranslate"><span class="pre">askExperience</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/45-experience.js</span></code>,
+<code class="docutils literal notranslate"><span class="pre">experienceDiffers</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>). The choice is saved with
+the scenario’s copy, so it does not ask again, and a new scenario starts with
+the open one’s. A scenario saved or exported before the pickers opens as High
+and Accountant, so a returning user sees no change.</p>
+</section>
 <section id="walkthrough">
 <h3>Walkthrough<a class="headerlink" href="#walkthrough" title="Link to this heading"></a></h3>
 <p>“Walk me through it” asks for the main settings one question at a time, over
-the page. It opens on its own on a first visit (no saved settings and no
-walkthrough progress in this browser) once the engine is ready, from the menu
-item “Walk me through it…” at any time (it reads “Continue the walkthrough…”
-while one is paused), and from a link ending in <code class="docutils literal notranslate"><span class="pre">#walkthrough</span></code>. A returning
-visitor with saved settings is never interrupted.</p>
+the page. A new user’s first launch (no draft, no saved scenarios and no
+walkthrough progress in this browser, an older page’s <code class="docutils literal notranslate"><span class="pre">wmti.walk.v1</span></code>
+included) shows, once the engine is ready and after the Terms step, the effort
+and style picker with Low and Coach chosen and a single <strong>Continue</strong> button
+(Escape and a tap outside do nothing), then the walkthrough, then the tour once
+per device. It opens from the menu item “Walk me through it…” at any time (it
+reads “Continue the walkthrough…” while one is paused), and from a link ending
+in <code class="docutils literal notranslate"><span class="pre">#walkthrough</span></code>. A returning visitor with saved settings sees no
+walkthrough; until the picker has been kept once on this device
+(<code class="docutils literal notranslate"><span class="pre">wmti.picker.v1</span></code>, removed by Clear all data) it shows the picker once after
+the Terms step, with High and Accountant chosen and the same single
+<strong>Continue</strong>, then the app as before. Opening or importing a scenario never opens the
+walkthrough by itself (a file’s walkthrough left in progress opens paused).
+Raising the effort while a walkthrough exists offers “Continue the
+walkthrough…” again, and it opens on the first question the raise unlocked
+(<code class="docutils literal notranslate"><span class="pre">firstUnlocked</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; the questions are filtered by
+effort through <code class="docutils literal notranslate"><span class="pre">walkthroughPlan</span></code>’s <code class="docutils literal notranslate"><span class="pre">effort</span></code>). Lowering the effort keeps
+every answer. Until G-B, Low asks the Medium questions.</p>
 <p>A fresh walkthrough on the example household’s settings (a first visit, or after Load example household)
-first asks <em>Do you already have a scenario file?</em>. <strong>I have an existing file, let me import it now</strong> opens
-the same file picker as Setup’s Import; the file’s settings replace the current ones, named after the
+first asks <em>How would you like to start?</em>. <strong>Start fresh</strong>, the main button, goes on to the welcome;
+<strong>Open my file</strong>, the quiet button under it, opens the same file picker as Setup’s Import; the file’s settings replace the current ones, named after the
 file, and the walkthrough closes as finished on the Summary: a scenario file is a whole plan, so every
 question counts as Answered and none is asked (the menu reopens it on the review), and Undo my answers
 there puts back the imported settings, never the ones the file replaced. A file
 that is not a scenario leaves the step with its message, and a browser that shows no picker says to
-continue and paste the text under Setup, Import. <strong>Continue the walkthrough</strong> goes on to the welcome.
+tap Start fresh and paste the text under Setup, Import.
 Back is off on both. On any other settings the walkthrough opens on the welcome. Whether the step is
 offered comes from the shared <code class="docutils literal notranslate"><span class="pre">walkthroughPlan</span></code> (<code class="docutils literal notranslate"><span class="pre">offerImport</span></code>).</p>
-<p>The welcome (“About 10 minutes”) says each question is filled in with what the settings hold now
-(the example household on a first visit, your own figures once you have filled
-some in): <strong>Continue</strong> takes what is shown, changed or not, and <strong>Skip</strong> leaves
-it as it is. <strong>Start</strong> begins; <strong>Skip for now</strong> closes it for good, opens
+<p>The welcome (“About 10 minutes”) says each answer starts with your current setting, or an example if you
+have not entered one (the example household on a first visit, your own figures once you have filled
+some in): change it to yours and tap <strong>Continue</strong>; <strong>Skip</strong> keeps what is shown. <strong>Start</strong> begins; <strong>Skip for now</strong> closes it for good, opens
 Outputs and says once that the menu holds it. Each question has a large
 heading, one or a few big controls (a number box with its $ or %, option
 buttons, a list, a year-by-year editor, or one box a year for the last two
@@ -1197,9 +1268,11 @@ as it stands, the current number of children, of cars and of homes, the current 
 spending total, each field’s current value), the field’s help behind its “i”,
 an “Example value” tag while the value is the example’s, <strong>Continue</strong> (Enter,
 or a swipe to the left, does the same, refused the same way; a swipe to the right is
-Back), <strong>Skip</strong>, and <strong>Go deeper: …</strong> where a question has more
+Back) and <strong>Skip</strong> pinned at the bottom, and <strong>Go deeper: …</strong> where a question has more
 behind it, with one to four short bullets under it naming what the deeper questions cover (the <code class="docutils literal notranslate"><span class="pre">preview</span></code> of
 each offer in <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.walkthrough</span></code>; an optional topic’s offer on the Trail and review lists its own).
+Go deeper and its bullets sit in the scrolling question under the answer, not in the pinned buttons, so on a
+375 by 812 phone every box of the savings and spending questions shows without scrolling.
 “Question X of Y” is pinned at the upper left above the question, so it stays in place while the question
 scrolls; when an answer adds or removes questions, the total Y is highlighted and fades out over a second
 (held for the second without fading with reduced motion). A question of the optional topic has no number: the
@@ -1210,7 +1283,8 @@ mortgage, the cars’ value and loans, the children’s ages, the health premium
 out-of-pocket costs, a change of spending in retirement and the Social Security
 benefit included, each right after the question it depends on); Go deeper holds
 only extra detail (the full earnings history, how amounts are shown, Medicare’s
-supplement premium and so on). Questions a newcomer may not be able to answer
+premiums and surcharge, the supplement premium and so on). Hints that need no action now say
+“later” or “after the walkthrough”; one that points to a setting names it as “Inputs &gt; &lt;group&gt;”. Questions a newcomer may not be able to answer
 carry a “Not sure?” line with the choice to keep (Original Medicare, claiming at
 67, no move, no change of spending in retirement). A
 follow-up question or hand-off shows only once you say you have the thing: the
@@ -1235,7 +1309,8 @@ About you (with a partner, the tax filing status right after the partner’s age
 Work and pay (when needed, for you and for a partner each, the earnings of each
 of the last two years; then whether spending changes in retirement and by what
 percent), Savings, Spending, Retirement, Medicare (Original Medicare with a
-Plan G style supplement, or Medicare Advantage), Health (with whether you have
+supplement, or Medicare Advantage, and a Go deeper to Medicare premiums and the income-based
+surcharge on the Retirement page), Health (with whether you have
 a medical plan before Medicare), and the optional Tax strategies (offered from
 the review only: Roth conversion, backdoor Roth and QCD, each with a plain line
 on what it is). Retirement asks the claim age (with what 62, 67 and 70 mean),
@@ -1279,9 +1354,8 @@ keeps its other years. The partner, number of children, number of cars,
 monthly spending total and account balances answers change the shape of the
 settings; the cars’ value and loans and the children’s ages write one answer
 over every car or child. The Spending topic first asks about how much the
-household spends a month on everything except the mortgage, property taxes,
-car loans and health premiums (rent, utilities, insurance, groceries and fuel
-count; the others are asked on their own); a total replaces every monthly
+household spends a month; its hint says to leave out the mortgage, property taxes,
+car loans and health premiums (they are asked on their own); a total replaces every monthly
 expense row, the suggested categories included, with one <em>Everything else</em> row
 under Other Spending, and leaves the one-off (Major Spending) rows as they are.
 Its <strong>Go deeper</strong> goes through spending by category instead: it hands off to
@@ -1293,19 +1367,19 @@ leaves the cars as they are), and once there is a car <strong>Go deeper</strong>
 <strong>Open</strong> on the Cars page for value, loan, commute and costs; answering No to
 the partner removes the partner and the partner questions.</p>
 <p>A thin bar at the top has one segment per topic; Back returns to the previous
-question shown (with its answer), and the menu button opens <strong>Your trail</strong>: every
+question shown (with its answer), and the route button opens <strong>Your trail</strong>: every
 topic and its questions, deeper ones indented, unopened branches as “+” rows,
 each with its status (Answered, Skipped, Now, Not yet; progress saved by an
 older walkthrough with other statuses reads as Answered); a tap
 goes there. The last screen, <strong>Here is your plan</strong>, is the same list with each
-answer and a <strong>Change</strong> button, plus “Still from the example household”: the
+answer and a <strong>Change</strong> button (without the Answered tag; Skipped and Not yet keep theirs), plus “Still from the example household”: the
 children, expense rows, cars, loans and homes the walkthrough does not set in
 full while the whole list still equals the example household’s; within a
 changed list, the example’s one-off costs (college, daycare, repairs) and the
 children still born at the example’s ages; and each Social Security benefit
 table still the example’s (an estimate from pay is not listed), each with
-<strong>Open</strong>. Its lede says Finish shows the results and that the plan reruns
-itself whenever a setting changes; <strong>Finish</strong> opens Outputs, Summary. Reopening a finished
+<strong>Open</strong>. Its lede says to tap Change to edit an answer, that Go deeper adds extra questions on a
+topic and that Finish shows the results; <strong>Finish</strong> opens Outputs, Summary. Reopening a finished
 walkthrough lands on this review. Forward the question slides out to the left
 while the next slides in from the right, both fading (about a third of a
 second); Back and a jump to an earlier question go the other way; with
@@ -1314,10 +1388,15 @@ reduced motion set on the device the screens only cross-fade.</p>
 <strong>Continue later</strong> (the answers stay; a reload or the menu resumes at the same
 question) or <strong>Undo my answers</strong> (the settings go back to what they were when
 the walkthrough started). The automatic Monte Carlo waits while the
-walkthrough is open; the headline figures behind it still update. Progress is
-kept in this browser under <code class="docutils literal notranslate"><span class="pre">localStorage</span></code> key <code class="docutils literal notranslate"><span class="pre">wmti.walk.v1</span></code> (status, the
-current question, the screens visited, the opened branches, the answers and
-the settings at the start); with storage blocked a first visit shows the
+walkthrough is open; the headline figures behind it still update. Progress
+(status, the current question, the screens visited, the opened branches, the
+answers and the settings at the start) is the open scenario’s own, in its
+experience block’s <code class="docutils literal notranslate"><span class="pre">walk</span></code>: switching scenarios switches which walkthrough
+resumes. The settings at the start (<code class="docutils literal notranslate"><span class="pre">before</span></code>, for Undo my answers) stay in
+this browser’s draft only; a saved copy and an exported file leave them out.
+Progress an older page kept per browser under <code class="docutils literal notranslate"><span class="pre">localStorage</span></code> key
+<code class="docutils literal notranslate"><span class="pre">wmti.walk.v1</span></code> moves into the open scenario once at load and the key is
+removed. With storage blocked a first visit shows the picker and the
 walkthrough again each time. The layer is a modal dialog (the page behind it
 is inert), focus moves to each new question’s heading, a hidden line reads the
 position (“Question 4 of 20, Work and pay”), the trail is a real list with the
@@ -1394,7 +1473,7 @@ child, home or car) ends in <em>Cancel</em> and <em>Save</em> (<code class="docu
 and its edits become one Undo step. <em>Cancel</em>, Escape or a tap outside puts the
 item back as it was when the sheet opened (a newly added item is removed again)
 and leaves no Undo step (<code class="docutils literal notranslate"><span class="pre">beginSheetSession</span></code> and <code class="docutils literal notranslate"><span class="pre">endSheetSession</span></code> in
-<code class="docutils literal notranslate"><span class="pre">frontend/src/app.js</span></code>). <em>Move up</em>, <em>Move down</em>, <em>Remove</em> (a second tap
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/82-lists.js</span></code>). <em>Move up</em>, <em>Move down</em>, <em>Remove</em> (a second tap
 confirms) and a home’s or car’s <em>Edit on timeline</em> stay in the body under the
 last field: they act on the item rather than finish the sheet. <em>Remove</em> and
 <em>Edit on timeline</em> close the sheet keeping its edits. The timeline sheet’s
