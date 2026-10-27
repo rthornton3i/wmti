@@ -490,13 +490,20 @@ your age today), in its child years up to age 21 (inclusive). Under the list, th
 and the example household, off in a file saved before schema version 56) keeps one
 beneficiary per child in Benefits, Beneficiaries (<code class="docutils literal notranslate"><span class="pre">syncChildHeirs</span></code> in
 <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>, run on every edit): a new child gets one with the child’s name,
-an equal part and <em>Same as household</em>; a renamed child renames its beneficiary unless that
+an equal part and <em>Same as household</em> (which follows a move only during the child’s
+child years); a renamed child renames its beneficiary unless that
 name was edited; a removed child takes its beneficiary away. Each such beneficiary carries
 the child’s name in <code class="docutils literal notranslate"><span class="pre">Heir.child</span></code> (never shown). Switched off, the children’s beneficiaries
 still at what they were given are removed; one you edited (name, share, or any other field)
 is kept as your own, and a warning on Children and on Beneficiaries names it (“Kept 1
 beneficiary you edited: Sam. Remove it in the Beneficiaries list on Benefits if you want.”).
-Switched on again, a kept one named as a child is that child’s again. A child’s sheet holds
+Switched on again, a kept one named as a child is that child’s again. A child’s
+beneficiary you delete in Beneficiaries stays deleted (one is added only for a new child
+or when the switch turns on; a loaded file is taken as it is). While a child has none,
+<em>Add children</em> under the Beneficiaries list adds one for each such child and turns the
+switch on (<code class="docutils literal notranslate"><span class="pre">missingChildHeirs</span></code>, <code class="docutils literal notranslate"><span class="pre">addChildHeirs</span></code>); a beneficiary of your own with a
+child’s name (ignoring case and spaces at the ends) opens a dialog naming them, with
+<em>Link</em> (it becomes the child’s), <em>Add anyway</em>, <em>Skip</em> and <em>Cancel</em>. A child’s sheet holds
 its name, your age at birth and its child years first, then a <em>Daycare</em>
 section (start age, end age, cost per year) and a <em>College</em> section
 (start age, years, cost per year, and <em>529 account</em>, a select of the
@@ -757,7 +764,7 @@ beneficiaries’ tax is set and shown only in Benefits, Beneficiaries; the IRMAA
 estimate warning sits above the Summary tiles when it applies. The pinned strip at the top of every tab, set
 apart from the page by a line under the top bar, shows each figure in its own block (a tile like those on
 Summary):
-<strong>Current net worth</strong> first (what the household is worth today, in today’s value: every account’s
+<strong>Current net worth</strong> first (what the household is worth today, in today’s dollars: every account’s
 starting balance, the HSA among them, plus the homes and cars owned today, less what the loans owe today; a
 home or car bought later, a leased car, a loan that starts later and a loan whose payments are in the
 Expenses rows count nothing, as in the model’s net worth; <code class="docutils literal notranslate"><span class="pre">netWorthToday</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.simulation.model</span></code>,
@@ -791,7 +798,7 @@ to a dot at that value, with a legend item and a readout row at the last
 year. A <em>Show what beneficiaries keep</em> box under each of those charts
 turns the mark off and on for all three; it is on by default and
 remembered on the device (<code class="docutils literal notranslate"><span class="pre">wmti.heirsMark.v1</span></code>). The note
-beside the title says whether amounts are today’s value or inflation
+beside the title says whether amounts are today’s dollars or inflation
 adjusted. Deposits and withdrawals draws deposits above zero and
 withdrawals below it with two titled legend groups; the RMD schedule table is in the Final report, and the line
 pointing to it sits under the chart.
@@ -1353,7 +1360,7 @@ deposit-per-account explanation and notes, the household plan text, plain
 banners) use the <code class="docutils literal notranslate"><span class="pre">--info-bg</span></code>, <code class="docutils literal notranslate"><span class="pre">--info-ink</span></code> and <code class="docutils literal notranslate"><span class="pre">--info-line</span></code> tokens of
 each scheme with an “i” icon, so they never look like a field row.</p>
 <p>A <strong>red</strong> “i” marks a field whose value the model reduces by the mean inflation
-when <em>Inflation-adjusted dollars</em> is off, so results stay in today’s value: the
+when <em>Inflation-adjusted dollars</em> is off, so results stay in today’s dollars: the
 raise and the promotion raise (Income), an account’s mean return and a loan’s
 balance and extra per month. Its text ends with that note. The settings schema
 flags these fields with <code class="docutils literal notranslate"><span class="pre">inflationNote</span></code> and the button takes the <code class="docutils literal notranslate"><span class="pre">--bad</span></code>
@@ -1402,7 +1409,7 @@ keyboard closes (<code class="docutils literal notranslate"><span class="pre">en
 <p>The expense, account and loan sheets draw every field of their type, or leave
 one off by a named rule (<code class="docutils literal notranslate"><span class="pre">sheetFields</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; the
 categories and kinds come from <code class="docutils literal notranslate"><span class="pre">appInfo().sheetRules</span></code>). An expense sheet says
-whether the amount is per month or per year in today’s value; the <em>From age</em> and
+whether the amount is per month or per year in today’s dollars; the <em>From age</em> and
 <em>To age (inclusive)</em> never show for Charity, nor the <em>Tax deduction</em> select (blank
 or one of <code class="docutils literal notranslate"><span class="pre">sheetRules.deductionCategories</span></code>), whose deduction is always Charity.
 The <em>Exclude from child inflation</em>, <em>Education expense</em> and <em>Dependent care</em> ticks
@@ -1677,7 +1684,7 @@ configuration with its value (the current settings’ value where a scenario doe
 differ there); with many configurations it splits into blocks like any wide table. Each heading has a short
 intro line, and each table a one or two sentence brief under its title saying
 what it shows and how to read it: one row per year led by your age, amounts in
-today’s value or inflation adjusted as the run is, or settings as entered in the
+today’s dollars or inflation adjusted as the run is, or settings as entered in the
 app. A heading, its brief and the table’s header row and first rows always start
 on the same page. Every table spans the full page width. A table too wide for
 the page is split into as few blocks as fit, measured from their text, with the
@@ -1735,7 +1742,7 @@ unpaid (the yearly Shortfall).</p></li>
 <p>Opportunities use simple arithmetic at the plan’s own expected real return (the
 accounts’ expected returns weighted by today’s balances, less the mean of the
 inflation minimum, mode and maximum), never a new simulation, and are stated in
-today’s value up to your retirement (the age your pay ends; the plan’s last age
+today’s dollars up to your retirement (the age your pay ends; the plan’s last age
 once retired):</p>
 <ul class="simple">
 <li><p>cutting the largest expense category today by 10%, the saving invested each

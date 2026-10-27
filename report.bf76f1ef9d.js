@@ -450,7 +450,7 @@
   }
 
   // How a result table's money reads, by the result's `dollars` ("future" when inflation adjusted).
-  const moneyNote = (dollars) => (dollars === "future" ? "amounts are inflation adjusted" : "amounts are in today's value");
+  const moneyNote = (dollars) => (dollars === "future" ? "amounts are inflation adjusted" : "amounts are in today's dollars");
 
   // A result frame ({columns, index?, data}) as a table; `indexLabel` names the index column when it has one.
   function frameTable(title, frame, indexLabel, brief) {
@@ -853,7 +853,7 @@
     return {
       title: data.scenarioName, filename: reportFilename(data.scenarioName, data.date), date: isoDate(data.date),
       household: householdLine(data.inputs), runs: monteCarlo.runs, seed: monteCarlo.seed,
-      dollars: monteCarlo.dollars === "future" ? "Inflation adjusted" : "Today's value", dollarsNote: dollarsLine,
+      dollars: monteCarlo.dollars === "future" ? "Inflation adjusted" : "Today's dollars", dollarsNote: dollarsLine,
       headlines: headlineFigures(monteCarlo, data.single), keyResults: keyResults(monteCarlo),
       insights: insightRules.insights(data.inputs, monteCarlo), plots, comparison, addendum: sections, notice: NOTICE,
     };
@@ -1071,7 +1071,7 @@
       font(10.5, "bold");
       doc.text(fitText(doc, spec.title, width - 90), PAGE.margin, y + 10);
       font(7.5, "normal", MUTED);
-      doc.text(spec.dollars === "future" ? "Inflation adjusted" : "Today's value", PAGE.margin + width, y + 10,
+      doc.text(spec.dollars === "future" ? "Inflation adjusted" : "Today's dollars", PAGE.margin + width, y + 10,
         { align: "right" });
       doc.text(fitText(doc, caption, width), PAGE.margin, y + 21);
       y += 26;

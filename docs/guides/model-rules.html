@@ -137,7 +137,7 @@ shipped default profile (<code class="docutils literal notranslate"><span class=
 input classes in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>. The strategy rules are in
 <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a> and the law backlog is in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>; this page links
 there instead of repeating them.</p>
-<p>Money is shown in one of two ways. By default it is in today’s value, so a
+<p>Money is shown in one of two ways. By default it is in today’s dollars, so a
 figure from a year far ahead buys what the same figure buys now. With the
 inflation adjusted switch on (Setup), figures are inflation adjusted instead
 and grow with each year’s drawn inflation. The <a class="reference internal" href="usage.html#inflation"><span class="std std-ref">Inflation section</span></a> of <a class="reference internal" href="usage.html"><span class="doc">Using the toolkit</span></a> explains how the two ways relate. A figure marked
@@ -148,14 +148,14 @@ and grow with each year’s drawn inflation. The <a class="reference internal" h
 the run settings and the inflation adjusted switch with the inflation range.
 Everything here applies to the whole run, whichever tab is shown.</p>
 <p><strong>Defaults.</strong> The default profile has a partner, files JOINT, lives in NJ, runs 65 years,
-is in today’s value.</p>
+is in today’s dollars.</p>
 <p><strong>Logic.</strong> A saved scenario is never changed by anything but your own edits (or by a
 merge or <em>Make B match A</em> on Compare). With inflation adjusted money
 the model draws inflation each year from the <em>Inflation</em> range on Setup and grows expenses,
 Social Security and the law’s indexed figures with it. The figures the law does not index
 (state brackets, the Social Security taxability thresholds, Medicare Part B, the SALT
 floor and the mortgage limit) are assumed to keep up with inflation too; a scenario saved
-with that assumption turned off keeps it, but no screen changes it. In today’s value it instead deflates
+with that assumption turned off keeps it, but no screen changes it. In today’s dollars it instead deflates
 returns and pay by the mean of that range, so the two ways tell the same story. The seed
 makes comparisons fair: two scenarios run on the same draws differ because of their settings,
 not luck.</p>
@@ -362,7 +362,7 @@ its purchase year, and one warning says so.</p>
 <span id="tab-cars"></span><h2>Cars<a class="headerlink" href="#cars" title="Link to this heading"></a></h2>
 <p><strong>What it is.</strong> The household’s cars: each car’s value and depreciation, its loan or lease,
 its commute, its running costs, an optional replacement cycle and when it is bought, sold or
-leased during the run, all in today’s value, and the fuel price for every car.</p>
+leased during the run, all in today’s dollars, and the fuel price for every car.</p>
 <p><strong>Defaults.</strong> No cars, and a fuel price of 3.50. A new car, from Cars or the
 walkthrough, is driven by you, loses 20% of its price in its first year (the usual first-year drop,
 <code class="docutils literal notranslate"><span class="pre">first_year_drop</span></code> in <code class="docutils literal notranslate"><span class="pre">.config/carDepreciation.json</span></code>) and 10% of its value a year after, has its Loan and Commute
@@ -425,8 +425,8 @@ no sale; each lease runs its term rounded up to whole years, then the next start
 when the miles rule is met first. Example: a car replaced every 36,000 miles at 12,000 a year
 and paid by lease is turned in at the start of year 3, and a 24-month lease starts again in
 years 5, 7 and so on. A profile saved before the pay method keeps its replacements paid in
-cash. The price is in today’s value, so it grows with inflation in a nominal run and stays
-flat in today’s value. All costs grow with
+cash. The price is in today’s dollars, so it grows with inflation in a nominal run and stays
+flat in today’s dollars. All costs grow with
 inflation like the other expenses and are charged in the one <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Costs</span></code> outflow (shown in
 the Expenses chart), with <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Fuel</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Tolls</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Upkeep</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span>
 <span class="pre">Replacement</span></code> and <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Lease</span></code> as its parts. Financed (<em>How it is paid</em>: Finance), a loan balance above 0 is an Auto loan run by the loan engine
@@ -446,7 +446,7 @@ any expense (a large purchase can raise the tax on Traditional withdrawals that 
 show as <code class="docutils literal notranslate"><span class="pre">Shortfall</span> <span class="pre">(unpaid)</span></code>); with <em>How it is paid</em> Finance
 the rest is an Auto loan that starts that year, and with cash the whole price is paid. A car sold has its value, costs, commute and replacements stop: its value is 0
 from the sale year and its costs from the next year. The sale price is the one entered, or
-with 0 the car’s value that year before the sale (today’s value, the purchase price or the
+with 0 the car’s value that year before the sale (today’s dollars, the purchase price or the
 latest replacement’s price after the first-year drop and the depreciation since). The selling costs (<code class="docutils literal notranslate"><span class="pre">Selling</span>
 <span class="pre">Costs</span></code>, shown for information) and the car loan still owed after the sale year’s payments,
 with its prepayment penalty, are taken from the price; what is left is <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Sale</span>
@@ -567,18 +567,18 @@ the legal limit), through payroll, no employer contribution, a balance of 0, a 5
 return with a 6% standard deviation, owned by you.</p>
 <p><strong>Logic.</strong> The HSA is an account the model manages: it is shown read-only on
 <a class="reference internal" href="#tab-accounts"><span class="std std-ref">Accounts</span></a> and in the results’ account tables, starts at its balance
-(today’s value), grows at its own drawn return (from a random stream of its own, so turning
+(today’s dollars), grows at its own drawn return (from a random stream of its own, so turning
 it on moves no other draw) and is never part of the withdrawal order, the surplus, Roth
 conversions or RMDs. Each year:</p>
 <ul class="simple">
 <li><p><em>Contributions.</em> Only people under the Medicare age can contribute. The law’s limit is
 the family limit while the partner is under the Medicare age or a child is in its child
 years, and the self-only limit otherwise, plus the catch-up for each contributor aged 55
-or older. The employer’s contribution (today’s value, grown by inflation) is paid only in
+or older. The employer’s contribution (today’s dollars, grown by inflation) is paid only in
 a year someone has pay and counts toward the limit. The household’s own contribution is,
 with <em>What the year’s costs need</em>, the year’s qualified costs less the employer’s part,
 and with <em>The most allowed</em>, the limit less the employer’s part; either is held to the
-limit less the employer’s part and to the cap (today’s value, grown by inflation). Both
+limit less the employer’s part and to the cap (today’s dollars, grown by inflation). Both
 stop once nobody is under the Medicare age; the balance still pays.</p></li>
 <li><p><em>Qualified costs</em> are the out-of-pocket healthcare (<em>Healthcare</em>), the rows tagged
 <em>Medical</em> on Expenses, and from the Medicare age the Part B and Part D premiums and IRMAA;
@@ -614,7 +614,7 @@ older ones included.</p>
 account that starts each year empty.</p>
 <p><strong>Defaults.</strong> Off, with no cap of its own (blank: the federal limit).</p>
 <p><strong>Logic.</strong> The FSA sets aside, each year, only what the year’s care needs: the smallest of
-its cap (today’s value, grown by inflation), the year’s dependent care (the children’s
+its cap (today’s dollars, grown by inflation), the year’s dependent care (the children’s
 daycare cost and the rows tagged <em>Dependent care</em>: the <em>Tagged Dependent Care</em> summary
 column) and the federal limit, and only in years with a child under 13 that is in its child
 years. The amount is split between the returns by pay; each return is held to the federal
@@ -642,8 +642,11 @@ money); they do not change the plan itself.</p>
 <p><strong>Defaults.</strong> One beneficiary with the whole estate, no other income, filing single, in the
 state you live in at the end, taking the money over 10 years; no terminal tax rate.</p>
 <p><strong>Logic.</strong> Each beneficiary has a name, a share of the estate (the shares must total 100%),
-other yearly income (today’s value), filing status, income tax state (Same as household is the
-state you live in at the end) and payout (over 10 years or all at once). Each is taxed on their
+other yearly income (today’s dollars), filing status, income tax state (Same as household is the
+state you live in at the end; for a child’s beneficiary, <code class="docutils literal notranslate"><span class="pre">Heir.child</span></code>, it is the state you
+live in during the child’s last child year, so a move during the child years moves the child
+too and a later one does not, see <code class="docutils literal notranslate"><span class="pre">childCareState</span></code>) and payout (over 10 years or all at
+once). Each is taxed on their
 own share of the Traditional money with their own terms, and the taxes are summed; the
 inheritance tax is charged on each one’s share. A scenario saved before the list (version 44
 or older) loads its number of heirs as that many beneficiaries with equal shares and the same
@@ -662,7 +665,7 @@ expenses). For <em>Visit-based</em>: 1, 4 and 10 visits a
 person a year, 150, 300 and 1,500 a visit and 60 a month in drugs; all placeholders, not sourced.</p>
 <p><strong>Logic.</strong> With <em>Visit-based</em>, each person pays the visits and drugs every year: through
 the health plan’s cost sharing before the Medicare age, and through Medicare’s from it (see
-<a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a>). The costs are in today’s value and grow 1.5% a year above
+<a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a>). The costs are in today’s dollars and grow 1.5% a year above
 general inflation.</p>
 <p>With <em>Flat amount</em>, the household pays one level every year: with a range, it is drawn once per
 run, evenly between the two ends, and kept for every year, so the Monte Carlo runs show the
@@ -754,7 +757,7 @@ an entered amount refills the rest. The model pays the benefit used at the claim
 never scales it.</p>
 <p>On <em>Earnings history</em> the benefit card shows an estimate, from the earnings history entered or
 backtracked from a last salary (the backtracked years are read exactly like entered ones), that
-follows SSA’s simplified method, as its Quick Calculator does, in today’s value: each past year’s earnings are
+follows SSA’s simplified method, as its Quick Calculator does, in today’s dollars: each past year’s earnings are
 indexed to the newest year of the national average wage index and capped at this year’s
 wage base; today’s salary is held level from this year until pay stops or the claim age,
 whichever is first; the 35 largest years give the average indexed monthly earnings
@@ -767,7 +770,7 @@ with fewer than ten years with earnings no benefit is paid (a stand-in for the 4
 credits). Birth years before 1943 must use the table. The estimate mixes two wage levels
 (past earnings at the newest wage index year’s level, future pay at today’s salary),
 ignores cost-of-living adjustments and the year of eligibility, and is wage indexed but
-treated as today’s value, so it understates the benefit of a young earner; compare it with
+treated as today’s dollars, so it understates the benefit of a young earner; compare it with
 your Social Security statement.</p>
 <p>Limits: each person gets only their own benefit as entered (no spousal, survivor,
 divorced-spouse or child benefit; a spousal top-up can be folded into the lower earner’s
@@ -784,7 +787,7 @@ Part B, the Part D drug plan and Medicare’s own cost sharing. The income-relat
 (IRMAA) always applies while a Medicare premium is charged; it has no input of its own.</p>
 <p><strong>Defaults.</strong> Medicare starts at 65 on Original Medicare; Part B and the Part D premium are
 off or zero, so no IRMAA; 20% coinsurance, no out-of-pocket maximum.</p>
-<p><strong>Logic.</strong> The Medicare premiums are in today’s value and grow 1.5% a year above general
+<p><strong>Logic.</strong> The Medicare premiums are in today’s dollars and grow 1.5% a year above general
 inflation. With visit-based healthcare costs, a person at or past the Medicare age pays the visits
 through the Part B deductible (law data), then the Medicare coinsurance (up to the plan’s
 out-of-pocket maximum, if any, on Medicare Advantage; through the supplement, if any, on
@@ -877,7 +880,7 @@ beneficiary’s brackets as their payout takes their share (over 10 years, or al
 the year after the death), or, when you set one in Benefits, Beneficiaries, charged a flat
 terminal tax rate whichever the payouts. Details: <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>.</p></li>
 <li><p>Beneficiaries (Benefits tab, <code class="docutils literal notranslate"><span class="pre">strategies.heirs</span></code>): one card each with a name, a share of the
-estate (the shares total 100%), other yearly income (today’s value), filing status, income
+estate (the shares total 100%), other yearly income (today’s dollars), filing status, income
 tax state (Same as household is the state you live in at the end) and payout. Each is taxed
 on their own share and the taxes are summed. They set how the after-tax final value is
 measured only, not the plan; the state you live in at the end (your home state, or the
@@ -921,8 +924,8 @@ year m - 1 (a later sale age moves up to m: the shared year goes to the new home
 mortgage paid off from the proceeds and its gain taxed like any sale, by the state it sits
 in; off, O becomes a second home (<code class="docutils literal notranslate"><span class="pre">primaryResidence</span></code> off: no section 121 exclusion when
 it is sold) and keeps its own sale. Either way a new primary home “O (S)” in state S is
-bought at the start of year m: its price (today’s value) is O’s expected value in year m
-(<code class="docutils literal notranslate"><span class="pre">HomeValue.valueIn</span></code> at the mean inflation, in today’s value) times the
+bought at the start of year m: its price (today’s dollars) is O’s expected value in year m
+(<code class="docutils literal notranslate"><span class="pre">HomeValue.valueIn</span></code> at the mean inflation, in today’s dollars) times the
 <code class="docutils literal notranslate"><span class="pre">housing.typical_home_value</span></code> ratio; its property tax is O’s times the
 <code class="docutils literal notranslate"><span class="pre">property_tax.effective_rate</span></code> ratio and the value ratio; its insurance O’s times the
 <code class="docutils literal notranslate"><span class="pre">home_insurance.average_annual</span></code> ratio; it keeps O’s appreciation, closing cost,
@@ -951,7 +954,7 @@ value and costs.</p>
 </li>
 <li><p><em>Cars and gas.</em> Each car’s insurance is multiplied by the car insurance ratio, its
 registration becomes the entered amount plus the car tax difference
-(<code class="docutils literal notranslate"><span class="pre">car_taxes.average_annual</span></code>, new less old, today’s value; at least 0) and maintenance
+(<code class="docutils literal notranslate"><span class="pre">car_taxes.average_annual</span></code>, new less old, today’s dollars; at least 0) and maintenance
 does not change; its gallons are priced at your fuel price plus
 the change in the average pump price (<code class="docutils literal notranslate"><span class="pre">fuel.average_price_per_gallon</span></code>, new less old; at
 least 0), and a car bought or replaced from the move year pays its sales tax rate plus the
@@ -995,7 +998,7 @@ amount x r / (1 + r), with r the year’s state’s rate for the row’s class
 (<code class="docutils literal notranslate"><span class="pre">statecosts.embeddedSalesTax</span></code>). It is in no tax, outflow,
 total or cash flow column; the Taxes chart draws it hatched and not counted, the taxes CSV
 (<code class="docutils literal notranslate"><span class="pre">breakdownCsv</span></code> with <code class="docutils literal notranslate"><span class="pre">taxRecords</span></code>) and the chart table add it as the last column, and
-Compare adds its median over the runs in today’s value, beside the lifetime taxes and outside
+Compare adds its median over the runs in today’s dollars, beside the lifetime taxes and outside
 every after-tax figure; each is headed <em>Sales tax (already in expenses, shown for records)</em>.</p>
 <p>With no move every factor is exactly 1 and every difference 0, so results are unchanged.</p>
 </section>
@@ -1003,7 +1006,7 @@ every after-tax figure; each is headed <em>Sales tax (already in expenses, shown
 <span id="tab-results-header"></span><h2>Headline figures<a class="headerlink" href="#headline-figures" title="Link to this heading"></a></h2>
 <p><strong>Logic.</strong> <em>Chance of running out</em> is the share of runs that end with a balance under $1.
 The figures are in the run’s dollars: inflation adjusted when the inflation adjusted switch
-is on, today’s value when it is off. If an input is not valid the figures are replaced by a
+is on, today’s dollars when it is off. If an input is not valid the figures are replaced by a
 message naming the field.</p>
 </section>
 <section id="summary-and-deductions">
@@ -1090,7 +1093,7 @@ expense shows as its average over those runs.</p>
 <section id="how-compare-judges">
 <span id="tab-compare"></span><h2>How Compare judges<a class="headerlink" href="#how-compare-judges" title="Link to this heading"></a></h2>
 <p><strong>Logic.</strong> Two scenarios run on the same random draws, so the difference comes from the
-settings, not luck. The comparison table judges each scenario after tax, in today’s value:
+settings, not luck. The comparison table judges each scenario after tax, in today’s dollars:
 the median homes and cars less loans, the median after-tax final value, the median gain over
 the first scenario paired run by run on the same draws, the share of runs ahead, median
 lifetime taxes and IRMAA, the median lifetime sales tax inside the spending (for records, outside

@@ -224,7 +224,7 @@ shows the beneficiaries’ tax used to judge the strategies after tax, with a li
 <span id="id1"></span><h2>Roth conversions<a class="headerlink" href="#roth-conversions" title="Link to this heading"></a></h2>
 <p>Roth conversions are set on the <strong>Strategies</strong> tab: an age window (your age, both
 ends included) and, ticked in the <em>Convert up to</em> list, an optional amount per year
-in today’s value and ceilings that all
+in today’s dollars and ceilings that all
 apply (a federal bracket top, an IRMAA tier, a Social Security limit, the 0% gains
 bracket top or a custom AGI), the lowest one winning. With no amount, the model
 converts as much as the ceilings allow; with an amount and no ceiling, it converts
@@ -276,7 +276,7 @@ charged on each return’s AGI from two years earlier (the law file’s
 threshold, the others above theirs; separate filers who lived with their spouse use
 their own table). So the IRMAA ceiling holds a year’s AGI under the threshold of the
 premium year it sets, grown at the expected inflation, and binds only for a return
-with someone enrolled by then; in today’s value the earlier AGI is deflated by the
+with someone enrolled by then; in today’s dollars the earlier AGI is deflated by the
 expected inflation in between, so today’s-value and inflation-adjusted runs charge alike.</p>
 <p>The first two years of a run look back to years before it. Each return sums its
 members’ earnings history on the Income tab (<code class="docutils literal notranslate"><span class="pre">salaryHistory</span></code>, pay by calendar year,
@@ -304,7 +304,7 @@ shares the same IRA limit, so the backdoor gets only what that deposit leaves (t
 Strategies tab warns when it leaves nothing in the first year). With deposits set
 per account on the Benefits tab, the person’s Traditional and Roth IRA amounts use
 that limit instead. An amount
-per year (today’s value) caps it further. It is paid only from the cash the year
+per year (today’s dollars) caps it further. It is paid only from the cash the year
 leaves before any withdrawal, so it is never funded by selling or withdrawing; it
 shows as <code class="docutils literal notranslate"><span class="pre">Ret.</span> <span class="pre">Deposit</span> <span class="pre">(Backdoor)</span></code> with the other retirement deposits and is not
 income. The same amount shows as <code class="docutils literal notranslate"><span class="pre">Backdoor</span> <span class="pre">Conversion</span></code>; <code class="docutils literal notranslate"><span class="pre">Roth</span> <span class="pre">Conversion</span></code> holds
@@ -321,7 +321,7 @@ to receive the deposit.</p>
 </section>
 <section id="qualified-charitable-distributions-qcd">
 <span id="qcd"></span><h2>Qualified charitable distributions (QCD)<a class="headerlink" href="#qualified-charitable-distributions-qcd" title="Link to this heading"></a></h2>
-<p>Charitable giving, entered as Charity rows (an amount per year in today’s value) on the
+<p>Charitable giving, entered as Charity rows (an amount per year in today’s dollars) on the
 <strong>Expenses</strong> tab, is charged every year as cash leaving the household
 (<code class="docutils literal notranslate"><span class="pre">Charitable</span> <span class="pre">Giving</span></code>). Any other Expenses row given the Charity deduction counts as a
 gift too, charged in its own category. From 2026 a
@@ -332,7 +332,7 @@ not the gift.</p>
 a QCD</strong> on the <strong>Strategies</strong> tab to pay the Charity rows and the rows with the Charity
 deduction on the Expenses tab
 straight out of the Traditional IRA. The QCD is all of the year’s giving, or an
-amount per year in today’s value, never more than the giving, the yearly limit
+amount per year in today’s dollars, never more than the giving, the yearly limit
 (111,000 per person old enough in 2026, indexed) or what the Traditional IRAs can pay out
 (the balance at the start of the year less any loss that year). Each person’s part
 comes only from the Traditional IRAs they own (set on the Accounts tab), in row order
@@ -382,12 +382,12 @@ retirement account within 10 years, so the model spreads each beneficiary’s sh
 equal yearly withdrawals that empty it while it grows at the accounts’ expected return (net
 of the mean inflation, balance-weighted). Each withdrawal is taxed at the federal and the
 beneficiary’s state brackets on top of their other income, at their filing status, with the law
-year’s brackets held in today’s value (no payroll tax); in today’s value every year’s
+year’s brackets held in today’s dollars (no payroll tax); in today’s dollars every year’s
 withdrawal and tax are the same. The inheritance is worth the after-tax withdrawals
 discounted at the same return, which is the balance less the discounted taxes. Example: one
 beneficiary, 0% return, 600,000 left: 60,000 a year for 10 years, each taxed on top of their
 income. That is the default payout, <strong>Over 10 years</strong>; with <strong>All at once</strong> a beneficiary takes
-the whole share in the year after the death, taxed in that one year (today’s value) at the
+the whole share in the year after the death, taxed in that one year (today’s dollars) at the
 same brackets on top of the same other income, which usually reaches higher brackets: the
 600,000 taxed in one year instead of 60,000 in each of ten. For a beneficiary already in the top
 bracket the two are about equal. Decedents past their RMD age leave the beneficiaries a yearly minimum too; the equal
@@ -396,7 +396,8 @@ ends after the last of the household, so nothing rolls over to a spouse. The ben
 in the Beneficiaries section of the <strong>Benefits</strong> tab, one card each (<code class="docutils literal notranslate"><span class="pre">strategies.heirs</span></code> in a saved config):
 a name, a share of the estate (the shares must total 100%; an inline error says so until they do), other
 income, filing status, state (one box listing the 51 states that filters as you type; Same as household is the state you live in at
-the end) and payout. The default is one beneficiary with the whole estate, 0 other income, single, Same as
+the end, and for a child’s beneficiary the state you live in when the child’s child years end, so only a
+move during them moves the child) and payout. The default is one beneficiary with the whole estate, 0 other income, single, Same as
 household, over 10 years; fields still at their start value are grey until edited, and Add or Remove splits
 the shares equally again. Each beneficiary is taxed on their own share with their own terms and the taxes are
 summed; one beneficiary with the whole share gives the same result as before beneficiaries became a list. They
@@ -415,7 +416,7 @@ estate and its inheritance tax on each beneficiary’s share after the estate ta
 children (most states exempt children); the tables are in <a class="reference internal" href="tax-law.html#state-death-taxes"><span class="std std-ref">State estate and inheritance taxes</span></a>. A state
 table not flagged indexed is a fixed dollar figure: it stays itself in inflation-adjusted runs
 and is deflated by the expected inflation to the last year in today’s-value runs, so both modes
-charge the same tax in today’s value. The
+charge the same tax in today’s dollars. The
 federal deduction for state death taxes is not modelled. The
 beneficiaries’ tax rate box in the Beneficiaries section of <strong>Benefits</strong> (0% to 50%) taxes the beneficiaries’ payouts
 while blank and shows the model’s flat estimate as a guide in its caption,
@@ -608,7 +609,7 @@ model already does for separate returns: each account’s income goes on its own
 joint account’s is shared (see the Owner column on the <a class="reference internal" href="model-rules.html#tab-accounts"><span class="std std-ref">Accounts</span></a> tab). The
 result row reads, for example, <em>Filing status (couples): Joint, Separate</em>, and Apply writes the
 filing status into the inputs like the other settings.</p>
-<p><strong>The score.</strong> Each run’s value is its after-tax final worth in today’s value, what the
+<p><strong>The score.</strong> Each run’s value is its after-tax final worth in today’s dollars, what the
 beneficiaries keep: the Traditional money taxed by the beneficiaries’ payouts as set, or charged the
 terminal tax rate you set the same way for every setting, and the federal and state estate taxes and the
 inheritance tax. The

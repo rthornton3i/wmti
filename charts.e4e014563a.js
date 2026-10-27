@@ -459,7 +459,7 @@
   }
 
   function dollarsNote(spec) {
-    return spec.dollars === "future" ? "Inflation adjusted" : "Today's value";
+    return spec.dollars === "future" ? "Inflation adjusted" : "Today's dollars";
   }
 
   // One sentence that says what the chart shows, for screen readers and the chart's caption.

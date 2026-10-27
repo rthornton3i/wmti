@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -134,7 +134,7 @@
     info: null, schema: null, defaults: null, inputs: null, base: null, scenarioName: EXAMPLE_NAME, seed: 1,
     walkTree: null, result: null, error: null, lastRunMs: null, bootMs: null, pyodideVersion: null,
     notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, planOpen: false,
-    heirLocks: [], heirNotice: [], childHeirsOn: null,  // the beneficiaries' slider locks (positions) and warning
+    heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
     tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
     autoSaveOff: [], exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
@@ -174,7 +174,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.7ee5fb0409.js");
+      worker = new Worker("worker.401dad1fe2.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1421,7 +1421,7 @@
   }
 
   // The inflation range shows only while Inflation-adjusted dollars is on. Off, it is hidden but still used: its mean
-  // turns the nominal rates into today's value.
+  // turns the nominal rates into today's dollars.
   function syncInflationRange() {
     const range = document.querySelector("#inflation-body [data-inflation-field=\"inflation\"]");
     if (range) range.hidden = !(state.inputs && state.inputs.useInflation);
@@ -1464,7 +1464,7 @@
   }
 
   function dollarsText(dollars) {
-    return dollars === "future" ? "Inflation adjusted" : "Today's value";
+    return dollars === "future" ? "Inflation adjusted" : "Today's dollars";
   }
 
   // The pinned strip: what the household is worth today (the single run's `netWorthToday`), the median final worth of
@@ -3860,7 +3860,8 @@
       row.querySelector(".item-name").textContent = account.name;
       row.querySelector(".item-value").textContent = compactMoney(account.value);
       row.querySelector(".item-detail").textContent = account.kind === "hsa"
-        ? "Return " + percent(account.meanReturn, 2) + " ± " + percent(account.returnStdDev, 2) + " · " + account.owner
+        ? "Return " + percent(account.meanReturn, 2) + " ± " + percent(account.returnStdDev, 2) + " · "
+          + choiceLabel(schemaField("HsaPlan", "owner"), account.owner)
           + " · " + (account.sizing === "max" ? "puts in the most allowed" : "puts in what the year's costs need")
         : "No return · starts each year empty";
       wrap.append(row);
@@ -4190,7 +4191,7 @@
       ? "Starts at " + spendingStartDefault() + ", " + start + year : "Starts at age " + start + year;
     if (preview) {
       text += " From then your monthly rows change from " + fullMoney(preview.before) + " to "
-        + fullMoney(preview.after) + " a month (today's value).";
+        + fullMoney(preview.after) + " a month (today's dollars).";
       if (preview.fromFirstYear) text += " The start age is at or before your age today, so the change applies from "
         + "the first year; the Expenses totals show the amounts entered.";
     }
@@ -4261,7 +4262,7 @@
     let html = person.used ? "<p class=\"field-help benefit-used\">" + escapeText(person.used) + "</p>" : "";
     if (person.basisError) html += "<p class=\"banner banner-error\" role=\"alert\">" + escapeText(person.basisError) + "</p>";
     if (person.basis !== "earnings" || person.basisError) {
-      const help = titleHelp("p", "Benefit table", "Read-only: the monthly benefit at each claim age in today's value. "
+      const help = titleHelp("p", "Benefit table", "Read-only: the monthly benefit at each claim age in today's dollars. "
         + "Benefit used is what the model pays; the ages from " + state.info.claimAgeRange[0] + " to "
         + state.info.claimAgeRange[1] + " you did not enter are estimated. Enter amounts in "
         + "“Social Security benefit by claim age” above.", "field-label");
@@ -4637,6 +4638,11 @@
   const SAME_STATE_LABEL = "Same as household";
   const HEIR_NOTICE_BOXES = ["child-heir-warnings", "heir-warnings"];
 
+  // One field's schema entry of a type (its label, choices and choice labels), or undefined.
+  function schemaField(typeName, name) {
+    return (state.schema.types[typeName] || []).find((field) => field.name === name);
+  }
+
   function heirFieldsSchema() {
     return state.schema.types.Heir || [];
   }
@@ -4649,17 +4655,61 @@
       + "the unlocked beneficiaries move so the total stays 100%; lock a beneficiary to keep their share. Adding a "
       + "beneficiary gives them an equal part and the others keep their split of the rest.");
     split.classList.add("heir-split");
-    return [list, warningsBox("heir-warnings"), split];
+    const addChildren = document.createElement("button");
+    addChildren.type = "button";
+    addChildren.id = "heir-add-children";
+    addChildren.className = "button button-quiet";
+    addChildren.textContent = "Add children";
+    addChildren.hidden = !missingChildHeirs(state.inputs).length;
+    addChildren.addEventListener("click", addChildrenAsHeirs);
+    return [list, addChildren, warningsBox("heir-warnings"), split];
   }
 
-  // Keep the beneficiaries in step with the children and their shares at 100% (syncChildHeirs). Locks follow
-  // positions, so they are dropped when the list changes length. The warning naming the beneficiaries kept because
-  // you edited them lasts until the switch is turned on again or they are gone.
+  // Add children: a beneficiary for each child without one (deleted from the list, or the switch off), turning Add
+  // children as beneficiaries on. A beneficiary of your own named as such a child is not doubled silently: a dialog
+  // names them and offers to link it to the child, add the child's anyway, or skip that child.
+  function addChildrenAsHeirs() {
+    const field = (state.schema.types.StrategyPlan || []).find((item) => item.name === "heirs");
+    const apply = (onMatch) => {
+      const before = (state.inputs.strategies.heirs || []).length;
+      state.inputs.strategies = addChildHeirs(state.inputs, heirFieldsSchema(), field && field.maximum, onMatch);
+      if (state.inputs.strategies.heirs.length !== before) state.heirLocks = [];
+      state.childHeirsOn = true;  // turned on here: no other child is added by the switch turning on
+      renderSettings();
+      inputsChanged();
+    };
+    const clashes = missingChildHeirs(state.inputs).filter((item) => item.matches.length);
+    if (!clashes.length) {
+      apply("skip");
+      return;
+    }
+    const names = clashes.map((item) => item.child).join(", ");
+    const one = clashes.length === 1;
+    openDialog({ title: "Beneficiaries already named " + names,
+      text: (one ? "A beneficiary you added has the name of " : "Beneficiaries you added have the names of ") + names
+        + ". Link " + (one ? "it to that child" : "each to its child") + ", add the child's beneficiary anyway, or skip "
+        + (one ? "that child" : "those children") + ".",
+      actions: [["Link", "button", () => apply("link"), "heir-match-link"],
+        ["Add anyway", "button button-quiet", () => apply("add"), "heir-match-add"],
+        ["Skip", "button button-quiet", () => apply("skip"), "heir-match-skip"],
+        ["Cancel", "button button-quiet", () => {}, "heir-match-cancel"]] });
+  }
+
+  // Keep the beneficiaries in step with the children and their shares at 100% (syncChildHeirs). A child gets a
+  // beneficiary when it is added, or every child when the switch is turned on; one you deleted stays deleted (Add
+  // children brings it back), and a loaded file is taken as it is. Locks follow positions, so they are dropped when
+  // the list changes length. The warning naming the beneficiaries kept because you edited them lasts until the switch
+  // is turned on again or they are gone.
   function syncHeirs() {
     const strategies = state.schema && state.inputs && state.inputs.strategies;
     if (!strategies) return;
     const field = (state.schema.types.StrategyPlan || []).find((item) => item.name === "heirs");
-    const { heirs, changed, kept } = syncChildHeirs(state.inputs, heirFieldsSchema(), field && field.maximum);
+    const names = (state.inputs.children || []).map((child) => String(child.name));
+    const seen = state.heirSeenChildren;
+    const turnedOn = strategies.childrenAsHeirs && state.childHeirsOn === false;
+    const addFor = seen == null ? [] : turnedOn ? undefined : names.filter((name) => !seen.includes(name));
+    state.heirSeenChildren = names;
+    const { heirs, changed, kept } = syncChildHeirs(state.inputs, heirFieldsSchema(), field && field.maximum, addFor);
     if (changed) {
       if (heirs.length !== (strategies.heirs || []).length) state.heirLocks = [];
       strategies.heirs = heirs;
@@ -4669,6 +4719,8 @@
     const own = new Set(heirs.filter((heir) => heir.child == null).map((heir) => heir.name));
     state.heirNotice = kept.length ? kept : state.heirNotice.filter((name) => own.has(name));
     fillHeirNotice();
+    const addChildren = $("heir-add-children");
+    if (addChildren) addChildren.hidden = !missingChildHeirs(state.inputs).length;
   }
 
   function fillHeirNotice() {
@@ -5094,7 +5146,7 @@
   }
 
   // A field whose schema entry has `inflationNote` (its help ends with the note that the mean inflation is subtracted
-  // in today's value) gets a red "i" button.
+  // in today's dollars) gets a red "i" button.
   function fieldElement(field, path, filter) {
     const element = fieldControl(field, path, filter);
     const button = field.inflationNote && element.querySelector(":scope > .field-head > .help-button");
@@ -6192,7 +6244,8 @@
   // ---- Lists: one card per item, edited in a bottom sheet ----
   function itemSummary(typeName, item) {
     if (typeName === "Account") {
-      return { name: item.name, detail: item.kind + (item.owner ? " · " + item.owner : ""),
+      return { name: item.name, detail: item.kind + (item.owner ? " · " + choiceLabel(schemaField("Account", "owner"),
+        item.owner) : ""),
         value: compactMoney(item.startingValue) };
     }
     if (typeName === "ExpenseItem") {
@@ -6214,7 +6267,9 @@
         + (span ? " · " + span : ""),
       value: compactMoney(item.balance) };
     }
-    if (typeName === "Car") return carSummary(item, state.inputs.you.currentAge, state.info.sheetRules);
+    if (typeName === "Car") {
+      return carSummary(item, state.inputs.you.currentAge, state.info.sheetRules, schemaField("Car", "driver"));
+    }
     if (typeName === "Home") return homeSummary(item, state.inputs.you.currentAge);
     if (typeName === "RentPeriod") {
       const from = item.startAge == null ? "today" : String(timelineYear(item.startAge));
@@ -6541,9 +6596,9 @@
     const note = document.createElement("p");
     note.className = "field-help sheet-intro";
     note.textContent = item.category === rules.charityCategory
-      ? "Charity amounts are per year, in today's value, and tax deductible; a Charity row is paid every year."
-      : item.category === rules.majorCategory ? rules.majorCategory + " amounts are per year, in today's value, paid "
-        + "once in the year you are the age below." : "This amount is per month, in today's value.";
+      ? "Charity amounts are per year, in today's dollars, and tax deductible; a Charity row is paid every year."
+      : item.category === rules.majorCategory ? rules.majorCategory + " amounts are per year, in today's dollars, paid "
+        + "once in the year you are the age below." : "This amount is per month, in today's dollars.";
     return note;
   }
 
@@ -7310,7 +7365,7 @@
     return { elements, values, leased, onPay };
   }
 
-  // A car owned today's value today on the Add screen: empty (read as 0, the estimate) unless a value is set, with the
+  // A car owned's value today (today's dollars) on the Add screen: empty (read as 0, the estimate) unless a value is set, with the
   // estimate from the price paid and the year bought as its gray placeholder (`carEstimatedValue`), or the prompt
   // `carValue.estimateNone` without a year bought; a value typed overrides it.
   function timelineCarValue(elements, names, blank, inputs) {

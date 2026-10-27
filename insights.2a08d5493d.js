@@ -287,7 +287,7 @@
       text: "Cutting your largest expense category (" + largest.name + ", about " + money(largest.amount)
         + " a year today) by " + percent(CUT_SHARE, 0) + " from today would add about " + money(size)
         + " to net worth " + reach.label + ", if the " + money(saved) + " a year saved were invested at the plan's "
-        + "expected real return of " + rateText(growth.real) + " (today's value)." };
+        + "expected real return of " + rateText(growth.real) + " (today's dollars)." };
   }
 
   // Each `SAVED_YEARLY` a year saved before retirement, grown at the real return.
@@ -296,7 +296,7 @@
     const size = yearlyGrowth(SAVED_YEARLY, growth.real, reach.years);
     return { id: "savedYearly", age: reach.age, size,
       text: "Each " + fullMoney(SAVED_YEARLY) + " a year saved before retirement would grow to about " + money(size)
-        + " " + reach.label + " at the plan's expected real return of " + rateText(growth.real) + " (today's value)." };
+        + " " + reach.label + " at the plan's expected real return of " + rateText(growth.real) + " (today's dollars)." };
   }
 
   // The `TOP_CATEGORIES` largest expense categories today and their share of today's spending.
@@ -331,7 +331,7 @@
         text: whose + " employer matches deposits up to " + percent(match.cap, 1) + " of pay, and the plan deposits "
           + percent(share, 1) + "; depositing the difference would bring about " + money(extra) + " a year more in "
           + "match at today's pay, about " + money(size) + " by the time that pay ends"
-          + (growth ? " at the plan's expected real return of " + rateText(growth.real) : "") + " (today's value)." });
+          + (growth ? " at the plan's expected real return of " + rateText(growth.real) : "") + " (today's dollars)." });
     }
     return items;
   }
@@ -359,7 +359,7 @@
       text: "About " + money(excess) + " of cash sits above a " + RESERVE_MONTHS + "-month reserve (about "
         + money(reserve) + ") and is expected to earn " + rateText(cashRate) + " against " + rateText(best.meanReturn)
         + " for " + best.name + "; at those returns, less inflation, the difference would be about " + money(size)
-        + " " + reach.label + " (today's value), with the larger swings investments carry." };
+        + " " + reach.label + " (today's dollars), with the larger swings investments carry." };
   }
 
   // ---- all of it ----

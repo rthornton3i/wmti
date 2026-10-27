@@ -503,13 +503,15 @@
   // and Same as household. A child's beneficiary left without its child (the child removed, or the switch off) is
   // removed unless edited (`childHeirEdited`); an edited one is kept as your own and named in `kept`. The start
   // beneficiary gives way to the first children. The shares always total 100% (`scaleHeirShares`) and the list is
-  // never empty. Returns {heirs, changed, kept}; the inputs are not changed.
-  function syncChildHeirs(inputs, heirFields, maximum) {
+  // never empty. `addFor` (child names) limits which children without one get one and which of your own named as a
+  // child are relinked; left out, every child. Returns {heirs, changed, kept}; the inputs are not changed.
+  function syncChildHeirs(inputs, heirFields, maximum, addFor) {
     const strategies = (inputs && inputs.strategies) || {};
     const before = strategies.heirs || [];
     const count = before.length;
     const children = strategies.childrenAsHeirs ? (inputs.children || []).map((child) => String(child.name)) : [];
     const free = children.map((_, position) => position);
+    const adds = (name) => addFor == null || addFor.includes(name);
     const copies = before.map((heir) => ({ ...heir }));
     const pairs = new Map();
     const pair = (heir, test) => {
@@ -520,7 +522,7 @@
     // One of your own named as a child that has none (kept when the switch went off) is that child's again.
     for (const heir of copies) {
       if (heir.child != null) continue;
-      pair(heir, (name) => name === heir.name);
+      pair(heir, (name) => name === heir.name && adds(name));
       if (pairs.has(heir)) heir.child = heir.name;
     }
     for (const heir of copies) if (heir.child != null && !pairs.has(heir) && free.length) pairs.set(heir, free.shift());
@@ -538,9 +540,10 @@
       heir.child = null;
       return true;
     });
-    if (free.length && heirs.length === 1 && isStartHeir(heirs[0], heirFields)) heirs = [];
+    const adding = free.filter((position) => adds(children[position]));
+    if (adding.length && heirs.length === 1 && isStartHeir(heirs[0], heirFields)) heirs = [];
     heirs = scaleHeirShares(heirs);
-    for (const position of free) {
+    for (const position of adding) {
       if (maximum != null && heirs.length >= maximum) break;
       heirs = addHeir(heirs, heirFields);
       Object.assign(heirs[heirs.length - 1], { name: children[position], child: children[position] });
@@ -548,6 +551,40 @@
     if (!heirs.length) heirs = [heirDefaults(heirFields, 0, 1)];
     heirs = scaleHeirShares(heirs);
     return { heirs, changed: JSON.stringify(heirs) !== JSON.stringify(before), kept };
+  }
+
+  // The children with no beneficiary added for them (no `child` of their name), each with the beneficiaries of your
+  // own whose name matches theirs, ignoring case and spaces at the ends: [{child, matches: [positions]}].
+  function missingChildHeirs(inputs) {
+    const heirs = (inputs && inputs.strategies && inputs.strategies.heirs) || [];
+    const key = (name) => String(name == null ? "" : name).trim().toLowerCase();
+    return ((inputs && inputs.children) || []).map((child) => String(child.name))
+      .filter((name) => !heirs.some((heir) => heir.child === name))
+      .map((child) => ({ child, matches: heirs.map((heir, position) => [heir, position])
+        .filter(([heir]) => heir.child == null && key(heir.name) === key(child)).map(([, position]) => position) }));
+  }
+
+  // Add children as beneficiaries (Benefits' Add children button): each child without one gets a beneficiary added
+  // for them (an equal part, the others keep their split of the rest, Same as household). A child whose name matches
+  // one of your own (`missingChildHeirs`) follows `onMatch`: "link" makes that one the child's, "add" adds a second
+  // beside it, "skip" leaves the child without one. Returns the inputs' new strategies with Add children as
+  // beneficiaries on; the inputs are not changed.
+  function addChildHeirs(inputs, heirFields, maximum, onMatch) {
+    const strategies = { ...((inputs && inputs.strategies) || {}), childrenAsHeirs: true };
+    let heirs = (strategies.heirs || []).map((heir) => ({ ...heir }));
+    const names = [];
+    for (const { child, matches } of missingChildHeirs(inputs)) {
+      if (!matches.length || onMatch === "add") names.push(child);
+      else if (onMatch === "link") heirs[matches[0]].child = child;
+    }
+    if (names.length && heirs.length === 1 && isStartHeir(heirs[0], heirFields)) heirs = [];
+    for (const name of names) {
+      if (maximum != null && heirs.length >= maximum) break;
+      heirs = addHeir(scaleHeirShares(heirs), heirFields);
+      Object.assign(heirs[heirs.length - 1], { name, child: name });
+    }
+    strategies.heirs = syncChildHeirs({ ...inputs, strategies: { ...strategies, heirs } }, heirFields, maximum, []).heirs;
+    return strategies;
   }
 
   // The mean of the inflation range (triangular: the average of its three points), the rate the model takes out of
@@ -649,7 +686,7 @@
     return null;
   }
 
-  // A car owned today's value as the depreciation calculator sees it (wmti estimatedValueToday): the price paid less
+  // A car owned's value in today's dollars as the depreciation calculator sees it (wmti estimatedValueToday): the price paid less
   // the first-year drop (its own, else `carValue.firstYearDrop`), then the yearly rate for each later year owned up to
   // `carValue.thisYear`; a car bought this year or later is at its price. null without a year bought or the rules.
   function carEstimatedValue(car, rules) {
@@ -1013,7 +1050,7 @@
       unit: MONTHLY_EXPENSE_CATEGORIES.includes(item.category) ? "month" : "year" }));
   }
 
-  // The monthly rows charged at the start age before and after the change, today's value (wmti spendingChangePreview):
+  // The monthly rows charged at the start age before and after the change, today's dollars (wmti spendingChangePreview):
   // {startAge, before, after, fromFirstYear}, or null while the change is off or changes nothing.
   function spendingChangePreview(inputs) {
     if (!spendingChangeActive(inputs)) return null;
@@ -1073,8 +1110,9 @@
 
   // A car's card on the Cars chip: its name, the driver, "loan" while it charges one, the replacement cycle when one is
   // on (every so many years or miles, each only while Replace by selects it, and a price above 0: the purchase price of a car bought later when blank), when
-  // it is bought and sold (`spanText`), and its value today (its price when bought later; see `carValueToday`).
-  function carSummary(car, currentAge, sheetRules) {
+  // it is bought and sold (`spanText`), and its value today (its price when bought later; see `carValueToday`). The
+  // driver shows as `driverField`'s choice label ("You") when the schema field is given, else as stored.
+  function carSummary(car, currentAge, sheetRules, driverField) {
     const price = car.replacementPrice > 0 ? car.replacementPrice : (car.purchasePrice || 0);
     const method = carReplacementMethodOf(car);
     const rules = [];
@@ -1084,7 +1122,7 @@
     const replaced = !car.leases && (price > 0 || method === "lease") && rules.length > 0;
     const how = { finance: ", financed", lease: ", leased" }[method] || "";
     const span = spanText(car, currentAge);
-    return { name: car.name, detail: car.driver + (hasCarLoan(car) ? " · loan" : "")
+    return { name: car.name, detail: choiceLabel(driverField, car.driver) + (hasCarLoan(car) ? " · loan" : "")
       + (replaced ? " · replaced every " + rules.join(" or ") + how : "") + (span ? " · " + span : ""),
     value: compactMoney(car.buysLater && !car.leases ? car.purchasePrice : carValueToday(car, sheetRules)) };
   }
@@ -1812,7 +1850,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
