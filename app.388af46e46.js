@@ -2582,6 +2582,7 @@
         storeScenarios();
       }
       state.inputs = clone(inputs);  // the loaded scenario stays the base, so Outputs shows the settings as edited
+      takeHeirsAsLoaded();
       renderSettings();
       inputsChanged();
     } else {
@@ -3085,6 +3086,7 @@
     const inputs = await listedInputs(name);
     if (!inputs) return;
     state.inputs = inputs;
+    takeHeirsAsLoaded();
     state.base = clone(inputs);
     state.scenarioName = name;
     forgetBlankWalk();
@@ -4700,6 +4702,13 @@
   // children brings it back), and a loaded file is taken as it is. Locks follow positions, so they are dropped when
   // the list changes length. The warning naming the beneficiaries kept because you edited them lasts until the switch
   // is turned on again or they are gone.
+  // Settings loaded from a file or saved scenario are taken as they are: the children they have are not new, so no
+  // beneficiary is added for them and one the file lacks stays deleted.
+  function takeHeirsAsLoaded() {
+    state.heirSeenChildren = null;
+    state.childHeirsOn = null;
+  }
+
   function syncHeirs() {
     const strategies = state.schema && state.inputs && state.inputs.strategies;
     if (!strategies) return;
@@ -8075,6 +8084,7 @@
     button.dataset.armed = "false";
     button.textContent = "Load example household";
     state.inputs = clone(state.defaults);
+    takeHeirsAsLoaded();
     state.base = clone(state.defaults);
     state.scenarioName = EXAMPLE_NAME;
     state.exampleHidden = false;
