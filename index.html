@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-AorlZwX8EdXy0bwiEFBacdKUsT4wOy0VFyDfIRTr3a8=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-JyQYEZ0/zon9eMQMVWHJ/b5OFZXSzAWrpE/FD49puS8=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -391,6 +391,29 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--ink-2); }
 .legend li { display: inline-flex; align-items: center; gap: 6px; }
 .legend .legend-group { flex-basis: 100%; font-weight: 600; color: var(--ink); margin-top: 2px; }
+/* charts.js legend: more than four items set as a grid (two columns on a phone, three on a wide card); a series item
+   that highlights its series is a plain-looking button; a long legend on a phone folds to its 44 px Key row
+   (attachLegend); an ungrouped item after a group (Left over) starts its own row under a rule. */
+.legend-dense { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.75rem, 1fr)); gap: 2px 8px; font-size: 12.5px;
+  line-height: 1.25; }
+.legend-dense .legend-group { grid-column: 1 / -1; font-size: 11.5px; margin-top: 4px; }
+.legend .legend-break { flex-basis: 100%; grid-column: 1 / -1; height: 0; border-top: 1px solid var(--line); margin: 2px 0; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; padding: 0; border: 0;
+  border-radius: 4px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.legend-item[aria-pressed="true"] { color: var(--ink); font-weight: 600; }
+.legend-item:focus { outline: none; }
+.legend-item:focus-visible, .legend-key:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.legend-label { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.legend .legend-toggle { grid-column: 1 / -1; flex-basis: 100%; }
+.legend-key { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 2px; border: 0;
+  background: transparent; color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
+.legend-key-text::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 8px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-3px) rotate(45deg); }
+.legend-key[aria-expanded="true"] .legend-key-text::after { transform: translateY(1px) rotate(-135deg); }
+.legend-strip { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; min-width: 0; }
+.legend-key[aria-expanded="true"] .legend-strip { display: none; }
+.legend[data-folded="true"] li:not(.legend-toggle) { display: none; }
+.chart-svg [data-series].dim { opacity: 0.2; }
 .key { display: inline-block; flex: none; }
 .key-box { width: 10px; height: 10px; border-radius: 2px; background: var(--key); }
 .key-line { width: 14px; height: 3px; border-radius: 2px; background: var(--key); }
@@ -1018,6 +1041,23 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   .pk *, .pk *::after { animation: none !important; transition: none !important; }
 }
 /* End of the picker block */
+/* Add detail row (46-detail.js paneDetailRow): at Medium, at the end of a pane, a list sheet or Advanced settings,
+   one sentence on the inputs it shows and its Add detail / Hide detail button; the Effort card's Hide it line. */
+.detail-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 12px;
+  border: 1px dashed var(--line); border-radius: 12px; background: var(--surface-2); min-width: 0; }
+.detail-row .detail-text { flex: 1 1 220px; margin: 0; min-width: 0; }
+.detail-row .detail-toggle { flex: none; }
+.detail-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.detail-notice[hidden] { display: none; }
+/* The Effort and style dialog's Detail added list (48-surface.js renderDetailList): each override with its Hide it. */
+.detail-added { margin-top: 12px; min-width: 0; }
+.detail-added[hidden] { display: none; }
+.detail-added .eyebrow { margin: 0 0 4px; }
+.detail-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.detail-list-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0;
+  padding: 4px 0; border-top: 1px solid var(--line); }
+.detail-list-row > span { min-width: 0; overflow-wrap: anywhere; color: var(--ink); }
+.detail-list-row .detail-hide { flex: none; min-height: 44px; }
 /* Low page and guided sheet: the Inputs tab at Low effort as one page of cards (no group chips), its Yes/No choices,
    the plans' summary cards and notices, and the guided plan pop-up's live summary and questions */
 .app.low-effort .band > .chips-wrap[data-place="inputs"] { display: none; }
@@ -1617,6 +1657,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <div class="experience-choices pk" id="experienceCardChoices"></div>
         <p class="note experience-notice">You can switch effort and style any time on Setup or in the menu. Your answers are kept.</p>
         <p class="note" id="defaultsNotice" role="status" hidden></p>
+        <p class="note detail-notice" id="detailNotice" hidden></p>
         <p class="note low-raise-note" id="lowRaiseNote" role="status" hidden></p>
       </div>
       <div class="settings" id="householdCard">
@@ -1642,6 +1683,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
           <h2>Run</h2>
           <div id="run-body"></div>
         </div>
+        <div id="advancedDetail"></div>
       </details>
     </section>
     <section class="panel" id="panel-inputs" data-tab="inputs" role="tabpanel" aria-labelledby="tab-inputs" hidden>
@@ -1771,6 +1813,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
     <div class="dialog-head"><h2 id="experienceTitle">Effort and style</h2></div>
     <div class="dialog-scroll">
       <div class="experience-choices pk" id="experienceChoices"></div>
+      <div class="detail-added" id="experienceDetail" hidden></div>
       <p class="note experience-notice">You can switch effort and style any time on Setup or in the menu. Your answers are kept.</p>
     </div>
     <div class="dialog-actions" id="experienceActions"></div>
@@ -1891,14 +1934,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "782b5cf5aa93", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "d0f6ed9e83fc", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.14c7cba796.js"></script>
-<script src="charts.fbda1f59a4.js"></script>
-<script src="insights.2a08d5493d.js"></script>
-<script src="report.bf76f1ef9d.js"></script>
+<script src="shared.4edda29805.js"></script>
+<script src="charts.c22ca6d6cc.js"></script>
+<script src="insights.25d1a94d61.js"></script>
+<script src="report.2b162219ac.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.86ffecb812.js"></script>
+<script src="app.ae1af2ad6a.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

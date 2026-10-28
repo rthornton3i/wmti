@@ -35,9 +35,10 @@
       + "(the median run as a line, the 10th to 90th percentile shaded) and how the runs' final values spread." },
     { id: "balances", label: "Balances", intro: "Each account's balance at the end of each year, stacked; the "
       + "middle half average of the runs." },
-    { id: "cashFlow", label: "Cash flow", intro: "Cash in above zero: pay, Social Security, withdrawals and any shortfall. "
-      + "Cash out below it (negative): expenses, taxes, retirement deposits and the surplus put back into the accounts, so "
-      + "each year's bars match. The middle half average of the runs." },
+    { id: "cashFlow", label: "Cash flow", intro: "Money in above zero: pay, Social Security and sale proceeds. Money out "
+      + "below it (negative): expenses and taxes. Line: what is left over; above zero the year adds to the accounts, below "
+      + "zero the accounts pay for it. Moves into and out of the accounts are on Deposits and withdrawals. The middle half "
+      + "average of the runs." },
     { id: "flows", label: "Deposits and withdrawals", intro: "The middle half average of the runs. Deposits into the accounts "
       + "are above zero, withdrawals below it (negative). Traditional includes RMD and QCD; dotted line: the required "
       + "minimum. Social Security, pay and the Roth conversion are not bars." },
@@ -187,7 +188,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.9391b6aa68.js");
+      worker = new Worker("worker.ea30448c4b.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1161,10 +1162,11 @@
 
   // Where a swipe `direction` (1 forward, -1 back) leads from the shown place: the neighbouring Inputs panel (`chip`,
   // in the bubble's `row`), or on Outputs the neighbouring sub-tab (`sub`), past either end of a view's sub-tabs the
-  // neighbouring view, always at its first sub-tab (`chip` is then the view's chip); null at an end and on Setup, so a
-  // swipe never changes the bottom tab.
+  // neighbouring view, always at its first sub-tab (`chip` is then the view's chip); null at an end, on Setup and on the
+  // Low page (one page, no panels), so a swipe never changes the bottom tab.
   function swipeTarget(direction) {
     if (swipeTab() === "inputs") {
+      if (lowOn()) return null;  // the Low page: no panels
       const chip = neighbourChip(direction);
       return chip ? { tab: "inputs", view: state.view, chip, row: $("chips-settings") } : null;
     }
@@ -1236,6 +1238,7 @@
         if (state.schema == null || walk.open || busy) return false;
         const column = wide.on ? down.target.closest("#panel-inputs, #panel-outputs") : null;
         swipeColumn = column ? column.dataset.tab : null;
+        if (swipeTab() === "inputs" && lowOn()) return false;  // the Low page is one page: nothing to swipe to
         return !wide.on || column != null;
       },
       width: () => (wide.on ? shownPanel().clientWidth : root.clientWidth),
@@ -1483,19 +1486,25 @@
     const rootFields = state.schema.types[state.schema.root];
     $("run-body").replaceChildren(...RUN_CARD_FIELDS.map((name) =>
       fieldElement(rootFields.find((item) => item.name === name), name)), seedField(), runsField());
-    $("inflation-body").replaceChildren(...INFLATION_CARD_FIELDS.map((name) => {
+    // At Medium the inflation adjusted switch (High) waits for Household's Add detail, at the foot of the card.
+    const household = state.schema.panels.find((panel) => panel.id === SETUP_PANEL);
+    $("inflation-body").replaceChildren(...INFLATION_CARD_FIELDS.filter((name) => !household
+      || entryShown(household, name)).map((name) => {
       const element = fieldElement(rootFields.find((item) => item.name === name), name);
       element.dataset.inflationField = name;
       return element;
     }));
     syncInflationRange();
+    const detail = paneDetailRow(SETUP_PANEL);
+    $("advancedDetail").replaceChildren(...(detail ? [detail] : []));
   }
 
   // The inflation range shows only while Inflation-adjusted dollars is on. Off, it is hidden but still used: its mean
-  // turns the nominal rates into today's dollars.
+  // turns the nominal rates into today's dollars. While the switch is not drawn (Medium) the range always shows.
   function syncInflationRange() {
     const range = document.querySelector("#inflation-body [data-inflation-field=\"inflation\"]");
-    if (range) range.hidden = !(state.inputs && state.inputs.useInflation);
+    const switchDrawn = document.querySelector("#inflation-body [data-inflation-field=\"useInflation\"]");
+    if (range) range.hidden = Boolean(switchDrawn) && !(state.inputs && state.inputs.useInflation);
   }
 
   // The Monte Carlo's number of runs: a segmented choice under the seed, kept in the prefs.
@@ -1978,15 +1987,18 @@
     refreshDefaultsNotice();
   }
 
-  // Below High, how many inputs the effort leaves at the example household's values (defaultedInputCount); hidden at
-  // High and when there are none. Follows every edit and every effort change.
+  // Below High, how many inputs the effort leaves at the example household's values (defaultedInputCount; an input
+  // Add detail shows is not counted); hidden at High and when there are none. Follows every edit and every effort
+  // change, with the line under it on the detail added (refreshDetailNotice).
   function refreshDefaultsNotice() {
     const notice = $("defaultsNotice");
     if (!notice || !state.schema || !state.inputs || !state.experience) return;
     const effort = shownExperience().effort;
-    const count = effort === "high" ? 0 : defaultedInputCount(state.schema, state.inputs, state.defaults, effort);
+    const count = effort === "high" ? 0 : defaultedInputCount(state.schema, state.inputs, state.defaults, effort,
+      tierOverrides());
     notice.hidden = count === 0;
     notice.textContent = count ? "Using defaults for " + count + (count === 1 ? " input" : " inputs") : "";
+    refreshDetailNotice();
   }
 
   // Change the open scenario's effort or style (`patch`: {effort} and/or {style}, each an id appInfo offers; others
@@ -2023,6 +2035,8 @@
       : first ? { ...offered.newUserDefault } : shownExperience();
     const pick = (change) => Object.assign(experiencePicker.choice, change);
     $("experienceChoices").replaceChildren(...experienceGroups("xpPick", experiencePicker.choice, pick));
+    if (first) $("experienceDetail").hidden = true;
+    else renderDetailList();  // the detail added to the scenario, each with its Hide it
     const button = (label, className, id, onClick) => {
       const element = document.createElement("button");
       element.type = "button";
@@ -2129,6 +2143,178 @@
     });
   }
 
+  // ---- Add detail: at Medium each pane and list sheet draws its Low and Medium inputs, and its Add detail row shows
+  // the High ones of that pane only ----
+  // The rule is the scenario's `experience.tierOverrides` (detailShown in shared.js): `pane.<panelId>` set to high is a
+  // pane's Add detail; a `Type.field` key set to its own tier shows one input. Hidden is a view rule only: every value
+  // is kept and runs, and nothing here edits the inputs. Changing it saves the experience block (saveExperience): no
+  // run, no undo step and no unsaved mark. At Low and High the effort alone decides (the Low page ignores overrides).
+  const { detailShown, detailHidden, optionShown, paneDetailOverrides } = window.WmtiShared;
+  const DETAIL_LABELS_SHOWN = 3;  // labels the Add detail sentence names before "and M more"
+  let drawingPane = null;  // the panel id panelSections is drawing, read by the object children it draws
+
+  function detailEffort() {
+    return shownExperience().effort;
+  }
+
+  // Whether the tier filter applies: at Medium only (High draws every input; Low draws its own page).
+  function detailActive() {
+    return Boolean(state.info && state.experience && state.schema) && detailEffort() === "medium";
+  }
+
+  // The open scenario's tier overrides (an empty table when it has none).
+  function tierOverrides() {
+    const overrides = state.experience && state.experience.tierOverrides;
+    return overrides && typeof overrides === "object" && !Array.isArray(overrides) ? overrides : {};
+  }
+
+  function paneDetailOn(paneId) {
+    return paneId != null && hasOwn(tierOverrides(), "pane." + paneId) && tierOverrides()["pane." + paneId] === "high";
+  }
+
+  // The pane whose Add detail decides what is drawn now: an open sheet's (the Inputs chip it was opened from), else
+  // the panel being drawn.
+  function currentDetailPane() {
+    return sheetOpen ? sheetOpen.paneId : drawingPane;
+  }
+
+  // Whether an input of `tier` keyed `key` (`Type.field`) is drawn on pane `paneId`; always at Low and High.
+  function tierDetailShown(tier, key, paneId = currentDetailPane()) {
+    if (tier == null || !detailActive()) return true;
+    return detailShown(tier, detailEffort(), tierOverrides(), paneId, key);
+  }
+
+  // Whether field `child` (a schema field or derived field, with its `tier`) of an object of `typeName` is drawn.
+  function detailShownFor(typeName, child, paneId = currentDetailPane()) {
+    return tierDetailShown(child && child.tier, typeName + "." + (child && child.name), paneId);
+  }
+
+  // Whether a panel entry is drawn: its tier from the panel's `tiers`, its key from `keys`.
+  function entryShown(panel, name) {
+    if (!panel.tiers || !hasOwn(panel.tiers, name)) return true;
+    return tierDetailShown(panel.tiers[name], panel.keys && hasOwn(panel.keys, name) ? panel.keys[name] : null, panel.id);
+  }
+
+  // Whether a choice `value` of field `Type.field` is offered (an option above the effort is not, unless it is held).
+  function choiceShown(typeName, fieldName, value, held, paneId = currentDetailPane()) {
+    if (!detailActive() || value === held) return true;
+    return optionShown(state.schema, typeName + "." + fieldName, value, detailEffort(), tierOverrides(), paneId);
+  }
+
+  // The `Type.field` key of `schema.optionTiers` that select field `field` is (its name and choices match), or null.
+  function optionKeyOf(field) {
+    return Object.keys((state.schema && state.schema.optionTiers) || {}).find((key) => {
+      const [typeName, name] = key.split(".");
+      const child = name === field.name && (state.schema.types[typeName] || []).find((item) => item.name === name);
+      return Boolean(child) && JSON.stringify(child.choices) === JSON.stringify(field.choices);
+    }) || null;
+  }
+
+  // The Inputs chip shown now (null at Low, which has no chips).
+  function selectedInputsPane() {
+    if (!state.schema || lowOn()) return null;
+    const ids = state.schema.panels.filter((panel) => panel.id !== SETUP_PANEL).map((panel) => panel.id);
+    return inputsChip(ids, state.chips.settings);
+  }
+
+  // A list sheet's fields at the effort: `shown` (the entries of `entries`, sheetFields' layout, that are drawn) and
+  // `info`, the fields its pane's Add detail would add ({hidden, changed, labels}; changed: not at the field's default).
+  function sheetDetail(typeName, item, entries, children, paneId) {
+    const info = { hidden: 0, changed: 0, labels: [] };
+    const shown = entries.filter((entry) => {
+      const child = children.find((candidate) => candidate.name === entry.name);
+      if (!child) return true;
+      if (!detailShownFor(typeName, child, null)) {
+        info.hidden += 1;
+        info.labels.push(sheetLabel(typeName, entry.name, item, state.info.sheetRules) || child.label);
+        if (item && !sameValue(item[entry.name], child.default)) info.changed += 1;
+      }
+      return detailShownFor(typeName, child, paneId);
+    });
+    return { shown, info };
+  }
+
+  // The Add detail sentence: what the pane's (or sheet's) hidden inputs are, and how many of them are set.
+  function detailText(info, on) {
+    if (on) return "Showing every input on this page.";
+    const labels = info.labels.slice(0, DETAIL_LABELS_SHOWN);
+    const more = info.hidden - labels.length;
+    const named = labels.join(", ") + (more > 0 ? " and " + more + " more" : "");
+    const text = "Shows " + info.hidden + (info.hidden === 1 ? " more input" : " more inputs") + " on this page: "
+      + named + ".";
+    return info.changed > 0 ? text + " " + info.changed + " of them " + (info.changed === 1 ? "is" : "are") + " set."
+      : text;
+  }
+
+  // The Add detail row of a pane (`panelId`), drawn at the end of its body; `sheetInfo` ({hidden, changed, labels}) is
+  // a list sheet's own count of the fields it left out. Null at Low and High and while nothing is hidden.
+  function paneDetailRow(panelId, sheetInfo = null) {
+    if (panelId == null || !detailActive()) return null;
+    const panel = state.schema.panels.find((item) => item.id === panelId);
+    const info = sheetInfo || (panel ? detailHidden(state.schema, panel, detailEffort(), tierOverrides(), state.inputs,
+      state.defaults) : null);
+    if (!info || !info.hidden) return null;
+    const on = paneDetailOn(panelId);
+    const row = document.createElement("div");
+    row.className = "detail-row";
+    row.dataset.detailPane = panelId;
+    const text = document.createElement("p");
+    text.className = "note detail-text";
+    text.textContent = detailText(info, on);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button button-quiet detail-toggle";
+    button.textContent = on ? "Hide detail" : "Add detail";
+    button.setAttribute("aria-pressed", String(on));
+    button.addEventListener("click", () => setPaneDetail(panelId, !on, Boolean(row.closest("#sheetBody"))));
+    row.append(text, button);
+    return row;
+  }
+
+  // Turn a pane's Add detail on or off, redraw what shows it (the open sheet, Inputs and Setup) and put the focus back
+  // on the row's button.
+  function setPaneDetail(paneId, on, inSheet = false) {
+    saveExperience({ tierOverrides: paneDetailOverrides(tierOverrides(), paneId, on) });
+    redrawDetail();
+    const scope = inSheet ? $("sheetBody") : document;
+    const button = scope.querySelector(".detail-row[data-detail-pane=\"" + paneId + "\"] .detail-toggle");
+    if (button) button.focus({ preventScroll: true });
+  }
+
+  // Remove every override (the Effort card's Hide it).
+  function clearAddedDetail() {
+    saveExperience({ tierOverrides: {} });
+    redrawDetail();
+  }
+
+  function redrawDetail() {
+    renderSettings();
+    if (sheetOpen && !timelineFlow) refreshForm();
+    refreshDefaultsNotice();
+  }
+
+  // Under "Using defaults for N inputs": below High, while the scenario has overrides, how many there are and a Hide it
+  // button that clears them.
+  function refreshDetailNotice() {
+    const notice = $("detailNotice");
+    if (!notice || !state.experience) return;
+    const count = Object.keys(tierOverrides()).length;
+    const shown = count > 0 && Boolean(state.info) && detailEffort() !== "high";
+    notice.hidden = !shown;
+    if (!shown) {
+      notice.replaceChildren();
+      return;
+    }
+    const text = document.createElement("span");
+    text.textContent = count === 1 ? "Detail added on 1 page or input. " : "Detail added on " + count
+      + " pages and inputs. ";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button button-quiet detail-clear";
+    button.textContent = "Hide it";
+    button.addEventListener("click", clearAddedDetail);
+    notice.replaceChildren(text, button);
+  }
   // ---- Low effort: the spending number that covers housing, cars and loans, and the effort-change hook ----
   // At Low the one monthly spending number counts rent or mortgage, car and loan payments, property taxes and
   // utilities (wmti.dashboard.lowcover). The backend clears what is still the example household's when the spending
@@ -2639,6 +2825,134 @@
     return sheet.queue;
   }
 
+  // ---- Surfacing: show and open one lever's inputs at any effort (the hook the Coach prompts call) ----
+  // A lever is an id of the settings schema's `surface` (wmti.dashboard.tiers.SURFACE_TARGETS): each input it names
+  // comes with the chain of holders up to its panel entry, built in Python. Surfacing writes each chain key not shown
+  // at the effort into `experience.tierOverrides` at its own tier (surfaceOverrides), through saveExperience: no run,
+  // no undo step and no unsaved mark. The Effort and style dialog lists the overrides, each with its Hide it.
+  const { surfaceOverrides, surfacePath, walkIndexedPath, overrideList } = window.WmtiShared;
+  window.wmtiSurface = { surfaceField, jumpToField };  // for the tests and for debugging
+
+  // A lever's targets (a list of surfaceChain dicts), or null for an unknown lever id.
+  function surfaceTarget(leverId) {
+    const surface = state.schema && state.schema.surface;
+    if (!surface || typeof leverId !== "string" || !hasOwn(surface, leverId)) return null;
+    const targets = surface[leverId];
+    return Array.isArray(targets) && targets.length ? targets : null;
+  }
+
+  // The lever whose first input is drawn at input path `path` ({id, itemPath}; `itemPath` the list item, such as
+  // `children.0`, when the input is inside one), or null when no lever opens there.
+  function surfaceLeverFor(path) {
+    for (const id of Object.keys((state.schema && state.schema.surface) || {})) {
+      const target = surfaceTarget(id) && surfaceTarget(id)[0];
+      if (!target || typeof target.entry !== "string") continue;
+      const item = path.startsWith(target.entry + ".") ? /^\d+/.exec(path.slice(target.entry.length + 1)) : null;
+      const itemPath = item ? target.entry + "." + item[0] : undefined;
+      if (surfacePath(target, itemPath) === path) return { id, itemPath };
+    }
+    return null;
+  }
+
+  // Show a lever's inputs at the open scenario's effort, kept in its overrides. False (and nothing changes) for an
+  // unknown lever and at Low, whose page has no such inputs; true otherwise (at High nothing needs adding).
+  function surfaceField(leverId) {
+    const targets = surfaceTarget(leverId);
+    if (!targets || !state.experience || lowOn()) return false;
+    const additions = surfaceOverrides(targets, detailEffort(), tierOverrides());
+    if (Object.keys(additions).length) {
+      saveExperience({ tierOverrides: Object.assign({}, tierOverrides(), additions) });
+      redrawDetail();
+    }
+    return true;
+  }
+
+  // Surface a lever and open its first input on Inputs: its chip, the list item's sheet when `itemPath` names one
+  // (such as `children.0`), the field scrolled into view, flashed and focused. False (and nothing changes) at Low and
+  // for an unknown lever.
+  function jumpToField(leverId, itemPath) {
+    const targets = surfaceTarget(leverId);
+    if (!targets || !surfaceField(leverId)) return false;
+    openInputsField(surfacePath(targets[0], itemPath), targets[0].panel);
+    return true;
+  }
+
+  // Bring input `path` into view on its page (the Inputs chip `chip`, else the first page that draws it): a list
+  // row's sheet is opened when the input is inside one, and the input flashes and takes the focus. False when no page
+  // draws it.
+  function openInputsField(path, chip) {
+    const place = chip ? { tab: chip === SETUP_PANEL ? "setup" : "inputs", chip } : undonePlaces(path)[0];
+    if (!path || !place) return false;
+    if (sheetOpen) closeSheet(true);
+    if (place.tab === "inputs" && state.chips.settings !== place.chip) {
+      state.chips.settings = place.chip;
+      savePrefs();
+      renderSettings();
+    }
+    goTo(place.tab, state.view);
+    let found = drawnField(path, document);
+    if (found && found.row) {
+      found.element.click();  // opens the row's sheet
+      found = drawnField(path, $("sheet")) || found;
+    }
+    if (!found) return true;
+    const shut = found.element.closest("details:not([open])");  // Advanced settings
+    if (shut) shut.open = true;
+    const target = flashField(found.element);
+    target.scrollIntoView({ block: "center" });
+    const control = found.element.matches("input, select, textarea, button") ? found.element
+      : target.querySelector("input, select, textarea, button");
+    if (control) control.focus({ preventScroll: true });
+    return true;
+  }
+
+  // The Effort and style dialog's list of the detail added to the open scenario (its tierOverrides), each with a Hide
+  // it button that removes that one; empty when there is none.
+  function renderDetailList() {
+    const holder = $("experienceDetail");
+    if (!holder) return;
+    const items = state.schema && state.experience ? overrideList(state.schema, tierOverrides()) : [];
+    holder.hidden = !items.length;
+    if (!items.length) {
+      holder.replaceChildren();
+      return;
+    }
+    const heading = document.createElement("h3");
+    heading.className = "eyebrow";
+    heading.textContent = "Detail added";
+    const lede = document.createElement("p");
+    lede.className = "note";
+    lede.textContent = "Inputs shown beyond what Medium shows. Hide it puts one back; its value is kept.";
+    const list = document.createElement("ul");
+    list.className = "detail-list";
+    for (const { key, label } of items) {
+      const row = document.createElement("li");
+      row.className = "detail-list-row";
+      const text = document.createElement("span");
+      text.textContent = label;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "button button-quiet detail-hide";
+      button.dataset.overrideKey = key;
+      button.textContent = "Hide it";
+      button.setAttribute("aria-label", "Hide " + label);
+      button.addEventListener("click", () => hideAddedDetail(key));
+      row.append(text, button);
+      list.append(row);
+    }
+    holder.replaceChildren(heading, lede, list);
+  }
+
+  // Remove one override (a row's Hide it in the Effort and style dialog), redraw what it showed and keep the focus in
+  // the dialog.
+  function hideAddedDetail(key) {
+    const kept = Object.fromEntries(Object.entries(tierOverrides()).filter(([name]) => name !== key));
+    saveExperience({ tierOverrides: kept });
+    redrawDetail();
+    renderDetailList();
+    const next = $("experienceDetail").querySelector(".detail-hide") || $("experience").querySelector(".pk-barwrap");
+    if (next) next.focus();
+  }
   // ---- Monte Carlo: runs on its own after every change (and on Run), in batches, with progress and cancel;
   // results kept per inputs ----
   let mcTimer = null;
@@ -4727,12 +5041,15 @@
       state.chips.settings = id; savePrefs(); renderSettings();
     });
     renderSettingsError();
-    const sections = panelSections(panels.find((item) => item.id === selected));
-    $("settings-body").replaceChildren(...sections);
+    const panel = panels.find((item) => item.id === selected);
+    const sections = panelSections(panel);
+    $("settings-body").replaceChildren(...(sections.length ? sections : [emptyPaneNote(panel)]));
     if (selected === "expenses") {  // the costs other tabs charge on top, the entered rows, then the one summary
       $("settings-body").prepend(alreadyCountedCard());
       $("settings-body").append(expenseSummaryCard());
     }
+    const detail = paneDetailRow(selected);  // Medium: the pane's Add detail, at the end of its body
+    if (detail) $("settings-body").append(detail);
     renderHousehold();
     applyNotes();
     applyBenefits();
@@ -4746,6 +5063,25 @@
     renderRunCard();
     renderBand();
     renderEarningsReturn();
+  }
+
+  // A pane whose every entry Medium hides (Strategies): its title, a note on where its inputs are, and for
+  // Strategies the optimizer link; the Add detail row follows it.
+  const STRATEGIES_MEDIUM_NOTE = "Strategies such as Roth conversions, backdoor Roth, charitable gifts and relocation "
+    + "are shown at High effort. Add detail shows them here.";
+  function emptyPaneNote(panel) {
+    const group = document.createElement("fieldset");
+    group.className = "group pane";
+    group.innerHTML = "<legend><span class=\"legend-title\"><span class=\"pane-icon\">"
+      + iconSvg(iconFor(panel.id || "", panel.label), "pane-svg") + "</span><span>" + escapeText(panel.label)
+      + "</span></span></legend>";
+    const note = document.createElement("p");
+    note.className = "note detail-empty";
+    note.textContent = panel.id === "strategies" ? STRATEGIES_MEDIUM_NOTE
+      : "This page's inputs are shown at High effort. Add detail shows them here.";
+    group.append(note);
+    if (panel.id === "strategies") group.append(optimizeLink());
+    return group;
   }
 
   // The Household panel on Setup: the partner switch and the panel's fields (the seed, runs and the
@@ -4767,14 +5103,18 @@
   // A field the panel's `conditions` hide (the Medicare supplement on Medicare Advantage) is left out, and a section
   // with all its fields hidden is not drawn. A section's `subsections` (the HSA in the Medical plan pane) are drawn
   // inside it as smaller titled groups at the place of their first field, each opened by its own switch.
+  // At Medium an entry above the effort (and not shown by Add detail, see entryShown) is left out, and a section with
+  // no entry shown is not drawn.
   function panelSections(panel) {
+    drawingPane = panel.id;  // the object children drawn below follow this pane's Add detail
     // The Home and Cars panels open with their timeline, once, above every section.
     const timelineKind = ((state.schema.timeline || {}).panels || {})[panel.id];
     if (timelineKind && !panel.timelineDrawn) {
       return [timelineBlock(timelineKind), ...panelSections({ ...panel, timelineDrawn: true })];
     }
     if (panel.sections) {
-      return panel.sections.filter((section) => section.fields.some((name) => conditionMet(panel, name)))
+      return panel.sections.filter((section) => section.fields.some((name) => conditionMet(panel, name)
+        && entryShown(panel, name)))
         .flatMap((section, index) => panelSections({ ...panel, label: section.label,
           fields: section.fields, note: index === 0 ? panel.note : null, sections: null, switch: section.switch,
           subsections: section.subsections || null, help: section.help, lead: section.lead || null }));
@@ -4809,6 +5149,7 @@
     const objectSections = panel.fields.filter((name) => !name.includes(".")
       && (panelField(state.schema, name) || {}).kind === "object").length;
     for (const name of panel.fields) {
+      if (!entryShown(panel, name)) continue;
       if (name === panel.switch) {
         group.append(sectionSwitch(name));
         continue;
@@ -4816,7 +5157,7 @@
       if (switchOff || !conditionMet(panel, name)) continue;
       const subsection = (panel.subsections || []).find((item) => item.fields.includes(name));
       if (subsection) {
-        if (name === subsection.fields[0]) {
+        if (name === subsection.fields.find((item) => entryShown(panel, item))) {
           group.append(...panelSections({ ...panel, label: subsection.label, fields: subsection.fields, note: null,
             switch: subsection.switch, subsections: null, subsection: true, help: subsection.help }));
         }
@@ -4882,7 +5223,10 @@
     if (panel.id === "accounts") {
       group.append(...benefitAccountRows());
       group.append(warningsBox("owner-warnings"));
-      sections.push(surplusSection());
+      // The surplus split edits each account's surplus share (High): at Medium it waits for Add detail, and the
+      // stored shares keep working (renderSplit draws nothing without its holder).
+      const share = (state.schema.types.Account || []).find((child) => child.name === "surplusShare");
+      if (detailShownFor("Account", share, panel.id)) sections.push(surplusSection());
     }
     if (panel.id === "savings" && panel.fields.includes("contributions") && getPath(state.inputs, "contributions.enabled")) {
       group.append(depositSection());  // in the Retirement plan pane, one panel with the plan
@@ -5135,7 +5479,8 @@
   // ---- Benefits, Retirement plan: its switch and each person's employer match (panel fields, drawn first), then the
   // household plan in a disclosure, and a deposit slider per account ----
   function savingsFields(field, path) {
-    const children = (state.schema.types[field.type] || []).filter((child) => child.name !== "enabled");
+    const children = (state.schema.types[field.type] || []).filter((child) => child.name !== "enabled"
+      && detailShownFor(field.type, child));
     const plan = document.createElement("details");
     plan.className = "plan-details";
     plan.open = state.planOpen;
@@ -6444,7 +6789,9 @@
     hint.className = "field-help basis-hint";
     hint.id = group.id + "-hint";
     hint.textContent = NO_EARNINGS_HINT;
-    for (const choice of Object.keys(field.choiceLabels)) {
+    // At Medium the earnings estimate (offered at High only) is left out unless it is the basis already held.
+    const choices = Object.keys(field.choiceLabels).filter((choice) => choiceShown("Person", field.name, choice, value));
+    for (const choice of choices) {
       const button = document.createElement("button");
       button.type = "button";
       button.dataset.basis = choice;
@@ -6463,7 +6810,7 @@
       group.append(button);
     }
     wrap.append(group);
-    if (!hasHistory) wrap.append(hint);
+    if (!hasHistory && choices.includes("earnings")) wrap.append(hint);
     return wrap;
   }
 
@@ -6859,6 +7206,11 @@
           : field.choicesFrom ? choicesFrom(field, path) : field.choices;
         const choiceLabels = field.choiceLabelsByFilingTable
           ? field.choiceLabelsByFilingTable[table] : field.choiceLabels;
+        // At Medium an option offered only at High (visit-based healthcare costs) is left out unless it is held.
+        const optionKey = optionKeyOf(field);
+        if (optionKey) {
+          choices = choices.filter((choice) => choiceShown(optionKey.split(".")[0], field.name, choice, value));
+        }
         const allowed = sheetAllowed(field, path);  // a filtered list's item offers only the panel's values
         if (allowed) choices = allowed.concat(value != null && !allowed.includes(value) ? [value] : []);
         // A claim age at an estimated table age is not a key of the stored table; keep it selectable, not blank.
@@ -7225,7 +7577,13 @@
     }).filter((child) => !placed.has(path + "." + child.name));
     const value = getPath(state.inputs, path);
     const gate = children.find((child) => child.name === "enabled" && child.kind === "toggle");
+    // At Medium a child above the effort (and not shown by Add detail) is left out, so a group or the earnings history
+    // with no member shown is not drawn; a switch left out still keeps the fields it opens closed while it is off.
+    const shown = children.filter((child) => child !== gate && detailShownFor(field.type, child));
     if (gate) {
+      if (!detailShownFor(field.type, gate)) {
+        return value && value.enabled ? pickedFields(field.type, shown, path, headings, group) : [];
+      }
       const gatePath = path + ".enabled";
       const id = fieldId(gatePath);
       const gateSwitch = switchField(gate.label, gate.help, id, Boolean(value && value.enabled), (checked) => {
@@ -7235,10 +7593,9 @@
         if (redrawn) redrawn.focus();
       });
       if (!(value && value.enabled)) return [gateSwitch];
-      const rest = children.filter((child) => child !== gate);
-      return [gateSwitch, ...pickedFields(field.type, rest, path, headings, group)];
+      return [gateSwitch, ...pickedFields(field.type, shown, path, headings, group)];
     }
-    return pickedFields(field.type, children, path, headings, group);
+    return pickedFields(field.type, shown, path, headings, group);
   }
 
   // An object's fields with its checklist picker (`schema.fieldPickers`, the Roth conversion's limits): the picker is
@@ -7685,8 +8042,9 @@
   // redraws, dropped for a path whose items were removed (the positions no longer hold).
   const listSelections = {};
   const listKey = (path, filter) => path + (filter ? " " + JSON.stringify(filter) : "");
-  // Lists whose order means nothing (children, homes, cars): no Move up, Move down or drag handle; Delete stays.
-  const UNORDERED_TYPES = new Set(["Child", "Home", "Car"]);
+  // Lists whose order means nothing (children, homes, cars, expenses, loans, rent periods, heirs): no Move up, Move down
+  // or drag handle; Delete stays. Accounts keep them: their order is the withdrawal priority and the deposit order.
+  const UNORDERED_TYPES = new Set(["Child", "Home", "Car", "ExpenseItem", "Loan", "RentPeriod", "Heir"]);
   const isUnordered = (type) => UNORDERED_TYPES.has(type);
 
   function clearSelections(path) {
@@ -8110,11 +8468,15 @@
       }
     }
     if (!sheetSession) beginSheetSession(path);  // kept while the sheet redraws or Move up / Move down moves the item
-    sheetOpen = { field, path, position, filter: filter || null, kind: items[position] && items[position].kind };
+    // The sheet follows the Add detail of the Inputs chip it was opened from (a nested item's, its parent's).
+    const paneId = sheetOpen ? sheetOpen.paneId : selectedInputsPane();
+    sheetOpen = { field, path, position, filter: filter || null, kind: items[position] && items[position].kind, paneId };
     $("sheetTitle").textContent = (items[position] && items[position].name) || typeWords(field.type);
     const body = $("sheetBody");
     const children = state.schema.types[field.type] || [];
     const layout = sheetFields(field.type, items[position], children, state.info.sheetRules);
+    const detail = sheetDetail(field.type, items[position], layout.shown, children, paneId);
+    layout.shown = detail.shown;
     const parts = [];
     const intro = sheetIntro(field.type, items[position]);
     if (intro) parts.push(intro);
@@ -8159,6 +8521,8 @@
     }
     body.replaceChildren(...parts);
     tintSections(body);
+    const detailRow = paneDetailRow(paneId, detail.info);  // Medium: the pane's Add detail, above Remove
+    if (detailRow) body.append(detailRow);
     const actions = document.createElement("div");
     actions.className = "sheet-actions";
     // Moving swaps the item with its shown neighbour: with a filter, the next matching item in the full list.
@@ -8348,6 +8712,28 @@
 
   function timelineWords(kind) {
     return state.schema.timeline.flow[kind];
+  }
+
+  // Whether the timeline offers a later purchase, its price and a planned sale (High inputs) for `kind`: at Medium only
+  // with its pane's Add detail, or for an `item` that already has one (its values stay editable).
+  function timelineLaterShown(kind, item = null) {
+    if (item && (item.buysLater || item.sellsLater)) return true;
+    const later = (state.schema.types[kind] || []).find((child) => child.name === "buysLater");
+    return detailShownFor(kind, later, timelinePane(kind));
+  }
+
+  // The Inputs pane of a timeline's kind (Home: home, Car: cars), whose Add detail its screens follow.
+  function timelinePane(kind) {
+    const panels = state.schema.timeline.panels || {};
+    return Object.keys(panels).find((id) => panels[id] === kind) || null;
+  }
+
+  // Whether a timeline screen of `kind` draws field `name` of `typeName` (the item's type, or RentPeriod): at Medium a
+  // High field waits for the pane's Add detail, as on the sheets; a field not drawn keeps its stored value, and a new
+  // item gets the field's default.
+  function timelineFieldShown(typeName, name, kind = typeName) {
+    const field = (state.schema.types[typeName] || []).find((child) => child.name === name);
+    return !field || detailShownFor(typeName, field, timelinePane(kind));
   }
 
   function timelineYear(age) {
@@ -8702,8 +9088,11 @@
       .filter((name) => !words.financingFields.includes(name));
     const payChoice = kind === "Car";
     const leaseNames = payChoice ? words.leaseFields : [];
+    // At Medium a High figure (a car's price paid, the extra payments, Payment in Expenses) is not asked: the new
+    // item takes its default.
     const names = own.concat([words.financingSwitch],
-      words.financingFields.filter((name) => owned || !replaced.includes(name)), leaseNames);
+      words.financingFields.filter((name) => owned || !replaced.includes(name)), leaseNames)
+      .filter((name) => name === words.financingSwitch || timelineFieldShown(kind, name));
     const inputs = {};
     const elements = names.map((name) => {
       if (payChoice && name === words.financingSwitch) return timelinePayMethod(blank, inputs);
@@ -8771,12 +9160,13 @@
     const value = elements[names.indexOf("valueToday")].input;
     if (!(Number(blank.valueToday) > 0)) value.value = "";
     const sync = () => {
-      const estimate = carEstimatedValue({ ...blank, purchasePrice: inputs.purchasePrice(),
-        purchaseYear: inputs.purchaseYear() }, rules);
+      const read = (name) => (inputs[name] ? inputs[name]() : blank[name]);  // a figure not asked keeps its default
+      const estimate = carEstimatedValue({ ...blank, purchasePrice: read("purchasePrice"),
+        purchaseYear: read("purchaseYear") }, rules);
       value.placeholder = estimate == null ? rules.carValue.estimateNone : fullMoney(estimate);
     };
     for (const name of ["purchasePrice", "purchaseYear"]) {
-      elements[names.indexOf(name)].input.addEventListener("input", sync);
+      if (names.includes(name)) elements[names.indexOf(name)].input.addEventListener("input", sync);
     }
     sync();
   }
@@ -8877,8 +9267,10 @@
       // One screen: first what is added (owned now, a future purchase, or for a home a rent period); then that case's
       // fields below it. A car's lease is chosen by its How it is paid (`timelineFigures`), as on its sheet. Save
       // applies one buy and closes; nothing chains to a second screen.
+      // At Medium a future purchase and a planned sale wait for the pane's Add detail (timelineLaterShown).
       const other = kind === "Home" ? "rent" : "lease";
-      const options = [["owned", words.addOptions.owned], ["future", words.addOptions.future]]
+      const later = timelineLaterShown(kind);
+      const options = [["owned", words.addOptions.owned]].concat(later ? [["future", words.addOptions.future]] : [])
         .concat(kind === "Home" ? [[other, "Rent"]] : []);
       const choice = timelineChoice("What are you adding?", options, flow.addChoice || null);
       const holder = document.createElement("div");
@@ -8907,7 +9299,8 @@
           hint.className = "field-help";
           hint.textContent = rent ? words.rentHint : words.leaseHint;
           const replaces = rent ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);  // a lease may replace a car
-          const where = rent ? timelineState("RentPeriod", kept.state) : null;
+          const where = rent && timelineFieldShown("RentPeriod", "state", kind) ? timelineState("RentPeriod", kept.state)
+            : null;
           holder.replaceChildren(...[name, replaces, start, end, monthly, where, hint].filter(Boolean));
           read = () => {
             const endYear = end.input.value === "" ? null : Number(end.input.value);
@@ -8929,18 +9322,21 @@
         const end = timelineYearInput(words.saleYear + " (optional)", yearOf(kept.saleAge), true);
         const figures = timelineFigures(kind, owned, kept.figures);
         const replaces = owned ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);
+        end.hidden = !later;  // a planned sale (High); a car's lease end stays
         if (kind === "Car") {  // a car leased: the years are the lease's start and end
           const caption = (element) => element.querySelector(".field-label");
           figures.onPay((leased) => {
             if (start) caption(start).textContent = leased ? words.leaseStart : words.purchaseYear;
             caption(end).textContent = leased ? words.leaseEnd : words.saleYear + " (optional)";
+            end.hidden = !later && !leased;
           });
         }
-        const where = kind === "Home" ? timelineState("Home", kept.state) : null;
+        const where = kind === "Home" && timelineFieldShown(kind, "state") ? timelineState("Home", kept.state) : null;
         holder.replaceChildren(...[name, replaces, start, end, where].filter(Boolean), ...figures.elements);
         read = () => {
           const fields = { name: name.input.value, purchaseAge: start ? timelineAge(Number(start.input.value)) : null,
-            saleAge: end.input.value === "" ? null : timelineAge(Number(end.input.value)), ...figures.values() };
+            saleAge: end.hidden || end.input.value === "" ? null : timelineAge(Number(end.input.value)),
+            ...figures.values() };
           if (figures.leased && figures.leased()) fields.mode = "lease";
           if (where) fields.state = where.value();
           flow.addDraft = { choice: value, name: fields.name, purchaseAge: fields.purchaseAge, saleAge: fields.saleAge,
@@ -8966,7 +9362,7 @@
       const endYear = timelineYearInput(words.rentEnd.replace(" (optional)", ""), timelineYear(period.endAge == null
         ? currentAge + 1 : period.endAge));
       const monthly = timelineInput(words.rentQuestion, "number", period.monthlyRent, { min: 0, step: "any" });
-      const where = timelineState("RentPeriod", period.state);
+      const where = timelineFieldShown("RentPeriod", "state", kind) ? timelineState("RentPeriod", period.state) : null;
       const sync = () => {
         startYear.hidden = today.input.checked;
         endYear.hidden = open.input.checked;
@@ -8974,11 +9370,12 @@
       today.input.addEventListener("change", sync);
       open.input.addEventListener("change", sync);
       sync();
-      parts.push(today, startYear, open, endYear, monthly, where);
+      parts.push(...[today, startYear, open, endYear, monthly, where].filter(Boolean));
       save = async () => {
         const fields = { monthlyRent: Number(monthly.input.value),
           purchaseAge: today.input.checked ? null : timelineAge(Number(startYear.input.value)),
-          saleAge: open.input.checked ? null : timelineAge(Number(endYear.input.value)), state: where.value() };
+          saleAge: open.input.checked ? null : timelineAge(Number(endYear.input.value)) };
+        if (where) fields.state = where.value();  // not drawn at Medium: the stored state is kept
         if (await timelineStep({ op: "edit", position: flow.position, fields })) timelineClose();
       };
     } else if (flow.step === "edit") {
@@ -8997,6 +9394,8 @@
         : timelineInput(state.schema.types[kind].find((field) => field.name === "purchasePrice").label, "number",
           item.purchasePrice, { min: 0, step: "any" });
       if (!leased) {
+        // At Medium an item owned now without a later purchase or sale keeps those controls behind Add detail.
+        const later = timelineLaterShown(kind, item);
         ownedNow = timelineInput(words.ownedNow, "check", !item.buysLater);
         selling = timelineInput("Plan to sell it", "check", item.sellsLater);  // ticked: the sale year shows; unticked: kept
         const sync = () => {
@@ -9007,8 +9406,8 @@
         ownedNow.input.addEventListener("change", sync);
         selling.input.addEventListener("change", sync);
         sync();
-        parts.push(ownedNow, startYear, figure, selling, endYear);
-        if (kind === "Home") parts.push(where = timelineState("Home", item.state));
+        if (later) parts.push(ownedNow, startYear, figure, selling, endYear);
+        if (kind === "Home" && timelineFieldShown(kind, "state")) parts.push(where = timelineState("Home", item.state));
       } else {  // a lease running today keeps no start year unless one is given
         ownedNow = timelineInput(words.leasedNow, "check", !item.buysLater);
         const sync = () => { startYear.hidden = ownedNow.input.checked; };
@@ -9885,13 +10284,16 @@
     let target = walk.saved.current;
     if (target === "start" && !walk.plan.offerImport) target = "welcome";
     if (!target || (!WALK_SCREENS.includes(target) && !walkRow(target))) target = firstUnanswered();
-    if (walk.unlockFrom) {  // a raised effort: on to the first question it unlocked
-      if (walk.unlockFrom === "low") walk.fromLow = true;  // the screens it unlocks say the spending covers them
-      const unlocked = firstUnlocked(walkRows(), walk.unlockFrom, state.experience.effort);
-      walk.unlockFrom = null;
-      if (unlocked) target = unlocked;
-    }
-    showWalkScreen(target, "forward", false);
+    showWalkScreen(walkUnlocked(target), "forward", false);
+  }
+
+  // After a raised effort (walk.unlockFrom), the first question the raise unlocked (firstUnlocked); else `target`.
+  function walkUnlocked(target) {
+    if (!walk.unlockFrom) return target;
+    if (walk.unlockFrom === "low") walk.fromLow = true;  // the screens it unlocks say the spending covers them
+    const unlocked = firstUnlocked(walkRows(), walk.unlockFrom, state.experience.effort);
+    walk.unlockFrom = null;
+    return unlocked || target;
   }
 
   // Close the walkthrough with `status`. `ended` is false for a hand-off to an Inputs page (the walkthrough goes on
@@ -9954,6 +10356,18 @@
   }
 
   // The short bullets under a Go deeper offer: what its deeper questions cover.
+  // A question's `prompt`, `offer`, `preview` or `choices` (`key`) as the open scenario's effort words it: at Medium
+  // its `medium` wording where the tree gives one (the deeper questions cover less there), else its own.
+  function walkText(node, key) {
+    const medium = node.medium;
+    if (medium && hasOwn(medium, key) && shownExperience().effort === "medium") return medium[key];
+    return node[key];
+  }
+
+  // The welcome's time estimate by effort.
+  const WALK_ESTIMATES = { low: "About 3 minutes", medium: "About 10 minutes",
+    high: "As long as you like; stop or skip any time" };
+
   function walkPreviewHtml(preview) {
     if (!preview || !preview.length) return "";
     return "<ul class=\"walk-preview\">" + preview.map((bullet) => "<li>" + escapeText(bullet) + "</li>").join("")
@@ -10100,7 +10514,7 @@
   function welcomeScreen() {
     const element = document.createElement("div");
     element.className = "walk-screen";
-    element.append(walkEyebrow(lowOn() ? "About 3 minutes" : "About 10 minutes"), walkHeading("Let's set up your plan"),
+    element.append(walkEyebrow(WALK_ESTIMATES[shownExperience().effort]), walkHeading("Let's set up your plan"),
       walkParagraph("Each answer starts with your current setting, or an example if you have not entered one. "
         + "Change it to yours and tap Continue. Skip keeps what is shown. You can change anything later.",
         "walk-lede"));
@@ -10215,7 +10629,8 @@
       wrap.append(walkChoices(labelIds, [[true, field.yes || "Yes"], [false, field.no || "No"]], Boolean(current),
         (value) => walkSet(field.path, value)));
     } else if (field.choices && field.choices.length <= 6) {
-      wrap.append(walkChoices(labelIds, field.choices.map((choice) => [choice, choiceText(field, choice)]), current,
+      const choices = walkText(node, "choices") || field.choices;  // Medium may narrow them (the benefit basis)
+      wrap.append(walkChoices(labelIds, choices.map((choice) => [choice, choiceText(field, choice)]), current,
         (value) => walkSet(field.path, value)));
     } else if (field.choices) {
       const select = document.createElement("select");
@@ -10362,7 +10777,7 @@
     else if (walk.index[id].topic.optional) element.append(walkEyebrow("Extra question", "walk-deeper"));
     const head = document.createElement("div");
     head.className = "walk-head";
-    head.append(walkHeading(node.prompt));
+    head.append(walkHeading(walkText(node, "prompt")));
     const help = node.fields.length === 1 ? node.fields[0].help : null;
     if (help && row.control !== "handoff") {
       const helpId = newHelpId();
@@ -10434,12 +10849,14 @@
     if (row.hasDeeper && node.offer && !walk.saved.opened.includes(id)) {
       // With preview bullets the button just says "Go deeper" (the bullets say what it covers); else it names the offer.
       // It sits in the scrolling question, under the answer, so the pinned actions stay short on a phone.
-      const hasPreview = Boolean(node.preview && node.preview.length);
-      const deeper = walkButton(hasPreview ? "Go deeper" : "Go deeper: " + node.offer,
+      const offer = walkText(node, "offer");
+      const preview = walkText(node, "preview");
+      const hasPreview = Boolean(preview && preview.length);
+      const deeper = walkButton(hasPreview ? "Go deeper" : "Go deeper: " + offer,
         "button button-quiet walk-deeper-button", walkDeeper);
-      if (hasPreview) deeper.setAttribute("aria-label", "Go deeper: " + node.offer);
+      if (hasPreview) deeper.setAttribute("aria-label", "Go deeper: " + offer);
       element.append(deeper);
-      if (hasPreview) element.append(walkPreview(node.preview));
+      if (hasPreview) element.append(walkPreview(preview));
     }
     const quiet = document.createElement("div");
     quiet.className = "walk-quiet-row";
@@ -10612,6 +11029,23 @@
     $("walkResume").hidden = false;
   }
 
+  // At High, the input path a review row's Open in Inputs opens: a question that writes one field drawn on a page
+  // (its list selectors turned into item positions); null otherwise, and at Low and Medium.
+  function reviewFieldPath(node) {
+    if (shownExperience().effort !== "high" || node.handoff || !node.fields || node.fields.length !== 1) return null;
+    const path = walkIndexedPath(state.inputs, node.fields[0].path);
+    return path && undonePlaces(path).length ? path : null;
+  }
+
+  // A review row's Open in Inputs: the walkthrough pauses (Resume brings it back) and the input opens on its page,
+  // through the lever whose first input it is when one names it (jumpToField), else on the first page that draws it.
+  function walkOpenField(path) {
+    closeWalk("paused", false);
+    $("walkResume").hidden = false;
+    const lever = surfaceLeverFor(path);
+    if (!lever || !jumpToField(lever.id, lever.itemPath)) openInputsField(path);
+  }
+
   function walkFinish() {
     closeWalk("done");
     goTo("outputs", "summary");
@@ -10631,22 +11065,27 @@
         }
         html += "<ol class=\"walk-trail-list\">" + group.items.map((item) => {
           const depth = " style=\"--depth:" + item.depth + "\"";
+          const node = walk.index[item.id].node;
           if (item.kind === "offer") {
             return "<li" + depth + "><button type=\"button\" class=\"walk-row walk-offer\" data-offer=\""
-              + escapeText(item.id) + "\">+ " + escapeText(item.label) + "</button></li>";
+              + escapeText(item.id) + "\">+ " + escapeText(walkText(node, "offer")) + "</button></li>";
           }
-          const node = walk.index[item.id].node;
+          const label = item.handoff ? walkText(node, "prompt") : item.label;  // a hand-off is labelled by its prompt
           const answer = item.status === "todo" && !review ? "Not yet"
             : answerText(node, state.inputs, facts, state.info.sheetRules);
           // The review leaves out the Answered pill (Skipped and Not yet keep theirs); the Trail shows every tag.
           const tag = review && item.status === "answered" ? ""
             : "<span class=\"walk-tag\" data-status=\"" + item.status + "\">" + WALK_TAGS[item.status] + "</span>";
-          const text = "<span class=\"walk-row-text\"><span class=\"walk-row-label\">" + escapeText(item.label)
+          const text = "<span class=\"walk-row-text\"><span class=\"walk-row-label\">" + escapeText(label)
             + "</span><span class=\"walk-row-answer\">" + escapeText(answer) + "</span></span>";
           if (review) {
+            const field = reviewFieldPath(node);  // High: a question that writes one field opens it on Inputs
+            const open = field ? "<button type=\"button\" class=\"walk-change walk-open-field\" data-field=\""
+              + escapeText(field) + "\" aria-label=\"Open " + escapeText(label) + " in Inputs\">Open in Inputs</button>"
+              : "";
             return "<li class=\"walk-review-row\"" + depth + ">" + text + tag + "<button type=\"button\" "
               + "class=\"walk-change\" data-jump=\"" + escapeText(item.id) + "\" aria-label=\"Change "
-              + escapeText(item.label) + "\">Change</button></li>";
+              + escapeText(label) + "\">Change</button>" + open + "</li>";
           }
           return "<li" + depth + "><button type=\"button\" class=\"walk-row\" data-jump=\"" + escapeText(item.id) + "\""
             + (item.status === "now" ? " aria-current=\"step\"" : "") + ">" + text + tag + "</button></li>";
@@ -10682,7 +11121,28 @@
     list.className = "walk-trail";
     list.innerHTML = trailHtml(true) + exampleLeftovers();
     element.append(list);
+    if (shownExperience().effort !== "high") {  // below High a raised effort asks more questions
+      const raise = walkButton("Change effort", "button button-quiet", walkChangeEffort);
+      raise.id = "walkRaiseEffort";
+      element.append(walkParagraph("Want more questions? Raise the effort in Effort and style.", "walk-lede"), raise);
+    }
     return { element, actions: [walkButton("Finish", "button walk-primary", null, true)] };
+  }
+
+  // The Review screen's Change effort: the menu's picker (Cancel keeps everything). A raise goes on to the first
+  // question it unlocked (walkEffortRaised, walkUnlocked); a lowered effort redraws the review with its questions.
+  async function walkChangeEffort() {
+    if (walk.busy) return;
+    const before = shownExperience().effort;
+    $("app").inert = false;  // the picker is in the page, which the walkthrough keeps inert
+    const choice = await openExperiencePicker("settings");
+    if (!walk.open) return;
+    $("app").inert = true;
+    if (!choice || shownExperience().effort === before) return;
+    await walkReplan();
+    const target = walkUnlocked("review");
+    if (target === "review") showWalkScreen("review", "forward", false);
+    else walkGo(target, "forward");
   }
 
   function openWalkMap() {
@@ -10728,10 +11188,11 @@
   // A tap in the Trail or the review: jump to a question, open a question's or an optional topic's deeper questions,
   // or open an Inputs page.
   async function walkTrailClick(event) {
-    const button = event.target.closest("[data-jump], [data-offer], [data-topic], [data-panel]");
+    const button = event.target.closest("[data-jump], [data-offer], [data-topic], [data-panel], [data-field]");
     if (!button || walk.busy) return;
     closeWalkMap(false);
     if (button.dataset.panel) { walkHandoff(button.dataset.panel); return; }
+    if (button.dataset.field) { walkOpenField(button.dataset.field); return; }
     if (button.dataset.jump) {
       if (button.dataset.jump !== walk.saved.current) walkGo(button.dataset.jump);
       else $("walkTitle").focus();

@@ -9,7 +9,7 @@
   <title>Legal &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -94,72 +94,77 @@
              
   <section id="legal">
 <h1>Legal<a class="headerlink" href="#legal" title="Link to this heading"></a></h1>
-<p>Walk Me Through It (WMTI) is source-available under the PolyForm Noncommercial
-License 1.0.0: anyone may read and use the code for non-commercial purposes
-only. Its Terms say the results are estimates for education, not advice, may
-not come true and come with no warranty. This page lists where each piece
-lives.</p>
+<p>Purpose: for anyone who wants to know under what terms WMTI is licensed and used, and where each legal document lives.</p>
+<p>Walk Me Through It (WMTI) is source-available under the PolyForm Noncommercial License
+1.0.0: anyone may read and use the code for non-commercial purposes only. Its Terms say the
+results are estimates for education, not advice, may not come true and come with no
+warranty.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This is not legal advice. Have a qualified lawyer review these documents
-before a wide release.</p>
+<p>This is not legal advice. Have a qualified lawyer review these documents before a wide
+release.</p>
 </div>
 <section id="what-is-where">
 <h2>What is where<a class="headerlink" href="#what-is-where" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>: the official PolyForm Noncommercial License 1.0.0 text,
-unchanged, after the <code class="docutils literal notranslate"><span class="pre">Required</span> <span class="pre">Notice</span></code> line (the copyright year, the
-copyright holder’s name, Walk Me Through It (WMTI) and the address of the
-public repository).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code>: the Terms of use, in numbered sections with defined
-terms (the Terms, the Software, Results, Your Data, the Privacy Notice, the
-License): eligibility (legal age and capacity, confirmed by agreeing; the
-agreement box itself only says <em>I have read and agree to the Terms</em>),
-education only and not advice or a fiduciary relationship, US federal and
-state (50 states and DC) tax only, hypothetical results with the Monte Carlo statement in
-capitals, the user’s own risk, the warranty disclaimer and the limitation of
-liability in capitals (with the carve-out for liability the law does not let
-us exclude), the data and device section (data loss included), free test
-software with no support, permitted (noncommercial) use, a release, a
-covenant not to sue and a light indemnity, governing law with a 30-day informal resolution step and a
-small-claims carve-out (no arbitration and no class waiver), and the general
-clauses.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">legal/PRIVACY.md</span></code>: the Privacy notice (everything stays on the device;
-shared devices, exported files, children, your rights, how to clear your
-data). It has its own <code class="docutils literal notranslate"><span class="pre">Version:</span></code> line, for
-readers; only the Terms version asks users to agree again.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">legal/TRADEMARKS.md</span></code>: the unregistered marks claimed (the brand name,
-Walk Me Through It, WMTI) and the third-party names used.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">legal/NOTICE.md</span></code>: the third-party components the app ships and
-their licenses; <code class="docutils literal notranslate"><span class="pre">legal/third-party/</span></code>: each component’s full license text
-(numpy, pandas, python-dateutil, pytz, six, Pyodide’s MPL 2.0, CPython’s
-license, and the Open Font License of each font).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>: how to report a security problem, the scope and the safe
-harbour; copied to the public repository.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> and <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>: the copyright sentence, and the package
-metadata <code class="docutils literal notranslate"><span class="pre">license</span> <span class="pre">=</span> <span class="pre">&quot;PolyForm-Noncommercial-1.0.0&quot;</span></code> with
-<code class="docutils literal notranslate"><span class="pre">license-files</span> <span class="pre">=</span> <span class="pre">[&quot;LICENSE&quot;]</span></code>.</p></li>
-<li><p>App: <code class="docutils literal notranslate"><span class="pre">frontend/build.py</span></code> writes <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, <code class="docutils literal notranslate"><span class="pre">legal/*.md</span></code> and the
-third-party license texts (one document, Third-party licenses) into
-<code class="docutils literal notranslate"><span class="pre">legal.&lt;hash&gt;.js</span></code>; the Terms and agreement step and the menu’s Legal window
-draw them as plain text (see <a class="reference internal" href="app.html"><span class="doc">The app</span></a>). Every code file and
-<code class="docutils literal notranslate"><span class="pre">index.html</span></code> starts with a license header made from the <code class="docutils literal notranslate"><span class="pre">Required</span> <span class="pre">Notice</span></code>
-line, and the model zip holds <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>.</p></li>
-<li><p>Public site: <code class="docutils literal notranslate"><span class="pre">frontend/publish_pages.py</span></code> copies <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>, <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>,
-<code class="docutils literal notranslate"><span class="pre">legal/*.md</span></code> and <code class="docutils literal notranslate"><span class="pre">legal/third-party/*.txt</span></code> into the public repository and
-puts the license line, the disclaimer and the security line in its
-<code class="docutils literal notranslate"><span class="pre">README.md</span></code>.</p></li>
-</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>File</p></th>
+<th class="head"><p>What it holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code></p></td>
+<td><p>The official PolyForm Noncommercial License 1.0.0 text, unchanged, after the
+<code class="docutils literal notranslate"><span class="pre">Required</span> <span class="pre">Notice</span></code> line (copyright year, holder, WMTI and the public repository
+address).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code></p></td>
+<td><p>The Terms of use: eligibility (legal age, confirmed by agreeing), education only and not
+advice, US tax only, hypothetical results, your own risk, warranty disclaimer and
+limitation of liability, data and device, free test software, noncommercial use, a
+release, a covenant not to sue, a light indemnity, and governing law with a 30-day
+informal resolution step and a small-claims carve-out (no arbitration, no class
+waiver).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">legal/PRIVACY.md</span></code></p></td>
+<td><p>The Privacy notice: everything stays on the device; shared devices, exported files,
+children, your rights, how to clear your data. Its <code class="docutils literal notranslate"><span class="pre">Version:</span></code> line is for readers;
+only the Terms version asks users to agree again.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">legal/TRADEMARKS.md</span></code></p></td>
+<td><p>The unregistered marks claimed (the brand name, Walk Me Through It, WMTI) and the
+third-party names used.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">legal/NOTICE.md</span></code> and <code class="docutils literal notranslate"><span class="pre">legal/third-party/</span></code></p></td>
+<td><p>The third-party components the app ships, their licenses and each full license text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code></p></td>
+<td><p>How to report a security problem, the scope and the safe harbour; copied to the
+public repository.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> and <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code></p></td>
+<td><p>The copyright sentence and the package license metadata.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The app bundles these files; the Terms and agreement step and the menu’s Legal window show
+them as plain text (see <a class="reference internal" href="app.html"><span class="doc">The app</span></a>). Every code file starts with a license header, and the
+model zip holds <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>. The public site copies the same files into the public
+repository and adds the license line, the disclaimer and the security line to its
+<code class="docutils literal notranslate"><span class="pre">README.md</span></code>.</p>
 </section>
 <section id="the-terms-version">
 <h2>The Terms version<a class="headerlink" href="#the-terms-version" title="Link to this heading"></a></h2>
-<p>The Terms version is the <code class="docutils literal notranslate"><span class="pre">Version:</span></code> date of <code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code>, a <code class="docutils literal notranslate"><span class="pre">+</span></code> and
-the first six hex characters of the sha256 of the file’s text (line endings
-made LF first), such as <code class="docutils literal notranslate"><span class="pre">2026-10-19+1a2b3c</span></code>, computed by <code class="docutils literal notranslate"><span class="pre">frontend/build.py</span></code>
-(<code class="docutils literal notranslate"><span class="pre">termsVersion</span></code>). Any wording change gives a new
-version, even when the date stays, so every user is asked to agree again; still
-change the date when the Terms change, so readers see it. An acceptance records
-the version, the text’s full sha256, the build id and the time, so it shows which text was accepted.</p>
+<p>The Terms version is the <code class="docutils literal notranslate"><span class="pre">Version:</span></code> date of <code class="docutils literal notranslate"><span class="pre">legal/TERMS.md</span></code>, a <code class="docutils literal notranslate"><span class="pre">+</span></code> and the first six
+hex characters of the sha256 of the file’s text (line endings made LF first), such as
+<code class="docutils literal notranslate"><span class="pre">2026-10-19+1a2b3c</span></code>, computed by the frontend build. Any wording change gives a new
+version, even when the date stays, so every user is asked to agree again; still change the
+date when the Terms change. An acceptance records the version, the text’s full sha256, the
+build id and the time.</p>
 </section>
 </section>
 

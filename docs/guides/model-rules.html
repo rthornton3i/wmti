@@ -9,7 +9,7 @@
   <title>Model rules by group &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -57,6 +57,7 @@
 <p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Model rules by group</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#inflation-and-dollars">Inflation and dollars</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#household">Household</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#accounts">Accounts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#income">Income</a></li>
@@ -129,1005 +130,683 @@
              
   <section id="model-rules-by-group">
 <span id="model-rules"></span><h1>Model rules by group<a class="headerlink" href="#model-rules-by-group" title="Link to this heading"></a></h1>
-<p>For readers who want the rules behind each screen: this page says, group by
-group, what the model does with what you enter and what the shipped example
-household holds. <a class="reference internal" href="app.html"><span class="doc">The app</span></a> describes the screens themselves. Defaults quoted
-here are those of the
-shipped default profile (<code class="docutils literal notranslate"><span class="pre">backend/wmti/inputs/default_profile.json</span></code>) and the
-input classes in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>. The strategy rules are in
-<a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a> and the law backlog is in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>; this page links
-there instead of repeating them.</p>
-<p>Money is shown in one of two ways. By default it is in today’s dollars, so a
-figure from a year far ahead buys what the same figure buys now. With the
-inflation adjusted switch on (Setup), figures are inflation adjusted instead
-and grow with each year’s drawn inflation. The <a class="reference internal" href="usage.html#inflation"><span class="std std-ref">Inflation section</span></a> of <a class="reference internal" href="usage.html"><span class="doc">Using the toolkit</span></a> explains how the two ways relate. A figure marked
-<code class="docutils literal notranslate"><span class="pre">(%)</span></code> is a percent: type 3 for 3%.</p>
+<p>Purpose: for readers who want the rules behind each screen, what the model does with each group’s inputs and its defaults.</p>
+<p><a class="reference internal" href="app.html"><span class="doc">The app</span></a> describes the screens. Defaults are those of the shipped example
+household. The strategy rules are in <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a> and the law gaps are in
+<a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>.</p>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="../_images/inputs.png"><img alt="The Inputs tab with the Retirement chip selected, showing the Social Security benefit by claim age." src="../_images/inputs.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Inputs: one chip per group below.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<section id="inflation-and-dollars">
+<span id="inflation"></span><h2>Inflation and dollars<a class="headerlink" href="#inflation-and-dollars" title="Link to this heading"></a></h2>
+<p>Money is in today’s dollars by default, so a far-future figure buys what the
+same figure buys now. A figure marked <code class="docutils literal notranslate"><span class="pre">(%)</span></code> is a percent: type 3 for 3%.</p>
+<ul class="simple">
+<li><p><strong>Inflation range</strong> (Setup, Advanced settings): low, most likely and high, drawn as a triangular range each year. The defaults are 1%, 3% and 6%.</p></li>
+<li><p><strong>Inflation-adjusted dollars on</strong> (off by default): expenses, Social Security and the law’s indexed figures grow with each year’s drawn inflation, and balances are inflation adjusted.</p></li>
+<li><p><strong>Off</strong>: returns and pay are deflated by the mean of the range, as (1 + return) / (1 + inflation) - 1. For 1%, 3% and 6% the mean is 3.33%, not the 3% most likely value.</p></li>
+<li><p>Both ways tell the same story. A plan that fails at the mean fails in both.</p></li>
+</ul>
+</section>
 <section id="household">
 <span id="tab-left-pane"></span><h2>Household<a class="headerlink" href="#household" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> Setup’s Household, Run and Inflation cards: the household,
-the run settings and the inflation adjusted switch with the inflation range.
-Everything here applies to the whole run, whichever tab is shown.</p>
-<p><strong>Defaults.</strong> The default profile has a partner, files JOINT, lives in NJ, runs 65 years,
-is in today’s dollars.</p>
-<p><strong>Logic.</strong> A saved scenario is never changed by anything but your own edits (or by a
-merge or <em>Make B match A</em> on Compare). With inflation adjusted money
-the model draws inflation each year from the <em>Inflation</em> range on Setup and grows expenses,
-Social Security and the law’s indexed figures with it. The figures the law does not index
-(state brackets, the Social Security taxability thresholds, Medicare Part B, the SALT
-floor and the mortgage limit) are assumed to keep up with inflation too; a scenario saved
-with that assumption turned off keeps it, but no screen changes it. In today’s dollars it instead deflates
-returns and pay by the mean of that range, so the two ways tell the same story. The seed
-makes comparisons fair: two scenarios run on the same draws differ because of their settings,
-not luck.</p>
-<p>Each year the model takes the larger of the standard deduction and the itemized deductions;
-the year-by-year figures are on Outputs, <a class="reference internal" href="#tab-summary"><span class="std std-ref">Summary</span></a>. The state
-starts from income before federal deductions. The state treatment of each strategy is under
-<a class="reference internal" href="tax-law.html#home-state-strategies"><span class="std std-ref">How the home state treats the strategies</span></a>.</p>
+<p>Setup’s Household, Run and Inflation cards apply to the whole run.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: a partner, filing JOINT, living in NJ, a 65-year run, today’s dollars.</p></li>
+<li><p><strong>Saved scenarios</strong> change only by your edits, a merge or <em>Make B match A</em> on Compare.</p></li>
+<li><p><strong>Inflation adjusted</strong>: the figures the law does not index (state brackets, the Social Security taxability thresholds, Medicare Part B, the SALT floor, the mortgage limit) are assumed to keep up with inflation too.</p></li>
+<li><p><strong>Seed</strong>: two scenarios on the same draws differ because of their settings, not luck.</p></li>
+<li><p><strong>Deductions</strong>: each year the model takes the larger of the standard and itemized deductions (see <a class="reference internal" href="#tab-summary"><span class="std std-ref">Summary</span></a>). The state starts from income before federal deductions. State treatment of each strategy is in <a class="reference internal" href="tax-law.html#home-state-strategies"><span class="std std-ref">How the home state treats the strategies</span></a>.</p></li>
+</ul>
 </section>
 <section id="accounts">
 <span id="tab-accounts"></span><h2>Accounts<a class="headerlink" href="#accounts" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> Every account the household holds, how withdrawals are ordered, each
-account’s return, cost basis and IRA basis, and where leftover cash goes.</p>
-<p><strong>Defaults.</strong> The default profile (fictional round figures) has five accounts: Savings (25,000), Investments
-(50,000), a Traditional 401k (100,000), a Roth 401k (100,000) and CD &amp; Bonds (0), with
-PRIORITY withdrawals and a surplus split of 33%, 33%, 0%, 0% and 34%.</p>
-<p><strong>Logic.</strong> A Traditional account’s RMD and an IRA’s QCD follow its owner’s age, a Roth
-conversion lands in a Roth account of the same owner, and each person’s Traditional deposit
-and employer match go to their own Traditional account (else to the first one). Filing
-separately, an account’s interest, investment gains and taxed withdrawals (RMDs and
-conversions included) go on its owner’s return; only a JOINT account’s are split 50/50
-between the two returns, as are the shared items. Turning off <em>Include
-a partner</em> makes you the owner of the partner’s accounts. Only the part of an Investments
-withdrawal that is gain, the share of the balance above the cost basis, is taxed, as
-long-term capital gains. Returns are drawn each year from the mean and standard deviation;
-see <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a> for how withdrawal order interacts with tax (<a class="reference internal" href="strategies.html#strategies-today"><span class="std std-ref">the choices that
-change a plan</span></a>). A saved scenario with owners does not load in an older
-checkout of the toolkit (it fails on the unknown <code class="docutils literal notranslate"><span class="pre">owner</span></code> field).</p>
-<p>The HSA and the dependent care FSA are not entered here: they are set on <a class="reference internal" href="#tab-hsa"><span class="std std-ref">Benefits</span></a> and the model adds them as accounts of their own, shown read-only under
-<em>Benefit accounts</em> with an <em>Edit on Benefits</em> button. They pay only their own costs, so
-they take no part in the withdrawal order or the surplus. HSA is not an account kind here;
-a saved HSA row is folded into the Benefits HSA when the scenario loads.</p>
+<p>Every account, the withdrawal order, each account’s return, cost basis and IRA basis, and where leftover cash goes.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong> (fictional round figures): Savings 25,000, Investments 50,000, Traditional 401k 100,000, Roth 401k 100,000 and CD &amp; Bonds 0. Withdrawals are PRIORITY. The surplus split is 33%, 33%, 0%, 0% and 34%.</p></li>
+<li><p><strong>Owners</strong>: a Traditional account’s RMD and an IRA’s QCD follow its owner’s age. A Roth conversion lands in a Roth account of the same owner. Each person’s Traditional deposit and employer match go to their own Traditional account, else the first one.</p></li>
+<li><p><strong>Filing separately</strong>: an account’s interest, gains and taxed withdrawals go on its owner’s return. A JOINT account’s are split 50/50.</p></li>
+<li><p><strong>Investments</strong>: only the gain (the balance above cost basis) is taxed, as long-term capital gains.</p></li>
+<li><p><strong>Returns</strong> are drawn each year from the mean and standard deviation. How withdrawal order affects tax is in <a class="reference internal" href="strategies.html#strategies-today"><span class="std std-ref">Strategies you can compare today</span></a>.</p></li>
+<li><p><strong>HSA and dependent care FSA</strong> are set on <a class="reference internal" href="#tab-hsa"><span class="std std-ref">Benefits</span></a>. They show read-only under <em>Benefit accounts</em>, pay only their own costs and take no part in the withdrawal order or surplus.</p></li>
+</ul>
 </section>
 <section id="income">
 <span id="tab-income"></span><h2>Income<a class="headerlink" href="#income" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> Pay, raises and past earnings for you and, when included, your partner.
-The current ages are on Setup; Social Security is on
-<a class="reference internal" href="#tab-social-security"><span class="std std-ref">Retirement</span></a>.</p>
-<p><strong>Defaults.</strong> The default profile has you and your partner both age 35 with salaries of
-100,000 and 80,000 that stop at age 60, a raise of 3.3% mean and 0.3% std dev and a 25% yearly chance
-of a 10% promotion raise. The earnings history is on <em>Manual entry</em> and empty; a profile saved
-before <em>Last salary</em> existed loads on <em>Manual entry</em>. Nobody is retired, and a profile saved
-before the <em>I’m retired</em> switch (version 34 or older) loads with it off and no typed years, so
-its results do not change.</p>
-<p><strong>Logic.</strong> Each year’s raise is the mean plus the standard deviation times a normal draw;
-the year’s pay factor is 1 plus the raise plus any promotion raise, never below zero (pay
-does not turn negative). A file saved when the raise was a minimum, most likely and maximum
-loads with the same mean and spread as that old range (its exact triangular mean and
-standard deviation), rounded to the slider steps of 0.1% and 0.05%. A <em>Last salary</em> history is
-computed each time from the last salary and the raise inputs and never stored, so changing a
-raise refills it; only the years typed over it are stored (<code class="docutils literal notranslate"><span class="pre">salaryOverrides</span></code>). Earlier pay
-is backtracked from age 22, a fixed assumption of the tool, not an SSA rule. A retired
-person’s pay stops at today’s age whatever <em>Salary stops at age</em> holds, for the paycheck,
-the commute, the employer match, the dependent care FSA and the Social Security estimate alike.</p>
+<p>Pay, raises and past earnings for you and your partner. Ages are on Setup. Social Security is on <a class="reference internal" href="#tab-social-security"><span class="std std-ref">Retirement</span></a>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Default</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ages and salaries</p></td>
+<td><p>You and your partner are 35, earning 100,000 and 80,000 until age 60.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Raise</p></td>
+<td><p>3.3% mean, 0.3% standard deviation, plus a 25% yearly chance of a 10% promotion raise.</p></td>
+</tr>
+<tr class="row-even"><td><p>Earnings history</p></td>
+<td><p><em>Manual entry</em>, empty.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Retired</p></td>
+<td><p>Off.</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>Each year’s raise is the mean plus the standard deviation times a normal draw. The pay factor is 1 plus the raise plus any promotion, never below zero.</p></li>
+<li><p>A <em>Last salary</em> history is computed from the last salary and the raise inputs, so changing a raise refills it. Only years you type over it are stored.</p></li>
+<li><p>Earlier pay is backtracked from age 22, a fixed assumption, not an SSA rule.</p></li>
+<li><p>A retired person’s pay stops at today’s age, whatever <em>Salary stops at age</em> holds. This covers the paycheck, commute, employer match, dependent care FSA and the Social Security estimate.</p></li>
+</ul>
 </section>
 <section id="children">
 <span id="tab-children"></span><h2>Children<a class="headerlink" href="#children" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> The children, one card each, with their daycare and college costs in a
-section each, and how much each child raises the ordinary recurring expenses in its child years. The dependent
-care FSA is an employer benefit, on <a class="reference internal" href="#tab-dependent-care-fsa"><span class="std std-ref">Benefits</span></a>.</p>
-<p><strong>Defaults.</strong> Two children, Child 1 and Child 2, born when you are 33 and 36, each in their
-child years up to age 20, and a child inflation factor
-of 20% per child. A child’s college starts at 18 for 4 years and its daycare runs from age
-0 to 5, both with no cost, so none is charged.</p>
-<p><strong>Logic.</strong> The child years follow your age, so a child’s years stay put when the run’s
-calendar changes. In a year with <em>n</em> children in their child years the ordinary recurring
-expenses are multiplied by 1 + <em>n</em> times the factor; <em>n</em> is also the number of dependents
-the state exemption uses (see <a class="reference internal" href="#tab-summary"><span class="std std-ref">Summary</span></a>). A scenario saved before the
-child rows (version 16 or older) loads with one identical row per child, born at the old
-<em>Child years from your age</em> and in the child years for the old window’s length; as every
-end age is inclusive, the year you reach the old window’s end counts too.</p>
-<p>A child’s college cost is charged in Major Spending in your ages from your age at birth
-plus the college start age, for the college years, grown by inflation like the other rows;
-a child already in college pays only the years left. The <em>College Costs</em> summary column
-shows that part of Major Spending; it is not added to the expenses a second time. The cost
-is an education cost: a linked 529 pays it first, up to its balance, then the rest of
-every education cost is drawn from the 529 balances left, by the withdrawal strategy, and
-the usual accounts pay what the 529s cannot. A scenario saved before the college fields
-(version 17 or older) loads with no college cost, so its results do not change.</p>
-<p>A child’s daycare cost is charged the same way, in Major Spending, in your ages from your
-age at birth plus the daycare start age up to and including your age at birth plus the
-daycare end age, grown by inflation. It is not shown on Expenses and not saved as
-an expense row. It counts as dependent care: it is added to the rows tagged <em>Dependent
-care</em> in the <em>Tagged Dependent Care</em> summary column, which caps the <a class="reference internal" href="#tab-dependent-care-fsa"><span class="std std-ref">dependent care
-FSA</span></a>. A scenario saved before the daycare fields (version 19 or
-older) loads with no daycare cost, so its results do not change.</p>
+<p>One card per child, with daycare and college costs, and how much each child raises ordinary recurring expenses. The dependent care FSA is on <a class="reference internal" href="#tab-dependent-care-fsa"><span class="std std-ref">Benefits</span></a>.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: two children, born when you are 33 and 36, in their child years up to age 20, with a child inflation factor of 20% each. College runs from 18 for 4 years and daycare from 0 to 5, both at no cost until you set one.</p></li>
+<li><p><strong>Child years</strong> follow your age. With <em>n</em> children in their child years, ordinary recurring expenses are multiplied by 1 + <em>n</em> times the factor. <em>n</em> is also the number of dependents the state exemption uses.</p></li>
+<li><p><strong>College</strong> is charged as Major Spending from your age at birth plus the start age, for the college years, grown by inflation. A child already in college pays only the years left. It is not added to expenses twice (the <em>College Costs</em> column shows that part).</p></li>
+<li><p><strong>Paying for college</strong>: a linked 529 pays first, up to its balance. Other 529 balances pay the rest by the withdrawal strategy, then the usual accounts.</p></li>
+<li><p><strong>Daycare</strong> is charged the same way, from the start age through the end age. It is not an Expenses row. It counts as dependent care, in the <em>Tagged Dependent Care</em> column that caps the <a class="reference internal" href="#tab-dependent-care-fsa"><span class="std std-ref">dependent care FSA</span></a>.</p></li>
+</ul>
 </section>
 <section id="home">
 <span id="tab-home"></span><h2>Home<a class="headerlink" href="#home" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> The timeline of when you own each home and when you rent; the homes you own
-or will own, with their values, mortgages and other loans (a second mortgage, a home equity
-loan or line), property taxes and insurance, an optional purchase or sale during the run, and
-which one is your primary residence; the rent periods, each with its own rent; and the
-household’s utilities.</p>
-<p><strong>Defaults.</strong> One home named Home, the primary residence, with a value of 0, an appreciation
-equal to the mean inflation (3.33%: the mean of 1%, 3% and 6%), no mortgage and property taxes
-of 6,000 (a new home starts with the same appreciation); no rent periods and no utilities. The default profile has no loans; its
-housing payment is a Bills row on Expenses. A new home bought on the timeline is a
-primary residence with a 20% down payment, 3% closing costs, no transfer tax, 6% selling costs
-and no penalty.</p>
-<p><strong>Logic.</strong> Each home’s property tax is charged each year in the <code class="docutils literal notranslate"><span class="pre">Property</span></code> outflow
-(inflation adjusted like the expenses) and counts as state and local taxes, every home under
-the one SALT cap; each home’s insurance is charged in <code class="docutils literal notranslate"><span class="pre">Bills</span></code>. A home’s value in a year is
-its value today times (1 + its appreciation) for each year. As for an account’s return, with
-inflation adjusted dollars off the mean inflation comes off it: the growth is (1 +
-appreciation) / (1 + mean inflation) - 1, so a home appreciating at the mean inflation keeps its
-value today. With them on the value grows at the appreciation itself, whatever inflation each
-year draws. A home bought later starts at its price at that year’s prices. The sum is the
-<code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Value</span></code> summary column and counts in net worth (the loans still owed, the
-mortgages included, are subtracted). With its
-switch on and a balance above 0, a home’s mortgage is a Mortgage loan named after the home,
-charged, deducted and subtracted from net worth as described under <a class="reference internal" href="#tab-loans"><span class="std std-ref">Loans</span></a>.
-Each home also holds any number of other loans (<em>Other loans on this home</em>: kind Second
-mortgage, Home equity loan, Home equity line or Mortgage), each a loan with the figures and
-switches of the Loans tab, charged after every home’s mortgage. A home’s loan starts now, or
-for a home bought later in its purchase year, unless <em>Starts later</em> sets its own start
-within the years the home is held; a home equity line is entered as the amount drawn,
-repaid over its months left (a later draw is a loan that starts later; the interest-only
-draw period and the cash a loan pays out are not modelled). Each rent period’s monthly rent times 12 is charged in <code class="docutils literal notranslate"><span class="pre">Bills</span></code> in each of its years,
-inflation adjusted and not raised by the child inflation factor; a year with no home and no
-rent period charges no housing. The primary residences and the rent periods are one lane,
-one at a time: a primary home and a rent period that share a year other than a move year
-(one sold or ended in the year the other starts) are refused, naming both and the ages; a
-rent period beside a second home is allowed. A primary residence bought later or a rent
-period starting later with a state moves you to that state (see <em>Moving states</em> under
-<a class="reference internal" href="#tab-strategies"><span class="std std-ref">Strategies</span></a>).</p>
-<p>The timing rule of <a class="reference internal" href="#tab-cars"><span class="std std-ref">Cars</span></a> applies: a home is bought at the start of
-the year you are its purchase age and sold at the end of the year you are its sale age (at
-its start when the next primary home or rent period starts that year). A
-home bought later has no value, property tax, insurance or mortgage before its purchase year;
-its value starts at its price and grows by its appreciation from then. In the purchase year
-the down payment (the whole price without a mortgage), the closing costs, the transfer tax
-and the fees are paid in cash in <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Purchases</span></code>; with the Mortgage switch on the rest is
-a Mortgage loan that starts that year and counts toward the deduction like any home’s
-mortgage. A home sold has its value at 0 from its sale year and its property tax and
-insurance stop the year after; renting after it is a rent period on the timeline. The
-sale price is the one entered, or with 0 the home’s value that year before the sale. The
-selling costs (<code class="docutils literal notranslate"><span class="pre">Selling</span> <span class="pre">Costs</span></code>) and the mortgage and every other loan of the home still
-owed, with the home’s prepayment penalty, are taken from the price; the rest is <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Sale</span> <span class="pre">Proceeds</span></code>, deposited to the cash and
-Investments accounts by the surplus rule, while a mortgage above the price is paid from the
-accounts in <code class="docutils literal notranslate"><span class="pre">Loan</span> <span class="pre">Payoffs</span></code>.</p>
-<p>The gain on a sale is the price less the selling costs less the cost basis (the one entered,
-or the value today for a home owned now, so only growth from now is a gain, or for a home
-bought later its price with the transfer tax and the fees; the closing costs stay out). A
-primary residence’s gain is excluded up to the section 121 limit of the law data (250,000
-single, 500,000 joint, 250,000 per separate return, the gain split 50/50; figures
-unconfirmed), assuming you owned and lived in it 2 of the last 5 years, except that a
-primary bought during the run and sold less than 2 years later gets no exclusion. The rest,
-and the whole gain on any other home, is a long-term capital gain of the return (federal,
-state and the knock-ons on the taxable Social Security and the deductions), shown as <code class="docutils literal notranslate"><span class="pre">Home</span>
-<span class="pre">Sale</span> <span class="pre">Gain</span></code>, with the exclusion used as <code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Sale</span> <span class="pre">Exclusion</span></code>. A loss is not deducted.
-The state tax on the gain is that of the state the home sits in, since a gain on real
-property is source income of its state even for a non-resident: the home’s own state
-(<code class="docutils literal notranslate"><span class="pre">Home.state</span></code>), else the state lived in when it was first held (the home state for a home
-owned now; the comparable home a Relocation move buys is in the new state, below). When that is not the
-state lived in that year, the gain is left out of the year’s state income and taxed alone
-with the home’s state’s rules (the gain is that state’s whole income for its brackets),
-added to <code class="docutils literal notranslate"><span class="pre">State</span></code> (<code class="docutils literal notranslate"><span class="pre">wmti.simulation.model._sourceTax</span></code>). This is an approximation: no
-credit from the state lived in for the tax paid to the other state and no part-year
-apportionment. Depreciation recapture, the net investment income tax, the partial exclusion and rental
-income are not modelled. Example: a primary residence worth 500,000 today, 2% appreciation,
-sold at the end of the year you are 59 with 6% selling costs and 1,000 of fees, with no
-basis entered: the gain is the price less the costs less 500,000, excluded up to the limit.
-A home still owned at the end is not sold in the run; only the Summary’s <em>What beneficiaries
-keep</em> and Compare’s after-tax columns treat it as sold on the last day, by the
-beneficiaries: they pay the selling costs but no gains tax, since an inherited home’s basis steps up
-to its value at death (see <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>).</p>
-<p>The mortgage interest deduction counts the primary residence and one other home: each year
-the other home with the most mortgage interest (the first on a tie), and any Mortgage loan
-left on the Loans tab with the primary residence, all under the one principal limit of the
-law data (half of it for each separate return). A home’s interest is that of its mortgage
-and of each of its loans with <em>Used on this home</em> on: under current law home equity debt is
-deductible only when the money bought, built or substantially improved the home securing it,
-so a home equity loan or line spent on anything else (switch off) deducts nothing and its
-balance stays out of the limit. A third home’s mortgage interest is not deducted, so the
-primary residence changes the deduction only with three or more mortgaged homes; primary
-residences held in turn count as one. The higher limit for debt from before 2018, mortgage
-insurance premiums, utilities per home and rental income are not modelled; a second home’s
-utilities and upkeep go on Expenses.</p>
-<p>A scenario saved before the homes list loads with one primary home holding its home value,
-property taxes and home insurance, and its first Mortgage loan that starts now with no
-refinance or forgiveness moves onto that home (Mortgage switched on). A scenario saved before
-each home held its own loans (version 54 or older) moves every Mortgage loan of the Loans tab
-into the primary residence owned today when that home keeps it to its last payment (not sold,
-or sold two or more years after it), so results do not change; any other Mortgage loan (you
-rent, or the home is sold while it still runs) stays on the Loans tab, still deducted with
-the primary residence, with one warning. A scenario that rented loads with no homes, its
-Mortgage loans kept; a home value, property taxes or insurance it held, which counted for
-nothing while renting, are dropped with one warning. Results do not change. A scenario saved
-before the purchase and sale switches (version 30 or older) loads with them off. A scenario
-saved before the appreciation was read like a return (version 31 or older), when it was the
-growth above inflation r, loads with (1 + r) x (1 + its own mean inflation) - 1: in today’s
-value its home values stay the same; with inflation adjusted dollars on its homes now grow at
-that fixed rate instead of each year’s drawn inflation. The timeline reads the saved purchase
-and sale ages, so every saved scenario shows its homes as they were. A scenario saved with one
-household rent (version 34 or older) loads with a rent period for each run of years in which no
-primary residence was held, at that rent (“Rent”, “Rent 2” and so on; renting today when the
-run starts there, open when it reaches the end), so the rent is charged in the same years and
-results do not change. A scenario saved before the rent periods had a state (version 50 or
-older) loads with none, so its results do not change; one saved with a primary residence
-bought later whose state is not the state lived in at its purchase now moves you there from
-its purchase year, and one warning says so.</p>
+<p>The ownership timeline: homes owned or bought later, rent periods, utilities and which home is your primary residence.</p>
+<figure class="align-default" id="id2">
+<a class="reference internal image-reference" href="../_images/timeline-add.png"><img alt="The timeline Add sheet asking What are you adding, with A future purchase picked and the Name, Replaces, Purchase year and price fields." src="../_images/timeline-add.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Adding a home or car on the timeline.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Default</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Home</p></td>
+<td><p>One primary residence named Home, value 0, appreciation equal to the mean inflation (3.33%), no mortgage, property tax 6,000.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rent and utilities</p></td>
+<td><p>None. The example’s housing payment is a Bills row on Expenses.</p></td>
+</tr>
+<tr class="row-even"><td><p>Home bought on the timeline</p></td>
+<td><p>Primary residence, 20% down, 3% closing costs, no transfer tax, 6% selling costs, no penalty.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Costs and value</strong></p>
+<ul class="simple">
+<li><p><strong>Property tax</strong> is charged each year as <em>Property</em> (inflation adjusted) and counts as state and local taxes under one SALT cap. <strong>Insurance</strong> is charged in <em>Bills</em>.</p></li>
+<li><p><strong>Value</strong> is the value today times (1 + appreciation) per year. With inflation-adjusted dollars off, the mean inflation comes off first: growth is (1 + appreciation) / (1 + mean inflation) - 1. With them on, it grows at the appreciation itself. A home bought later starts at its price in that year’s prices.</p></li>
+<li><p><strong>Net worth</strong> counts the home value less the loans owed (<em>Home Value</em> column).</p></li>
+<li><p><strong>Loans</strong>: with the switch on and a balance above 0, the mortgage is a Mortgage loan named after the home (see <a class="reference internal" href="#tab-loans"><span class="std std-ref">Loans</span></a>). A home can also hold second mortgages and home equity loans or lines, charged after the mortgages. A line is entered as the amount drawn; the draw period and cash out are not modeled.</p></li>
+<li><p><strong>Rent</strong>: each period’s monthly rent times 12 is charged in <em>Bills</em>, inflation adjusted, not raised by the child factor. A year with no home and no rent charges no housing.</p></li>
+<li><p><strong>One lane</strong>: primary residences and rent periods are one lane. Overlap other than in a move year is refused.</p></li>
+<li><p><strong>Moving</strong>: a later primary home or rent period with a <em>State</em> moves you there (see <a class="reference internal" href="#moving-states"><span class="std std-ref">Moving states</span></a>).</p></li>
+</ul>
+<p><strong>Buying and selling</strong></p>
+<ul class="simple">
+<li><p><strong>Timing</strong>: a home is bought at the start of the year you are its purchase age and sold at the end of the year you are its sale age (at its start when the next primary home or rent period starts that year).</p></li>
+<li><p><strong>Purchase year</strong>: the down payment (the whole price with no mortgage), closing costs, transfer tax and fees are paid in cash as <em>Asset Purchases</em>. The rest is a Mortgage loan.</p></li>
+<li><p><strong>Sale</strong>: value is 0 from the sale year. Property tax and insurance stop the year after. The price is the one entered, or with 0 the home’s value that year. Selling costs, the mortgage and other loans with the prepayment penalty come out of the price. The rest is <em>Asset Sale Proceeds</em>, deposited by the surplus rule. A mortgage above the price is paid from the accounts in <em>Loan Payoffs</em>.</p></li>
+<li><p><strong>Gain</strong> is the price less selling costs less cost basis. Basis is the one entered, or today’s value for a home owned now (only growth from now is a gain), or for a later purchase its price with transfer tax and fees (closing costs stay out).</p></li>
+<li><p><strong>Exclusion</strong>: a primary residence’s gain is excluded up to the section 121 limit (250,000 single, 500,000 joint, 250,000 per separate return, unconfirmed), assuming you lived in it 2 of the last 5 years. A primary bought during the run and sold under 2 years later gets none.</p></li>
+<li><p><strong>Taxed</strong>: the rest, and any other home’s whole gain, is a long-term capital gain (<em>Home Sale Gain</em>, with the exclusion in <em>Home Sale Exclusion</em>). A loss is not deducted.</p></li>
+<li><p><strong>State of the gain</strong>: the state the home sits in. If that is not the state lived in, the gain is taxed alone by that state, with no credit from the state lived in.</p></li>
+<li><p><strong>Still owned at the end</strong>: not sold in the run. Only <em>What beneficiaries keep</em> and Compare’s after-tax columns treat it as sold on the last day. Beneficiaries pay selling costs but no gains tax (stepped-up basis). See <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>.</p></li>
+</ul>
+<p><strong>Mortgage interest deduction</strong></p>
+<ul class="simple">
+<li><p>It counts the primary residence and the one other home with the most mortgage interest, plus any Mortgage loan left on Loans, under one principal limit from the law data (half for each separate return).</p></li>
+<li><p>Home equity debt counts only when the money bought, built or improved the home (<em>Used on this home</em>). Otherwise it deducts nothing and its balance stays out of the limit.</p></li>
+<li><p>A third home’s interest is not deducted. Pre-2018 debt limits, mortgage insurance premiums, depreciation recapture, the net investment income tax and rental income are not modeled.</p></li>
+</ul>
 </section>
 <section id="cars">
 <span id="tab-cars"></span><h2>Cars<a class="headerlink" href="#cars" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> The household’s cars: each car’s value and depreciation, its loan or lease,
-its commute, its running costs, an optional replacement cycle and when it is bought, sold or
-leased during the run, all in today’s dollars, and the fuel price for every car.</p>
-<p><strong>Defaults.</strong> No cars, and a fuel price of 3.50. A new car, from Cars or the
-walkthrough, is driven by you, loses 20% of its price in its first year (the usual first-year drop,
-<code class="docutils literal notranslate"><span class="pre">first_year_drop</span></code> in <code class="docutils literal notranslate"><span class="pre">.config/carDepreciation.json</span></code>) and 10% of its value a year after, has its Loan and Commute
-switches off (with a 7% rate, 60 months and 230 commute days ready once they are on), 25
-miles per gallon, and no replacement (first in 5 years once a cycle and a price are set). It
-is owned, not leased (a lease payment of 0), and a car bought on the timeline has a 10% down
-payment and no sales tax, fees, selling costs or prepayment penalty. The default profile keeps its
-Car, Car Insurance, Car Maintenance and Gas/Tolls rows on Expenses.</p>
-<p><strong>Logic.</strong> A car owned today is defined by its <em>Purchase price (as paid)</em>, the price paid in
-the dollars of the purchase, and its <em>Year bought</em>. The depreciation calculator gives its value
-today: the price times (1 - the first-year drop) times (1 - the depreciation per year) for each
-year owned after the first (<code class="docutils literal notranslate"><span class="pre">wmti.cars.cars.estimatedValueToday</span></code>); a car bought this year or
-later is at its price. <em>Depreciation first year</em> is the car’s own first-year drop; blank, it
-shows (gray) and uses the usual one from <code class="docutils literal notranslate"><span class="pre">.config/carDepreciation.json</span></code> (20%, a typical new
-car’s first-year loss in Carfax and Edmunds figures, <code class="docutils literal notranslate"><span class="pre">confidence:</span> <span class="pre">unconfirmed</span></code>). The car’s
-sheet shows the result gray in its one <em>Value today</em> field. A figure entered there wins over
-the estimate; blank or 0 (its reset button) uses it, and with neither a value
-nor a year bought the car has no value. A profile saved before the year bought (version 48 or
-older) keeps each car’s value today, now the override, so its results are the same. From
-today the value falls by the depreciation per year each year, after the first-year drop when
-the car was bought this year; a car with no year bought is taken as past its first year. A
-car bought later, and each replacement, starts at its price and loses the first-year drop in
-the year after the purchase, then the depreciation per year. The value is inflation adjusted
-like the home value; it is shown as the <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Value</span></code> summary column and counts in net worth. Fuel each year is (2 times the commute miles one way times the commute days while
-the driver works, plus the miles per year) divided by the miles per gallon, times the fuel
-price; tolls and parking are charged per commute day while the driver works. A car that does
-not commute has no commute days, so only its miles per year count. The commute stops when
-the driver’s salary stops (their <em>Salary stops at age</em>); the miles per year, insurance,
-registration, maintenance and the loan run on. A replacement buys the same car again,
-repeating to the end of the run or the sale year, by the rule <em>Replace by</em> selects: Years,
-every so many years (<em>Replace every (years)</em>, the first after <em>First replacement in
-(years)</em>); Miles, every so many miles (<em>Replace every (miles)</em>); or Both, whichever comes
-first, each replacement restarting both counts. The rule not selected is ignored, though its
-figures are kept; a selected rule at 0 never replaces (Years with 0 years: no replacement).
-A new car replaces by Years; a file saved before the setting takes Both when both of its
-rules are above 0, Miles when only the miles rule is, else Years, so its results are the
-same. The miles
-are the car’s commute and other miles per year since the last purchase, a year’s miles
-counting at its end, so 12,000 miles a year and 36,000 miles replace the car at the start of
-year 3; a car owned today starts from <em>Miles on it today</em> (a car bought later from 0). The
-price is the replacement price, or with 0 the purchase price (the same model; for a car
-owned today, the price paid, as paid and not grown to today’s dollars), which the blank
-<em>Replacement price</em> shows gray; with neither, the car is not replaced. The Cars <em>Timeline</em>
-shows each replacement in the year the run makes it, labelled by age, by miles or by age and
-miles (both rules met that year), and gray as calculated; it is display only. At each replacement
-the car is traded in at its value and the new one is paid by <em>Replacement paid by</em> (blank:
-the car’s own <em>How it is paid</em>). Paid in cash, the rest of the price, the sales tax and purchase fees on
-the price and the selling costs on the trade-in are paid in <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Replacement</span></code> and the
-car’s loan runs on. Financed, the down payment less the trade-in’s value (at least 0) with
-the same tax, fees and selling costs is paid in <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Replacement</span></code>; the car’s loan is paid
-off at the trade-in (at the close of the year before, with its prepayment penalty, in
-<code class="docutils literal notranslate"><span class="pre">Loan</span> <span class="pre">Payoffs</span></code>) and the price less the larger of the down payment and the trade-in’s
-value is a new Auto loan from that year at the replacement loan rate, term and down payment
-(blank: the car’s own), named after the car: “Sedan loan 2”, “Sedan loan 3” and so on, so
-two loans of one car never overlap. Either way the value then starts again from the price.
-Leased, the car’s loan is paid off, its value is a sale (<code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Sale</span> <span class="pre">Proceeds</span></code>, less the
-selling costs) and from then the car is leased: 12 lease payments a year in <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Lease</span></code>,
-the lease’s down payment and fees in <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Replacement</span></code> at each lease start, no value and
-no sale; each lease runs its term rounded up to whole years, then the next starts, sooner
-when the miles rule is met first. Example: a car replaced every 36,000 miles at 12,000 a year
-and paid by lease is turned in at the start of year 3, and a 24-month lease starts again in
-years 5, 7 and so on. A profile saved before the pay method keeps its replacements paid in
-cash. The price is in today’s dollars, so it grows with inflation in a nominal run and stays
-flat in today’s dollars. All costs grow with
-inflation like the other expenses and are charged in the one <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Costs</span></code> outflow (shown in
-the Expenses chart), with <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Fuel</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Tolls</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Upkeep</span></code>, <code class="docutils literal notranslate"><span class="pre">Car</span>
-<span class="pre">Replacement</span></code> and <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Lease</span></code> as its parts. Financed (<em>How it is paid</em>: Finance), a loan balance above 0 is an Auto loan run by the loan engine
-like a loan on <a class="reference internal" href="#tab-loans"><span class="std std-ref">Loans</span></a>: its payments are in <code class="docutils literal notranslate"><span class="pre">Loan</span> <span class="pre">Payments</span></code> and
-its balance is subtracted from net worth. No car cost is tax deductible. Removing the
-partner makes a PARTNER car yours.</p>
-<p>Ages are your ages, and one timing rule serves every purchase and sale: a car is bought at
-the start of the year you are its purchase age and sold at the end of the year you are its
-sale age, so the sale year is still charged; when the next car of its lane starts in that
-year, the sale is at the start of the year, booked at the close of the year before, and only
-the new car is charged that year. A car bought later has no value, costs, commute
-or loan before its purchase year; its value in the purchase year is its price, then falls
-by the first-year drop and the depreciation, and its replacement cycle counts from the purchase. In the purchase
-year the down payment (the whole price without a loan), the sales tax and the fees are paid
-in cash in the <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Purchases</span></code> outflow, from the accounts in the withdrawal order like
-any expense (a large purchase can raise the tax on Traditional withdrawals that year, or
-show as <code class="docutils literal notranslate"><span class="pre">Shortfall</span> <span class="pre">(unpaid)</span></code>); with <em>How it is paid</em> Finance
-the rest is an Auto loan that starts that year, and with cash the whole price is paid. A car sold has its value, costs, commute and replacements stop: its value is 0
-from the sale year and its costs from the next year. The sale price is the one entered, or
-with 0 the car’s value that year before the sale (today’s dollars, the purchase price or the
-latest replacement’s price after the first-year drop and the depreciation since). The selling costs (<code class="docutils literal notranslate"><span class="pre">Selling</span>
-<span class="pre">Costs</span></code>, shown for information) and the car loan still owed after the sale year’s payments,
-with its prepayment penalty, are taken from the price; what is left is <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Sale</span>
-<span class="pre">Proceeds</span></code>, income that the surplus rule deposits to the cash and Investments accounts by
-their surplus shares, while a loan above the price is paid from the accounts in <code class="docutils literal notranslate"><span class="pre">Loan</span>
-<span class="pre">Payoffs</span></code>. A car sale is not taxed, gain or loss. Example: a car bought at 55 for 30,000
-with 10% down, 6% sales tax and 500 of fees takes 3,000 + 1,800 + 500 in cash that year
-(inflation adjusted) and borrows 27,000.</p>
-<p>A leased car’s purchase and sale years are the lease’s first and last years. In each year of
-the lease <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Lease</span></code> charges 12 lease payments (inflation adjusted), and its fuel,
-insurance, registration and maintenance are charged as for an owned car; it has no value, no
-loan, no replacement, no purchase cash and no sale proceeds. A
-payment due at signing, a residual or a buyout is not modelled. Example: a lease of 400 a
-month from 2031 to 2033 adds 4,800 a year (inflation adjusted) to <code class="docutils literal notranslate"><span class="pre">Car</span> <span class="pre">Costs</span></code> in those three
-years.</p>
-<p>A scenario saved before cars had their own group loads with no cars and the default fuel price,
-so its results do not change; its car rows stay on Expenses until you move them. A
-scenario saved before the switches (version 27 or older) loads with each car’s Loan switch on
-when its loan balance is above 0, and its Commute switch on when its commute days are above
-0 and its commute miles or its tolls and parking are above 0, so its results do not change.
-<em>How it is paid</em> (Cash, Finance or Lease) is one setting that also sets the car’s Loan and
-Lease switches (<code class="docutils literal notranslate"><span class="pre">Car.payMethod</span></code>, <code class="docutils literal notranslate"><span class="pre">hasLoan</span></code>, <code class="docutils literal notranslate"><span class="pre">leases</span></code>). A scenario saved before it
-(version 49 or older) loads with each car’s pay method set to what the car did: lease while
-leased, a car bought later its pay method (blank: finance with the Loan switch on), a car owned
-today finance with its Loan switch on and cash with it off, the Loan switch on for finance
-only; a blank <em>Replacement paid by</em> that followed a different pay method takes that method,
-so every replacement is paid as before and its results do not change.
-The warning about car rows on Expenses still reads the figures as entered, switch or not. A
-scenario saved before the purchase and sale switches (version 29 or older) loads with them off,
-so its results do not change. A scenario saved before the timeline (version 33 or older) loads
-with no lease, and its cars get lanes in list order so cars held at the same time are on
-different lanes; a lane changes no result.</p>
+<p>Each car’s value, depreciation, loan or lease, commute, running costs, replacement cycle and when it is bought, sold or leased, in today’s dollars, plus the fuel price.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Default</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Cars and fuel</p></td>
+<td><p>No cars. Fuel price 3.50.</p></td>
+</tr>
+<tr class="row-odd"><td><p>A new car</p></td>
+<td><p>Driven by you, loses 20% of its price in year one then 10% of its value a year, 25 miles per gallon, Loan and Commute switches off (7% rate, 60 months and 230 commute days once on), owned (lease payment 0), no replacement (first in 5 years once a cycle and price are set).</p></td>
+</tr>
+<tr class="row-even"><td><p>A car bought on the timeline</p></td>
+<td><p>10% down, no sales tax, fees, selling costs or prepayment penalty.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The example keeps its Car, Car Insurance, Car Maintenance and Gas/Tolls rows on Expenses.</p>
+<p><strong>Value</strong></p>
+<ul class="simple">
+<li><p>A car owned today is set by its <em>Purchase price (as paid)</em> and <em>Year bought</em>. Value today is the price times (1 - first-year drop) times (1 - depreciation) per later year. A car bought this year or later is at its price.</p></li>
+<li><p><em>Depreciation first year</em> blank uses the usual 20% (unconfirmed).</p></li>
+<li><p>A <em>Value today</em> you enter wins. Blank or 0 uses the estimate. With neither a value nor a year bought, the car has no value.</p></li>
+<li><p>A later car and each replacement starts at its price and drops in the year after purchase. Value is inflation adjusted like the home, shown as <em>Car Value</em> and counted in net worth.</p></li>
+</ul>
+<p><strong>Running costs</strong></p>
+<ul class="simple">
+<li><p><strong>Fuel</strong> per year is (2 times commute miles one way times commute days while the driver works, plus miles per year) divided by miles per gallon, times the fuel price. Tolls and parking are charged per commute day while the driver works.</p></li>
+<li><p>The commute stops when the driver’s salary stops. Miles, insurance, registration, maintenance and the loan run on.</p></li>
+<li><p>All costs grow with inflation and sit in <em>Car Costs</em> (parts <em>Car Fuel</em>, <em>Car Tolls</em>, <em>Car Upkeep</em>, <em>Car Replacement</em>, <em>Car Lease</em>). No car cost is tax deductible. Removing the partner makes a PARTNER car yours.</p></li>
+<li><p>A financed car’s loan is an Auto loan run like a <a class="reference internal" href="#tab-loans"><span class="std std-ref">Loans</span></a> loan: payments in <em>Loan Payments</em>, balance subtracted from net worth.</p></li>
+</ul>
+<p><strong>Replacement</strong></p>
+<ul class="simple">
+<li><p><em>Replace by</em> picks the rule: Years (<em>Replace every</em>, first after <em>First replacement in</em>), Miles (<em>Replace every (miles)</em>) or Both (whichever comes first, each replacement restarting both). The rule not selected is ignored. A selected rule at 0 never replaces.</p></li>
+<li><p>Miles are commute plus other miles per year since the last purchase, starting from <em>Miles on it today</em>. At 12,000 a year and a 36,000 rule, the car is replaced at the start of year 3.</p></li>
+<li><p>The price is the replacement price, or with 0 the purchase price (as paid, not grown to today’s dollars). With neither, no replacement.</p></li>
+<li><p><em>Replacement paid by</em> blank uses the car’s <em>How it is paid</em>. The old car is traded in at its value.</p></li>
+</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Paid by</p></th>
+<th class="head"><p>What happens at each replacement</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Cash</p></td>
+<td><p>The rest of the price, sales tax and fees, and selling costs on the trade-in are paid in <em>Car Replacement</em>. The car’s loan runs on.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Finance</p></td>
+<td><p>The down payment less the trade-in (at least 0), with the same tax, fees and costs, is paid in <em>Car Replacement</em>. The old loan is paid off at the close of the year before, with its penalty, in <em>Loan Payoffs</em>. The price less the larger of the down payment and the trade-in is a new Auto loan (“Sedan loan 2” and so on) at the replacement loan rate, term and down payment (blank: the car’s own).</p></td>
+</tr>
+<tr class="row-even"><td><p>Lease</p></td>
+<td><p>The old loan is paid off and the car is sold (<em>Asset Sale Proceeds</em> less selling costs). Then 12 lease payments a year go in <em>Car Lease</em>, with the lease’s down payment and fees in <em>Car Replacement</em> at each start. Each lease runs its term rounded up to whole years.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Either way the value restarts from the price. Example: a lease car replaced every 36,000 miles at 12,000 a year is turned in at the start of year 3, and a 24-month lease starts again in years 5, 7 and so on.</p>
+<p><strong>Buying and selling</strong></p>
+<ul class="simple">
+<li><p>Timing is the same as for homes: bought at the start of the purchase-age year, sold at the end of the sale-age year (at the start when the next car of its lane starts that year, so only the new car is charged).</p></li>
+<li><p><strong>Purchase year</strong>: the down payment (the whole price with no loan), sales tax and fees are paid in cash as <em>Asset Purchases</em> from the accounts in the withdrawal order. A large purchase can raise tax on Traditional withdrawals or show as <em>Shortfall (unpaid)</em>. With Finance the rest is an Auto loan.</p></li>
+<li><p><strong>Sale</strong>: value is 0 from the sale year and costs stop the next year. The price is the one entered, or with 0 the car’s value that year. Selling costs and the loan still owed, with its penalty, come out of the price. The rest is <em>Asset Sale Proceeds</em>. A loan above the price is paid from the accounts. A car sale is not taxed, gain or loss.</p></li>
+<li><p>Example: a 30,000 car with 10% down, 6% sales tax and 500 of fees takes 3,000 + 1,800 + 500 in cash that year and borrows 27,000.</p></li>
+</ul>
+<p><strong>Leases</strong></p>
+<ul class="simple">
+<li><p>A lease’s purchase and sale years are its first and last years. <em>Car Lease</em> charges 12 payments a year (inflation adjusted). Fuel, insurance, registration and maintenance are charged as for an owned car.</p></li>
+<li><p>A leased car has no value, loan, replacement, purchase cash or sale proceeds. A payment due at signing, a residual or a buyout is not modeled.</p></li>
+</ul>
 </section>
 <section id="loans">
 <span id="tab-loans"></span><h2>Loans<a class="headerlink" href="#loans" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> The household’s loans other than the mortgages and the car loans, with extra
-payments, a refinance, forgiveness, a later start or an early payoff.</p>
-<p><strong>Defaults.</strong> The default profile has no loans; its housing payment is a Bills row on
-Expenses. A new loan starts now and runs to its last payment (both switches off, no
-penalty).</p>
-<p><strong>Logic.</strong> Payments come out of cash flow as expenses, and the balances are subtracted from
-net worth. The mortgage interest deduction
-comes only from loans secured by a home (each home’s mortgage and other loans on
-<a class="reference internal" href="#tab-home"><span class="std std-ref">Home</span></a>, and a Mortgage loan saved here before homes held their loans), from
-their interest and balance each year, with the limits in the law data; Auto, Student and Other
-loans never count toward it. The Loans tab lists the homes’ loans read-only above its own. When the payment is
-already a row on Expenses (such as a Mortgage row in Bills), tick <em>Payment in
-Expenses</em>: the loan is then not charged and not taken from net worth, and it only feeds the
-deduction; otherwise the payment is charged twice.</p>
-<p>With <em>Starts later</em> on, a loan owes nothing and costs nothing before its start year, and its
-balance is the amount borrowed then; no cash arrives with it, so a loan that pays for a car
-or home purchase belongs on that car or home. With <em>Pay off early</em> on, the loan makes its
-payments through the end of the year you are its payoff age (not before it starts), and the
-balance then still owed is paid in one lump sum from the accounts, plus the prepayment
-penalty, in the <code class="docutils literal notranslate"><span class="pre">Loan</span> <span class="pre">Payoffs</span></code> outflow; payments and interest stop and the balance is 0.
-The penalty is not deductible. A loan whose payment is an Expenses row cannot be paid off
-early, nor can a forgiven one (a write-off with no cash, a different case). Example: a loan
-paid off at the end of the year you are 56, six years from now, charges that year the
-balance after its 84th payment times 1.02 with a 2% penalty. A scenario saved before the
-switch (version 29 or older) loads with <em>Starts later</em> on for each loan with a start year
-above 0, so its results do not change.</p>
+<p>Loans other than mortgages and car loans, with extra payments, a refinance, forgiveness, a later start or an early payoff.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: none. A new loan starts now and runs to its last payment, with no early payoff or penalty.</p></li>
+<li><p><strong>Charged</strong> as expenses out of cash flow. Balances are subtracted from net worth.</p></li>
+<li><p><strong>Mortgage interest deduction</strong> comes only from loans secured by a home (each home’s loans on <a class="reference internal" href="#tab-home"><span class="std std-ref">Home</span></a>, and a Mortgage loan saved here before homes held their loans). Auto, Student and Other loans never count.</p></li>
+<li><p><strong>Payment in Expenses</strong>: tick it when the payment is already an Expenses row (such as a Mortgage row in Bills). The loan then is not charged or taken from net worth and only feeds the deduction. Otherwise the payment is charged twice.</p></li>
+<li><p><strong>Starts later</strong>: a loan owes nothing before its start year, and its balance is the amount borrowed then. No cash arrives with it, so a loan that pays for a car or home belongs on that car or home.</p></li>
+<li><p><strong>Pay off early</strong>: payments run through the end of the year you are the payoff age. The balance then owed is paid in one sum from the accounts, plus the prepayment penalty, in <em>Loan Payoffs</em>. The penalty is not deductible. A loan whose payment is an Expenses row cannot be paid off early, nor can a forgiven one.</p></li>
+</ul>
 </section>
 <section id="benefits">
 <span id="tab-benefits"></span><h2>Benefits<a class="headerlink" href="#benefits" title="Link to this heading"></a></h2>
-<p>The Benefits group holds the retirement plan, the medical plan with its HSA, the
-dependent care FSA and the beneficiaries.</p>
+<p>The Benefits group holds the retirement plan, the medical plan with its HSA, the dependent care FSA and the beneficiaries.</p>
 <section id="retirement-plan">
 <span id="tab-savings"></span><h3>Retirement plan<a class="headerlink" href="#retirement-plan" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> How the household saves into 401k and IRA accounts each year, and each
-person’s employer match.</p>
-<p><strong>Defaults.</strong> Off for a new household. Each person’s employer match is on for a person with an
-active salary (salary above 0 and a salary end age above their age) and off otherwise, with a
-rate and cap of 0; a new partner starts as a copy of you. The default profile has a retirement
-plan with a Traditional deposit of 10% of pay, no Roth deposit and both matches on at 0.</p>
-<p><strong>Logic.</strong> Each person’s Traditional deposit and employer match go into the first
-Traditional account they own (a 401k before an IRA), else the first Traditional account;
-the Roth deposit goes into the first Roth account. The yearly limits come from the law
-data. Each slider runs from 0 to what the limits leave at the current ages: a person’s
-Traditional and Roth 401k share the 401k limit, their Traditional and Roth IRAs the IRA
-limit (two Traditional IRAs share one), each with the catch-up from its age; the 401k
-deposits plus the employer match stay within the total-additions limit (IRAs and the
-catch-up are outside it); and every deposit stays within the person’s own pay, so a partner
-with no pay has no room (a spousal IRA is not modelled). Raising one slider lowers the most
-the others sharing its limit can take; an account with no room says why. Each amount lands
-in its own account, and the employer matches each person’s 401k deposits and the match goes
-to their own Traditional 401k, else Traditional IRA. A Traditional IRA deposit is treated
-as deductible, and the Roth IRA income limit cuts a Roth IRA deposit each year (the slider
-maximum leaves it out, and a note appears when your income is in that range). The
-Traditional-versus-Roth trade-off is described under “Traditional or Roth saving” in
-<a class="reference internal" href="strategies.html#strategies-today"><span class="std std-ref">the choices that change a plan</span></a>. A saved scenario with account
-amounts does not load in an older checkout of the toolkit.</p>
+<p>How the household saves into 401k and IRA accounts each year, and each person’s employer match.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: off for a new household. The match is on for a person with an active salary, with a rate and cap of 0. A new partner copies you. The example has a Traditional deposit of 10% of pay, no Roth deposit and both matches on at 0.</p></li>
+<li><p><strong>Where it goes</strong>: each person’s Traditional deposit and match go to the first Traditional account they own (a 401k before an IRA), else the first Traditional account. The Roth deposit goes to the first Roth account. The employer matches each person’s 401k deposits.</p></li>
+<li><p><strong>Limits</strong> come from the law data. Each slider runs from 0 to what the limits leave at the current ages:</p>
+<ul>
+<li><p>A person’s Traditional and Roth 401k share the 401k limit. Their Traditional and Roth IRAs share the IRA limit, each with its catch-up.</p></li>
+<li><p>401k deposits plus match stay within the total-additions limit. IRAs and catch-up are outside it.</p></li>
+<li><p>Every deposit stays within the person’s own pay, so a partner with no pay has no room. A spousal IRA is not modeled.</p></li>
+<li><p>Raising one slider lowers the most the others sharing its limit can take. An account with no room says why.</p></li>
+</ul>
+</li>
+<li><p><strong>Tax</strong>: a Traditional IRA deposit is treated as deductible. The Roth IRA income limit cuts a Roth IRA deposit each year, and a note appears when your income is in that range.</p></li>
+<li><p>Traditional versus Roth is covered in <a class="reference internal" href="strategies.html#strategies-today"><span class="std std-ref">Strategies you can compare today</span></a>.</p></li>
+</ul>
 </section>
 <section id="medical-plan">
 <span id="tab-medical-plan"></span><h3>Medical plan<a class="headerlink" href="#medical-plan" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> What the health plan costs and how it shares the cost of care. Doctor visits,
-drugs or a flat healthcare amount are on <a class="reference internal" href="#tab-healthcare"><span class="std std-ref">Healthcare</span></a>, and Medicare and IRMAA under the
-<a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a> heading of Retirement. Premiums paid after tax and the healthcare costs, less everything the HSA paid, count toward the medical
-deduction by themselves; other medical costs are rows with the Medical and dental deduction
-on <a class="reference internal" href="#tab-expenses"><span class="std std-ref">Expenses</span></a>.</p>
-<p><strong>Defaults.</strong> Off. The premium is zero; a 1,500 deductible, 20% coinsurance and a 6,000
-out-of-pocket maximum, per person. These are placeholders, not sourced.</p>
-<p><strong>Logic.</strong> The health premium before the Medicare age is charged as spending in today’s
-value and grows 1.5% a year above general inflation, like every healthcare cost and premium
-(a fixed figure, not an input). A premium paid before tax lowers taxable pay; one paid after
-tax can be itemized above the medical floor. A pre-tax premium is taken from pay, so each
-return’s part of it is held to that return’s wages less its Traditional deposits and dependent
-care FSA and the HSA taken through payroll; the rest (all of it in a year without pay) is paid after tax and itemized like an
-after-tax premium. The <code class="docutils literal notranslate"><span class="pre">Pre-tax</span> <span class="pre">Premium</span></code> column is the part the pay covered. Without a medical plan the visits before the
-Medicare age are paid at their full price, with no deductible, coinsurance or maximum.</p>
+<p>What the health plan costs and how it shares the cost of care. Visits, drugs or a flat amount are on <a class="reference internal" href="#tab-healthcare"><span class="std std-ref">Healthcare</span></a>. Medicare and IRMAA are under <a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a>.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: off. Premium zero. Per person, a 1,500 deductible, 20% coinsurance and a 6,000 out-of-pocket maximum. These are placeholders, not sourced.</p></li>
+<li><p><strong>Premium</strong> before the Medicare age is spending in today’s value and grows 1.5% a year above general inflation, like every healthcare cost (a fixed figure, not an input).</p></li>
+<li><p><strong>Pre-tax premium</strong> lowers taxable pay. It is held to each return’s wages less its Traditional deposits, dependent care FSA and payroll HSA. The rest is paid after tax and itemized. The <em>Pre-tax Premium</em> column is the part pay covered.</p></li>
+<li><p><strong>After-tax premium</strong> can be itemized above the medical floor. After-tax premiums and healthcare costs, less everything the HSA paid, count toward the medical deduction on their own. Tag only other medical costs on <a class="reference internal" href="#tab-expenses"><span class="std std-ref">Expenses</span></a>.</p></li>
+<li><p><strong>No plan</strong>: visits before the Medicare age are paid at full price.</p></li>
+</ul>
 </section>
 <section id="hsa">
 <span id="tab-hsa"></span><h3>HSA<a class="headerlink" href="#hsa" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> A health savings account: pre-tax money that pays qualified healthcare
-costs, kept as an account that rolls over from year to year. It sits inside the medical
-plan and counts only while the medical plan is on.</p>
-<p><strong>Defaults.</strong> Off. Switched on: <em>What the year’s costs need</em>, no cap of its own (blank:
-the legal limit), through payroll, no employer contribution, a balance of 0, a 5% mean
-return with a 6% standard deviation, owned by you.</p>
-<p><strong>Logic.</strong> The HSA is an account the model manages: it is shown read-only on
-<a class="reference internal" href="#tab-accounts"><span class="std std-ref">Accounts</span></a> and in the results’ account tables, starts at its balance
-(today’s dollars), grows at its own drawn return (from a random stream of its own, so turning
-it on moves no other draw) and is never part of the withdrawal order, the surplus, Roth
-conversions or RMDs. Each year:</p>
+<p>A health savings account: pre-tax money that pays qualified healthcare costs and rolls over. It sits inside the medical plan and counts only while that plan is on.</p>
 <ul class="simple">
-<li><p><em>Contributions.</em> Only people under the Medicare age can contribute. The law’s limit is
-the family limit while the partner is under the Medicare age or a child is in its child
-years, and the self-only limit otherwise, plus the catch-up for each contributor aged 55
-or older. The employer’s contribution (today’s dollars, grown by inflation) is paid only in
-a year someone has pay and counts toward the limit. The household’s own contribution is,
-with <em>What the year’s costs need</em>, the year’s qualified costs less the employer’s part,
-and with <em>The most allowed</em>, the limit less the employer’s part; either is held to the
-limit less the employer’s part and to the cap (today’s dollars, grown by inflation). Both
-stop once nobody is under the Medicare age; the balance still pays.</p></li>
-<li><p><em>Qualified costs</em> are the out-of-pocket healthcare (<em>Healthcare</em>), the rows tagged
-<em>Medical</em> on Expenses, and from the Medicare age the Part B and Part D premiums and IRMAA;
-not the health premium before the Medicare age or a Medigap supplement premium. The
-<em>HSA Qualified Costs</em> summary column shows them. The HSA pays them first, up to this
-year’s contributions and its balance; the household pays the rest as before.</p></li>
-<li><p><em>Taxes.</em> Through payroll (a cafeteria plan), the household’s contribution leaves each
-person’s pay (after the Traditional deposit and the dependent care FSA, split by pay, as
-far as the pay goes) before income tax, Social Security tax and Medicare tax. The rest, and
-all of it with payroll off, is paid from other cash and deducted from income, held to the
-return’s income left after the other pre-tax items. The employer’s part is never taxed.
-Withdrawals for qualified costs are untaxed, and nothing the HSA paid counts toward the
-medical deduction. California and New Jersey add the contributions, the employer’s
-included, back to the income they tax.</p></li>
-<li><p><em>Cash.</em> The household’s contribution is a deposit (<em>HSA Deposit</em>, part of the retirement
-deposits); what the HSA pays (<em>HSA Withdrawals (Medical)</em>) is cash toward the year’s
-costs. <em>HSA Employer Deposit</em> is informational, like the employer match.</p></li>
+<li><p><strong>Defaults</strong>: off. When on: <em>What the year’s costs need</em>, no cap of its own (blank: the legal limit), through payroll, no employer contribution, balance 0, 5% mean return with 6% standard deviation, owned by you.</p></li>
+<li><p><strong>Account</strong>: shown read-only on <a class="reference internal" href="#tab-accounts"><span class="std std-ref">Accounts</span></a>, starts at its balance (today’s dollars) and grows at its own drawn return. It is never part of the withdrawal order, surplus, Roth conversions or RMDs.</p></li>
 </ul>
-<p>A warning shows on the HSA pane when the medical plan’s deductible is below the law’s minimum for a
-high-deductible plan (<code class="docutils literal notranslate"><span class="pre">hdhp_minimum_deductible</span></code>; family coverage by the same rule as the
-limit), since such a plan may not allow an HSA; the model still counts it. The shipped
-1,500 deductible is below the 2026 minimum of 1,700, so an HSA on the defaults warns. One HSA
-serves the household: the second person’s catch-up, which needs an HSA of their own, is
-still counted in the limit. A scenario saved with an HSA row on Accounts (version 53 or
-older) loads with each such row folded into this HSA (the balances added; the first row’s
-return, spread and owner kept) and HSA no longer offered as an account kind, with a
-warning; its results change. Contributions through payroll apply to every scenario, the
-older ones included.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Each year</p></th>
+<th class="head"><p>Rule</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Contributions</p></td>
+<td><p>Only people under the Medicare age contribute. The limit is the family limit while the partner is under the Medicare age or a child is in its child years, else self-only, plus a catch-up for each contributor aged 55 or older. The employer’s part (today’s dollars, grown by inflation) is paid only in a year someone has pay and counts toward the limit. Your part is the year’s qualified costs less the employer’s part (<em>What the year’s costs need</em>) or the limit less the employer’s part (<em>The most allowed</em>), held to the limit and the cap. Contributions stop once nobody is under the Medicare age. The balance still pays.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qualified costs</p></td>
+<td><p>Out-of-pocket healthcare, rows tagged <em>Medical</em> on Expenses, and from the Medicare age the Part B and Part D premiums and IRMAA. Not the health premium before the Medicare age or a Medigap premium. The HSA pays them first, up to this year’s contributions and its balance.</p></td>
+</tr>
+<tr class="row-even"><td><p>Taxes</p></td>
+<td><p>Through payroll, your part leaves pay before income, Social Security and Medicare tax. Otherwise it is paid from other cash and deducted from income. The employer’s part is never taxed. Qualified withdrawals are untaxed, and nothing the HSA paid counts toward the medical deduction. California and New Jersey add contributions, the employer’s included, back to the income they tax.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Cash</p></td>
+<td><p>Your contribution is <em>HSA Deposit</em>. What the HSA pays is <em>HSA Withdrawals (Medical)</em>. <em>HSA Employer Deposit</em> is informational.</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p><strong>Warning</strong>: the pane warns when the plan’s deductible is below the law’s high-deductible minimum (the example’s 1,500 is under the 2026 minimum of 1,700). The model still counts the HSA.</p></li>
+<li><p><strong>One HSA</strong> serves the household. The second person’s catch-up is still counted in the limit.</p></li>
+<li><p><strong>Older scenarios</strong>: an HSA row on Accounts folds into this HSA (balances added, first row’s return and owner kept) with a warning. Results change.</p></li>
+</ul>
 </section>
 <section id="dependent-care-fsa">
 <span id="tab-dependent-care-fsa"></span><h3>Dependent care FSA<a class="headerlink" href="#dependent-care-fsa" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> Pre-tax pay set aside for child care, an employer benefit, kept as an
-account that starts each year empty.</p>
-<p><strong>Defaults.</strong> Off, with no cap of its own (blank: the federal limit).</p>
-<p><strong>Logic.</strong> The FSA sets aside, each year, only what the year’s care needs: the smallest of
-its cap (today’s dollars, grown by inflation), the year’s dependent care (the children’s
-daycare cost and the rows tagged <em>Dependent care</em>: the <em>Tagged Dependent Care</em> summary
-column) and the federal limit, and only in years with a child under 13 that is in its child
-years. The amount is split between the returns by pay; each return is held to the federal
-limit for its filing status (7,500, or 3,750 filing separately, not grown by inflation; the
-figures are unconfirmed in the law file) and, with a partner, to the lower of your two pays.
-It lowers the pay that federal and state income tax, Social Security tax and Medicare tax
-are charged on, so <em>MAGI</em> and those taxes fall, while <em>Gross Income</em> and <em>Paycheck</em> stay as
-they were. The FSA is an account the model manages, shown read-only on
-<a class="reference internal" href="#tab-accounts"><span class="std std-ref">Accounts</span></a> and in the results’ account tables, with no return and
-outside the withdrawal order and the surplus: it receives the pay set aside (<em>Dependent
-Care FSA</em>) and pays that much of the care (<em>FSA Withdrawals (Dependent Care)</em>), so it ends
-every year at 0 and nothing is forfeited. It moves no cash: the care is already charged in
-full, so the cash gained is the tax saved, and both columns are informational. Every state
-follows the federal treatment. The dependent care credit (Form 2441), a student or disabled
-spouse and the grace period some plans allow are not modelled; the Roth IRA income limit
-and the Social Security earnings record use pay before the FSA. A scenario saved before the
-FSA (version 18 or older) loads with it off and no row tagged, so its results do not change;
-one saved with an FSA amount (version 52 or older) loads it as the cap.</p>
+<p>Pre-tax pay set aside for child care, an employer benefit, kept as an account that starts each year empty.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: off, with no cap of its own (blank: the federal limit).</p></li>
+<li><p><strong>Amount</strong> each year is the smallest of its cap (today’s dollars, grown by inflation), the year’s dependent care (daycare plus rows tagged <em>Dependent care</em>, the <em>Tagged Dependent Care</em> column) and the federal limit. Only years with a child under 13 in its child years count.</p></li>
+<li><p><strong>Limit</strong>: split between the returns by pay. Each return is held to 7,500 (3,750 filing separately, not grown by inflation, unconfirmed) and, with a partner, to the lower of your two pays.</p></li>
+<li><p><strong>Tax</strong>: it lowers the pay that income, Social Security and Medicare tax are charged on, so <em>MAGI</em> and those taxes fall. <em>Gross Income</em> and <em>Paycheck</em> stay. Every state follows the federal treatment.</p></li>
+<li><p><strong>Account</strong>: read-only on <a class="reference internal" href="#tab-accounts"><span class="std std-ref">Accounts</span></a> with no return, outside the withdrawal order and surplus. It receives the pay set aside (<em>Dependent Care FSA</em>) and pays that much of the care (<em>FSA Withdrawals (Dependent Care)</em>), so it ends each year at 0. Nothing is forfeited. It moves no cash, since the care is already charged, so the gain is the tax saved.</p></li>
+<li><p><strong>Not modeled</strong>: the dependent care credit (Form 2441), a student or disabled spouse, the grace period. The Roth IRA income limit and Social Security earnings record use pay before the FSA.</p></li>
+</ul>
 </section>
 <section id="beneficiaries">
 <span id="tab-beneficiaries"></span><h3>Beneficiaries<a class="headerlink" href="#beneficiaries" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> Who inherits what is left and how they take it, with the terminal tax rate. They
-set how the after-tax final value is measured (the tax they pay when they inherit Traditional
-money); they do not change the plan itself.</p>
-<p><strong>Defaults.</strong> One beneficiary with the whole estate, no other income, filing single, in the
-state you live in at the end, taking the money over 10 years; no terminal tax rate.</p>
-<p><strong>Logic.</strong> Each beneficiary has a name, a share of the estate (the shares must total 100%),
-other yearly income (today’s dollars), filing status, income tax state (Same as household is the
-state you live in at the end; for a child’s beneficiary, <code class="docutils literal notranslate"><span class="pre">Heir.child</span></code>, it is the state you
-live in during the child’s last child year, so a move during the child years moves the child
-too and a later one does not, see <code class="docutils literal notranslate"><span class="pre">childCareState</span></code>) and payout (over 10 years or all at
-once). Each is taxed on their
-own share of the Traditional money with their own terms, and the taxes are summed; the
-inheritance tax is charged on each one’s share. A scenario saved before the list (version 44
-or older) loads its number of heirs as that many beneficiaries with equal shares and the same
-terms, so its results do not change. Details: <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>.</p>
+<p>Who inherits what is left and how they take it. They set how the after-tax final value is measured (the tax they pay on inherited Traditional money). They do not change the plan.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: one beneficiary with the whole estate, no other income, filing single, in the state you live in at the end, taking the money over 10 years. No terminal tax rate.</p></li>
+<li><p><strong>Fields</strong>: name, share of the estate (shares total 100%), other yearly income (today’s dollars), filing status, income tax state and payout (over 10 years or all at once).</p></li>
+<li><p><strong>State</strong>: Same as household is the state you live in at the end. For a child’s beneficiary it is the state you live in during the child’s last child year.</p></li>
+<li><p><strong>Tax</strong>: each is taxed on their own share of the Traditional money with their own terms, and the taxes are summed. The inheritance tax is charged on each share.</p></li>
+<li><p>Details and a worked example: <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>.</p></li>
+</ul>
 </section>
 </section>
 <section id="healthcare">
 <span id="tab-healthcare"></span><h2>Healthcare<a class="headerlink" href="#healthcare" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> What healthcare costs, which always count in the expenses: one flat yearly
-amount or range (<em>Flat amount</em>, the default), or doctor visits and drugs (<em>Visit-based</em>);
-<a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a> is on Retirement. The health premium, the HSA and the plan’s
-cost sharing are on <a class="reference internal" href="#tab-medical-plan"><span class="std std-ref">Benefits</span></a>; without a medical plan there, the
-visits before the Medicare age are paid in full. Drugs are an expense here, not part of the plan.</p>
-<p><strong>Defaults.</strong> <em>Flat amount</em>, 0 at both ends (no cost until you set one, like the other
-expenses). For <em>Visit-based</em>: 1, 4 and 10 visits a
-person a year, 150, 300 and 1,500 a visit and 60 a month in drugs; all placeholders, not sourced.</p>
-<p><strong>Logic.</strong> With <em>Visit-based</em>, each person pays the visits and drugs every year: through
-the health plan’s cost sharing before the Medicare age, and through Medicare’s from it (see
-<a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a>). The costs are in today’s dollars and grow 1.5% a year above
-general inflation.</p>
-<p>With <em>Flat amount</em>, the household pays one level every year: with a range, it is drawn once per
-run, evenly between the two ends, and kept for every year, so the Monte Carlo runs show the
-uncertainty. The single run is one seeded draw like any other run, not the midpoint. The level
-grows with general inflation plus 1.5% a year, like the visit costs. It ignores the Medicare age
-and the supplement’s share of the costs (the supplement premium is still charged), and it is
-part of the Healthcare column, so it is a qualified cost the HSA pays and a medical expense. A scenario
-saved before the flat amount loads <em>Visit-based</em> with its results unchanged.</p>
-<p>A scenario saved with its own growth above general inflation (on the premiums, the visits or
-the old age table) loads without it, with a warning; its costs then grow by the fixed 1.5%. A
-scenario saved with the old healthcare cost by age table loads without it: healthcare costs are
-included when it had either healthcare costs or visit-based costs on. One that had only
-visit-based costs on keeps its results; one that charged the age table now pays the visits and
-drugs instead, with a warning. A scenario saved with long-term care figures loads without them;
-one with healthcare costs on that charged long-term care loses that cost, with a warning.</p>
+<p>What healthcare costs, which always count in the expenses: one flat yearly amount or range (<em>Flat amount</em>, the default), or doctor visits and drugs (<em>Visit-based</em>). The health premium, HSA and plan cost sharing are on <a class="reference internal" href="#tab-medical-plan"><span class="std std-ref">Benefits</span></a>. Drugs are an expense here, not part of the plan.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: <em>Flat amount</em>, 0 at both ends. <em>Visit-based</em>: 1, 4 and 10 visits a person a year, 150, 300 and 1,500 a visit, and 60 a month in drugs. All are placeholders, not sourced.</p></li>
+<li><p><strong>Visit-based</strong>: each person pays the visits and drugs every year, through the health plan’s cost sharing before the Medicare age and Medicare’s from it (see <a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a>). Costs are in today’s dollars and grow 1.5% a year above general inflation.</p></li>
+<li><p><strong>Flat amount</strong>: one level each year. A range is drawn once per run, evenly between the ends, and kept for every year, so the Monte Carlo runs show the uncertainty. The single run is one seeded draw, not the midpoint. It grows like the visit costs, ignores the Medicare age and the supplement’s cost share (the supplement premium is still charged), and is part of the Healthcare column. So it is a qualified HSA cost and a medical expense.</p></li>
+</ul>
 </section>
 <section id="expenses">
 <span id="tab-expenses"></span><h2>Expenses<a class="headerlink" href="#expenses" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> The household’s expenses that no other group enters, plus the random major
-expense. The inflation range is on Setup’s Inflation card.</p>
-<p><strong>Defaults.</strong> A random major expense of 0, 5,000 and 50,000. The default profile’s rows
-(generic names and fictional round amounts) are examples to replace. A new scenario and the
-default profile also hold the suggested monthly rows of <code class="docutils literal notranslate"><span class="pre">.config/expenseCategories.json</span></code>
-(<code class="docutils literal notranslate"><span class="pre">suggestedExpenses</span></code>), each at 0 with its price type (<code class="docutils literal notranslate"><span class="pre">ExpenseItem.priceType</span></code>: grocery,
-goods, services or none); a row at 0 changes nothing, and the price type matters only after
-a move (see the Relocation rules). A saved profile is never given the suggested rows.</p>
-<p><strong>Logic.</strong> Gifts to charity are rows of the Charity category: they are charged each year as
-their own outflow (<code class="docutils literal notranslate"><span class="pre">Charitable</span> <span class="pre">Giving</span></code>), count toward the charity deductions and are what
-a QCD pays (see <a class="reference internal" href="#tab-strategies"><span class="std std-ref">Strategies</span></a>). They are never raised by the child
-inflation factor. The From and To ages follow your age.</p>
-<p>A scenario saved before the To age existed loads with any age on a Bills, Planned Spending
-or Other Spending row cleared: the model never read it there, so the results do not change.</p>
-<p>A row with a deduction is still charged as spending exactly as before; the deduction only
-adds what the model charges for it that year (monthly rows times 12, raised by the child
-inflation factor in the child years unless the row carries the older <em>Exclude from child inflation</em> tag; a row only between its From age and
-To age; inflation adjusted like the row) to that deduction, which then follows the law for
-its category, in years the return itemizes:</p>
+<p>The household’s expenses that no other group enters, plus the random major expense. The inflation range is on Setup.</p>
 <ul class="simple">
-<li><p>Medical and dental counts only above 7.5% of AGI. Premiums paid after tax, Medicare
-Part B, the supplement, IRMAA and the healthcare costs, less everything the HSA paid, on
-<a class="reference internal" href="#tab-medical-plan"><span class="std std-ref">Benefits</span></a> and <a class="reference internal" href="#tab-healthcare"><span class="std std-ref">Healthcare</span></a> already count,
-so tag only other medical costs
-(dental, vision, hearing, costs outside the plan).</p></li>
-<li><p>State and local taxes count within the SALT cap together with the state income tax and
-each home’s property tax on Home, which already count, so do not tag a row that
-repeats them. The cap is 40,400 in 2026 and grows 1% a year through 2029 (in the
-year’s own dollars, whatever the fixed-figures setting); from 2030 it reverts to 10,000
-(5,000 separate) with no phase-down.</p></li>
-<li><p>Mortgage interest counts in full: the principal limit scales only the Mortgage loans on
-<a class="reference internal" href="#tab-home"><span class="std std-ref">Home</span></a>, by their own balance. Tag only the interest part of a
-payment, and do not tag the payment row of a Mortgage loan, which counts already.</p></li>
-<li><p>Charity counts within 60% of AGI less the 0.5% floor, toward the non-itemizer charity
-deduction, and a QCD can pay it, like a Charity row.</p></li>
+<li><p><strong>Defaults</strong>: a random major expense of 0, 5,000 and 50,000. The example’s rows (generic names, round amounts) are examples to replace. A new scenario also holds the suggested monthly rows, each at 0 with a price type (grocery, goods, services or none) that matters only after a move. A saved profile is never given the suggested rows.</p></li>
+<li><p><strong>Charity rows</strong> are charged as <em>Charitable Giving</em>, count toward the charity deductions and are what a QCD pays (see <a class="reference internal" href="#tab-strategies"><span class="std std-ref">Strategies</span></a>). The child inflation factor never raises them.</p></li>
+<li><p><strong>From and To ages</strong> follow your age.</p></li>
+<li><p><strong>Deduction tags</strong>: a tagged row is still charged as spending. The tag adds that year’s charge (monthly rows times 12, raised by the child factor in the child years, only between the From and To ages, inflation adjusted) to the deduction. It then follows the law for its category, in years the return itemizes.</p></li>
 </ul>
-<p>Filing separately, each return takes half of a tagged row, as with the other shared
-household items. (Until version 55 a saved partner share set the split; a scenario with a
-share other than 50% loads with one warning.)</p>
-<p>A scenario saved before the deduction inputs moved loads with its charitable giving as a
-Charity row, its mortgage interest and balance as a Mortgage loan used for the deduction
-only, and its random shocks dropped (use the <em>Random major</em> expense or Major Spending rows).
-A scenario saved with medical expenses per year (in the old Healthcare group) loads without them:
-they repeated costs Benefits and Healthcare already count. A warning names what moved or was
-dropped.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag</p></th>
+<th class="head"><p>Rule</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Medical and dental</p></td>
+<td><p>Counts only above 7.5% of AGI. Premiums, Medicare, the supplement, IRMAA and healthcare costs (less HSA payments) on <a class="reference internal" href="#tab-medical-plan"><span class="std std-ref">Benefits</span></a> and <a class="reference internal" href="#tab-healthcare"><span class="std std-ref">Healthcare</span></a> already count. Tag only other costs (dental, vision, hearing, costs outside the plan).</p></td>
+</tr>
+<tr class="row-odd"><td><p>State and local taxes</p></td>
+<td><p>Within the SALT cap together with state income tax and each home’s property tax, which already count. Do not tag a row that repeats them. The cap is 40,400 in 2026, grows 1% a year through 2029, then reverts to 10,000 (5,000 separate), with no phase-down.</p></td>
+</tr>
+<tr class="row-even"><td><p>Mortgage interest</p></td>
+<td><p>Counts in full. The principal limit scales only the Mortgage loans on <a class="reference internal" href="#tab-home"><span class="std std-ref">Home</span></a>. Tag only the interest part, never a Mortgage loan’s payment row.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Charity</p></td>
+<td><p>Within 60% of AGI less the 0.5% floor, and toward the non-itemizer charity deduction. A QCD can pay it.</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p><strong>Filing separately</strong>: each return takes half of a tagged row, as with other shared items.</p></li>
+</ul>
 </section>
 <section id="retirement">
 <span id="tab-retirement"></span><h2>Retirement<a class="headerlink" href="#retirement" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> Social Security for each person (under a <em>You</em> and a <em>Partner</em>
-sub-heading), then <a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a> and, on Original Medicare, the
-<a class="reference internal" href="#tab-medicare-supplement"><span class="std std-ref">Medicare supplement</span></a>, then
-<a class="reference internal" href="#tab-spending-in-retirement"><span class="std std-ref">Spending in retirement</span></a>, each under its own heading.
-The earnings history the Social Security estimate uses (entered or backtracked from a last
-salary) is on <a class="reference internal" href="#tab-income"><span class="std std-ref">Income</span></a>.</p>
+<p>Social Security for each person (under <em>You</em> and <em>Partner</em>), then <a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a>, the <a class="reference internal" href="#tab-medicare-supplement"><span class="std std-ref">Medicare supplement</span></a> and <a class="reference internal" href="#tab-spending-in-retirement"><span class="std std-ref">Spending in retirement</span></a>. The earnings history is on <a class="reference internal" href="#tab-income"><span class="std std-ref">Income</span></a>.</p>
 <section id="social-security">
 <span id="tab-social-security"></span><h3>Social Security<a class="headerlink" href="#social-security" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> Each person’s benefit basis (<em>Earnings history</em> or <em>Manual entry</em>), benefit
-table and claim age. <em>Earnings history</em> pays the estimate from earnings at every age from
-62 to 70; <em>Manual entry</em> pays from the benefit table, one row per claim age from 62 to 70,
-with the monthly benefit your Social Security statement shows for that age (in today’s
-value, already reduced for an early claim or increased for a delayed one). Leave an amount
-blank to let the tool estimate it. To compare claim ages, save a scenario with each age and
-pick the two on <a class="reference internal" href="#tab-compare"><span class="std std-ref">Compare</span></a>.</p>
-<p><strong>Defaults.</strong> A claim age of 67 with entered benefits at 62, 65, 67 and 70 for each person;
-the basis is <em>Manual entry</em>.</p>
-<p><strong>Logic.</strong> Estimated rows are straight lines through the entered ages: between two entered
-ages the line between them; below the lowest or above the highest, the line through the
-two nearest entered ages continued, never below zero. One entered age is used at every
-claim age. They are marked <em>estimated</em> in the basis column and are never saved, so changing
-an entered amount refills the rest. The model pays the benefit used at the claim age and
-never scales it.</p>
-<p>On <em>Earnings history</em> the benefit card shows an estimate, from the earnings history entered or
-backtracked from a last salary (the backtracked years are read exactly like entered ones), that
-follows SSA’s simplified method, as its Quick Calculator does, in today’s dollars: each past year’s earnings are
-indexed to the newest year of the national average wage index and capped at this year’s
-wage base; today’s salary is held level from this year until pay stops or the claim age,
-whichever is first; the 35 largest years give the average indexed monthly earnings
-(AIME), this year’s bend points give the primary insurance amount (PIA, the benefit at
-full retirement age), and each month of claiming before full retirement age takes off
-5/9 of 1% (5/12 of 1% after 36 months), each month after it adds 2/3 of 1%, up to 70.
-The card shows the AIME, the PIA, the full retirement age and the estimate at each claim
-age. Years with no earnings entered count as zero, and the card warns how many there are;
-with fewer than ten years with earnings no benefit is paid (a stand-in for the 40 work
-credits). Birth years before 1943 must use the table. The estimate mixes two wage levels
-(past earnings at the newest wage index year’s level, future pay at today’s salary),
-ignores cost-of-living adjustments and the year of eligibility, and is wage indexed but
-treated as today’s dollars, so it understates the benefit of a young earner; compare it with
-your Social Security statement.</p>
-<p>Limits: each person gets only their own benefit as entered (no spousal, survivor,
-divorced-spouse or child benefit; a spousal top-up can be folded into the lower earner’s
-table amounts by hand); there is no earnings test, so a claim before pay stops is paid in
-full; no one dies, so a later claim is judged to the end of the plan horizon and can look
-better than it would for a shorter life. Taxable Social Security counts withdrawals and
-gains, so a later claim can change the tax on the same withdrawals; the Taxes chart
-shows the effect year by year.</p>
+<p>Each person’s benefit basis, benefit table and claim age.</p>
+<ul class="simple">
+<li><p><strong>Basis</strong>: <em>Earnings history</em> pays the estimate from earnings at every age from 62 to 70. <em>Manual entry</em> pays from the benefit table, one row per claim age from 62 to 70. Enter the monthly benefit your statement shows (today’s value, already adjusted for early or late claiming). A blank amount is estimated.</p></li>
+<li><p><strong>Defaults</strong>: claim age 67, entered benefits at 62, 65, 67 and 70 for each person, <em>Manual entry</em>.</p></li>
+<li><p><strong>Estimated rows</strong> are straight lines through the entered ages: between two entered ages the line between them; outside them, the line through the two nearest, never below zero. One entered age is used at every claim age. They are marked <em>estimated</em>, never saved, and refill when you change an entered amount. The model never scales the benefit.</p></li>
+<li><p><strong>Compare claim ages</strong> by saving a scenario per age and picking the two on <a class="reference internal" href="#tab-compare"><span class="std std-ref">Compare</span></a>.</p></li>
+</ul>
+<p><strong>Earnings estimate</strong> (SSA’s simplified method, in today’s dollars):</p>
+<ol class="arabic simple">
+<li><p>Each past year’s earnings are indexed to the newest year of the national average wage index and capped at this year’s wage base.</p></li>
+<li><p>Today’s salary is held level from this year until pay stops or the claim age.</p></li>
+<li><p>The 35 largest years give the average indexed monthly earnings (AIME). This year’s bend points give the primary insurance amount (PIA, the benefit at full retirement age).</p></li>
+<li><p>Each month of claiming before full retirement age takes off 5/9 of 1% (5/12 of 1% after 36 months). Each month after adds 2/3 of 1%, up to 70.</p></li>
+</ol>
+<ul class="simple">
+<li><p>Years with no earnings count as zero, and the card warns how many. With fewer than ten years with earnings no benefit is paid (a stand-in for 40 work credits). Birth years before 1943 must use the table.</p></li>
+<li><p>The estimate ignores cost-of-living adjustments and the year of eligibility and treats wage-indexed figures as today’s dollars, so it understates a young earner’s benefit. Compare it with your statement.</p></li>
+</ul>
+<p><strong>Limits</strong></p>
+<ul class="simple">
+<li><p>Each person gets only their own benefit as entered: no spousal, survivor, divorced-spouse or child benefit. Fold a spousal top-up into the lower earner’s table by hand.</p></li>
+<li><p>No earnings test, so a claim before pay stops is paid in full.</p></li>
+<li><p>No one dies, so a later claim is judged to the end of the horizon and can look better than for a shorter life.</p></li>
+<li><p>Taxable Social Security counts withdrawals and gains, so a later claim can change the tax on the same withdrawals. The Taxes chart shows it year by year.</p></li>
+</ul>
 </section>
 <section id="medicare">
 <span id="tab-medicare"></span><h3>Medicare<a class="headerlink" href="#medicare" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> What replaces the health plan from the Medicare age: the Medicare type,
-Part B, the Part D drug plan and Medicare’s own cost sharing. The income-related surcharge
-(IRMAA) always applies while a Medicare premium is charged; it has no input of its own.</p>
-<p><strong>Defaults.</strong> Medicare starts at 65 on Original Medicare; Part B and the Part D premium are
-off or zero, so no IRMAA; 20% coinsurance, no out-of-pocket maximum.</p>
-<p><strong>Logic.</strong> The Medicare premiums are in today’s dollars and grow 1.5% a year above general
-inflation. With visit-based healthcare costs, a person at or past the Medicare age pays the visits
-through the Part B deductible (law data), then the Medicare coinsurance (up to the plan’s
-out-of-pocket maximum, if any, on Medicare Advantage; through the supplement, if any, on
-Original Medicare), and drugs up to the Part D yearly cap (law data); the health
-plan’s deductible, coinsurance, maximum and household sharing no longer apply to them. The
-Medicare premiums are always after tax; with IRMAA, the after-tax premiums and the
-healthcare costs, less everything the HSA paid, they are the medical expenses the deduction counts by
-themselves. Part B uses the law data’s monthly premium, and IRMAA looks at AGI two years
-earlier, so a conversion or a large withdrawal raises the premium two years later: see
-<a class="reference internal" href="strategies.html#medicare-irmaa"><span class="std std-ref">IRMAA and the two-year lookback</span></a>. When the first two years’ IRMAA
-tier has to be estimated, a warning says so.</p>
+<p>What replaces the health plan from the Medicare age: the Medicare type, Part B, the Part D plan and Medicare’s cost sharing. The income-related surcharge (IRMAA) applies whenever a Medicare premium is charged and has no input.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: Medicare at 65 on Original Medicare. Part B and Part D premiums off or zero, so no IRMAA. 20% coinsurance, no out-of-pocket maximum.</p></li>
+<li><p><strong>Premiums</strong> are in today’s dollars and grow 1.5% a year above general inflation. They are always after tax.</p></li>
+<li><p><strong>Visit costs</strong> (visit-based healthcare): at or past the Medicare age a person pays the Part B deductible, then the coinsurance (to the plan’s out-of-pocket maximum on Medicare Advantage, or through the supplement on Original Medicare). Drugs run up to the Part D yearly cap. The health plan’s cost sharing no longer applies.</p></li>
+<li><p><strong>Medical deduction</strong>: with IRMAA, after-tax premiums and healthcare costs, less everything the HSA paid, count on their own.</p></li>
+<li><p><strong>IRMAA</strong> looks at AGI two years earlier, so a conversion or large withdrawal raises the premium two years later (see <a class="reference internal" href="strategies.html#medicare-irmaa"><span class="std std-ref">Medicare IRMAA and the two-year lookback</span></a>). A warning shows when the first two years’ tier is estimated.</p></li>
+</ul>
 </section>
 <section id="medicare-supplement">
 <span id="tab-medicare-supplement"></span><h3>Medicare supplement<a class="headerlink" href="#medicare-supplement" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> A Medigap-style supplement for each person at or past the Medicare age, on
-Original Medicare only: its premium, and the part of Medicare’s cost sharing it pays. It
-does not cover drugs.</p>
-<p><strong>Defaults.</strong> Off. Switched on it starts Plan G style: the deductible is the law data’s Part
-B deductible (<code class="docutils literal notranslate"><span class="pre">medicare_part_b.annual_deductible</span></code>), then 0% (the supplement pays all the
-rest) with no maximum, and a premium of 0 to fill in (no typical premium is shipped).</p>
-<p><strong>Logic.</strong> Medicare pays first. Each visit runs through the Part B deductible and the
-Medicare coinsurance as above; what that leaves to the person, visit by visit, is then run
-through the supplement’s deductible, share and maximum (grown like the visit prices), and
-the person pays only that. Drugs still stop at the Part D yearly cap. The premium is paid by
-each person at or past the Medicare age, grows like the other Medicare premiums and is part
-of <em>Health Premium</em>; it is after tax and counts toward the itemized medical expenses. What
-the supplement pays lowers <em>Healthcare</em>, and with it the itemized medical amount. Two
-informational summary columns, outside the outflows so nothing counts twice, show the
-supplement: <em>Supplement Premium</em> (its part of <em>Health Premium</em>) and <em>Supplement Paid</em> (the
-visit cost it paid, already taken out of <em>Healthcare</em>). After a move to another state the
-health premium, the supplement premium and the Part D premium follow the new state’s
-figures; <em>Health Premium State Change</em> (also informational, part of <em>Health Premium</em>) shows
-what that adds or saves (see <a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>).</p>
-<p>A scenario saved before the supplement had its own section loads with a supplement premium above
-0 as a Plan G style supplement that is on with that premium, so from the Medicare age its
-visit costs fall while healthcare costs are included; with no premium the supplement is
-off. A scenario with a Medicare out-of-pocket maximum and no supplement premium loads on
-Medicare Advantage and keeps its results; every other scenario loads on Original Medicare,
-where the maximum no longer counts.</p>
+<p>A Medigap-style supplement for each person at or past the Medicare age, on Original Medicare only. It pays part of Medicare’s cost sharing, not drugs.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: off. When on it starts Plan G style: the Part B deductible, then 0% (it pays the rest), no maximum, and a premium of 0 to fill in.</p></li>
+<li><p><strong>Order</strong>: Medicare pays first. What it leaves each visit runs through the supplement’s deductible, share and maximum. The person pays only that. Drugs still stop at the Part D cap.</p></li>
+<li><p><strong>Premium</strong> is paid by each person at or past the Medicare age, grows like other Medicare premiums, is part of <em>Health Premium</em>, is after tax and counts toward itemized medical expenses. What the supplement pays lowers <em>Healthcare</em> and the itemized medical amount.</p></li>
+<li><p><strong>Informational columns</strong>: <em>Supplement Premium</em>, <em>Supplement Paid</em> and <em>Health Premium State Change</em>. They sit outside the outflows. After a move the health, supplement and Part D premiums follow the new state (see <a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>).</p></li>
+</ul>
 </section>
 <section id="spending-in-retirement">
 <span id="tab-spending-in-retirement"></span><h3>Spending in retirement<a class="headerlink" href="#spending-in-retirement" title="Link to this heading"></a></h3>
-<p><strong>What it is.</strong> Spending that falls or rises once you retire: the rows of
-<a class="reference internal" href="#tab-expenses"><span class="std std-ref">Expenses</span></a> change by a percent from a start age.</p>
-<p><strong>Defaults.</strong> Off, <em>Equal change</em> at 0%, starting at your Social Security claim age (the age
-you stop working when you have no benefit entered); every row at 0%.
-Each percent runs from -100% (the row stops) to +100% (the row doubles).</p>
-<p><strong>Logic.</strong> For every year you are at or past the start age, a row’s today’s-value amount is
-multiplied by 1 + its percent, in one step (no ramp). Its From and To ages still apply, and
-inflation, the child-years factor and the row’s tax tags apply on top, so a row tagged with a
-deduction deducts its changed amount, a changed Charity row changes the <em>Charitable Giving</em>
-outflow (and the charity deduction and QCD with it), and an education row’s 529 withdrawal
-follows its changed amount. The clock is your age, also with a partner. With the switch off
-or every percent the choice reads at 0, the run is exactly the run without it. A scenario saved
-before this section loads with it off and its results unchanged. A new total typed for the
-walkthrough’s monthly spending question replaces the monthly rows with one, so their percents
-go with them.</p>
+<p>Spending that falls or rises once you retire: each row of <a class="reference internal" href="#tab-expenses"><span class="std std-ref">Expenses</span></a> changes by a percent from a start age.</p>
+<ul class="simple">
+<li><p><strong>Defaults</strong>: off, <em>Equal change</em> at 0%, starting at your Social Security claim age (the age you stop working with no benefit entered). Each percent runs from -100% (the row stops) to +100% (the row doubles).</p></li>
+<li><p><strong>Rule</strong>: from the start age, a row’s today’s-value amount is multiplied by 1 + its percent, in one step. The clock is your age, also with a partner. From and To ages, inflation, the child factor and tax tags still apply on top. A changed Charity row changes <em>Charitable Giving</em>, the deduction and the QCD. An education row’s 529 withdrawal follows its changed amount.</p></li>
+<li><p><strong>Off or all 0%</strong>: the run is exactly the run without it.</p></li>
+</ul>
 </section>
 </section>
 <section id="strategies">
 <span id="tab-strategies"></span><h2>Strategies<a class="headerlink" href="#strategies" title="Link to this heading"></a></h2>
-<p><strong>What it is.</strong> The three strategies that can be switched on, each in its own section, and the
-Relocation section. Who inherits what is left, how they take it and the terminal tax rate used
-to judge the strategies are not a strategy: they are the Beneficiaries section of the Benefits
-tab (Outputs, <a class="reference internal" href="#tab-summary"><span class="std std-ref">Summary</span></a> shows the rate used with a link there). Each
-strategy is off by default, so a saved scenario that does not use them is unchanged; a
-section shows its switch, and its settings appear only while the switch is on. The rules and
-the law each one models are in <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a>. To compare a strategy, save one scenario
-with it on and one with it off, and pick the two on <a class="reference internal" href="#tab-compare"><span class="std std-ref">Compare</span></a>.</p>
-<p><strong>Defaults.</strong> All three strategies off; a conversion window of ages 60 to 74 when switched
-on; one beneficiary with the whole estate, no other income, filing single, in the state you live in at
-the end, taking the money over 10 years; no terminal tax rate; no move to another state (Home follows me on when one is set).</p>
-<p><strong>Logic.</strong></p>
+<p>Three strategies and Relocation, each in its own section. Each is off by default, and its settings show only while its switch is on. The rules and law each models are in <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a>. To compare one, save a scenario with it on and one off and pick both on <a class="reference internal" href="#tab-compare"><span class="std std-ref">Compare</span></a>. Beneficiaries and the terminal tax rate are on <a class="reference internal" href="#tab-beneficiaries"><span class="std std-ref">Benefits</span></a>.</p>
 <ul class="simple">
-<li><p>A conversion each year in the window moves Traditional money to a Roth account of the
-same owner and pays its tax now: up to the amount, and under every ceiling you set (the
-lowest one wins). Required distributions and the year’s withdrawals come first and are
-never converted. Details: <a class="reference internal" href="strategies.html#roth-conversions"><span class="std std-ref">Roth conversions</span></a>; the IRMAA ceiling
-looks two years ahead, see <a class="reference internal" href="strategies.html#medicare-irmaa"><span class="std std-ref">IRMAA and the two-year lookback</span></a>.</p></li>
-<li><p>The backdoor deposits after-tax cash in a Traditional IRA and converts it to the Roth IRA,
-only from cash the year leaves and never from a withdrawal. A Traditional IRA with
-pre-tax money makes each conversion partly taxable (pro-rata); a warning says so when it
-applies. Details: <a class="reference internal" href="strategies.html#roth-backdoor"><span class="std std-ref">Roth backdoor</span></a>.</p></li>
-<li><p>A QCD, from the IRA owner’s age 70.5, pays the Charity rows straight from that person’s
-Traditional IRAs: the distribution is not taxed and counts toward that person’s required
-minimum distribution. The gift is still charged in full; the part paid this way is not a
-deductible cash gift. Details: <a class="reference internal" href="strategies.html#qcd"><span class="std std-ref">QCDs</span></a>.</p></li>
-<li><p>Strategies are compared after tax: Traditional money left at the end is taxed at each
-beneficiary’s brackets as their payout takes their share (over 10 years, or all at once in
-the year after the death), or, when you set one in Benefits, Beneficiaries, charged a flat
-terminal tax rate whichever the payouts. Details: <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>.</p></li>
-<li><p>Beneficiaries (Benefits tab, <code class="docutils literal notranslate"><span class="pre">strategies.heirs</span></code>): one card each with a name, a share of the
-estate (the shares total 100%), other yearly income (today’s dollars), filing status, income
-tax state (Same as household is the state you live in at the end) and payout. Each is taxed
-on their own share and the taxes are summed. They set how the after-tax final value is
-measured only, not the plan; the state you live in at the end (your home state, or the
-state you move to) decides the state estate and inheritance taxes.</p></li>
-<li><p>Relocation (<code class="docutils literal notranslate"><span class="pre">strategies.relocation</span></code>, the Relocation section after the QCD): a move
-of both of you to another state at the start of the year you are the move age (blank: the
-age your pay stops, or now when retired), lived in for whole years. See <em>Moving states</em>
-below and <a class="reference internal" href="strategies.html#relocation"><span class="std std-ref">Relocation: moving to another state</span></a>.</p></li>
-<li><p>The strategy warnings say what the model leaves out for the settings chosen.</p></li>
-<li><p><a class="reference internal" href="#tab-optimize"><span class="std std-ref">Optimize</span></a> searches these settings for the best ones.</p></li>
+<li><p><strong>Defaults</strong>: all off. A conversion window of ages 60 to 74 when switched on. No move to another state.</p></li>
 </ul>
-<p id="moving-states"><strong>Moving states.</strong> The state you live in each year is derived, never stored
-(<code class="docutils literal notranslate"><span class="pre">wmti.homes.residence.residenceStates</span></code>): year 0 is the home state; a primary residence
-bought later or a rent period starting later with a <em>State</em> (<code class="docutils literal notranslate"><span class="pre">Home.state</span></code>,
-<code class="docutils literal notranslate"><span class="pre">RentPeriod.state</span></code>) moves you to that state from its first year (a shared move year belongs to
-the item that starts in it); one with no state keeps the state lived in before it; a year with
-no primary residence and no rent period keeps the last state; a home or rent period held in
-year 0 never changes the home state (its state only says where the home sits, for its sale
-tax), and a second home never moves you. The Relocation strategy’s move is one more change in
-its year; the changes apply in year order, and a primary residence or rent period starting
-in the strategy’s move year wins. In each year lived in another state than the home state
-that year’s state replaces the home state, and your entered amounts, which hold the home
-state’s costs, change only by how that state’s figures in its law file compare with the home
-state’s (a ratio that state over the home state, 1 when the home state’s figure is 0), so
-several moves need no chaining and a year back in the home state costs as entered
-(<code class="docutils literal notranslate"><span class="pre">statecosts.factorsByYear</span></code>). The Relocation strategy’s own home or rent period (below)
-compares the relocation state with the state lived in the year before its move:</p>
-<ul>
-<li><p><em>Income tax.</em> The state income tax and the average local income tax are the new state’s.</p></li>
-<li><p><em>Homes.</em> The Relocation strategy moves your housing through the primary residence lane
-(<code class="docutils literal notranslate"><span class="pre">wmti.homes.residence.relocatedLane</span></code>, applied by
-<code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs.effectiveInputs</span></code> to the copy the model runs; the saved homes
-and rent periods never change). By the lane item that covers the move year m (after the
-hand-over of shared years):</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Strategy</p></th>
+<th class="head"><p>Rule in the model</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Roth conversion</p></td>
+<td><p>Each year in the window it moves Traditional money to a Roth account of the same owner and pays the tax now, up to the amount and under every ceiling you set (the lowest wins). Required distributions and the year’s withdrawals come first and are never converted. See <a class="reference internal" href="strategies.html#roth-conversions"><span class="std std-ref">Roth conversions</span></a>. The IRMAA ceiling looks two years ahead (<a class="reference internal" href="strategies.html#medicare-irmaa"><span class="std std-ref">Medicare IRMAA and the two-year lookback</span></a>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Roth backdoor</p></td>
+<td><p>Deposits after-tax cash in a Traditional IRA and converts it to the Roth IRA, only from cash the year leaves, never from a withdrawal. Pre-tax IRA money makes each conversion partly taxable (pro-rata), and a warning says so. See <a class="reference internal" href="strategies.html#roth-backdoor"><span class="std std-ref">Roth backdoor</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>QCD</p></td>
+<td><p>From the IRA owner’s age 70.5 it pays the Charity rows from that person’s Traditional IRAs, untaxed and counting toward their RMD. The gift is still charged in full, but the part paid this way is not a deductible cash gift. See <a class="reference internal" href="strategies.html#qcd"><span class="std std-ref">Qualified charitable distributions (QCD)</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Relocation</p></td>
+<td><p>A move of both of you to another state at the start of the year you are the move age (blank: the age your pay stops, or now when retired), lived in for whole years. See <a class="reference internal" href="strategies.html#relocation"><span class="std std-ref">Relocation: moving to another state</span></a>.</p></td>
+</tr>
+</tbody>
+</table>
 <ul class="simple">
-<li><p>a primary home or rent period of yours starting in year m is the move itself: nothing is
-added; a blank state on it becomes the relocation state, and another state set on it wins
-(a strategy warning says the strategy’s state was ignored);</p></li>
-<li><p>a primary home O: with <em>Home follows me</em> (<code class="docutils literal notranslate"><span class="pre">homesFollow</span></code>) on, O is sold at the close of
-year m - 1 (a later sale age moves up to m: the shared year goes to the new home), its
-mortgage paid off from the proceeds and its gain taxed like any sale, by the state it sits
-in; off, O becomes a second home (<code class="docutils literal notranslate"><span class="pre">primaryResidence</span></code> off: no section 121 exclusion when
-it is sold) and keeps its own sale. Either way a new primary home “O (S)” in state S is
-bought at the start of year m: its price (today’s dollars) is O’s expected value in year m
-(<code class="docutils literal notranslate"><span class="pre">HomeValue.valueIn</span></code> at the mean inflation, in today’s dollars) times the
-<code class="docutils literal notranslate"><span class="pre">housing.typical_home_value</span></code> ratio; its property tax is O’s times the
-<code class="docutils literal notranslate"><span class="pre">property_tax.effective_rate</span></code> ratio and the value ratio; its insurance O’s times the
-<code class="docutils literal notranslate"><span class="pre">home_insurance.average_annual</span></code> ratio; it keeps O’s appreciation, closing cost,
-transfer tax, fee, selling cost and prepayment rates, has no cost basis or sale price of
-its own, and is sold when O was meant to be. Financing: on, O’s mortgage carries over
-(same rate, extra payment and months left, the amount financed equal to O’s balance at
-the start of year m, the down payment floored at 0) and O’s other loans move to “O (S)”
-unchanged, not paid off by the sale; off, O keeps its other loans and a new loan with the Home
-defaults (20% down, 360 months, O’s rate) when O has a mortgage; no mortgage on O means
-all cash. Its purchase cash is in <code class="docutils literal notranslate"><span class="pre">Asset</span> <span class="pre">Purchases</span></code>, and it counts as bought in year m
-(a sale fewer than <code class="docutils literal notranslate"><span class="pre">min_years</span></code> later gets no exclusion). In inflation adjusted dollars
-runs its value follows the run’s inflation index from its purchase, like any home bought
-later;</p></li>
-<li><p>a rent period O ends at year m - 1 and a rent period “O (S)” in state S starts in year m
-and runs to O’s end, at O’s rent times the housing cost index ratio
-(<code class="docutils literal notranslate"><span class="pre">housing.cost_index</span></code>); <em>Home follows me</em> makes no difference;</p></li>
-<li><p>no item in year m (a gap, or no homes and no rent): nothing is added; the state alone
-moves.</p></li>
+<li><p><strong>Comparison</strong>: strategies are judged after tax. Traditional money left at the end is taxed at each beneficiary’s brackets, or at the flat terminal tax rate if you set one (see <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>).</p></li>
+<li><p><strong>Beneficiaries</strong> set only how the after-tax value is measured. The state you live in at the end decides the state estate and inheritance taxes.</p></li>
+<li><p>Strategy warnings say what the model leaves out for the settings chosen. <a class="reference internal" href="#tab-optimize"><span class="std std-ref">Optimize</span></a> searches these settings.</p></li>
 </ul>
-<p>A move in year 0 cannot sell a home owned now the year before: the home or rent held in
-year 0 is re-based in place instead (the home’s value, property tax and insurance by the
-ratios above, its state set, its mortgage unchanged, no sale or purchase); with <em>Home
-follows me</em> off the new home is bought in year 0. Later user homes and rent periods keep
-their value, dates and state; a second home and every home you entered keep their entered
-value and costs.</p>
-</li>
-<li><p><em>Cars and gas.</em> Each car’s insurance is multiplied by the car insurance ratio, its
-registration becomes the entered amount plus the car tax difference
-(<code class="docutils literal notranslate"><span class="pre">car_taxes.average_annual</span></code>, new less old, today’s dollars; at least 0) and maintenance
-does not change; its gallons are priced at your fuel price plus
-the change in the average pump price (<code class="docutils literal notranslate"><span class="pre">fuel.average_price_per_gallon</span></code>, new less old; at
-least 0), and a car bought or replaced from the move year pays its sales tax rate plus the
-change in the vehicle sales tax rate (<code class="docutils literal notranslate"><span class="pre">sales_tax.vehicle_rate</span></code>, new less old; at least 0),
-so a move from a state without one (Montana, New Hampshire, Oregon) adds the new state’s rate.</p></li>
-<li><p><em>Rent.</em> Rent is charged as entered for each rent period; the Relocation strategy’s rent
-period in the new state carries the housing cost index ratio (see <em>Homes</em> above).</p></li>
-<li><p><em>Prices.</em> Each Bills, Planned Spending and Other Spending row is multiplied by the ratio
-of its price type (<code class="docutils literal notranslate"><span class="pre">ExpenseItem.priceType</span></code>, <code class="docutils literal notranslate"><span class="pre">expensecategories.priceRatio</span></code>): grocery by
-<code class="docutils literal notranslate"><span class="pre">price_indexes.grocery_index</span></code>, goods by <code class="docutils literal notranslate"><span class="pre">price_indexes.bea_goods</span></code>, services by
-<code class="docutils literal notranslate"><span class="pre">price_indexes.bea_services</span></code>, <code class="docutils literal notranslate"><span class="pre">none</span></code> by 1, and a row with no price type (one added by
-hand) by the <code class="docutils literal notranslate"><span class="pre">customBlend</span></code> of <code class="docutils literal notranslate"><span class="pre">.config/expenseCategories.json</span></code>, 0.4 x goods + 0.6 x
-services (the goods and services shares of personal consumption outside housing and
-healthcare). Major Spending and Charity rows are not re-priced. The change, with the
-child inflation factor and the spending change applied as for the row itself, is part of
-<code class="docutils literal notranslate"><span class="pre">State</span> <span class="pre">Cost</span> <span class="pre">Change</span></code>; the category columns keep the entered amounts.</p></li>
-<li><p><em>Sales tax.</em> The taxable expense rows the prices above do not re-price (rows priced
-<code class="docutils literal notranslate"><span class="pre">none</span></code> and Major Spending, each taxable by its sales tax class, see below) and the
-random major spending (taxed at the combined rate) cost (1 + new rate) / (1 + old rate)
-times as much (<code class="docutils literal notranslate"><span class="pre">statecosts.salesTaxRatio</span></code>, <code class="docutils literal notranslate"><span class="pre">model._salesTaxBases</span></code>). Rows that are not
-taxable, Charity, the children’s college and daycare rows and the Home, Cars and
-Healthcare tabs take no sales tax change. The price levels are shelf prices that already
-hold the state’s sales tax, so a re-priced row takes no sales tax change and each dollar
-changes once. The price change plus this difference is the signed outflow
-<code class="docutils literal notranslate"><span class="pre">State</span> <span class="pre">Cost</span> <span class="pre">Change</span></code>, in the expenses and their total.</p></li>
+<p id="moving-states"><strong>Moving states.</strong> The state you live in each year is derived, never stored.</p>
+<ul class="simple">
+<li><p>Year 0 is the home state. A primary residence bought later or a rent period starting later with a <em>State</em> moves you there from its first year. One with no state keeps the state lived in before it. A year with no primary residence and no rent keeps the last state.</p></li>
+<li><p>A home or rent period held in year 0 never changes the home state, and a second home never moves you.</p></li>
+<li><p>The Relocation move is one more change in its year. Changes apply in year order, and a primary residence or rent period starting in the move year wins.</p></li>
+<li><p>In a year lived in another state, that state replaces the home state. Your entered amounts change only by how that state’s figures compare with the home state’s (a ratio, 1 when the home state’s figure is 0). Several moves need no chaining, and a year back home costs as entered.</p></li>
+<li><p>With no move every factor is 1, so results are unchanged. The user view with examples is <a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>.</p></li>
 </ul>
-<p><em>Sales tax classes.</em> Each Bills, Planned Spending, Other Spending and Major Spending row
-has a sales tax class (<code class="docutils literal notranslate"><span class="pre">expensecategories.salesTaxClass</span></code>): its own <code class="docutils literal notranslate"><span class="pre">ExpenseItem.taxable</span></code>
-when set (true: <code class="docutils literal notranslate"><span class="pre">general</span></code>, false: none), else the default of the suggested row of the
-same name in <code class="docutils literal notranslate"><span class="pre">.config/expenseCategories.json</span></code> (<code class="docutils literal notranslate"><span class="pre">taxable</span></code> true, false or <code class="docutils literal notranslate"><span class="pre">byState</span></code>
-with its <code class="docutils literal notranslate"><span class="pre">stateRule</span></code>, <code class="docutils literal notranslate"><span class="pre">grocery</span></code> or <code class="docutils literal notranslate"><span class="pre">clothing</span></code>), else <code class="docutils literal notranslate"><span class="pre">general</span></code> for a row added by
-hand. <code class="docutils literal notranslate"><span class="pre">statecosts.salesTaxRate</span></code> gives each class’s rate in a state: <code class="docutils literal notranslate"><span class="pre">general</span></code> the
-<code class="docutils literal notranslate"><span class="pre">sales_tax.combined_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grocery</span></code> the <code class="docutils literal notranslate"><span class="pre">sales_tax.grocery_rate</span></code> (the combined rate
-when a file has none), <code class="docutils literal notranslate"><span class="pre">clothing</span></code> the combined rate unless <code class="docutils literal notranslate"><span class="pre">sales_tax.clothing_taxable</span></code>
-is false (then 0).</p>
-<p><em>Sales tax for records.</em> The entered expenses already include the sales tax of the state
-lived in, so the model never adds sales tax. Each year the summary column
-<code class="docutils literal notranslate"><span class="pre">Sales</span> <span class="pre">Tax</span> <span class="pre">(records)</span></code> (<code class="docutils literal notranslate"><span class="pre">RECORD_COLUMNS</span></code>) shows the tax inside the taxable rows paid that
-year and the random major spending, after any move’s change: the sum over the rows of
-amount x r / (1 + r), with r the year’s state’s rate for the row’s class
-(<code class="docutils literal notranslate"><span class="pre">statecosts.embeddedSalesTax</span></code>). It is in no tax, outflow,
-total or cash flow column; the Taxes chart draws it hatched and not counted, the taxes CSV
-(<code class="docutils literal notranslate"><span class="pre">breakdownCsv</span></code> with <code class="docutils literal notranslate"><span class="pre">taxRecords</span></code>) and the chart table add it as the last column, and
-Compare adds its median over the runs in today’s dollars, beside the lifetime taxes and outside
-every after-tax figure; each is headed <em>Sales tax (already in expenses, shown for records)</em>.</p>
-<p>With no move every factor is exactly 1 and every difference 0, so results are unchanged.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>What changes</p></th>
+<th class="head"><p>How</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Income tax</p></td>
+<td><p>The new state’s income tax and average local income tax apply.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Homes</p></td>
+<td><p>Relocation moves housing through the primary residence lane. Saved homes never change (see below).</p></td>
+</tr>
+<tr class="row-even"><td><p>Cars and gas</p></td>
+<td><p>Insurance scales by the car insurance ratio. Registration adds the car tax difference and gas adds the pump price change (new less old, at least 0). Maintenance is unchanged. A car bought or replaced from the move year pays its sales tax rate plus the change in the vehicle rate (at least 0).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rent</p></td>
+<td><p>Charged as entered. The Relocation rent period in the new state carries the housing cost index ratio.</p></td>
+</tr>
+<tr class="row-even"><td><p>Prices</p></td>
+<td><p>Each Bills, Planned Spending and Other Spending row is multiplied by the ratio of its price type: grocery, goods, services, or none (1). A row added by hand uses 0.4 goods plus 0.6 services. Major Spending and Charity rows are not re-priced. The change is part of <em>State Cost Change</em>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sales tax</p></td>
+<td><p>Taxable rows not re-priced above (priced none, Major Spending, random major spending) cost (1 + new rate) / (1 + old rate) times as much. Charity, college, daycare and the Home, Cars and Healthcare tabs take none. Each dollar changes once, since price levels already hold sales tax.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Homes on a Relocation.</strong> Saved homes never change; the run uses an adjusted copy. The lane item covering the move year m decides:</p>
+<ul class="simple">
+<li><p><strong>A primary home or rent period of yours starting in m</strong> is the move itself. A blank state on it becomes the relocation state. Another state wins, with a strategy warning.</p></li>
+<li><p><strong>A primary home O</strong>: with <em>Home follows me</em> on, O is sold at the close of m - 1 (its mortgage paid from the proceeds, its gain taxed by the state it sits in). Off, O becomes a second home with no section 121 exclusion. Either way a new primary home “O (S)” in state S is bought at the start of m.</p></li>
+<li><p><strong>The new home</strong> costs O’s expected value in m times the typical-home-value ratio, with property tax and insurance scaled by their state ratios. It keeps O’s appreciation and cost rates and its mortgage terms (on) or a new loan with the Home defaults (off; no mortgage on O means all cash).</p></li>
+<li><p><strong>A rent period O</strong> ends at m - 1. A rent period “O (S)” starts in m at O’s rent times the housing cost index ratio.</p></li>
+<li><p><strong>No item in m</strong>: only the state moves.</p></li>
+<li><p><strong>A move in year 0</strong> cannot sell a home owned now, so that home or rent is re-based in place by the ratios.</p></li>
+<li><p>Homes you entered later, and second homes, keep their entered values.</p></li>
+</ul>
+<p><strong>Sales tax.</strong> Entered expenses already include the sales tax of the state lived in, so the model never adds it.</p>
+<ul class="simple">
+<li><p>Each row has a class: general, grocery, clothing or none. It comes from the row’s own <em>taxable</em> setting, else the suggested row of the same name, else general. Each state has a rate per class.</p></li>
+<li><p><em>Sales Tax (records)</em> shows the tax inside the taxable rows each year, as amount x r / (1 + r). It is in no tax, outflow or total. The Taxes chart draws it hatched, the taxes CSV adds it as the last column, and Compare shows its median outside every after-tax figure.</p></li>
+</ul>
 </section>
 <section id="headline-figures">
 <span id="tab-results-header"></span><h2>Headline figures<a class="headerlink" href="#headline-figures" title="Link to this heading"></a></h2>
-<p><strong>Logic.</strong> <em>Chance of running out</em> is the share of runs that end with a balance under $1.
-The figures are in the run’s dollars: inflation adjusted when the inflation adjusted switch
-is on, today’s dollars when it is off. If an input is not valid the figures are replaced by a
-message naming the field.</p>
+<figure class="align-default" id="id3">
+<a class="reference internal image-reference" href="../_images/outputs-summary.png"><img alt="The Outputs Summary with headline tiles: median final worth, home and cars, final net worth after terminal tax, chance of running out and averages." src="../_images/outputs-summary.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Outputs Summary after the Monte Carlo runs.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<ul class="simple">
+<li><p><em>Chance of running out</em> is the share of runs that end with a balance under $1.</p></li>
+<li><p>Figures are in the run’s dollars: inflation adjusted when that switch is on, today’s dollars when off.</p></li>
+<li><p>If an input is not valid, a message naming the field replaces the figures.</p></li>
+</ul>
 </section>
 <section id="summary-and-deductions">
 <span id="tab-summary"></span><h2>Summary and deductions<a class="headerlink" href="#summary-and-deductions" title="Link to this heading"></a></h2>
-<p><strong>Logic.</strong> Each run draws inflation, raises, promotions, returns, random major expenses and
-(with visit-based healthcare) doctor visits, or the level of a flat healthcare range, afresh
-from the ranges you set; the seed makes the whole set repeatable, and the first run is the
-single run behind the headline figures. Each year the model takes the larger of the standard
-and the itemized deductions (separate returns must both itemize if either does). Itemized
-parts: mortgage interest (from Mortgage loans and rows tagged Mortgage interest), state and
-property tax and rows tagged State and local taxes within the SALT cap, medical costs above
-the floor and charity. The senior deduction and the non-itemizer charity deduction are
-described in <a class="reference internal" href="strategies.html#strategies-today"><span class="std std-ref">the choices that change a plan</span></a>. The inputs are on
-Expenses (rows with a deduction, Charity rows and property taxes), Loans (Mortgage loans),
-Benefits (premiums), Healthcare (visits and drugs or a flat amount) and Retirement (Medicare).</p>
+<ul class="simple">
+<li><p>Each run draws inflation, raises, promotions, returns, random major expenses and (with visit-based healthcare) doctor visits, or a flat healthcare level, afresh from your ranges. The seed makes the set repeatable. The first run is the single run behind the headline figures.</p></li>
+<li><p>Each year the model takes the larger of the standard and itemized deductions. Separate returns must both itemize if either does.</p></li>
+<li><p>Itemized parts: mortgage interest (Mortgage loans and rows tagged Mortgage interest), state and property tax and rows tagged State and local taxes within the SALT cap, medical costs above the floor, and charity.</p></li>
+<li><p>The senior deduction and the non-itemizer charity deduction are in <a class="reference internal" href="strategies.html#strategies-today"><span class="std std-ref">Strategies you can compare today</span></a>.</p></li>
+<li><p>Inputs: Expenses (deduction rows, Charity, property taxes), Loans, Benefits (premiums), Healthcare and Retirement (Medicare).</p></li>
+</ul>
 </section>
 <section id="charts">
 <span id="tab-plots"></span><h2>Charts<a class="headerlink" href="#charts" title="Link to this heading"></a></h2>
-<p>The Plots charts are the middle half average of the runs year by year, apart from the
-total balance band and the histogram.</p>
+<p>The Plots charts are the middle half average of the runs year by year, apart from the total balance band and the histogram.</p>
 <section id="balances">
 <span id="tab-balances"></span><h3>Balances<a class="headerlink" href="#balances" title="Link to this heading"></a></h3>
-<p><strong>Logic.</strong> The median and the percentile bands of the total balance are taken across runs
-at each age. The account balances and cash flow are the middle half average of the runs, so
-a stacked area adds up to that average total.</p>
+<p>The median and percentile bands of the total balance are taken across runs at each age. Account balances and cash flow are the middle half average, so a stacked area adds up to that average total.</p>
+<figure class="align-default" id="id4">
+<a class="reference internal image-reference" href="../_images/income-spending.png"><img alt="The example household's income and spending by year, with pay ending at retirement and Social Security starting later." src="../_images/income-spending.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Money in and money out each year, with the left over line; the middle half average of the runs.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+</figcaption>
+</figure>
 </section>
 <section id="deposits-and-withdrawals">
 <span id="tab-flows"></span><h3>Deposits and withdrawals<a class="headerlink" href="#deposits-and-withdrawals" title="Link to this heading"></a></h3>
-<p><strong>Logic.</strong></p>
 <ul class="simple">
-<li><p>Each account’s RMD uses its owner’s age and birth year (the account’s owner on
-Accounts); an account with no owner set is yours. The joint-life table for a spouse 10 or
-more years younger is not modeled: the Uniform Lifetime Table is always used.</p></li>
-<li><p>A person’s QCD counts toward that person’s Traditional IRA RMDs together, never toward the
-other person’s; a 401k’s RMD is its own. See <a class="reference internal" href="strategies.html#rmd-strategy"><span class="std std-ref">Required minimum distributions</span></a>.</p></li>
-<li><p>The tax on Traditional withdrawals is the federal, state and capital gains tax with the
-year’s taxed Traditional withdrawals less the same tax without them, so it includes
-knock-ons such as more Social Security being taxed, but not the conversion tax or IRMAA.
-The yearly summary table (in the Final report) shows the same figure as the <code class="docutils literal notranslate"><span class="pre">Tax</span> <span class="pre">on</span> <span class="pre">Traditional</span>
-<span class="pre">Withdrawals</span></code> column, to compare with the total taxes.</p></li>
+<li><p>Each account’s RMD uses its owner’s age and birth year (no owner means yours). The joint-life table for a spouse 10 or more years younger is not modeled: the Uniform Lifetime Table is always used.</p></li>
+<li><p>A person’s QCD counts toward that person’s Traditional IRA RMDs together, never the other person’s. A 401k’s RMD is its own (see <a class="reference internal" href="strategies.html#rmd-strategy"><span class="std std-ref">Required minimum distributions</span></a>).</p></li>
+<li><p>The tax on Traditional withdrawals is federal, state and capital gains tax with the year’s taxed Traditional withdrawals less the same tax without them. It includes knock-ons such as more taxable Social Security, but not conversion tax or IRMAA. The Final report’s yearly table shows it as <em>Tax on Traditional Withdrawals</em>.</p></li>
 <li><p>Amounts are in the run’s dollars.</p></li>
 </ul>
 </section>
 <section id="taxes">
 <span id="tab-tax-breakdown"></span><h3>Taxes<a class="headerlink" href="#taxes" title="Link to this heading"></a></h3>
-<p><strong>Logic.</strong> The kinds are the summary columns SS Tax, Medicare Tax, Federal, State and Capital Gains (LT);
-they come from the law data for the home state and filing status you chose. The effect of a setting such as the Social Security
-claim age on the tax shows up here year by year.</p>
-<p><em>State rules.</em> Each state’s law data says how it treats Social Security: <code class="docutils literal notranslate"><span class="pre">exempt</span></code> (none of it is taxed),
-<code class="docutils literal notranslate"><span class="pre">federal</span></code> (the part the federal return taxes) or <code class="docutils literal notranslate"><span class="pre">threshold</span></code> (none at or below a federal AGI limit per filing
-status, above it the federally taxed part up to a share of the benefits), with an optional deduction. A state’s rule
-that does not fit these three is approximated and flagged <code class="docutils literal notranslate"><span class="pre">unconfirmed</span></code> in its file and in the State rules notes.
-A state may also leave a share of long-term capital gains out of its income, give exemptions as non-refundable
-credits off the tax (never below zero) and carry an average local income tax rate (county, city and school taxes
-averaged over the state), counted as state tax. Its <code class="docutils literal notranslate"><span class="pre">applies_to</span></code> sets the base: <code class="docutils literal notranslate"><span class="pre">all</span> <span class="pre">income</span></code> charges it on the
-state’s taxable income, <code class="docutils literal notranslate"><span class="pre">wages</span></code> on the return’s wages only (pay less the pre-tax premium, the dependent care
-FSA and the HSA taken through payroll, with the 401(k) deferrals, which local wage taxes count; never interest, gains or retirement income; never below
-zero), which is charged even in a year with no state taxable income. A file without that rate has no local tax. The State summary column holds the local tax;
-the <em>Local Tax</em> summary column is that part of it. The Taxes plot and the <em>Taxes paid by year</em> table (in the Final report) show it as its
-own kind and State without it, so their Total is unchanged. Being part of the state tax, it counts in the itemized
-state and local taxes.</p>
-<p><em>State figures by year.</em> The informational summary columns <em>State Deduction</em> and <em>State Exemptions</em> (the standard
-deduction and the personal, dependent and senior exemptions each return gets, from the home state’s law data) and
-<em>State Credits</em> (the exemption credits the return’s bracket tax could use) are never added to a tax or total. Both
-tables of the Summary’s Taxes sub-tab show them with <em>Local Tax</em>, so the two read together.</p>
-<p><em>Why law figures jump.</em> Some tax figures are not indexed by law: only Congress or the state legislature changes
-them (the Social Security taxability thresholds, every state bracket and exemption, the SALT floor from 2030, the
-mortgage limit, the home sale exclusion, the Additional Medicare thresholds, the dependent care FSA limit, the HSA
-catch-up and a few more; the law data lists them). The model holds each at its last dollar amount, so it shrinks in
-real terms and taxes creep up, and then, after a random 3 to 7 years, restores it to its inflation-adjusted level;
-the steps then repeat. Congress and the state follow two separate random schedules, so federal and state taxes step
-in different years. Each run, the single run included, draws its own schedules from its seed, so results vary by
-seed like the returns do, and the same seed always gives the same steps. The first year is never affected. The
-statute paths stay as written: the SALT cap of 2026 to 2029, the senior deduction of 2025 to 2028 and the top IRMAA
-threshold (frozen through 2027, indexed from 2028). This applies to every profile; there is no setting.</p>
+<figure class="align-default" id="id5">
+<a class="reference internal image-reference" href="../_images/taxes-by-year.png"><img alt="The example household's taxes by kind and year." src="../_images/taxes-by-year.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Taxes by kind and year. The hatched bar is sales tax already inside spending.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>The kinds are SS Tax, Medicare Tax, Federal, State and Capital Gains (LT), from the law data for your home state and filing status. A setting such as the claim age shows up here year by year.</p>
+<p><strong>State rules</strong></p>
+<ul class="simple">
+<li><p>Each state treats Social Security as exempt (none taxed), federal (the part the federal return taxes) or threshold (none at or below a federal AGI limit, above it the federally taxed part up to a share of benefits), with an optional deduction. A rule that fits none is approximated and flagged unconfirmed.</p></li>
+<li><p>A state may leave a share of long-term capital gains out, give exemptions as non-refundable credits and carry an average local income tax, counted as state tax.</p></li>
+<li><p>The local tax base is all income or wages only (never interest, gains or retirement income). Wage-based local tax is charged even in a year with no state taxable income.</p></li>
+<li><p><em>Local Tax</em> is the local part of the <em>State</em> column. The Taxes plot and the Final report’s table show it as its own kind, so Total is unchanged. It counts in itemized state and local taxes.</p></li>
+<li><p><em>State Deduction</em>, <em>State Exemptions</em> and <em>State Credits</em> are informational and never added to a tax or total.</p></li>
+</ul>
+<p><strong>Why law figures jump</strong></p>
+<ul class="simple">
+<li><p>Some figures are not indexed by law: the Social Security taxability thresholds, state brackets and exemptions, the SALT floor from 2030, the mortgage limit, the home sale exclusion, the Additional Medicare thresholds, the dependent care FSA limit, the HSA catch-up and a few more (the law data lists them).</p></li>
+<li><p>The model holds each at its last dollar amount, so taxes creep up. After a random 3 to 7 years it restores it to its inflation-adjusted level, and the steps repeat.</p></li>
+<li><p>Congress and each state follow separate random schedules drawn from the seed, so federal and state taxes step in different years. The first year is never affected.</p></li>
+<li><p>Statute paths stay as written (SALT cap 2026 to 2029, senior deduction 2025 to 2028, top IRMAA threshold). There is no setting.</p></li>
+</ul>
 </section>
 <section id="expense-chart">
 <span id="tab-expense-breakdown"></span><h3>Expense chart<a class="headerlink" href="#expense-chart" title="Link to this heading"></a></h3>
-<p><strong>Logic.</strong> It averages the middle half of the runs, so the child inflation factor, loan payments (unless <em>Payment in
-Expenses</em> is ticked) and healthcare costs appear where they are charged, and the random major
-expense shows as its average over those runs.</p>
+<p>It averages the middle half of the runs. The child inflation factor, loan payments (unless <em>Payment in Expenses</em> is ticked) and healthcare costs appear where charged, and the random major expense shows as its average over those runs.</p>
 </section>
 </section>
 <section id="how-compare-judges">
 <span id="tab-compare"></span><h2>How Compare judges<a class="headerlink" href="#how-compare-judges" title="Link to this heading"></a></h2>
-<p><strong>Logic.</strong> Two scenarios run on the same random draws, so the difference comes from the
-settings, not luck. The comparison table judges each scenario after tax, in today’s dollars:
-the median homes and cars less loans, the median after-tax final value, the median gain over
-the first scenario paired run by run on the same draws, the share of runs ahead, median
-lifetime taxes and IRMAA, the median lifetime sales tax inside the spending (for records, outside
-every after-tax figure), and the break-even rate r*. A scenario that leaves less in
-Traditional accounts beats the first after tax when the rate on that money is above r*, and
-one that leaves more beats it when the rate is below r*; the last column says which side
-applies to each row. r* counts the estate and inheritance taxes and the homes’ selling costs
-too.</p>
-<p>The after-tax value is what the beneficiaries keep. When the first scenario has a terminal tax rate,
-Traditional money left at the end is charged that one rate for every row; when it has none,
-each row taxes its own beneficiaries’ payouts at their brackets (see <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>). Unrealized Investments gains and home gains are not taxed, since beneficiaries
-get a stepped-up basis; the federal and state estate taxes and the inheritance tax are
-charged. When two scenarios
-differ in their claim age, taxable Social Security counts withdrawals and gains, so a later
-claim can change the tax on the same withdrawals; the Taxes chart shows the effect
-year by year. For the claim-age limits (no spousal or survivor benefit, no earnings test,
-nobody dies) see <a class="reference internal" href="#tab-social-security"><span class="std std-ref">Social Security</span></a>. The Roth IRA part of a deposit shrinks as income passes the
-phase-out range in the law data; the Roth 401k has no income limit. The income counted is pay plus interest less
-Traditional deposits; Social Security and withdrawals are not counted. See
-<a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a> for how the rate is chosen.</p>
+<figure class="align-default" id="id6">
+<a class="reference internal image-reference" href="../_images/compare.png"><img alt="Two configurations of the example household compared on the same random draws." src="../_images/compare.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Two scenarios on the same random draws.</span><a class="headerlink" href="#id6" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>Two scenarios run on the same draws, so the difference comes from the settings. The table judges each after tax, in today’s dollars:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Homes and cars</p></td>
+<td><p>Median homes and cars less loans.</p></td>
+</tr>
+<tr class="row-odd"><td><p>After-tax final value</p></td>
+<td><p>Median of what the beneficiaries keep.</p></td>
+</tr>
+<tr class="row-even"><td><p>Paired gain</p></td>
+<td><p>Median gain over the first scenario, run by run on the same draws.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Share ahead</p></td>
+<td><p>Share of runs ahead of the first scenario.</p></td>
+</tr>
+<tr class="row-even"><td><p>Lifetime taxes and IRMAA</p></td>
+<td><p>Median lifetime taxes and IRMAA.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sales tax (for records)</p></td>
+<td><p>Median lifetime sales tax inside the spending, outside every after-tax figure.</p></td>
+</tr>
+<tr class="row-even"><td><p>Break-even rate r*</p></td>
+<td><p>A scenario that leaves less in Traditional accounts beats the first after tax when the rate on that money is above r*. One that leaves more beats it when the rate is below r*. The last column says which side applies. r* counts estate and inheritance taxes and the homes’ selling costs.</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p><strong>After-tax value</strong>: when the first scenario has a terminal tax rate, Traditional money left is charged that one rate for every row. Otherwise each row taxes its own beneficiaries’ payouts at their brackets (see <a class="reference internal" href="strategies.html#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>). Unrealized Investments and home gains are untaxed (stepped-up basis). Estate and inheritance taxes are charged.</p></li>
+<li><p><strong>Claim ages</strong>: when scenarios differ in claim age, taxable Social Security counts withdrawals and gains, so the tax on the same withdrawals can change. The Taxes chart shows it. The claim-age limits are under <a class="reference internal" href="#tab-social-security"><span class="std std-ref">Social Security</span></a>.</p></li>
+<li><p><strong>Roth IRA</strong>: the deposit shrinks as income passes the phase-out range in the law data. The Roth 401k has no income limit. Income is pay plus interest less Traditional deposits. Social Security and withdrawals are not counted.</p></li>
+</ul>
 </section>
 <section id="how-optimize-scores">
 <span id="tab-optimize"></span><h2>How Optimize scores<a class="headerlink" href="#how-optimize-scores" title="Link to this heading"></a></h2>
-<p><strong>What it is for.</strong> Finding the best settings of the strategies for your household: the Roth
-conversion (its ceiling and age window), the Roth backdoor, QCDs, the withdrawal order,
-where surplus cash goes and the Social Security claim ages (each beneficiary keeps the payout you set). It scores each setting it tries
-on the same random draws (the Seed on Setup, not the Runs) and changes nothing until you
-apply the result.</p>
-<p><strong>Logic.</strong> The score of a setting is a weighted average of its runs’ after-tax final worth
-(the middle run counts most, the tails less), plus a bonus for the share of runs that never
-run short or out, less a penalty on the spread between a bad-luck run (10th percentile) and a
-good-luck run (90th). The search moves one strategy at a time, keeps a new setting only when
-it is clearly better, and tries fewer runs for settings that fall behind early. Details:
-<a class="reference internal" href="strategies.html#finding-best-settings"><span class="std std-ref">Finding the best settings</span></a>.</p>
+<p>Optimize looks for the best strategy settings: the Roth conversion (ceiling and window), the Roth backdoor, QCDs, the withdrawal order, where surplus cash goes and the Social Security claim ages. It scores each try on the same draws (the Seed on Setup, not the Runs) and changes nothing until you apply the result.</p>
+<ul class="simple">
+<li><p><strong>Score</strong>: a weighted average of the runs’ after-tax final worth (the middle run counts most, the tails less), plus a bonus for the share of runs that never run short, less a penalty on the spread between a bad-luck run (10th percentile) and a good-luck run (90th).</p></li>
+<li><p><strong>Search</strong>: one strategy at a time, keeping a new setting only when it is clearly better, with fewer runs for settings that fall behind early.</p></li>
+<li><p>Details: <a class="reference internal" href="strategies.html#finding-best-settings"><span class="std std-ref">Finding the best settings</span></a>.</p></li>
+</ul>
 </section>
 </section>
 

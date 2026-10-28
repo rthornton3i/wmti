@@ -9,7 +9,7 @@
   <title>Using the toolkit &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -54,7 +54,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#use-case-4-a-loan-and-an-extra-payment">Use case 4: a loan and an extra payment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-the-python-api">Using the Python API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#what-the-toolkit-does-not-model-yet">What the toolkit does not model yet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#inflation">Inflation</a></li>
 </ul>
 </li>
 </ul>
@@ -101,96 +100,64 @@
              
   <section id="using-the-toolkit">
 <h1>Using the toolkit<a class="headerlink" href="#using-the-toolkit" title="Link to this heading"></a></h1>
-<p>In short: open the app, let the walkthrough fill in the main settings, then
-change one thing at a time and compare. This page shows how to open it and
-walks through four worked examples: a retirement projection, Traditional or
-Roth saving, when to claim Social Security, and a loan with an extra payment.
-It ends with the same steps from Python.</p>
-<p>The app and the Python API give the same results: the app only edits a
-<code class="docutils literal notranslate"><span class="pre">RetirementInputs</span></code> and shows what <code class="docutils literal notranslate"><span class="pre">simulate</span></code> returns (see <a class="reference internal" href="app.html"><span class="doc">The app</span></a>).</p>
+<p>Purpose: for new users, how to open the app and four worked examples, plus the same run from Python.</p>
+<p>The app and the Python API give the same results (see <a class="reference internal" href="app.html"><span class="doc">The app</span></a>).</p>
 <section id="open-the-app">
 <h2>Open the app<a class="headerlink" href="#open-the-app" title="Link to this heading"></a></h2>
-<p>The app is one web page hosted on GitHub Pages:
-<a class="reference external" href="https://rthornton3i.github.io/wmti/">https://rthornton3i.github.io/wmti/</a> . It runs the Python model inside the
-browser, so nothing is installed and nothing you enter leaves the device. The
-same page fits a phone and, from 1100 px wide, a laptop or monitor (Setup,
-Inputs and Outputs side by side). On a phone, open it once (about 20 MB), then
-install it from the menu’s <em>Install app</em> to use it offline. <a class="reference internal" href="app.html"><span class="doc">The app</span></a>
-describes every screen.</p>
-<p>On a first visit the walkthrough (Walkthrough in <a class="reference internal" href="app.html"><span class="doc">The app</span></a>) opens over the
-page and asks for the main settings one question at a time, starting from the
-example household; its first step offers to open a scenario file you already
-have, or to start fresh; <strong>Skip for now</strong> closes it, and <em>Walk me through it…</em> in the menu opens
-it again at any time.</p>
-<p>The page has three tabs, Setup, Inputs and Outputs: <a class="reference internal" href="overview.html#tabs-overview"><span class="std std-ref">What each tab is for</span></a> lists
-what each is for, and <a class="reference internal" href="model-rules.html#model-rules"><span class="std std-ref">Model rules by group</span></a> gives the defaults and logic of each group.</p>
-<p>Every edit reruns the model. A figure marked <code class="docutils literal notranslate"><span class="pre">(%)</span></code> is a percent: type 3 for 3%.</p>
-<p>A field shown in gray holds its default. Once you change it, a small circular-arrow
-button appears inside the field’s right edge; tap it (or reach it with Tab and press
-Enter) to put the default back. Its tooltip names that default.</p>
+<p>The app is one web page: <a class="reference external" href="https://rthornton3i.github.io/wmti/">https://rthornton3i.github.io/wmti/</a> . Nothing is
+installed and nothing you enter leaves the device. From 1100 px wide, Setup,
+Inputs and Outputs sit side by side. On a phone, open it once (about 20 MB),
+then choose <em>Install app</em> in the menu to use it offline.</p>
+<ul class="simple">
+<li><p>A first visit opens the walkthrough on the example household. <strong>Skip for now</strong> closes it; <em>Walk me through it…</em> in the menu reopens it.</p></li>
+<li><p><a class="reference internal" href="overview.html#tabs-overview"><span class="std std-ref">What each tab is for</span></a> lists what each tab is for. <a class="reference internal" href="model-rules.html#model-rules"><span class="std std-ref">Model rules by group</span></a> gives each group’s defaults.</p></li>
+<li><p>Every edit reruns the model. A figure marked <code class="docutils literal notranslate"><span class="pre">(%)</span></code> is a percent: type 3 for 3%.</p></li>
+<li><p>A gray field holds its default. After a change, the circular-arrow button in the field restores it.</p></li>
+</ul>
 </section>
 <section id="use-case-1-a-retirement-projection">
 <h2>Use case 1: a retirement projection<a class="headerlink" href="#use-case-1-a-retirement-projection" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
-<li><p>On <strong>Setup</strong>, under <em>Household</em>, enter each person’s current age and pick the home
-state (tap the box and type a few letters of the state’s name or code to narrow the
-list, then tap it or press Enter). In <strong>Income</strong>, enter the salary
-and the age pay stops (<a class="reference internal" href="model-rules.html#tab-income"><span class="std std-ref">Income</span></a>). In <strong>Retirement</strong>, enter the
-Social Security benefit and claim age; the earnings history on Income can
-estimate the benefit (<a class="reference internal" href="model-rules.html#tab-social-security"><span class="std std-ref">Social Security</span></a>).</p></li>
-<li><p>In <strong>Expenses</strong>, fill in or remove the suggested monthly categories and add your own
-Bills, Planned and Other spending rows, the major one-off
-items by age, gifts to charity as Charity rows, a tax deduction on any row that is
-deductible (<em>Tax deduction</em>) (<a class="reference internal" href="model-rules.html#tab-expenses"><span class="std std-ref">Expenses</span></a>), and in
-<strong>Children</strong> the children’s years and costs (<a class="reference internal" href="model-rules.html#tab-children"><span class="std std-ref">Children</span></a>), and in
-<strong>Home</strong> the homes you own with their values, mortgages and property taxes and your
-primary residence, or the rent, and the utilities (<a class="reference internal" href="model-rules.html#tab-home"><span class="std std-ref">Home</span></a>).</p></li>
-<li><p>In <strong>Accounts</strong>, list every account with its kind, owner and starting value, and
-choose the withdrawal strategy and priority (<a class="reference internal" href="model-rules.html#tab-accounts"><span class="std std-ref">Accounts</span></a>).</p></li>
-<li><p>In <strong>Benefits</strong>, under <em>Retirement plan</em>, set each person’s employer match and either keep the household plan or set a
-yearly deposit for each 401k and IRA account (<a class="reference internal" href="model-rules.html#tab-savings"><span class="std std-ref">Retirement plan</span></a>).</p></li>
-<li><p>Read the pinned headline figures (your current net worth, the median final worth, the
-average net earnings after withdrawals, negative for a shortfall the accounts could not
-pay, and the average yearly expense) and, on Outputs, Summary, the
-chance of running out. Summary and the <strong>Balances</strong>, <strong>Deposits and withdrawals</strong> and
-<strong>Taxes</strong> charts under Plots show the year by year middle half average of the runs
-behind them (see <a class="reference internal" href="model-rules.html#tab-results-header"><span class="std std-ref">Headline figures</span></a> and Outputs in
-<a class="reference internal" href="app.html"><span class="doc">The app</span></a>).</p></li>
+<li><p><strong>Setup</strong>, <em>Household</em>: each person’s age and the home state.</p></li>
+<li><p><strong>Income</strong>: salary and the age pay stops (<a class="reference internal" href="model-rules.html#tab-income"><span class="std std-ref">Income</span></a>).</p></li>
+<li><p><strong>Retirement</strong>: Social Security benefit and claim age (<a class="reference internal" href="model-rules.html#tab-social-security"><span class="std std-ref">Social Security</span></a>).</p></li>
+<li><p><strong>Expenses</strong>, <strong>Children</strong> and <strong>Home</strong>: spending, children’s costs, homes or rent (<a class="reference internal" href="model-rules.html#tab-expenses"><span class="std std-ref">Expenses</span></a>, <a class="reference internal" href="model-rules.html#tab-children"><span class="std std-ref">Children</span></a>, <a class="reference internal" href="model-rules.html#tab-home"><span class="std std-ref">Home</span></a>).</p></li>
+<li><p><strong>Accounts</strong>: every account, and the withdrawal order (<a class="reference internal" href="model-rules.html#tab-accounts"><span class="std std-ref">Accounts</span></a>).</p></li>
+<li><p><strong>Benefits</strong>: employer match and yearly deposits (<a class="reference internal" href="model-rules.html#tab-savings"><span class="std std-ref">Retirement plan</span></a>).</p></li>
+<li><p><strong>Outputs</strong>: read the headline figures and the chance of running out (<a class="reference internal" href="model-rules.html#tab-results-header"><span class="std std-ref">Headline figures</span></a>).</p></li>
 </ol>
 </section>
 <section id="use-case-2-traditional-or-roth-savings">
 <h2>Use case 2: Traditional or Roth savings<a class="headerlink" href="#use-case-2-traditional-or-roth-savings" title="Link to this heading"></a></h2>
-<p>Save the open scenario under a name, change <strong>Benefits</strong> (for example, move the
-deferral into a Roth deposit), then <em>Duplicate</em> it under another name, and open
-<strong>Compare</strong> and pick one as <strong>Config A</strong> and the other as <strong>Config B</strong>. Both run on the
-same random draws, so the difference in final worth comes from the setting, not luck.
-<a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">How Compare judges</span></a> explains the table (after-tax final value, paired
-gain, break-even rate) and the terminal tax rate; Compare in <a class="reference internal" href="app.html"><span class="doc">The app</span></a> explains
-<em>Settings that differ</em>. To judge a strategy, save one
-scenario with it on in <strong>Strategies</strong> and one with it off, and compare the two.</p>
+<ol class="arabic simple">
+<li><p>Save the open scenario under a name.</p></li>
+<li><p>Change <strong>Benefits</strong>, for example move the deferral into a Roth deposit.</p></li>
+<li><p><em>Duplicate</em> it under another name.</p></li>
+<li><p>Open <strong>Compare</strong> and pick one as <strong>Config A</strong> and the other as <strong>Config B</strong>.</p></li>
+</ol>
+<p>Both run on the same draws. <a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">How Compare judges</span></a> explains the table. To judge a
+strategy, compare one scenario with it on in <strong>Strategies</strong> against one with it off.</p>
 </section>
 <section id="use-case-3-when-to-claim-social-security">
 <h2>Use case 3: when to claim Social Security<a class="headerlink" href="#use-case-3-when-to-claim-social-security" title="Link to this heading"></a></h2>
-<p>Enter the monthly benefit your Social Security statement shows for two or more claim
-ages in the benefit table on <strong>Retirement</strong>; the tool estimates the other ages from 62
-to 70, or can estimate them from your earnings history on <strong>Income</strong>
-(<a class="reference internal" href="model-rules.html#tab-social-security"><span class="std std-ref">Social Security</span></a> explains both, the simplified SSA method and
-its limits). Save the scenario, change the claim age and save it
-under another name, then open <strong>Compare</strong> and pick the two: they run on the same random
-draws (<a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">How Compare judges</span></a>).</p>
+<ol class="arabic simple">
+<li><p>On <strong>Retirement</strong>, enter the benefit for two or more claim ages (<a class="reference internal" href="model-rules.html#tab-social-security"><span class="std std-ref">Social Security</span></a>).</p></li>
+<li><p>Save the scenario, change the claim age, and save it under another name.</p></li>
+<li><p>Open <strong>Compare</strong> and pick the two.</p></li>
+</ol>
 </section>
 <section id="use-case-4-a-loan-and-an-extra-payment">
 <h2>Use case 4: a loan and an extra payment<a class="headerlink" href="#use-case-4-a-loan-and-an-extra-payment" title="Link to this heading"></a></h2>
-<p>In <strong>Loans</strong>, add a loan with its balance, rate in percent, months left and an extra
-monthly payment (a mortgage goes on its home on <strong>Home</strong>). Save the scenario without the
-extra payment as well and compare the two to see what it saves. When the payment is
-already a row on Expenses, tick <em>Payment in Expenses</em> so it is not charged twice
-(<a class="reference internal" href="model-rules.html#tab-loans"><span class="std std-ref">Loans</span></a>).</p>
+<ol class="arabic simple">
+<li><p>In <strong>Loans</strong>, add the loan with balance, rate, months left and extra monthly payment (<a class="reference internal" href="model-rules.html#tab-loans"><span class="std std-ref">Loans</span></a>).</p></li>
+<li><p>Save a copy without the extra payment.</p></li>
+<li><p>Compare the two to see what it saves.</p></li>
+</ol>
+<p>If the payment is already an Expenses row, tick <em>Payment in Expenses</em>.</p>
 </section>
 <section id="using-the-python-api">
 <h2>Using the Python API<a class="headerlink" href="#using-the-python-api" title="Link to this heading"></a></h2>
-<p>The same run from Python (run it from the repository root after <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span>
-<span class="pre">-e</span> <span class="pre">.</span></code>):</p>
+<p>Run this from the repository root after <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wmti.retirement</span><span class="w"> </span><span class="kn">import</span> <span class="n">compareScenarios</span><span class="p">,</span> <span class="n">compareTable</span><span class="p">,</span> <span class="n">loadInputs</span><span class="p">,</span> <span class="n">runIterations</span><span class="p">,</span> <span class="n">runOnce</span>
@@ -208,47 +175,16 @@ already a row on Expenses, tick <em>Payment in Expenses</em> so it is not charge
 <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Saved configs are JSON files; <code class="docutils literal notranslate"><span class="pre">saveInputs</span></code> and <code class="docutils literal notranslate"><span class="pre">loadInputs</span></code> write and read
-them, and a file from an older version of the toolkit is upgraded when it loads.
-<code class="docutils literal notranslate"><span class="pre">loadInputsWithVersion</span></code> also returns the file’s own <code class="docutils literal notranslate"><span class="pre">schemaVersion</span></code>, so a
-caller can tell an upgraded load. A file with no <code class="docutils literal notranslate"><span class="pre">schemaVersion</span></code> is read as
-version 0, but one that also holds <code class="docutils literal notranslate"><span class="pre">homes</span></code>, <code class="docutils literal notranslate"><span class="pre">rents</span></code> or <code class="docutils literal notranslate"><span class="pre">cars</span></code> (lists only
-newer versions save) is refused with a message asking for the version it was saved
-with. Whole-number fields (ages, years, months) refuse a fraction such as 40.7, and
-an upgrade that changes results warns, never naming the amounts.
-<code class="docutils literal notranslate"><span class="pre">loadScenarioUpgrading</span></code> (in
-<code class="docutils literal notranslate"><span class="pre">wmti.inputs.scenarios</span></code>) saves an upgraded config
-back at once in the current format after copying the original to
-<code class="docutils literal notranslate"><span class="pre">.backup/&lt;name&gt;.v&lt;old</span> <span class="pre">version&gt;.json</span></code> beside it (an existing backup is never
-replaced; a numbered copy is added instead). A config holds at most 50
-accounts, 50 loans, 20 cars, 20 homes, 20 children, 100 salary-history years,
-200 expense rows and 200 rows in any other list (<code class="docutils literal notranslate"><span class="pre">LIST_LIMITS</span></code> and
-<code class="docutils literal notranslate"><span class="pre">OTHER_LIST_LIMIT</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>), and every number in it
-must be finite (no <code class="docutils literal notranslate"><span class="pre">NaN</span></code> or <code class="docutils literal notranslate"><span class="pre">Infinity</span></code>); a file that breaks either is refused
-with a message naming the field. A config’s name follows the rule described
-under Scenarios on Setup in <a class="reference internal" href="app.html"><span class="doc">The app</span></a> (no <code class="docutils literal notranslate"><span class="pre">__proto__</span></code> and no Windows device
-name such as <code class="docutils literal notranslate"><span class="pre">CON</span></code>).</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">saveInputs</span></code> and <code class="docutils literal notranslate"><span class="pre">loadInputs</span></code> write and read JSON configs. A file from an older version upgrades when it loads.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">loadScenarioUpgrading</span></code> saves the upgraded config at once and keeps the original in <code class="docutils literal notranslate"><span class="pre">.backup/</span></code>.</p></li>
+<li><p>Limits and refusals, such as list sizes and non-finite numbers, are in <span>../reference/api</span>.</p></li>
+</ul>
 </section>
 <section id="what-the-toolkit-does-not-model-yet">
 <h2>What the toolkit does not model yet<a class="headerlink" href="#what-the-toolkit-does-not-model-yet" title="Link to this heading"></a></h2>
-<p>Roth conversions, the Roth backdoor deposit and qualified charitable distributions
-(Strategies), the Medicare IRMAA surcharge (Retirement), the senior deduction
-and the non-itemizer charity deduction are in the model; <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a> says how
-each works. What it still leaves out (the Net Investment Income Tax, the
-early-withdrawal penalty and Roth five-year rules, deaths and the survivor’s single
-brackets, the ACA premium credit, credits and the AMT, an exact Social Security
-benefit calculation (the earnings estimate is simplified), spousal and survivor benefits and the earnings test, the joint-life RMD table) is listed in the <a class="reference internal" href="tax-law.html#law-backlog"><span class="std std-ref">Law backlog</span></a> in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>.</p>
-</section>
-<section id="inflation">
-<span id="id1"></span><h2>Inflation<a class="headerlink" href="#inflation" title="Link to this heading"></a></h2>
-<p>The inflation range (low, most likely, high; in the Inflation card in Setup’s Advanced settings,
-under the inflation adjusted switch, which is off by default) is a triangular draw each year. With <em>Inflation-adjusted
-dollars</em> ticked, expenses, Social Security and the law’s indexed figures grow with each year’s
-drawn inflation and balances are in inflation-adjusted dollars. Unticked, the model runs in
-today’s dollars: returns and pay are deflated by the <em>mean</em> of the range (for 1%, 3%, 6% that
-is 3.33%, not the 3% most likely value), exactly as (1 + return) / (1 + inflation) - 1. The
-two ways therefore tell the same story; a plan that only works at a 3% inflation but not at
-the range’s 3.33% mean runs out of money in both.</p>
+<p>Gaps in the tax law are listed in the <a class="reference internal" href="tax-law.html#law-backlog"><span class="std std-ref">Law backlog</span></a> in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>.
+How each modeled strategy works is in <a class="reference internal" href="strategies.html"><span class="doc">Strategies</span></a>.</p>
 </section>
 </section>
 

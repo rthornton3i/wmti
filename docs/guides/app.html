@@ -9,7 +9,7 @@
   <title>The app &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -57,7 +57,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#swapping-tabs">Swapping tabs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#look-and-color-scheme">Look and color scheme</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#terms-and-agreement">Terms and agreement</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#effort-and-style">Effort and style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#effort-and-style">Effort and style</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#medium-effort-and-add-detail">Medium effort and Add detail</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#low-effort">Low effort</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#walkthrough">Walkthrough</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#help">Help</a></li>
@@ -469,18 +472,18 @@ and <em>Prepayment penalty</em>), and its card adds “starts at 53” or “pai
 at 58” (<code class="docutils literal notranslate"><span class="pre">spanText</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>). Each card
 keeps its place in the one saved loans list, a loan added on Home starts
 as a Mortgage and one added on Loans as Student, the Kind select offers
-only that panel’s kinds, and move up or down swaps a loan with the next
-one shown.
+only that panel’s kinds.
 Lists (accounts, expenses, loans, children, cars, and any list added later) show one card
-per item, edited in a sheet with move up, move down and remove. Every list is
-ordered: each card has a tick box at its left and a drag handle at its right,
+per item, edited in a sheet. Only the accounts list is ordered (its order is the
+withdrawal order): each account card has a tick box at its left and a drag handle at its right,
 and a bar under the list (a toolbar) has Move up, Move down and Delete for the
 ticked cards, greyed out until one is ticked; the ticked cards move as a block
 and keep their ticks, Delete asks for a second tap, and the focus stays on the
 pressed button. Dragging a card’s handle drops it on the place of the card under
 the finger; with the handle focused, the up and down arrows move it one place.
-A filtered list (Home’s mortgages, the Loans list, the two expense lists) moves within
-the cards it shows. The account order is the withdrawal order (<code class="docutils literal notranslate"><span class="pre">moveSelected</span></code>,
+Lists whose order means nothing (children, homes, cars, expenses, loans, rent periods,
+beneficiaries) keep the tick boxes and Delete but have no handle and no Move up or Move
+down. The account order is the withdrawal order (<code class="docutils literal notranslate"><span class="pre">moveSelected</span></code>,
 <code class="docutils literal notranslate"><span class="pre">deleteSelected</span></code> and <code class="docutils literal notranslate"><span class="pre">moveItem</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>). An
 optional part such as a loan’s refinance has Add and Remove buttons.
 Children has the child inflation factor (only while there is a child:
@@ -631,7 +634,7 @@ Accounts: one row each (name; filing status, state and payout; share), a tap ope
 pop-up with <em>Name</em>, <em>Other income</em>, <em>Filing status</em>, <em>State</em> (the state combobox below:
 <em>Same as household</em>, then the 51 labelled states) and <em>Takes Traditional money</em> (<em>Over 10
 years</em> or <em>All at once</em>), Save and Cancel in its footer and Remove among its actions; the
-tick boxes and drag handles reorder them, and <em>Add beneficiary</em> below (up to 20) opens the
+tick boxes and Delete remove them, and <em>Add beneficiary</em> below (up to 20) opens the
 new one’s pop-up, giving it an equal part while the others keep their split of the rest.
 The share is not in the pop-up: <em>Split among beneficiaries</em>, under the list, has a linked
 slider and a lock per beneficiary, drawn and moved by the same code as Where surplus cash
@@ -804,20 +807,31 @@ beside the title says whether amounts are today’s dollars or inflation
 adjusted. Deposits and withdrawals draws deposits above zero and
 withdrawals below it with two titled legend groups; the RMD schedule table is in the Final report, and the line
 pointing to it sits under the chart.
+Legends (<code class="docutils literal notranslate"><span class="pre">legend</span></code> in <code class="docutils literal notranslate"><span class="pre">charts.js</span></code>) are short: names from
+<code class="docutils literal notranslate"><span class="pre">LEGEND_SHORT</span></code> (<code class="docutils literal notranslate"><span class="pre">wmti.dashboard.style</span></code>), the full name on hover and
+in the readout, table and screen-reader summary; a stacked series that is
+zero every year is left out; more than four items sit in a grid. On a
+phone a legend of seven or more items and headings folds to a <em>Key</em> row
+with its swatches (never full screen). Tapping or hovering an item of a
+stacked or line chart dims the other series; tap again or Esc to clear.
+Cash flow’s <em>Left over</em> line sits on its own row under a rule.
 The HSA and the dependent care FSA have one deposit type, “HSA and
 dependent care FSA contributions”, and one withdrawal type, “HSA and
 dependent care FSA costs paid”; the other withdrawal type for untaxed
 money is “Roth”. Each type keeps its palette slot (<code class="docutils literal notranslate"><span class="pre">FLOW_SLOTS</span></code> in
 <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.breakdown</span></code>): the types the chart had before keep their
 colours and the two HSA and FSA types take slots 8 and 9.
-Cash flow stacks cash in (pay, Social Security, sale
-proceeds, withdrawals and any shortfall) above zero and cash out (expenses,
-taxes, retirement deposits and the surplus to the accounts) below it,
-so each year’s bars match, under the legend groups Cash in and Cash out.
+Cash flow shows income against spending: Money in (pay, Social Security,
+sale proceeds) above zero, Money out (expenses, taxes) below it, and a
+<em>Left over</em> line in the ink colour, money in minus money out (below zero,
+the accounts pay for the year). Withdrawals, retirement deposits and the
+surplus are on Deposits and withdrawals; a shortfall is on Summary and in
+the Insights.
 Taxes stacks the taxes by kind (the local tax as its own Local Tax
 slice beside State, which leaves it out) and draws the sales tax already inside
 the spending (<code class="docutils literal notranslate"><span class="pre">Sales</span> <span class="pre">Tax</span> <span class="pre">(records)</span></code>) as a hatched bar on top, with a
-hatched legend key and the last table column, both labelled <em>Sales tax
+hatched legend key (<em>Sales tax (in expenses)</em>, the full words on hover)
+and the last table column, labelled <em>Sales tax
 (already in expenses, shown for records)</em>; that column’s heading is
 greyed with a tooltip. It is never added to a stack, the tap readout’s
 Total, a summary or an insight (<code class="docutils literal notranslate"><span class="pre">counted:</span> <span class="pre">false</span></code> in the chart spec).
@@ -1199,7 +1213,9 @@ and Social Security) or <strong>High</strong> (everything). <em>Style</em> sets 
 shown: <strong>Accountant</strong> (numbers and tables), <strong>Coach</strong> (plus next steps and tips)
 or <strong>Gamer</strong> (plus quests, awards and mini games). Neither changes a result. At Low the Inputs tab is
 one short page and the walkthrough asks the Low questions only (see
-<a class="reference internal" href="#app-low-effort"><span class="std std-ref">Low effort</span></a>); Medium and High still show every input, and Coach and
+<a class="reference internal" href="#app-low-effort"><span class="std std-ref">Low effort</span></a>); at Medium each Inputs pane and list sheet shows its Low
+and Medium inputs with an <strong>Add detail</strong> row (see <a class="reference internal" href="#app-add-detail"><span class="std std-ref">Medium effort and Add detail</span></a>); High
+shows every input. Coach and
 Gamer talk like Accountant; the choice is kept so later releases can use it. The choices and their descriptions come
 from <code class="docutils literal notranslate"><span class="pre">appInfo().experience</span></code> (<code class="docutils literal notranslate"><span class="pre">EFFORT_CHOICES</span></code> and <code class="docutils literal notranslate"><span class="pre">STYLE_CHOICES</span></code> in
 <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.web</span></code>).</p>
@@ -1218,7 +1234,43 @@ and style any time on Setup or in the menu. Your answers are kept.” The menu�
 whose value still equals the example household’s (<code class="docutils literal notranslate"><span class="pre">defaultedInputCount</span></code> in
 <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; each field’s tier comes from
 <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.tiers</span></code> through <code class="docutils literal notranslate"><span class="pre">settingsSchema</span></code>). The line follows every
-edit and effort change and is hidden at High and when <em>N</em> is 0.</p>
+edit and effort change and is hidden at High and when <em>N</em> is 0; an input that
+Add detail shows is not counted. Below High, while the scenario has added
+detail, a line under it reads “Detail added on <em>N</em> pages and inputs” with a
+<strong>Hide it</strong> button that removes all of it.</p>
+<section id="medium-effort-and-add-detail">
+<span id="app-add-detail"></span><h4>Medium effort and Add detail<a class="headerlink" href="#medium-effort-and-add-detail" title="Link to this heading"></a></h4>
+<p>At Medium each Inputs pane, each list sheet (an account, a child, an expense
+row, a home, a car, a loan) and Setup’s Household inputs leave out the inputs
+tiered High and end with an <strong>Add detail</strong> row: one sentence names how many
+inputs it would show and the first three of them, and how many of those are
+set (not at the example household’s value, or a High-only choice such as the
+Social Security earnings estimate). <strong>Add detail</strong> shows that pane’s High inputs
+(inside a sheet it sets the pane it was opened from, and the sheet redraws in
+place); <strong>Hide detail</strong> hides them again. Household’s row sits at the foot of
+Advanced settings: at Medium the Inflation card shows the inflation range
+always, and the inflation adjusted switch only after Add detail. Strategies has
+only High inputs, so at Medium it shows a note, the optimizer link and its
+Add detail row. Accounts leaves out <strong>Where surplus cash goes</strong> (the stored
+shares still apply), the Social Security basis offers the entered table only, the healthcare cost method offers the flat amount only (visit-based costs need High inputs),
+and the Home and Cars timeline offers no future purchase, price or planned sale
+unless the item already has one, and asks no other High figure (a car’s price
+paid, the extra loan and mortgage payments, Payment in Expenses, a home’s or
+rent’s state): a new item takes their defaults and a stored value is kept.</p>
+<p>Hidden is a view rule only: every value is kept and still used by the model,
+so results are the same at every effort, and moving effort down and back up
+loses nothing. Add detail is kept with the scenario in its experience block
+(<code class="docutils literal notranslate"><span class="pre">experience.tierOverrides</span></code>: <code class="docutils literal notranslate"><span class="pre">pane.&lt;id&gt;</span></code> set to <code class="docutils literal notranslate"><span class="pre">high</span></code>); like an effort
+change it runs nothing, adds no Undo step and marks nothing unsaved. At Low and
+High it has no effect.</p>
+<p>A later Coach prompt can also <em>surface</em> one lever’s inputs (such as a child’s
+529 account or the Roth conversion) at Medium: each input it names, and any
+High holder above it, is kept in <code class="docutils literal notranslate"><span class="pre">experience.tierOverrides</span></code> under its own
+<code class="docutils literal notranslate"><span class="pre">Type.field</span></code> key, and the page can open the first of them on its pane or
+sheet. The menu’s <strong>Effort and style…</strong> pop-up lists every page and input
+added this way or by Add detail under <strong>Detail added</strong>, each with a <strong>Hide it</strong>
+button that hides that one again (its value is kept). The levers are
+<code class="docutils literal notranslate"><span class="pre">SURFACE_TARGETS</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.tiers</span></code>.</p>
 <p>A change runs nothing, adds no Undo step and marks nothing unsaved: the choice
 is the open scenario’s <em>experience block</em> (effort, style and the walkthrough’s
 progress, <code class="docutils literal notranslate"><span class="pre">Experience</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.inputs.retirementInputs</span></code>), which the page
@@ -1240,6 +1292,7 @@ never ask (<code class="docutils literal notranslate"><span class="pre">askExper
 the scenario’s copy, so it does not ask again, and a new scenario starts with
 the open one’s. A scenario saved or exported before the pickers opens as High
 and Accountant, so a returning user sees no change.</p>
+</section>
 </section>
 <section id="low-effort">
 <span id="app-low-effort"></span><h3>Low effort<a class="headerlink" href="#low-effort" title="Link to this heading"></a></h3>
@@ -1334,7 +1387,17 @@ asks the Low questions only: 13 for the example household, 9 for a single user
 with no children (your age, partner, state, pay, savings, the retirement plan,
 spending, children and the medical plan). Yes on the retirement or medical plan
 opens its guided pop-up above the walkthrough before the next question, and the
-plan’s screen then shows its summary with <strong>Change</strong> (see <a class="reference internal" href="#app-low-effort"><span class="std std-ref">Low effort</span></a>).</p>
+plan’s screen then shows its summary with <strong>Change</strong> (see <a class="reference internal" href="#app-low-effort"><span class="std std-ref">Low effort</span></a>).
+At Medium the welcome reads “About 10 minutes” and the walkthrough asks 35
+questions for the example household; at High it reads “As long as you like;
+stop or skip any time” and asks 39. At Medium a few questions are worded for
+what Medium covers (<code class="docutils literal notranslate"><span class="pre">MediumWords</span></code> in <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.walkthrough</span></code>): the
+spending offer adds student and other loans (expenses by category is High),
+the children offer sets college costs (daycare is High), the homes and cars
+offers and hand-offs name a timeline of owning and renting or leasing (a later
+purchase or sale is High), and the Social Security question offers only the
+benefit from your statement: an estimate from pay needs the earnings history,
+which stays High, as do the last two years of earnings.</p>
 <p>A fresh walkthrough on the example household’s settings (a first visit, or after Load example household)
 first asks <em>How would you like to start?</em>. <strong>Start fresh</strong>, the main button, goes on to the welcome;
 <strong>Open my file</strong>, the quiet button under it, opens the same file picker as Setup’s Import; the file’s settings replace the current ones, named after the
@@ -1345,7 +1408,7 @@ that is not a scenario leaves the step with its message, and a browser that show
 tap Start fresh and paste the text under Setup, Import.
 Back is off on both. On any other settings the walkthrough opens on the welcome. Whether the step is
 offered comes from the shared <code class="docutils literal notranslate"><span class="pre">walkthroughPlan</span></code> (<code class="docutils literal notranslate"><span class="pre">offerImport</span></code>).</p>
-<p>The welcome (“About 10 minutes”) says each answer starts with your current setting, or an example if you
+<p>The welcome (under its time estimate) says each answer starts with your current setting, or an example if you
 have not entered one (the example household on a first visit, your own figures once you have filled
 some in): change it to yours and tap <strong>Continue</strong>; <strong>Skip</strong> keeps what is shown. <strong>Start</strong> begins; <strong>Skip for now</strong> closes it for good, opens
 Outputs and says once that the menu holds it. Each question has a large
@@ -1467,7 +1530,12 @@ changed list, the example’s one-off costs (college, daycare, repairs) and the
 children still born at the example’s ages; and each Social Security benefit
 table still the example’s (an estimate from pay is not listed), each with
 <strong>Open</strong>. Its lede says to tap Change to edit an answer, that Go deeper adds extra questions on a
-topic and that Finish shows the results; <strong>Finish</strong> opens Outputs, Summary. Reopening a finished
+topic and that Finish shows the results; <strong>Finish</strong> opens Outputs, Summary. At Low and Medium the
+review ends with “Want more questions? Raise the effort in Effort and style.” and <strong>Change effort</strong>,
+which opens the effort and style picker over the walkthrough: Cancel keeps everything, a raise goes on to
+the first question it unlocked and a lower effort redraws the review. At High a row whose question
+writes one field also has <strong>Open in Inputs</strong>: the walkthrough pauses (Resume brings it back) and that
+field opens on its page, flashed and focused. Reopening a finished
 walkthrough lands on this review. Forward the question slides out to the left
 while the next slides in from the right, both fading (about a third of a
 second); Back and a jump to an earlier question go the other way; with

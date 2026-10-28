@@ -9,7 +9,7 @@
   <title>Sample results &mdash; Walk Me Through It  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f91d108a" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -98,28 +98,20 @@
              
   <section id="sample-results">
 <h1>Sample results<a class="headerlink" href="#sample-results" title="Link to this heading"></a></h1>
-<p>For readers who know the app’s tabs and want to see typical results: what the
-results look like, drawn from the real model for the example
-household (the fictional figures the app opens with). The plots are made by
-<code class="docutils literal notranslate"><span class="pre">docs/generate_sample_plots.py</span></code> with a fixed seed and a fixed number of
-runs, so they come out the same each time; its <code class="docutils literal notranslate"><span class="pre">--check</span></code> mode re-runs the
-model and fails when the numbers behind a plot change. They are pictures for
-this guide; the app draws its own charts from the same results. Your own figures will differ.</p>
-<p>How to read them: each chart is in today’s dollars (the example household has
-<em>Inflation-adjusted dollars</em> off), and a band shows the spread across the
-<a class="reference internal" href="overview.html#term-Monte-Carlo"><span class="xref std std-term">Monte Carlo</span></a> runs. <a class="reference internal" href="app.html"><span class="doc">The app</span></a> explains each chart the app shows, and
-<a class="reference internal" href="model-rules.html#tab-plots"><span class="std std-ref">Charts</span></a> in <a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a> says what each one counts.</p>
+<p>Purpose: for readers who know the tabs, typical charts for the example household (fictional figures); yours will differ.</p>
+<p>Charts use today’s dollars, and a band shows the spread across the
+<a class="reference internal" href="overview.html#term-Monte-Carlo"><span class="xref std std-term">Monte Carlo</span></a> runs. The plots come from <code class="docutils literal notranslate"><span class="pre">docs/generate_sample_plots.py</span></code>
+with a fixed seed. <a class="reference internal" href="app.html"><span class="doc">The app</span></a> explains each chart and <a class="reference internal" href="model-rules.html#tab-plots"><span class="std std-ref">Charts</span></a> in
+<a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a> says what each counts.</p>
 <section id="wealth-over-time">
 <h2>Wealth over time<a class="headerlink" href="#wealth-over-time" title="Link to this heading"></a></h2>
 <figure class="align-default" id="id1">
 <a class="reference internal image-reference" href="../_images/wealth-bands.png"><img alt="The example household's total account balance by year across the Monte Carlo runs, as a median line inside a shaded percentile band." src="../_images/wealth-bands.png" style="width: 100%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">Total balance by year: the median run and the spread of the runs around it.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+<p><span class="caption-text">Total balance by year: the median run and the spread around it. The band widens with time.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>The line is the middle run; the band holds most of the others. A band that
-widens with time is normal: the further ahead, the more the returns can differ.</p>
 </section>
 <section id="income-and-spending">
 <h2>Income and spending<a class="headerlink" href="#income-and-spending" title="Link to this heading"></a></h2>
@@ -127,11 +119,9 @@ widens with time is normal: the further ahead, the more the returns can differ.<
 <a class="reference internal image-reference" href="../_images/income-spending.png"><img alt="The example household's income and spending by year, with pay ending at retirement and Social Security starting later." src="../_images/income-spending.png" style="width: 100%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">Income and spending by year for the example household.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+<p><span class="caption-text">Income and spending by year. Both people stop work at 60 and claim Social Security at 67.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>In the example both people stop work at 60 and claim Social Security at 67; in
-the years between, spending is paid from the accounts.</p>
 </section>
 <section id="taxes-by-year">
 <h2>Taxes by year<a class="headerlink" href="#taxes-by-year" title="Link to this heading"></a></h2>
@@ -139,12 +129,9 @@ the years between, spending is paid from the accounts.</p>
 <a class="reference internal image-reference" href="../_images/taxes-by-year.png"><img alt="The example household's taxes by kind and year." src="../_images/taxes-by-year.png" style="width: 100%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">Taxes by kind and year for the example household. The hatched bar on top is the
-sales tax already inside the spending, shown for records and never added to the taxes.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+<p><span class="caption-text">Taxes by kind and year. The hatched bar is sales tax already inside spending, never added to the taxes.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>Taxes usually fall when pay stops and can rise again once Social Security and
-required minimum distributions begin.</p>
 </section>
 <section id="comparing-two-scenarios">
 <h2>Comparing two scenarios<a class="headerlink" href="#comparing-two-scenarios" title="Link to this heading"></a></h2>
@@ -152,11 +139,9 @@ required minimum distributions begin.</p>
 <a class="reference internal image-reference" href="../_images/compare.png"><img alt="Two configurations of the example household compared on the same random draws." src="../_images/compare.png" style="width: 100%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">Two scenarios compared on the same random draws.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+<p><span class="caption-text">Two scenarios on the same draws (<a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">Compare</span></a>).</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>Both run on the same draws, so the difference comes from the setting that
-differs, not from luck (<a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">Compare</span></a>).</p>
 </section>
 <section id="optimizer-before-and-after">
 <h2>Optimizer before and after<a class="headerlink" href="#optimizer-before-and-after" title="Link to this heading"></a></h2>
@@ -164,11 +149,9 @@ differs, not from luck (<a class="reference internal" href="model-rules.html#tab
 <a class="reference internal image-reference" href="../_images/optimizer-before-after.png"><img alt="The example household's current settings against the best settings the strategy optimizer found." src="../_images/optimizer-before-after.png" style="width: 100%;" />
 </a>
 <figcaption>
-<p><span class="caption-text">The current settings against the best settings the optimizer found.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+<p><span class="caption-text">Current settings against the best the optimizer found. A small gain may not hold on fresh draws (<a class="reference internal" href="strategies.html#finding-best-settings"><span class="std std-ref">Finding the best settings</span></a>).</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>The optimizer is a search on the model, not advice; a small gain may not hold up
-on fresh draws (<a class="reference internal" href="strategies.html#finding-best-settings"><span class="std std-ref">Finding the best settings</span></a>).</p>
 </section>
 </section>
 

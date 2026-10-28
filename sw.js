@@ -10,15 +10,15 @@
 // A docs page never read fails offline as any page would; it is never answered with the app's index.html.
 "use strict";
 
-const BUILD_ID = "782b5cf5aa93";
+const BUILD_ID = "d0f6ed9e83fc";
 const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
 const DOCS_CACHE = "wmti-docs:" + self.registration.scope;
 const DOCS_PATH = new URL("docs/", self.registration.scope).pathname;
 const FILES = [
  "./",
- "app.86ffecb812.js",
- "charts.fbda1f59a4.js",
+ "app.ae1af2ad6a.js",
+ "charts.c22ca6d6cc.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
  "fonts/public-sans-latin-400-normal.woff2",
@@ -30,7 +30,7 @@ const FILES = [
  "icons/icon-512.png",
  "icons/icon-maskable-512.png",
  "index.html",
- "insights.2a08d5493d.js",
+ "insights.25d1a94d61.js",
  "jspdf.822d41ab6f.js",
  "legal.5beed0797f.js",
  "manifest.webmanifest",
@@ -44,10 +44,10 @@ const FILES = [
  "pyodide/python_stdlib_zip.wasm",
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
- "report.bf76f1ef9d.js",
- "shared.14c7cba796.js",
- "wmti.25ccd91857.wasm",
- "worker.9391b6aa68.js"
+ "report.2b162219ac.js",
+ "shared.4edda29805.js",
+ "wmti.7d78702f91.wasm",
+ "worker.ea30448c4b.js"
 ];
 
 self.addEventListener("install", (event) => {

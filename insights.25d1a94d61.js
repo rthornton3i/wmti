@@ -153,12 +153,16 @@
         + money(spending[position]) + " that year)." };
   }
 
-  // A year's withdrawals above `WITHDRAWAL_RATE` of the accounts' balance at the end of the year before, in a year
-  // without pay (withdrawals while working pay for one-off costs): the first such year, with its rate.
+  // A year's withdrawals (the Deposits and withdrawals chart's Withdrawals bars, all types) above `WITHDRAWAL_RATE` of
+  // the accounts' balance at the end of the year before, in a year without pay (withdrawals while working pay for
+  // one-off costs): the first such year, with its rate.
   function withdrawalRate(monteCarlo) {
-    const cashFlow = chartOf(monteCarlo, "cashFlow");
-    const flows = seriesNamed(cashFlow, "Withdrawals");
-    const pay = seriesNamed(cashFlow, "Paycheck");
+    const pay = seriesNamed(chartOf(monteCarlo, "cashFlow"), "Paycheck");
+    const flowsChart = chartOf(monteCarlo, "flows");
+    const taken = ((flowsChart && flowsChart.series) || [])
+      .filter((item) => item.group === "Withdrawals" && item.mark === "bar");
+    const flows = taken.length ? { values: agesOf(flowsChart).map((unused, position) => taken.reduce((sum, item) =>
+      sum + Math.abs(number(item.values[position])), 0)) } : null;
     const balances = chartOf(monteCarlo, "balances");
     const ages = agesOf(balances);
     if (!flows || !balances) return null;
@@ -249,13 +253,11 @@
     return null;
   }
 
-  // Years where spending and taxes exceed income plus withdrawals, so some goes unpaid (the yearly Shortfall).
+  // Years where spending and taxes exceed income plus withdrawals, so some goes unpaid (the yearly Shortfall column of
+  // the summary table; the cash flow chart shows only income and spending).
   function unpaidSpending(monteCarlo) {
-    const spec = chartOf(monteCarlo, "cashFlow");
-    const series = seriesNamed(spec, "Shortfall (unpaid)");
-    const ages = agesOf(spec);
-    if (!series) return null;
-    const values = series.values.map((value) => Math.abs(number(value)));
+    const ages = agesOf(chartOf(monteCarlo, "cashFlow"));
+    const values = yearlyColumn(monteCarlo, "Shortfall (unpaid)", ages).map((value) => Math.abs(value));
     const years = values.filter((value) => !isEmpty(value)).length;
     if (!years) return null;
     const first = values.findIndex((value) => !isEmpty(value));

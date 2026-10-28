@@ -1777,16 +1777,201 @@
     return effortRank(tier) <= effortRank(effort);
   }
 
+  // A tier override's rank (low 0, medium 1, high 2), or -1 for a missing or non-tier value.
+  function overrideRank(value) {
+    return typeof value === "string" ? EFFORT_ORDER.indexOf(value) : -1;
+  }
+
+  // A table's own value at `key` (never one inherited from its prototype, such as `__proto__`), else undefined.
+  function ownValue(table, key) {
+    if (table == null || typeof table !== "object" || key == null) return undefined;
+    return Object.prototype.hasOwnProperty.call(table, key) ? table[key] : undefined;
+  }
+
+  // Whether an input of `tier` is drawn at `effort` with the scenario's `experience.tierOverrides`: at Medium the
+  // pane's `pane.<paneId>` override and the input's own `Type.field` override raise how far it shows; at Low and High
+  // the effort alone decides (the Low page ignores overrides). A null `paneId` or `key` reads no override.
+  function detailShown(tier, effort, overrides, paneId, key) {
+    if (effortRank(effort) !== EFFORT_ORDER.indexOf("medium")) return tierShown(tier, effort);
+    const paneOverride = paneId == null ? undefined : ownValue(overrides, "pane." + paneId);
+    const reach = Math.max(effortRank(effort), overrideRank(paneOverride), overrideRank(ownValue(overrides, key)));
+    return effortRank(tier) <= reach;
+  }
+
+  // The fields a form draws for an object of `typeName`: its stored fields, a derived field (the employer match
+  // percent) in place of the first stored field it replaces.
+  function objectFields(schema, typeName) {
+    const derived = (schema.derivedFields || {})[typeName] || [];
+    return ((schema.types || {})[typeName] || []).flatMap((child) => {
+      const replacing = derived.filter((entry) => entry.replaces.includes(child.name));
+      if (!replacing.length) return [child];
+      return replacing.filter((entry) => entry.replaces[0] === child.name);
+    });
+  }
+
+  // The schema field a `Type.field` key names (a stored or a derived field), or null.
+  function keyField(schema, key) {
+    if (typeof key !== "string" || !key.includes(".")) return null;
+    const [typeName, name] = key.split(".");
+    return objectFields(schema, typeName).find((field) => field.name === name)
+      || ((schema.derivedFields || {})[typeName] || []).find((field) => field.name === name) || null;
+  }
+
+  // The tier of the option a shown field holds, when that option is offered only above the field's tier
+  // (`schema.optionTiers`, such as the Social Security basis's earnings estimate at High), else undefined.
+  function optionTierOf(schema, key, value) {
+    if (value == null || typeof value === "object") return undefined;
+    return ownValue(ownValue(schema.optionTiers, key), String(value));
+  }
+
+  // Whether a field's choice `value` is offered at `effort` with the overrides (see detailShown): an option of
+  // `schema.optionTiers` above the effort is not (Medium offers the Social Security basis's entered table only).
+  function optionShown(schema, key, value, effort, overrides, paneId) {
+    const optionTier = schema ? optionTierOf(schema, key, value) : undefined;
+    return optionTier === undefined || detailShown(optionTier, effort, overrides, paneId, key);
+  }
+
+  // What a panel's Add detail would show at `effort`: the panel entries and the object children (a child a panel
+  // lists by its own `field.child` name counts there only; an object that is null in `inputs` has none) that the
+  // effort and the input overrides hide, ignoring the panel's own `pane.<id>` override, and each shown field that holds
+  // an option offered only above the effort (its value is kept and counts as a set hidden input). Returns `hidden`
+  // (how many), `changed` (how many of them differ from `defaults`, every held option counted) and `labels` (theirs,
+  // in drawing order).
+  function detailHidden(schema, panel, effort, overrides, inputs, defaults) {
+    const result = { hidden: 0, changed: 0, labels: [] };
+    if (!schema || !panel) return result;
+    const placed = new Set((schema.panels || []).flatMap((item) => item.fields || []));
+    const note = (label, path, set = false) => {
+      result.hidden += 1;
+      result.labels.push(label);
+      if (set || (inputs && defaults && !sameValue(getPath(inputs, path), getPath(defaults, path)))) result.changed += 1;
+    };
+    const shown = (field, key, path, label) => {
+      const optionTier = inputs ? optionTierOf(schema, key, getPath(inputs, path)) : undefined;
+      if (optionTier !== undefined && !detailShown(optionTier, effort, overrides, null, key)) note(label, path, true);
+      visit(field, path);
+    };
+    const visit = (field, path) => {
+      if (!field || field.kind !== "object" || !field.type) return;
+      if (inputs && getPath(inputs, path) == null) return;
+      for (const child of objectFields(schema, field.type)) {
+        const childPath = path + "." + child.name;
+        const childKey = field.type + "." + child.name;
+        if (placed.has(childPath)) continue;
+        if (detailShown(child.tier, effort, overrides, null, childKey)) shown(child, childKey, childPath, child.label);
+        else note(child.label, childPath);
+      }
+    };
+    for (const name of panel.fields || []) {
+      const key = ownValue(panel.keys, name);
+      const tier = ownValue(panel.tiers, name);
+      const field = keyField(schema, key);
+      const label = ownValue(panel.labels, name) || (field && field.label) || name;
+      if (tier === undefined || detailShown(tier, effort, overrides, null, key)) shown(field, key, name, label);
+      else note(label, name);
+    }
+    return result;
+  }
+
+  // A copy of `overrides` with the pane's Add detail on (`pane.<paneId>` set to high) or off (removed); never
+  // changes `overrides`.
+  function paneDetailOverrides(overrides, paneId, on) {
+    const paneKey = "pane." + paneId;
+    const entries = Object.entries(overrides && typeof overrides === "object" ? overrides : {})
+      .filter(([key]) => key !== paneKey);
+    if (on) entries.push([paneKey, "high"]);
+    return Object.fromEntries(entries);
+  }
+
+  // The `tierOverrides` additions that show one lever's inputs at `effort`: `targets` is the lever's list in
+  // `schema.surface` (each a `surfaceChain`: `chain` keys from the input up to its panel entry, their `tiers` and the
+  // `panel`), and each chain key not already shown maps to its own tier. Empty at High.
+  function surfaceOverrides(targets, effort, overrides) {
+    const additions = {};
+    for (const target of targets || []) {
+      (target.chain || []).forEach((key, index) => {
+        const tier = (target.tiers || [])[index];
+        if (tier === undefined || Object.prototype.hasOwnProperty.call(additions, key)) return;
+        if (!detailShown(tier, effort, overrides, target.panel, key)) Object.defineProperty(additions, key,
+          { value: tier, enumerable: true, writable: true, configurable: true });
+      });
+    }
+    return additions;
+  }
+
+  // The input path one surfacing target (a `surfaceChain` of `schema.surface`) draws: its panel `entry`, then the
+  // field name of each chain key from the holder below the entry down to the input. `itemPath` (such as `children.0`)
+  // names the list item to use when the entry is a list; without it the path names the list's field and no item.
+  function surfacePath(target, itemPath) {
+    if (!target || typeof target.entry !== "string") return null;
+    const chain = Array.isArray(target.chain) ? target.chain : [];
+    const prefix = typeof itemPath === "string" && new RegExp("^" + target.entry.replace(/[.[\]]/g, "\\$&")
+      + "\\.\\d+$").test(itemPath) ? itemPath : target.entry;
+    const names = chain.slice(0, -1).reverse().map((key) => key.slice(key.indexOf(".") + 1));
+    return [prefix, ...names].join(".");
+  }
+
+  // A walkthrough field path (`accounts[Savings].balance`, `homes[primary].value`) with each list selector replaced by
+  // the position of the item it picks in `data` (as walkRead picks it); null when a selector picks no item.
+  function walkIndexedPath(data, path) {
+    const parts = [];
+    let target = data;
+    for (const part of String(path).split(".")) {
+      const selector = WALK_SELECTOR.exec(part);
+      if (!selector) {
+        parts.push(part);
+        target = target == null ? undefined : target[part];
+        continue;
+      }
+      const items = target == null ? [] : target[selector[1]] || [];
+      const pick = selector[1] === "homes" ? (item) => item && item.primaryResidence === true
+        : (item) => item && item.kind === selector[2];
+      const position = items.findIndex(pick);
+      if (position < 0) return null;
+      parts.push(selector[1], String(position));
+      target = items[position];
+    }
+    return parts.join(".");
+  }
+
+  // The scenario's `tierOverrides` as the Effort and style dialog lists them, in their stored order: each key with a
+  // label (a pane's `pane.<id>` is "<Panel>: every input"; an input's `Type.field` its field's label, else the key).
+  function overrideList(schema, overrides) {
+    const panels = (schema && schema.panels) || [];
+    const fieldLabel = (key) => {
+      const [typeName, name] = [key.slice(0, key.indexOf(".")), key.slice(key.indexOf(".") + 1)];
+      const types = (schema && schema.types) || {};
+      const derived = (schema && schema.derivedFields) || {};
+      const lists = [hasOwnKey(types, typeName) ? types[typeName] : [], hasOwnKey(derived, typeName) ? derived[typeName]
+        : []];
+      for (const list of lists) {
+        const found = (list || []).find((child) => child.name === name);
+        if (found && found.label) return found.label;
+      }
+      return key;
+    };
+    return Object.keys(overrides && typeof overrides === "object" ? overrides : {}).map((key) => {
+      const panel = key.startsWith("pane.") && panels.find((item) => "pane." + item.id === key);
+      return { key, label: panel ? panel.label + ": every input" : key.includes(".") ? fieldLabel(key) : key };
+    });
+  }
+
+  function hasOwnKey(holder, key) {
+    return Object.prototype.hasOwnProperty.call(holder, key);
+  }
+
   // How many inputs are left at the example household's values because the effort does not show them: the panel
-  // entries (each schema panel's `fields`, tiered in its `tiers`) above `effort` whose value in `inputs` equals the
-  // one in `defaults`. None at High.
-  function defaultedInputCount(schema, inputs, defaults, effort) {
+  // entries (each schema panel's `fields`, tiered in its `tiers`, keyed in its `keys`) above `effort`, and not shown by
+  // `overrides` (the scenario's `tierOverrides`, see detailShown), whose value in `inputs` equals the one in
+  // `defaults`. None at High.
+  function defaultedInputCount(schema, inputs, defaults, effort, overrides = {}) {
     if (!schema || !inputs || !defaults) return 0;
     let count = 0;
     for (const panel of schema.panels || []) {
       const tiers = panel.tiers || {};
       for (const name of panel.fields || []) {
-        if (!Object.prototype.hasOwnProperty.call(tiers, name) || tierShown(tiers[name], effort)) continue;
+        if (!Object.prototype.hasOwnProperty.call(tiers, name)
+          || detailShown(tiers[name], effort, overrides, panel.id, ownValue(panel.keys, name))) continue;
         if (sameValue(getPath(inputs, name), getPath(defaults, name))) count += 1;
       }
     }
@@ -2011,8 +2196,8 @@
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName,
     splitExperience, joinExperience, defaultExperience, storedExperience, carriedExperience, experienceDiffers, experienceChoice, experienceWords,
-    effortRank, tierShown,
-    defaultedInputCount, firstUnlocked, yearsToAge100, planYears, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
+    effortRank, tierShown, overrideRank, detailShown, optionShown, detailHidden, paneDetailOverrides, surfaceOverrides,
+    surfacePath, walkIndexedPath, overrideList, defaultedInputCount, firstUnlocked, yearsToAge100, planYears, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText,
     pickerLevelAt, pickerKeyLevel };

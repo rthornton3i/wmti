@@ -27,7 +27,8 @@
   const HEIRS_COLOR = "var(--ink, #0B3A4F)";  // the Balances mark: the stack has no one series color
 
   const PALETTE_SIZE = 10;  // the --s0..--s9 tokens; a slot past the last wraps around
-  const color = (series) => "var(--s" + (series.slot % PALETTE_SIZE) + ", " + series.color + ")";
+  // A series with a `token` (the cash flow's Left over line: "ink") takes that page token instead of its slot's.
+  const color = (series) => "var(--" + (series.token || "s" + (series.slot % PALETTE_SIZE)) + ", " + series.color + ")";
   const number = (value) => (value == null || !isFinite(value) ? 0 : value);
   const round = (value) => Math.round(value * 10) / 10;
 
@@ -75,6 +76,16 @@
   // above its stack, never added to a stack's height or a total.
   const counted = (series) => series.counted !== false;
   const RECORDS_HELP = "Already in expenses, shown for records; not added to any total.";
+
+  // The legend: stacked types leave out series that draw nothing; these four types highlight a series from its legend
+  // item; more than LEGEND_DENSE_AFTER items set it as a grid; on a phone (LEGEND_PHONE) a legend of LEGEND_FOLD_AT or
+  // more items and headings folds to one "Key" row. `openKeys` holds the chart ids whose Key the user opened.
+  const STACKED_TYPES = ["stackedArea", "stackedBars", "barsAndLine"];
+  const HIGHLIGHT_TYPES = ["stackedArea", "stackedBars", "barsAndLine", "lines"];
+  const LEGEND_DENSE_AFTER = 4;
+  const LEGEND_FOLD_AT = 7;
+  const LEGEND_PHONE = "(max-width: 480px)";
+  const openKeys = new Set();
 
   // The hatch fill of a records series: a pattern in the series color on the page's hatch background.
   function hatchId(spec, series) {
@@ -195,9 +206,14 @@
     return points.map((point, position) => (position ? "L" : "M") + round(point[0]) + "," + round(point[1])).join("");
   }
 
-  function endDot(x, y, series) {
-    return "<circle class=\"dot\" cx=\"" + round(x) + "\" cy=\"" + round(y) + "\" r=\"4\" fill=\"" + color(series)
+  function endDot(x, y, series, index) {
+    return "<circle class=\"dot\"" + seriesData(index) + " cx=\"" + round(x) + "\" cy=\"" + round(y) + "\" r=\"4\" fill=\"" + color(series)
       + "\"></circle>";
+  }
+
+  // A mark's series position in `spec.series`, which a legend item's highlight dims the other series by.
+  function seriesData(index) {
+    return index == null ? "" : " data-series=\"" + index + "\"";
   }
 
   // The dashed step from a line's last point ([x, y]) out to `x`, then up or down to a dot at `y`, the value of what
@@ -230,8 +246,9 @@
       let marks = layers.map((layer, index) => {
         const upper = layer.map((part, position) => [scaleX(position), scaleY(part.high)]);
         const lower = layer.map((part, position) => [scaleX(position), scaleY(part.low)]).reverse();
-        return "<path class=\"area\" fill=\"" + color(spec.series[index]) + "\" d=\"" + areaPath(upper.concat(lower))
-          + "\"></path><path class=\"seam\" d=\"" + linePath(upper) + "\"></path>";
+        return "<path class=\"area\"" + seriesData(index) + " fill=\"" + color(spec.series[index]) + "\" d=\""
+          + areaPath(upper.concat(lower)) + "\"></path><path class=\"seam\"" + seriesData(index) + " d=\""
+          + linePath(upper) + "\"></path>";
       }).join("");
       if (marked) {
         const last = values.length - 1;
@@ -247,11 +264,11 @@
       const ticks = niceTicks(Math.min(0, ...all), Math.max(0, ...all), 4);
       const scaleY = linear(ticks[0], ticks[ticks.length - 1], HEIGHT - MARGIN.bottom, MARGIN.top);
       const scaleX = linear(0, Math.max(values.length - 1, 1), MARGIN.left, WIDTH - MARGIN.right);
-      const marks = spec.series.map((series) => {
+      const marks = spec.series.map((series, index) => {
         const points = series.values.map((value, position) => [scaleX(position), scaleY(number(value))]);
         const last = points[points.length - 1];
-        return "<path class=\"line\" stroke=\"" + color(series) + "\" d=\"" + linePath(points) + "\"></path>"
-          + (last ? endDot(last[0], last[1], series) : "");
+        return "<path class=\"line\"" + seriesData(index) + " stroke=\"" + color(series) + "\" d=\"" + linePath(points)
+          + "\"></path>" + (last ? endDot(last[0], last[1], series, index) : "");
       }).join("");
       return { marks, ticks, scaleY, positionOf: scaleX, values };
     },
@@ -288,7 +305,8 @@
           const path = isEnd ? barPath(x, top, barWidth, Math.max(height - gap, 0.5))
             : "M" + round(x) + "," + round(top) + "h" + round(barWidth) + "v" + round(Math.max(height - gap, 0.5))
               + "h" + round(-barWidth) + "z";
-          marks += "<path class=\"bar\" fill=\"" + color(bars[index]) + "\" d=\"" + path + "\"></path>";
+          marks += "<path class=\"bar\"" + seriesData(spec.series.indexOf(bars[index])) + " fill=\"" + color(bars[index])
+            + "\" d=\"" + path + "\"></path>";
         });
       });
       if (records.length) marks += "<defs>" + records.map((series) => hatchPattern(spec, series)).join("") + "</defs>";
@@ -301,7 +319,7 @@
           const height = Math.max(scaleY(recordLows[position]) - top - (recordLows[position] > 0 ? BAR_GAP : 0), 0.5);
           recordLows[position] += value;
           const x = positionOf(position) - barWidth / 2;
-          marks += "<path class=\"bar bar-records\" fill=\"url(#" + hatchId(spec, series) + ")\" stroke=\"" + color(series)
+          marks += "<path class=\"bar bar-records\"" + seriesData(spec.series.indexOf(series)) + " fill=\"url(#" + hatchId(spec, series) + ")\" stroke=\"" + color(series)
             + "\" d=\"M" + round(x) + "," + round(top) + "h" + round(barWidth) + "v" + round(height) + "h" + round(-barWidth)
             + "z\"></path>";
         });
@@ -309,8 +327,9 @@
       marks += lines.map((series) => {
         const points = presentPoints(series.values, positionOf, scaleY);  // a blank year (no RMD yet) is skipped
         const last = points[points.length - 1];
-        return "<path class=\"line\" stroke=\"" + color(series) + "\" d=\"" + linePath(points)
-          + "\"></path>" + (last ? endDot(last[0], last[1], series) : "");
+        const index = spec.series.indexOf(series);
+        return "<path class=\"line\"" + seriesData(index) + " stroke=\"" + color(series) + "\" d=\"" + linePath(points)
+          + "\"></path>" + (last ? endDot(last[0], last[1], series, index) : "");
       }).join("");
       return { marks, ticks, scaleY, positionOf, values };
     },
@@ -445,24 +464,62 @@
       return spec.series.map((series) => ({ name: series.name + (series.afterTax != null ? " (beneficiaries keep "
         + tickMoney(series.afterTax) + ")" : ""), series, key: "line" }));
     }
-    // Series with a group (deposits, withdrawals) get a heading item before the first series of each group.
+    // Series with a group (deposits, withdrawals) get a heading item before the first series of each group; a group
+    // left with nothing to draw loses its heading. An ungrouped series after a group (the cash flow's Left over line)
+    // is marked `apart`, so the legend sets it on a row of its own instead of under the last group. The legend shows a
+    // series' `short` name when it has one; a stacked series that is zero every year is left out (the table, the
+    // readout and the screen-reader summary still list it).
     const items = [];
     let group = null;
-    for (const series of spec.series) {
+    spec.series.forEach((series, index) => {
+      if (STACKED_TYPES.includes(spec.type) && !drawsSomething(series)) return;
       if (series.group && series.group !== group) items.push({ name: series.group, heading: true });
+      const apart = !series.group && group != null;
       group = series.group || null;
-      items.push({ name: series.name, series, key: series.mark === "line" ? "line" : series.hatched ? "hatch" : "box" });
-    }
+      items.push({ name: series.name, label: series.short || series.name, series, index, apart,
+        key: series.mark === "line" ? "line" : series.hatched ? "hatch" : "box" });
+    });
     if (spec.afterTax != null) items.push({ name: HEIRS_LABEL + " " + tickMoney(spec.afterTax), key: "dot", keyColor: HEIRS_COLOR });
     return items;
   }
 
+  // Whether a series has a value other than zero or blank in some year.
+  function drawsSomething(series) {
+    return (series.values || []).some((value) => number(value) !== 0);
+  }
+
+  function legendId(spec) {
+    return "legend-" + String(spec.id).replace(/[^A-Za-z0-9_-]/g, "");
+  }
+
+  // The legend list. On a highlight type each series item is a button that highlights its series (see attachLegend).
+  // The first item is the folded legend's "Key" row, hidden until attachLegend folds a long legend on a phone, so the
+  // markup alone (Node, no script) is always the full list. `data-weight` (items plus group headings) decides the fold.
   function legend(spec) {
     const items = legendItems(spec);
-    if (items.filter((item) => !item.heading).length < 2) return "";
-    return "<ul class=\"legend\">" + items.map((item) => (item.heading ? "<li class=\"legend-group\">"
-      + escapeText(item.name) + "</li>" : "<li><span class=\"key key-" + item.key + "\" style=\"--key:"
-      + (item.keyColor || color(item.series)) + "\"></span>" + escapeText(item.name) + "</li>")).join("") + "</ul>";
+    const entries = items.filter((item) => !item.heading);
+    if (entries.length < 2) return "";
+    const highlight = HIGHLIGHT_TYPES.includes(spec.type);
+    const id = legendId(spec);
+    const swatch = (item) => "<span class=\"key key-" + item.key + "\" style=\"--key:"
+      + (item.keyColor || color(item.series)) + "\"></span>";
+    const toggle = "<li class=\"legend-toggle\" hidden><button type=\"button\" class=\"legend-key\" aria-expanded=\"true\" "
+      + "aria-controls=\"" + id + "\"><span class=\"legend-key-text\">Key (" + entries.length + ")</span>"
+      + "<span class=\"legend-strip\" aria-hidden=\"true\">" + entries.map(swatch).join("") + "</span></button></li>";
+    const entry = (item) => {
+      // The full name on hover or long-press when the key shows a short one or may clamp a long one to two lines.
+      const help = item.key === "hatch" ? item.name + ": " + RECORDS_HELP
+        : (item.label || item.name) !== item.name || (highlight && item.series && item.name.length > 20) ? item.name : "";
+      const title = help ? " title=\"" + escapeText(help) + "\"" : "";
+      const text = escapeText(item.label || item.name);
+      return (item.apart ? "<li class=\"legend-break\" aria-hidden=\"true\"></li>" : "")
+        + (highlight && item.series ? "<li><button type=\"button\" class=\"legend-item\" data-series=\"" + item.index
+          + "\" aria-pressed=\"false\"" + title + ">" + swatch(item) + "<span class=\"legend-label\">" + text
+          + "</span></button></li>" : "<li" + title + ">" + swatch(item) + text + "</li>");
+    };
+    return "<ul class=\"legend" + (entries.length > LEGEND_DENSE_AFTER ? " legend-dense" : "") + "\" id=\"" + id
+      + "\" data-weight=\"" + items.length + "\">" + toggle + items.map((item) => (item.heading
+      ? "<li class=\"legend-group\">" + escapeText(item.name) + "</li>" : entry(item))).join("") + "</ul>";
   }
 
   function dollarsNote(spec) {
@@ -690,7 +747,85 @@
     return { title, rows };
   }
 
+  // Wire a chart's legend. Fold: on a phone (LEGEND_PHONE) a legend of LEGEND_FOLD_AT or more items and headings shows
+  // only its Key row until tapped, never in full screen; the choice is kept per chart id across redraws, and a change of
+  // viewport applies the rule again. Highlight: a mouse over a legend item, or a tap or click (pressed until tapped
+  // again, another item or Esc), dims every other series' marks; the readout and summary are unchanged.
+  function attachLegend(figure, spec) {
+    const list = figure.querySelector("ul.legend");
+    if (!list) return;
+    const win = figure.ownerDocument.defaultView;
+    const toggle = list.querySelector(".legend-toggle");
+    const keyButton = toggle && toggle.querySelector("button");
+    const phone = win && win.matchMedia ? win.matchMedia(LEGEND_PHONE) : null;
+
+    function setOpen(open) {
+      list.dataset.folded = String(!open);
+      keyButton.setAttribute("aria-expanded", String(open));
+    }
+
+    function applyFold() {
+      const foldable = Boolean(phone && phone.matches) && Number(list.dataset.weight) >= LEGEND_FOLD_AT
+        && !figure.closest(".chart-full-on");
+      toggle.hidden = !foldable;
+      if (foldable) setOpen(openKeys.has(spec.id));
+      else delete list.dataset.folded;
+    }
+
+    if (keyButton) {
+      keyButton.addEventListener("click", () => {
+        const open = list.dataset.folded === "true";
+        if (open) openKeys.add(spec.id);
+        else openKeys.delete(spec.id);
+        setOpen(open);
+      });
+      applyFold();
+      if (phone && phone.addEventListener) {
+        const onChange = () => {
+          if (list.isConnected) applyFold();
+          else phone.removeEventListener("change", onChange);
+        };
+        phone.addEventListener("change", onChange);
+      }
+    }
+
+    const svg = figure.querySelector("svg.chart-svg");
+    const items = Array.from(list.querySelectorAll(".legend-item"));
+    if (!svg || !items.length) return;
+    let pressed = null;
+
+    function dim(index) {
+      svg.querySelectorAll("[data-series]").forEach((mark) => mark.classList.toggle("dim", index != null
+        && mark.dataset.series !== index));
+    }
+
+    function press(index) {
+      pressed = index;
+      items.forEach((item) => item.setAttribute("aria-pressed", String(item.dataset.series === index)));
+      dim(index);
+    }
+
+    list.addEventListener("click", (event) => {
+      const item = event.target.closest(".legend-item");
+      if (item) press(pressed === item.dataset.series ? null : item.dataset.series);
+    });
+    list.addEventListener("pointerover", (event) => {
+      const item = event.pointerType === "mouse" && event.target.closest(".legend-item");
+      if (item) dim(item.dataset.series);
+    });
+    list.addEventListener("pointerout", (event) => {
+      const item = event.pointerType === "mouse" && event.target.closest(".legend-item");
+      if (item && !item.contains(event.relatedTarget)) dim(pressed);
+    });
+    const clearOnEscape = (event) => {
+      if (event.key === "Escape" && pressed != null) press(null);
+    };
+    list.addEventListener("keydown", clearOnEscape);
+    svg.addEventListener("keydown", clearOnEscape);
+  }
+
   function attachChart(figure, spec) {
+    attachLegend(figure, spec);
     const svg = figure.querySelector("svg.chart-svg");
     if (!svg) return;
     const [, , width, height] = svg.getAttribute("viewBox").split(" ").map(Number);

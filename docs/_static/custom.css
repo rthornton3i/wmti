@@ -64,3 +64,35 @@ table.law-table td, table.law-table th { white-space: normal; }
     .law-chip-unconfirmed { color: #ff9b91; background: #45191a; }
     .law-chip-none { color: #c4ccd4; background: #2b3138; }
 }
+
+/* Concise-docs helpers. .flow: a boxes-and-arrows line of steps; .card-grid: two-column cards, one column on a phone. */
+.flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+}
+.flow > * {
+    border: 1px solid #d0d6dc;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+.flow > *:not(:last-child)::after {
+    content: "\2192";
+    margin-left: 12px;
+}
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 12px 0;
+}
+.card-grid > * {
+    border: 1px solid #d0d6dc;
+    border-radius: 6px;
+    padding: 8px 14px;
+}
+@media (max-width: 640px) {
+    .card-grid { grid-template-columns: 1fr; }
+}

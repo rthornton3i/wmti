@@ -21,7 +21,8 @@
       + "the last year is what beneficiaries keep (median)." },
     { id: "histogram", caption: "How the runs' final values spread; the extreme runs are left out." },
     { id: "balances", caption: "Each account's balance by year; middle half average of the runs." },
-    { id: "cashFlow", caption: "Cash in above zero, cash out below; middle half average of the runs." },
+    { id: "cashFlow", caption: "Money in above zero, spending and taxes below; line: left over (below zero, paid from "
+      + "the accounts). Middle half average of the runs." },
     { id: "taxes", caption: "Taxes by kind and year; middle half average of the runs. Hatched: sales tax, already in "
       + "expenses, shown for records." },
     { id: "expenses", caption: "Spending by category and year; middle half average of the runs." },
@@ -680,23 +681,23 @@
     return sentences(found, []);
   }
 
-  // Cash in and out: pay stopping, Social Security and withdrawals starting, sale proceeds and unpaid spending.
+  // Money in against spending: pay stopping, Social Security starting, sale proceeds and the first year the accounts
+  // pay for part of the year (Left over below zero).
   function cashFlowSummary(spec) {
     const ages = spec.x.values;
     const paycheck = stopsAfter(seriesNamed(spec, "Paycheck"));
     const social = startsAt(seriesNamed(spec, "Social Security"));
-    const withdrawals = startsAt(seriesNamed(spec, "Withdrawals"));
     const sales = seriesNamed(spec, "Sale proceeds").findIndex((value) => !isEmpty(value));
-    const shortfall = seriesNamed(spec, "Shortfall (unpaid)").findIndex((value) => !isEmpty(value));
-    const largest = largestSeries(spec.series.filter((item) => item.values.some((value) => Number(value) > 0)));
+    const fromAccounts = seriesNamed(spec, "Left over").findIndex((value) => !isEmpty(-Number(value)));
+    const largest = largestSeries(spec.series.filter((item) => item.mark !== "line"
+      && item.values.some((value) => Number(value) > 0)));
     return sentences([
       paycheck >= 0 ? "Pay stops after age " + ages[paycheck] + "." : null,
       social >= 0 ? "Social Security starts at age " + ages[social] + "." : null,
-      withdrawals >= 0 ? "Withdrawals from the accounts begin at age " + ages[withdrawals] + "." : null,
       sales >= 0 ? "Sale proceeds first come in at age " + ages[sales] + "." : null,
-      shortfall >= 0 ? "Some spending goes unpaid from age " + ages[shortfall] + "." : null,
-    ], [largest ? largest + " is the largest source of cash over the plan." : null,
-      "Cash in and cash out are the middle half average of the runs."]);
+      fromAccounts >= 0 ? "The accounts first pay for part of a year at age " + ages[fromAccounts] + "." : null,
+    ], [largest ? largest + " is the largest source of money in over the plan." : null,
+      "Money in and money out are the middle half average of the runs."]);
   }
 
   // What the yearly table shows beginning in the year at `position`, as a cause: a home sale's gain, a sale's
