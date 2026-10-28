@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-FQWJvw5fWPuJdeCl9YEtI8ikueMVtq9KUo9n7xCuOe0=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-yi3EaQmRUFhUrxBLHqGbmvGDUOzf5fL2//juU5wfFgw=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -14,10 +14,15 @@ if (window.top !== window.self) {
 <script>
 // The color scheme saved on this device, set before the first paint: Lagoon and hibiscus when none is saved or
 // storage is blocked. "device" follows the device: Lagoon in light mode, Night lagoon in dark mode. fpt.theme.v1 is
-// the key before the rename; app.js moves it to wmti.theme.v1 on this first load.
+// the key before the rename; app.js moves it to wmti.theme.v1 on this first load. The beta (build.py fills in the
+// channel) keeps its own wmti.beta.theme.v1, copied once from the stable app's by app.js.
 (function () {
   var scheme = "lagoon";
-  try { scheme = localStorage.getItem("wmti.theme.v1") || localStorage.getItem("fpt.theme.v1") || scheme; } catch (error) { /* storage blocked */ }
+  var beta = "stable" === "beta";
+  try {
+    scheme = (beta ? localStorage.getItem("wmti.beta.theme.v1") || localStorage.getItem("wmti.theme.v1")
+      : localStorage.getItem("wmti.theme.v1") || localStorage.getItem("fpt.theme.v1")) || scheme;
+  } catch (error) { /* storage blocked */ }
   if (["lagoon", "sunset", "palm", "night", "device"].indexOf(scheme) < 0) scheme = "lagoon";
   document.documentElement.setAttribute("data-theme", scheme);
 })();
@@ -220,6 +225,9 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
 .band-label { flex: 1; min-width: 0; font-size: 15px; color: var(--band-sub); overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap; }
+/* The beta app's marker beside the section label (index.html, shown for the beta channel only). */
+.channel-badge { flex: none; padding: 2px 8px; border-radius: 999px; background: var(--band-button);
+  color: var(--band-button-ink); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 .round-button { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--band-button);
   color: var(--band-button-ink); display: grid; place-items: center; cursor: pointer; }
 .round-button:disabled { opacity: 0.4; cursor: default; }
@@ -1023,6 +1031,149 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   :root, :root[data-effort], :root[data-style] { --fx-e: 0 !important; --fx-s: 0 !important; }
   .tile-first { animation: none !important; }
 }
+/* Gamer (F101a): the Awards view (level and XP, quests, awards), the progress toast and the walkthrough Trail drawn as
+   a quest map, shown only in Gamer style. Surfaces and text use the scheme tokens; only the hero tile gets a violet rim
+   and the --fx-glow above. The --gm-* colours are fixed: pink is a border or glow only, never text; --gm-ink and
+   --gm-mint are text only on --gm-deep or --gm-panel (the toast), each pair checked at AA by fxcontrast.test.mjs.
+   Motion is a short transform or box-shadow transition, none under reduced motion; forced colours use system colours.
+   Classes: .gm-hero (level tile), .gm-bar (its native <progress>), .gm-list (a quest or award list), .gm-quest with
+   data-state done|pending|locked|open, .gm-award with data-earned true|false, .gm-toast (role=status line) and on the
+   Trail .walk-quest (a stage: li.walk-topic-group), .walk-quest-count ("n of m" in its h3) and data-node
+   done|now|todo|skipped on each li of its .walk-trail-list. */
+:root {
+  --gm-pink: #ff5fb0; --gm-violet: #7f5cff; --gm-mint: #5dffc8;
+  --gm-ink: #ffe3f3; --gm-deep: #1c1450; --gm-panel: #34279a;
+}
+.gm-hero { display: grid; gap: 8px; padding: 16px; border-radius: 16px; background: var(--hero); color: var(--hero-ink);
+  box-shadow: 0 0 0 1px var(--gm-violet), var(--fx-glow); }
+.gm-hero h3, .gm-hero p { margin: 0; overflow-wrap: anywhere; }
+.gm-hero p { color: var(--hero-sub); }
+.gm-bar { appearance: none; -webkit-appearance: none; display: block; width: 100%; block-size: 0.75em;
+  border: 1px solid var(--hero-sub); border-radius: 999px; overflow: hidden;
+  background: color-mix(in srgb, var(--hero-ink) 18%, transparent); color: var(--hero-sub); }
+.gm-bar::-webkit-progress-bar { background: transparent; }
+.gm-bar::-webkit-progress-value { background: var(--hero-sub); border-radius: 999px; }
+.gm-bar::-moz-progress-bar { background: var(--hero-sub); border-radius: 999px; }
+.gm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.gm-quest, .gm-award { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px;
+  min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+  color: var(--ink); overflow-wrap: anywhere; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.gm-quest p, .gm-award p { grid-column: 1; margin: 0; color: var(--ink-2); font-size: 0.9rem; }
+.gm-quest .button, .gm-award .button { grid-column: 2; grid-row: 1 / span 2; }
+.gm-quest[data-state="done"], .gm-award[data-earned="true"] { border-color: var(--accent);
+  box-shadow: inset 4px 0 0 var(--accent); }
+.gm-quest[data-state="pending"] { border-color: var(--gm-pink); box-shadow: 0 0 8px 0 color-mix(in srgb, var(--gm-pink) 35%, transparent); }
+.gm-quest[data-state="locked"], .gm-award[data-earned="false"] { border-style: dashed; background: var(--surface-2); color: var(--ink-2); }
+.gm-award[data-earned="true"]:hover { transform: translateY(-1px); box-shadow: inset 4px 0 0 var(--accent),
+  0 0 8px 0 color-mix(in srgb, var(--gm-violet) 35%, transparent); }
+.gm-toast { position: fixed; z-index: 75; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); padding: 12px 16px; border-radius: 14px;
+  border: 1px solid var(--gm-pink); background: linear-gradient(180deg, var(--gm-panel), var(--gm-deep)); color: var(--gm-ink);
+  box-shadow: 0 0 12px 0 color-mix(in srgb, var(--gm-pink) 40%, transparent), 0 6px 20px var(--edge-shadow);
+  overflow-wrap: anywhere; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.gm-toast strong { color: var(--gm-mint); }
+/* The quest map: each topic a stage on one line down the left, each question a node dot (filled done, ringed now,
+   hollow to do, dashed skipped); the row's own tag still names the state in words. */
+.walk-quest { position: relative; padding-left: 26px; }
+.walk-quest::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; border-left: 2px solid var(--accent); }
+.walk-quest > h3::before { content: ""; position: absolute; left: 2px; width: 14px; height: 14px; margin-top: 1px;
+  border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--gm-violet); }
+.walk-quest-count { margin-left: 8px; color: var(--ink-2); font-weight: 600; letter-spacing: 0; text-transform: none; }
+.walk-quest li[data-node] .walk-row::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--muted); background: var(--surface); }
+.walk-quest li[data-node="done"] .walk-row::before { border-color: var(--accent); background: var(--accent); }
+.walk-quest li[data-node="now"] .walk-row::before { border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gm-pink) 45%, transparent); }
+.walk-quest li[data-node="skipped"] .walk-row::before { border-style: dashed; }
+@media (prefers-reduced-motion: reduce) {
+  .gm-quest, .gm-award, .gm-toast { transition: none !important; }
+  .gm-award[data-earned="true"]:hover { transform: none; }
+}
+@media (forced-colors: active) {
+  .gm-hero, .gm-toast { background: Canvas; color: CanvasText; border: 1px solid CanvasText; box-shadow: none; }
+  .gm-hero p, .gm-toast strong { color: CanvasText; }
+  .gm-quest, .gm-award { border-color: CanvasText; box-shadow: none; }
+  .gm-bar { border-color: CanvasText; background: Canvas; }
+  .gm-bar::-webkit-progress-value { background: Highlight; }
+  .gm-bar::-moz-progress-bar { background: Highlight; }
+  .walk-quest::before, .walk-quest li[data-node] .walk-row::before { border-color: CanvasText; }
+  .walk-quest > h3::before, .walk-quest li[data-node="done"] .walk-row::before { background: CanvasText; box-shadow: none; }
+}
+/* Gamer games (F101b): the mini games' pop-up (52-games.js) and the game cards of the Awards view. The pop-up is a
+   fixed dark violet panel in every colour scheme (the Gamer tokens --gm-* of the "Gamer (F101a)" block, whose AA pairs
+   fxcontrast.test.mjs checks): --gm-ink text, mint for actions, focus and the climber, pink only as a border or glow,
+   never text. Its title and actions stay in view (the .dialog rows); only the body scrolls. Colour is never the only
+   signal: a right or wrong answer also has its words, a bar its figure. 44 px targets, no fixed heights. */
+.dialog.gm-dialog { width: min(480px, calc(100% - 2 * var(--gutter))); color: var(--gm-ink);
+  background: linear-gradient(180deg, var(--gm-panel), var(--gm-deep)); border: 1px solid var(--gm-violet);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.4), 0 0 18px color-mix(in srgb, var(--gm-pink) 30%, transparent); }
+.gm-dialog .dialog-actions { border-top-color: color-mix(in srgb, var(--gm-violet) 70%, var(--gm-ink)); }
+.gm-dialog .dialog-scroll { gap: 12px; }
+.gm-dialog :focus-visible { outline-color: var(--gm-mint); }
+.gm-dialog .button { background: var(--gm-mint); border-color: var(--gm-mint); color: var(--gm-deep); }
+.gm-dialog .button-quiet { background: transparent; color: var(--gm-mint); }
+.gm-dialog .button[aria-pressed="true"], .gm-dialog .button-quiet[aria-pressed="true"] {
+  background: var(--gm-mint); color: var(--gm-deep); }
+.gm-dialog input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--gm-mint); }
+.gm-dialog :is(.field-help, .field-label, legend, summary, .data-table th, .data-table td) { color: var(--gm-ink); }
+.gm-dialog .data-table :is(th, td) { background: var(--gm-deep); border-color: var(--gm-violet); }
+.gm-dialog fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+.gm-dialog legend { padding: 0 0 4px; font-weight: 600; }
+.gm-dialog summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+label.gm-card { display: flex; align-items: center; gap: 10px; }
+label.gm-card input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--gm-mint); }
+label.gm-card:has(input:checked) { border-color: var(--gm-mint); box-shadow: inset 0 0 0 2px var(--gm-mint); }
+.gm-dialog .dialog-head .gm-readout { font-weight: 400; margin-top: 4px; }
+.gm-dialog .dialog-head .gm-readout:empty { display: none; }
+/* Bracket Climber: the to-scale ladder (an SVG or a stack of rungs, each rung's height set inline from its range), the
+   climber marker on it and the live readout under it. */
+.gm-ladder { display: grid; gap: 2px; min-width: 0; padding: 8px; border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--gm-violet) 80%, var(--gm-ink)); background: var(--gm-deep); }
+.gm-ladder svg { display: block; width: 100%; height: auto; }
+.gm-ladder text { fill: var(--gm-ink); font-size: 12px; }
+.gm-climber { color: var(--gm-mint); fill: var(--gm-mint); stroke: var(--gm-deep);
+  transition: transform 0.2s ease; }
+.gm-readout { min-height: 24px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--gm-ink);
+  font-weight: 600; }
+/* Receipt Sort: a receipt card to choose (aria-pressed while chosen) and the four bins it can go to. */
+.gm-card, .gm-bin { min-height: 44px; padding: 10px 12px; border-radius: 10px; text-align: left; cursor: pointer;
+  color: var(--gm-ink); background: var(--gm-deep); border: 1px solid color-mix(in srgb, var(--gm-violet) 80%, var(--gm-ink));
+  overflow-wrap: anywhere; transition: transform 0.15s ease, box-shadow 0.2s ease; }
+.gm-card[aria-pressed="true"] { border-color: var(--gm-mint); box-shadow: inset 0 0 0 2px var(--gm-mint); }
+.gm-card[data-result] { cursor: default; }
+.gm-card[data-result="right"] { border-color: var(--gm-mint); }
+.gm-card[data-result="wrong"] { border-style: dashed; border-color: var(--gm-pink); }
+.gm-bin { display: grid; gap: 2px; font-weight: 600; }
+.gm-bin:hover, .gm-card:not([data-result]):hover { box-shadow: 0 0 10px color-mix(in srgb, var(--gm-pink) 40%, transparent);
+  transform: translateY(-1px); }
+/* Claim Age Showdown and The Bad Decade: bars of what each claimant or retiree has, each with its figure in text. */
+.gm-bars { display: grid; gap: 6px; min-width: 0; }
+.gm-bars > * { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; overflow-wrap: anywhere; }
+.gm-bars meter, .gm-bars progress { width: 100%; height: 14px; accent-color: var(--gm-mint); }
+.gm-bars meter::-webkit-meter-bar { background: var(--gm-deep); border: 1px solid var(--gm-violet); border-radius: 999px; }
+.gm-bars meter::-webkit-meter-optimum-value { background: var(--gm-mint); border-radius: 999px; }
+.gm-bars meter::-moz-meter-bar { background: var(--gm-mint); }
+.gm-bars svg { display: block; width: 100%; height: auto; }
+/* The Mini games section of the Awards view: one card per game with its Play button and best stars. */
+.gm-game-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center;
+  padding: 12px; border-radius: 12px; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+  box-shadow: var(--fx-glow); overflow-wrap: anywhere; transition: box-shadow 0.2s ease; }
+.gm-game-card > p { grid-column: 1 / -1; color: var(--ink-2); font-size: 14px; }
+/* Still under reduced motion; system colours in forced colours (borders keep the right and wrong cues). */
+@media (prefers-reduced-motion: reduce) {
+  .gm-climber, .gm-card, .gm-bin, .gm-game-card { transition: none !important; }
+  .gm-bin:hover, .gm-card:not([data-result]):hover { transform: none; }
+}
+@media (forced-colors: active) {
+  .dialog.gm-dialog, .gm-ladder, .gm-card, .gm-bin, .gm-game-card { background: Canvas; color: CanvasText;
+    border-color: CanvasText; box-shadow: none; forced-color-adjust: none; }
+  .gm-dialog .button, .gm-card[aria-pressed="true"], label.gm-card:has(input:checked) { background: Highlight;
+    color: HighlightText; border-color: Highlight; }
+  .gm-dialog .button-quiet { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
+  .gm-climber { color: Highlight; fill: Highlight; stroke: CanvasText; }
+  .gm-ladder text, .gm-readout { fill: CanvasText; color: CanvasText; }
+  .gm-dialog :focus-visible { outline-color: Highlight; }
+}
 /* Picker: the effort and style picker (s420, app.js experienceGroups) in the pop-up, its only place. Effort is a
    vertical energy bar (role=slider) with a stop per level; style a 3D tile per style. Each choice's radio lies unseen
    over its stop or tile. The bar's fill and knob sit at --pk-f (set by paintExperience, live while dragging), so
@@ -1672,6 +1823,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <button type="button" class="round-button" id="undoButton" aria-label="Undo" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
       <span class="band-label" id="bandLabel">Outputs</span>
+      <span class="channel-badge" id="channelBadge" hidden>Beta</span>
       <span class="status" id="status" role="status" data-state="idle"><span class="status-dot"></span><span id="statusText">Ready</span></span>
       <button type="button" class="round-button" id="helpButton" aria-label="How to use this app" aria-haspopup="dialog" aria-controls="tour">
         <span class="help-glyph" aria-hidden="true">?</span></button>
@@ -1690,6 +1842,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <button type="button" role="tab" class="chip view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-optimize" data-view="optimize" aria-controls="view-optimize">Optimize</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-awards" data-view="awards" aria-controls="view-awards" hidden>Awards</button>
       </div>
       <button type="button" class="chips-pin" id="chipsPinOut" aria-pressed="true" aria-label="Unpin groups">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
@@ -1833,6 +1986,9 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <div class="subpanel" id="view-optimize" data-view="optimize" role="tabpanel" aria-labelledby="sub-optimize" hidden>
         <div id="optimize-body"></div>
       </div>
+      <div class="subpanel" id="view-awards" data-view="awards" role="tabpanel" aria-labelledby="sub-awards" hidden>
+        <div class="subpanel" id="awards-body"></div>
+      </div>
     </section>
   </main>
 
@@ -1894,6 +2050,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
     <div class="sheet-foot"><button type="button" class="button" id="legalClose">Close</button></div>
   </div>
 
+  <!-- A Gamer mini game (app.js openGame): over the page or the walkthrough, under the scenario dialog (its confirm). -->
+  <div class="dialog-backdrop" id="gameBackdrop" hidden></div>
+  <div class="dialog gm-dialog" id="gameDialog" role="dialog" aria-modal="true" aria-labelledby="gameTitle" hidden>
+    <div class="dialog-head"><h2 id="gameTitle" tabindex="-1"></h2><p class="gm-readout" id="gameRound"></p>
+      <p class="gm-readout" id="gameStatus" role="status" aria-live="polite"></p></div>
+    <div class="dialog-scroll" id="gameBody"></div>
+    <div class="dialog-actions" id="gameActions"></div>
+  </div>
   <div class="dialog-backdrop" id="dialogBackdrop" hidden></div>
   <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogText" hidden>
     <div class="dialog-head"><h2 id="dialogTitle"></h2></div>
@@ -2031,15 +2195,18 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 </form>
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
+<p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "682029d69f98", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "487dc67d2475", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.4ade685cb4.js"></script>
+<script src="shared.06dfb84447.js"></script>
 <script src="charts.c22ca6d6cc.js"></script>
 <script src="insights.25d1a94d61.js"></script>
+<script src="gamify.09c3e7c6fd.js"></script>
+<script src="games.feab804215.js"></script>
 <script src="report.2b162219ac.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.a23bce3af6.js"></script>
+<script src="app.34f29f830b.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

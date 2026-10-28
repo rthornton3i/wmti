@@ -8,16 +8,23 @@
 // docs file is stored the first time it is fetched, in a cache of its own that outlives builds, and then answered
 // from there while a fresh copy is fetched for next time (stale-while-revalidate), so a page once read works offline.
 // A docs page never read fails offline as any page would; it is never answered with the app's index.html.
+// Each publish channel has its own worker and caches: the stable app at the site root ("wmti:", "wmti-docs:") and
+// the beta in its beta/ folder ("wmti-beta:", "wmti-beta-docs:"). The stable worker's scope holds beta/, so it
+// leaves every request there alone (the beta's own worker, or the network, answers it).
 "use strict";
 
-const BUILD_ID = "682029d69f98";
-const CACHE_PREFIX = "wmti:" + self.registration.scope + ":";
+const BUILD_ID = "487dc67d2475";
+const CHANNEL = "stable";
+const CACHE_FAMILY = CHANNEL === "beta" ? "wmti-beta" : "wmti";
+const CACHE_PREFIX = CACHE_FAMILY + ":" + self.registration.scope + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
-const DOCS_CACHE = "wmti-docs:" + self.registration.scope;
+const DOCS_CACHE = CACHE_FAMILY + "-docs:" + self.registration.scope;
 const DOCS_PATH = new URL("docs/", self.registration.scope).pathname;
+// The paths of the other channel inside this scope: the beta folder for the stable worker, none for the beta.
+const OTHER_CHANNEL_PATHS = CHANNEL === "beta" ? [] : [new URL("beta/", self.registration.scope).pathname];
 const FILES = [
  "./",
- "app.a23bce3af6.js",
+ "app.34f29f830b.js",
  "charts.c22ca6d6cc.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
@@ -25,6 +32,8 @@ const FILES = [
  "fonts/public-sans-latin-500-normal.woff2",
  "fonts/public-sans-latin-600-normal.woff2",
  "fonts/public-sans-latin-700-normal.woff2",
+ "games.feab804215.js",
+ "gamify.09c3e7c6fd.js",
  "icons/apple-touch-icon.png",
  "icons/icon-192.png",
  "icons/icon-512.png",
@@ -45,9 +54,9 @@ const FILES = [
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
  "report.2b162219ac.js",
- "shared.4ade685cb4.js",
- "wmti.c4b2a9437f.wasm",
- "worker.d12090e67b.js"
+ "shared.06dfb84447.js",
+ "wmti.eff70fe82b.wasm",
+ "worker.064e3ba1e6.js"
 ];
 
 self.addEventListener("install", (event) => {
@@ -81,6 +90,7 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  if (OTHER_CHANNEL_PATHS.some((path) => url.pathname.startsWith(path))) return;
   if (url.pathname.startsWith(DOCS_PATH)) {
     event.respondWith(docsResponse(event));
     return;

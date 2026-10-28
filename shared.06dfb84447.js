@@ -1612,6 +1612,44 @@
     return written;
   }
 
+  // The publish channel (window.WMTI_BUILD.channel, set by build.py): "beta" for the beta app published under beta/,
+  // anything else is the stable app. Both share one origin, so the beta keeps its own localStorage keys and offline
+  // caches, and never writes the stable app's.
+  const STABLE_STORAGE_PREFIX = "wmti.";
+  const BETA_STORAGE_PREFIX = "wmti.beta.";
+
+  function isBetaChannel(channel) {
+    return channel === "beta";
+  }
+
+  // The start of every localStorage key this channel keeps ("wmti." or "wmti.beta.").
+  function storagePrefix(channel) {
+    return isBetaChannel(channel) ? BETA_STORAGE_PREFIX : STABLE_STORAGE_PREFIX;
+  }
+
+  // The starts of the cache names this channel's service worker keeps (sw.js): the offline copy and the saved
+  // documentation pages. Clear all data deletes only these.
+  function channelCachePrefixes(channel) {
+    return isBetaChannel(channel) ? ["wmti-beta:", "wmti-beta-docs:"] : ["wmti:", "wmti-docs:"];
+  }
+
+  // The beta's first run starts from what the stable app keeps on this device: each stable key ("wmti.<name>", for
+  // each <name> in `names`) is copied to its beta key ("wmti.beta.<name>") when the beta key is empty, once (the
+  // `markerName` key is then set and no copy runs again). Stable keys are only read, never written or removed.
+  // `storage` is localStorage (or anything with getItem and setItem). Returns the beta keys written.
+  function copyStableStorage(storage, names, markerName) {
+    const marker = BETA_STORAGE_PREFIX + markerName;
+    if (storage.getItem(marker) != null) return [];
+    const written = [];
+    for (const name of names) {
+      const value = storage.getItem(STABLE_STORAGE_PREFIX + name);
+      const betaKey = BETA_STORAGE_PREFIX + name;
+      if (value != null && storage.getItem(betaKey) == null) { storage.setItem(betaKey, value); written.push(betaKey); }
+    }
+    storage.setItem(marker, "done");
+    return written;
+  }
+
   // The short line About shows after "Check for updates": "current" (no newer build), "ready" (a newer build is
   // waiting) or "offline" (the host could not be asked). Anything else gives an empty line.
   const UPDATE_TEXTS = { current: "You're up to date", ready: "New version ready", offline: "Offline: couldn't check" };
@@ -2232,6 +2270,7 @@
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
+    storagePrefix, channelCachePrefixes, copyStableStorage, isBetaChannel,
     blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName,
     splitExperience, joinExperience, defaultExperience, storedExperience, carriedExperience, experienceDiffers, experienceChoice, experienceWords,
     effortRank, tierShown, overrideRank, detailShown, optionShown, detailHidden, paneDetailOverrides, surfaceOverrides,

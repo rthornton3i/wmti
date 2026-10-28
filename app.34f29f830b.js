@@ -11,6 +11,7 @@
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
+    storagePrefix, channelCachePrefixes, copyStableStorage, isBetaChannel,
     blankInputs, needsSetup, splitExperience, joinExperience, defaultExperience, storedExperience, carriedExperience,
     experienceDiffers, experienceChoice, experienceWords, defaultedInputCount, firstUnlocked, effortRank,
     otherScenarioNames, benefitAccounts, freeName, numberedName, importedName, planYears, undoRecord, undoStep, mergeUndoPush,
@@ -68,13 +69,24 @@
   const MC_DELAY_MS = 1500;  // the pause after the single run before the Monte Carlo starts on its own
   const EXAMPLE_NAME = "Example household";
   const EXPERIENCE_VERSION = 57;  // the first schemaVersion with an experience block (an older file has none)
-  const DRAFT_KEY = "wmti.draft.v1";
-  const SCENARIOS_KEY = "wmti.scenarios.v1";
-  const PREFS_KEY = "wmti.prefs.v1";
-  const WALK_KEY = "wmti.walk.v1";  // the walkthrough's progress
-  const TOUR_KEY = "wmti.tour.v1";  // "seen" once the tour has opened by itself after the first walkthrough
-  const TERMS_KEY = "wmti.terms.v1";  // the Terms acceptance: {version, textHash, buildId, acceptedAt}
-  const PICKER_KEY = "wmti.picker.v1";  // "done" once the effort and style picker has been kept
+  // This channel's localStorage keys start with STORAGE_PREFIX: "wmti." for the stable app, "wmti.beta." for the beta
+  // (window.WMTI_BUILD.channel), so a beta never reads or writes the stable app's scenarios and settings.
+  const CHANNEL = (window.WMTI_BUILD || {}).channel;
+  const STORAGE_PREFIX = storagePrefix(CHANNEL);
+  // The effort and style (gamify) features: the picker, risk comfort, Low and Medium, the surfacing list, the effort
+  // and style cues, the Coach Next steps card and every later gamify extra. build.py writes "off" for the stable
+  // pages build (publish_pages.py --channel stable) and "on" for every other build; with them off the app shows High
+  // and Accountant and keeps each scenario's experience block as it is. Every gamify entry point asks gamifyOn().
+  const GAMIFY = "off" !== "off";
+  const BETA_COPY_MARK = "copiedFromStable.v1";  // set once the beta has copied the stable app's keys (kept by Clear)
+  const DRAFT_KEY = STORAGE_PREFIX + "draft.v1";
+  const SCENARIOS_KEY = STORAGE_PREFIX + "scenarios.v1";
+  const PREFS_KEY = STORAGE_PREFIX + "prefs.v1";
+  const WALK_KEY = STORAGE_PREFIX + "walk.v1";  // the walkthrough's progress
+  const TOUR_KEY = STORAGE_PREFIX + "tour.v1";  // "seen" once the tour has opened by itself after the first walkthrough
+  const TERMS_KEY = STORAGE_PREFIX + "terms.v1";  // the Terms acceptance: {version, textHash, buildId, acceptedAt}
+  const PICKER_KEY = STORAGE_PREFIX + "picker.v1";  // "done" once the effort and style picker has been kept
+  const GAME_KEY = STORAGE_PREFIX + "game.v1";  // Gamer progress (gamify.js ledger): on this device only, never in a scenario file
   // The key points at the top of the Terms step and of the Legal window, one line each, then a pointer to the full Terms.
   const LEGAL_SUMMARY = [
     "This app is for educational and non-commercial use only and is not to be considered financial, tax, investment or legal advice.",
@@ -84,26 +96,31 @@
   ];
   const LEGAL_SUMMARY_CLOSING = "Please read the full Terms below.";
   const TABS = ["setup", "inputs", "outputs"];  // the bottom bar, left to right
-  const VIEWS = ["summary", "plots", "compare", "optimize"];  // the switch inside Outputs
-  const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders", optimize: "pig" };  // its chips' icons
+  const VIEWS = ["summary", "plots", "compare", "optimize", "awards"];  // the switch inside Outputs (Awards: Gamer only)
+  const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders", optimize: "pig", awards: "star" };  // its chips' icons
   // The color scheme, kept per viewer as plain text; index.html applies it before the first paint.
-  const THEME_KEY = "wmti.theme.v1";
+  const THEME_KEY = STORAGE_PREFIX + "theme.v1";
   // Every key this app keeps in localStorage; Clear all data on this device removes them all.
   // An interrupted strategy search: {key (optimizeCheckpointKey), inputsText, optionsText, checkpoint}.
-  const OPTIMIZE_CHECKPOINT_KEY = "wmti.optimizeCheckpoint.v1";
-  const TABS_PIN_KEY = "wmti.tabsPin.v1";  // whether Inputs' tabs stay pinned under the top bar: "on" or "off"
-  const HEIRS_MARK_KEY = "wmti.heirsMark.v1";  // whether the balance charts mark What beneficiaries keep: "on" or "off"
-  const LAW_KEY = "wmti.lawState.v1";  // kept by the removed law viewer; listed so Clear all data still removes it
-  const SPLIT_KEY = "wmti.split.v1";  // the wide layout's Inputs share of the Inputs | Outputs room, "0" to "1"
-  const SETUP_FOLD_KEY = "wmti.setupFold.v1";  // whether the wide layout's Setup column is folded to a rail: "folded" or "open"
-  const ADVANCED_KEY = "wmti.advanced.v1";  // whether Setup's Advanced settings is open: "open" or "closed"
+  const OPTIMIZE_CHECKPOINT_KEY = STORAGE_PREFIX + "optimizeCheckpoint.v1";
+  const TABS_PIN_KEY = STORAGE_PREFIX + "tabsPin.v1";  // whether Inputs' tabs stay pinned under the top bar: "on" or "off"
+  const HEIRS_MARK_KEY = STORAGE_PREFIX + "heirsMark.v1";  // whether the balance charts mark What beneficiaries keep: "on" or "off"
+  const LAW_KEY = STORAGE_PREFIX + "lawState.v1";  // kept by the removed law viewer; listed so Clear all data still removes it
+  const SPLIT_KEY = STORAGE_PREFIX + "split.v1";  // the wide layout's Inputs share of the Inputs | Outputs room, "0" to "1"
+  const SETUP_FOLD_KEY = STORAGE_PREFIX + "setupFold.v1";  // whether the wide layout's Setup column is folded to a rail: "folded" or "open"
+  const ADVANCED_KEY = STORAGE_PREFIX + "advanced.v1";  // whether Setup's Advanced settings is open: "open" or "closed"
   const LAW_STATE_PATHS = ["homeState", "strategies.relocation.state"];  // state selects with a "See this state's rules" link
   const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
     OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY, SPLIT_KEY, SETUP_FOLD_KEY, HEIRS_MARK_KEY, ADVANCED_KEY,
-    PICKER_KEY];
-  // Keys kept before the rename (fpt.*) move to these once, before anything reads them.
+    PICKER_KEY, GAME_KEY];
+  // Keys kept before the rename (fpt.*) move to these once, before anything reads them (the stable app only). The
+  // beta instead starts, once, from a copy of what the stable app keeps; it never writes a stable key.
   try {
-    migrateLegacyStorage(localStorage, TERMS_KEY, (window.WMTI_LEGAL || {}).textHash || "");
+    if (isBetaChannel(CHANNEL)) {
+      copyStableStorage(localStorage, STORAGE_KEYS.map((key) => key.slice(STORAGE_PREFIX.length)), BETA_COPY_MARK);
+    } else {
+      migrateLegacyStorage(localStorage, TERMS_KEY, (window.WMTI_LEGAL || {}).textHash || "");
+    }
   } catch (error) { /* storage blocked: nothing kept to move */ }
   const SCHEMES = ["lagoon", "sunset", "palm", "night", "device"];
   // The header band's section label, title (blank: the selected Inputs chip) and one-line subtitle per place.
@@ -114,6 +131,7 @@
     "outputs/plots": ["Outputs", "Plots", "Middle half average of the runs"],
     "outputs/compare": ["Outputs", "Compare", "Two configs on the same random draws"],
     "outputs/optimize": ["Outputs", "Optimize", "The best strategy settings on the same random draws"],
+    "outputs/awards": ["Outputs", "Awards", "Your level, quests and awards, kept on this device"],
   };
   // Inline SVG icons (24 px grid, stroked): chips and pane titles.
   const ICONS = {
@@ -131,6 +149,7 @@
     receipt: "<path d=\"M6 3h12v18l-3-2-3 2-3-2-3 2z\"/><path d=\"M9 8h6M9 12h6\"/>",
     bands: "<path d=\"M3 17l5-5 4 3 8-8\"/><path d=\"M3 21h18\"/>",
     pencil: "<path d=\"M4 20h4L19 9l-4-4L4 16z\"/><path d=\"M13 7l4 4\"/>",  // the timeline's Edit timeline button
+    star: "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>",  // the Awards chip
   };
   // The icon of a chip or pane: the first word here found in its label, else in its id; sliders when none is.
   const ICON_WORDS = [["household", "user"], ["income", "briefcase"], ["benefit", "briefcase"], ["savings", "briefcase"],
@@ -157,8 +176,11 @@
     // The Next steps card (49-coach.js): the gaps and the inputs text they are for, the running check, each gap's kept
     // check and last message, and the scenario they belong to.
     coach: { gaps: null, gapsKey: null, pendingKey: null, job: null, entries: {}, messages: {}, scenarioName: null },
+    // Gamer progress (51-gamer.js): the ledger kept under GAME_KEY, and whether storage failed (this visit only).
+    game: { ledger: window.WmtiGamify.emptyLedger(), volatile: false },
   };
   const $ = (id) => document.getElementById(id);
+  const gamifyOn = () => GAMIFY;
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
   // ---- Storage (per viewer, may be unavailable) ----
@@ -191,7 +213,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.d12090e67b.js");
+      worker = new Worker("worker.064e3ba1e6.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -314,7 +336,7 @@
       const route = tabRoute(prefs.tab);
       if (route) state.tab = route.tab;
       if (route && route.view) state.view = route.view;
-      else if (VIEWS.includes(prefs.view)) state.view = prefs.view;
+      else if (outputViews().includes(prefs.view)) state.view = prefs.view;  // Awards only in Gamer style
       Object.assign(state.chips, prefs.chips || {});
       if (route && route.chip) state.chips.settings = route.chip;
       if (prefs.plotView === "table") state.plotView = "table";
@@ -349,9 +371,10 @@
     runNow();
     loadWalk();
     // The Terms step comes first; then, until it has been kept once, the effort and style picker (a returning user's
-    // with High and Accountant chosen); on a first launch then the walkthrough, then the tour (once per device).
+    // with High and Accountant chosen; never with gamify off); on a first launch then the walkthrough, then the tour
+    // (once per device).
     await termsAgreed;
-    if (firstVisit || !pickerDone) {
+    if (gamifyOn() && (firstVisit || !pickerDone)) {
       await openExperiencePicker(firstVisit ? "firstLaunch" : "returning");
       try { localStorage.setItem(PICKER_KEY, "done"); } catch (error) { /* storage blocked */ }
     }
@@ -489,6 +512,7 @@
     mcKeyChanged();
     optimizeInputsChanged();
     coachInputsChanged();
+    gamerTick();
     runTimer = setTimeout(runNow, RUN_DELAY_MS);
   }
 
@@ -748,12 +772,15 @@
       $("tab-" + name).setAttribute("aria-selected", String(name === state.tab));
       $("tab-" + name).tabIndex = name === state.tab ? 0 : -1;
     }
+    const shownViews = outputViews();
+    if (!shownViews.includes(state.view)) state.view = shownViews[0];  // Awards left Gamer style: Summary
     for (const name of VIEWS) {
+      $("sub-" + name).hidden = !shownViews.includes(name);
       $("view-" + name).hidden = name !== state.view;
       $("sub-" + name).setAttribute("aria-selected", String(name === state.view));
       $("sub-" + name).tabIndex = name === state.view ? 0 : -1;
     }
-    $("mc-bar").hidden = state.view === "compare" || state.view === "optimize";
+    $("mc-bar").hidden = state.view === "compare" || state.view === "optimize" || state.view === "awards";
     // Wide: Inputs' chips, the Outputs view row and the open view's sub-tabs all show, each over its column.
     const widePlaces = ["inputs", "outputs", "outputs/" + state.view];
     for (const element of document.querySelectorAll(".band [data-place]")) {
@@ -770,6 +797,8 @@
     if (!tabShown("inputs") && tabShown("outputs") && state.view === "summary") requestNotes();  // asked once above
     if (compareShown()) refreshCompare();
     if (optimizeShown()) renderOptimize();
+    if (tabShown("outputs")) gamerSeen(state.view);
+    renderAwards();  // built only while it shows
   }
 
   // Move to a place (tab and view) and open it at its top, whether a tap or a swipe got there (the owner, s367: a new
@@ -826,7 +855,7 @@
       const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
       if (panels.length) state.chips.settings = panels[0].id;
     } else if (tab === "outputs") {
-      view = VIEWS[0];
+      view = outputViews()[0];
       state.chips.plots = PLOT_VIEWS[0].id;
     }
     goTo(tab, view);
@@ -1160,7 +1189,7 @@
 
   // Every Outputs step in swipe order: each view's sub-tabs, then the next view's.
   function outputSteps() {
-    return VIEWS.flatMap((view) => (OUTPUT_SUBTABS[view] ? OUTPUT_SUBTABS[view].list.map((item) => ({ view, sub: item.id }))
+    return outputViews().flatMap((view) => (OUTPUT_SUBTABS[view] ? OUTPUT_SUBTABS[view].list.map((item) => ({ view, sub: item.id }))
       : [{ view, sub: null }]));
   }
 
@@ -1658,6 +1687,7 @@
   // Carlo ones), then a pointer to the Final report, which holds every table; the app itself shows none. At Low the
   // gauge and the fan chart come first (lowResultCards), from the partial result while the first runs go on.
   function renderResults() {
+    gamerTick();  // a new result may finish a quest
     const body = $("results-body");
     if (needsSetup(state.inputs)) { body.innerHTML = FINISH_SETUP_HTML; return; }
     let html = state.error ? errorBanner(state.error) : "";
@@ -1980,8 +2010,9 @@
   }
 
   // The effort and style shown for the open scenario: High and Accountant when its block holds one the app does not
-  // offer.
+  // offer, and always with the gamify features off (gamifyOn).
   function shownExperience() {
+    if (!gamifyOn()) return { effort: "high", style: "accountant" };
     const offered = state.info.experience;
     const experience = state.experience || {};
     const effort = offered.efforts.some((item) => item.id === experience.effort) ? experience.effort : "high";
@@ -1990,13 +2021,20 @@
   }
 
   // Mark the page with the open scenario's effort and style (data-effort and data-style on <html>, always ids the
-  // app offers) and refresh "Using defaults for N inputs". Display only: never the inputs or the results.
+  // app offers; neither with the gamify features off, so no cue shows) and refresh "Using defaults for N inputs".
+  // Display only: never the inputs or the results.
   function applyExperience() {
     if (!state.info || !state.experience) return;
     const { effort, style } = shownExperience();
-    document.documentElement.dataset.effort = effort;
-    document.documentElement.dataset.style = style;
+    if (gamifyOn()) {
+      document.documentElement.dataset.effort = effort;
+      document.documentElement.dataset.style = style;
+    } else {
+      delete document.documentElement.dataset.effort;
+      delete document.documentElement.dataset.style;
+    }
     refreshDefaultsNotice();
+    gamerStyleChanged();  // the Awards chip shows only in Gamer style
   }
 
   // Below High, how many inputs the effort leaves at the example household's values (defaultedInputCount; an input
@@ -2079,8 +2117,9 @@
   // Open the picker: "settings" (from the menu: the current choice, Save keeps it and Cancel discards it),
   // "firstLaunch" (a new user's first launch: Low and Coach chosen, Continue keeps the choice) or "returning" (a
   // returning user's one showing: High and Accountant chosen, Continue keeps it). Returns a promise of the choice
-  // kept ({effort, style}), or null when it was cancelled.
+  // kept ({effort, style}), or null when it was cancelled (at once, with no picker, while gamify is off).
   function openExperiencePicker(mode) {
+    if (!gamifyOn()) return Promise.resolve(null);
     if (!$("experience").hidden) closeExperiencePicker(null);
     const returning = mode === "returning";
     const first = mode === "firstLaunch" || returning;  // a single Continue; Escape and the backdrop do nothing
@@ -2117,11 +2156,11 @@
   // Opening or importing a scenario (`name`) whose block (`found`) holds another offered effort or style than the
   // current ones asks which to keep. Returns a promise of the block to adopt: `found` itself (also at once, with no
   // dialog, when nothing differs or there is no block to compare), or its copy with the current effort and style for
-  // Keep mine; false when the user cancelled (Cancel, Escape or the backdrop).
+  // Keep mine; false when the user cancelled (Cancel, Escape or the backdrop). With gamify off, `found` as it is.
   function askExperience(name, found) {
     const offered = state.info.experience;
     const current = shownExperience();
-    if (!experienceDiffers(found, current, offered)) return Promise.resolve(found);
+    if (!gamifyOn() || !experienceDiffers(found, current, offered)) return Promise.resolve(found);
     // An import from the walkthrough's first step: the walkthrough keeps the page (#app, which holds the dialog) inert,
     // so it is lifted while the dialog shows (its backdrop covers the walkthrough) and put back unless the walkthrough
     // has closed.
@@ -2191,6 +2230,7 @@
   }
 
   function wireExperience() {
+    $("menuExperience").hidden = !gamifyOn();
     $("menuExperience").addEventListener("click", () => { closeMenu(); openExperiencePicker("settings"); });
     $("experienceBackdrop").addEventListener("click", () => experienceEscape());
     $("experience").addEventListener("keydown", (event) => trapFocus(event, $("experience")));
@@ -3562,6 +3602,852 @@
     if (!mcTimer) autoMc();  // the settings may have changed while it ran
   }
 
+  // ---- Gamer: level, XP, quests and awards (Gamer style only) ----
+  // The rules are gamify.js (WmtiGamify); this part keeps the ledger on the device (GAME_KEY, never in a scenario
+  // file), works out the facts from the state, grants on a short debounce after results, edits and walkthrough steps
+  // (gamerTick), shows one polite toast line and draws the Awards view, built only while it is open. Nothing here reads
+  // or changes an input or a result beyond looking at them.
+  const gamify = window.WmtiGamify;
+  const GAMER_TICK_MS = 300;  // the debounce of gamerTick
+  const GAMER_TOAST_MS = 3500;  // how long the toast line shows
+  const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views a visit marks seen
+  const gamer = { timer: null, toastTimer: null };
+  window.wmtiGamer = { state: () => state.game, tick: gamerTickNow };  // for the tests
+
+  // Whether the open scenario shows Gamer style; never with the gamify features off (gamifyOn), so no Awards view,
+  // XP, quest map, Quick game or mini game shows then.
+  function gamerOn() {
+    if (!gamifyOn() || !state.info || !state.info.experience || !state.experience) return false;
+    return shownExperience().style === "gamer";
+  }
+
+  // The Outputs views shown now: Awards only in Gamer style.
+  function outputViews() {
+    return VIEWS.filter((view) => view !== "awards" || gamerOn());
+  }
+
+  const gameToday = () => Math.floor(Date.now() / 86400000);  // the UTC day number the ledger records
+
+  // Read the ledger kept on this device; storage that cannot be read keeps progress for this visit only.
+  function loadLedger() {
+    let raw = null;
+    state.game.volatile = false;
+    try { raw = localStorage.getItem(GAME_KEY); } catch (error) { state.game.volatile = true; }
+    state.game.ledger = gamify.cleanLedger(raw);
+  }
+
+  // Keep `ledger`, joined first with what another open tab may have written since; nothing with gamify off.
+  function saveLedger(ledger) {
+    if (!gamifyOn()) return;
+    let next = ledger;
+    try {
+      next = gamify.mergeLedgers(ledger, localStorage.getItem(GAME_KEY));
+      if (!state.clearing) localStorage.setItem(GAME_KEY, JSON.stringify(next));
+    } catch (error) {
+      state.game.volatile = true;  // storage blocked or full: this visit only
+    }
+    state.game.ledger = next;
+  }
+
+  // The facts the rules read: inputs, the experience block, the effort, whether this is the unedited example, the
+  // results there are and the views seen.
+  function gamerFacts() {
+    const isExample = state.defaults != null && state.inputs != null && sameValue(state.inputs, state.defaults);
+    return gamify.gamifyFacts({ inputs: state.inputs, experience: state.experience, effort: shownExperience().effort,
+      isExample, results: { mc: state.inputs ? cachedResult(state.mc.cache, mcKey()) : null,
+        compare: state.compare.cache[0] || null, optimize: state.optimize.entry },
+      seen: state.game.ledger.seen, games: state.game.ledger.games });
+  }
+
+  // Grant what is met now, a moment after the last call (results, edits and walkthrough steps call it).
+  function gamerTick() {
+    clearTimeout(gamer.timer);
+    gamer.timer = setTimeout(gamerTickNow, GAMER_TICK_MS);
+  }
+
+  function gamerTickNow() {
+    clearTimeout(gamer.timer);
+    gamer.timer = null;
+    if (!gamerOn() || !state.inputs) return;
+    const { ledger, grants } = gamify.evaluate(gamerFacts(), state.game.ledger,
+      { effort: shownExperience().effort, today: gameToday() });
+    if (!grants.length && JSON.stringify(ledger) === JSON.stringify(state.game.ledger)) return;
+    saveLedger(ledger);
+    if (grants.length) gamerToast(gamify.grantsText(grants));
+    if (awardsShown()) renderAwards();
+  }
+
+  // One polite status line above the tab bar for a few seconds; the focus stays where it is.
+  function gamerToast(text) {
+    const toast = $("gamerToast");
+    if (!text) return;
+    toast.textContent = text;
+    toast.hidden = false;
+    clearTimeout(gamer.toastTimer);
+    gamer.toastTimer = setTimeout(() => { toast.hidden = true; }, GAMER_TOAST_MS);
+  }
+
+  // A visit to a result view in Gamer style marks it seen once (Plots and Explorer read it).
+  function gamerSeen(view) {
+    if (!gamerOn() || !SEEN_VIEWS.includes(view) || view in state.game.ledger.seen) return;
+    const ledger = gamify.cleanLedger(state.game.ledger);
+    ledger.seen[view] = gameToday();
+    saveLedger(ledger);
+    gamerTick();
+  }
+
+  const awardsShown = () => tabShown("outputs") && state.view === "awards" && gamerOn();
+
+  // The Awards chip shows only in Gamer style; leaving Gamer while on Awards moves to Summary (the progress stays).
+  function gamerStyleChanged() {
+    const on = gamerOn();
+    const chip = $("sub-awards");
+    const changed = chip.hidden === on;
+    chip.hidden = !on;
+    if (!on) {
+      clearTimeout(gamer.toastTimer);
+      $("gamerToast").hidden = true;
+      if (state.view === "awards") state.view = "summary";
+    }
+    if (changed && state.schema) { showPlace(); savePrefs(); }
+    if (on) gamerTick();
+  }
+
+  // A day number as a short date.
+  const gameDate = (day) => new Date(day * 86400000).toLocaleDateString(undefined,
+    { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" });
+
+  const QUEST_ORDER = { open: 0, pending: 0, locked: 1, done: 2 };  // open quests first, done ones last
+  const QUEST_STATE_TEXT = { open: "To do", pending: "Done, adding it now", done: "Done" };
+
+  // The Awards view: level and XP, the quests (each open one with Show me), the awards, and Reset progress.
+  function awardsHtml() {
+    const ledger = state.game.ledger;
+    const facts = gamerFacts();
+    const xp = gamify.xpOf(ledger);
+    const level = gamify.levelOf(xp);
+    const toNext = level.next == null ? "The top level." : (level.next - level.into) + " XP to level "
+      + (level.level + 1) + ".";
+    let html = "<section class=\"gm-hero\" aria-labelledby=\"gmLevel\"><h3 id=\"gmLevel\">Level " + level.level + ": "
+      + escapeText(level.name) + "</h3><progress class=\"gm-bar\" max=\"" + (level.next || 1) + "\" value=\""
+      + (level.next == null ? 1 : level.into) + "\" aria-labelledby=\"gmLevel gmXp\"></progress><p id=\"gmXp\">" + xp
+      + " XP. " + toNext + "</p></section>";
+    if (state.game.volatile) {
+      html += "<p class=\"banner\" id=\"gmVolatile\">This browser is not keeping data, so progress is kept for this "
+        + "visit only.</p>";
+    }
+    const quests = gamify.questStatus(facts, ledger, shownExperience().effort)
+      .map((quest, position) => ({ quest, position }))
+      .sort((one, two) => QUEST_ORDER[one.quest.state] - QUEST_ORDER[two.quest.state] || one.position - two.position)
+      .map(({ quest }) => quest);
+    html += "<div class=\"card\"><div class=\"card-head\"><h2>Quests</h2></div><ul class=\"gm-list\" id=\"gmQuests\">"
+      + quests.map((quest) => {
+      const status = quest.state === "locked" ? quest.lockText
+        : quest.state === "done" ? "Done " + gameDate(quest.day) : QUEST_STATE_TEXT[quest.state];
+      const show = quest.state === "open" ? "<button type=\"button\" class=\"button button-quiet gm-show\" data-show=\""
+        + escapeText(quest.show) + "\" aria-label=\"Show me: " + escapeText(quest.title) + "\">Show me</button>" : "";
+      return "<li class=\"gm-quest\" data-quest=\"" + escapeText(quest.id) + "\" data-state=\"" + quest.state + "\">"
+        + "<strong>" + escapeText(quest.title) + "</strong>" + show + "<p>" + escapeText(quest.how) + " " + quest.xp
+        + " XP. " + escapeText(status) + ".</p></li>";
+    }).join("") + "</ul></div>";
+    html += "<div class=\"card\"><div class=\"card-head\"><h2>Awards</h2></div><ul class=\"gm-list\" id=\"gmAwards\">"
+      + gamify.AWARDS.map((award) => {
+      const day = ledger.awards[award.id];
+      const earned = day != null;
+      return "<li class=\"gm-award\" data-award=\"" + escapeText(award.id) + "\" data-earned=\"" + earned + "\"><strong>"
+        + escapeText(award.title) + "</strong><p>" + (earned ? "Earned " + escapeText(gameDate(day)) + "."
+        : escapeText(award.how)) + "</p></li>";
+    }).join("") + "</ul></div>";
+    html += miniGamesHtml(ledger);
+    html += "<div class=\"card\"><p class=\"field-help\">Progress is kept on this device only, never in a scenario file. "
+      + "XP counts what you do and compare, never how a plan turns out.</p><button type=\"button\" "
+      + "class=\"button button-danger\" id=\"gamerReset\">Reset progress</button></div>";
+    return html;
+  }
+
+  // The Mini games section: one card per game with its best stars and Play (Claim Age Showdown once per person).
+  function miniGamesHtml(ledger) {
+    const partner = Boolean(state.inputs && state.inputs.partner);
+    return "<div class=\"card\"><div class=\"card-head\"><h2>Mini games</h2></div><div class=\"gm-list\" id=\"gmGames\">"
+      + gameRules.GAMES.map((game) => {
+      const entry = ledger.games[game.id];
+      const best = entry ? "Best: " + entry.stars + " of 3 stars." : "Not played yet.";
+      const people = game.id === "claim" && partner ? [["you", "Play: you"], ["partner", "Play: partner"]]
+        : [["you", "Play"]];
+      const buttons = people.map(([who, label]) => "<button type=\"button\" class=\"button gm-play\" data-game=\""
+        + game.id + "\" data-who=\"" + who + "\" aria-label=\"" + escapeText(label + ": " + game.title) + "\">"
+        + escapeText(label) + "</button>").join(" ");
+      return "<div class=\"gm-game-card\" data-game-card=\"" + game.id + "\"><strong>" + escapeText(game.title)
+        + "</strong><span class=\"row-buttons\">" + buttons + "</span><p>" + escapeText(best) + "</p></div>";
+    }).join("") + "</div><p class=\"field-help\">Three short rounds each, no clock; close any time. Illustrative, not "
+      + "advice.</p></div>";
+  }
+
+  function renderAwards() {
+    if (!awardsShown()) return;
+    $("awards-body").innerHTML = awardsHtml();
+  }
+
+  // Show me: the walkthrough, a result view, or an input on its page (Inputs when it is not drawn at this effort).
+  function gamerShowMe(target) {
+    if (target === "walk") { openWalk(); return; }
+    if (target.startsWith("view:")) { selectView(target.slice(5)); return; }
+    if (target.startsWith("field:") && openInputsField(target.slice(6))) return;
+    selectTabFresh("inputs");
+  }
+
+  // Reset progress, after a confirm: XP, quests, awards and views seen go, and what is true now is not granted back.
+  function confirmResetGame() {
+    openDialog({ title: "Reset progress?",
+      text: "This clears your XP, quests and awards on this device. Your plan does not change.",
+      actions: [["Reset", "button button-danger", () => {
+        saveLedger(gamify.resetLedger(gamerFacts(), state.game.ledger));
+        renderAwards();
+        gamerToast("Progress reset.");
+      }, "gamerResetConfirm"], ["Cancel", "button button-quiet", () => true, "gamerResetCancel"]] });
+  }
+
+  // The walkthrough Trail as a quest map in Gamer style: each topic a stage with "n of m" answered, each row a node
+  // (done, now, to do or skipped). `group` is one walkTrail group; returns the stage's class and heading.
+  function questMapHtml(group) {
+    const questions = (group.items || []).filter((item) => item.kind !== "offer");
+    const done = questions.filter((item) => item.status === "answered").length;
+    const count = group.offer ? "" : " <span class=\"walk-quest-count\">" + done + " of " + questions.length
+      + "</span>";
+    return { className: " walk-quest", heading: escapeText(group.title) + count };
+  }
+
+  const QUEST_NODES = { answered: "done", now: "now", todo: "todo", skipped: "skipped" };
+  const questNode = (item) => " data-node=\"" + (QUEST_NODES[item.status] || "todo") + "\"";
+
+  // A finished mini game: one more play of `id` and its best stars, then a tick (the games' rules read them).
+  function gamerRecordPlay(id, stars) {
+    const ledger = gamify.cleanLedger(state.game.ledger);
+    const before = ledger.games[id] || { plays: 0, stars: 0 };
+    ledger.games[id] = { plays: before.plays + 1, stars: Math.max(before.stars, Number(stars) || 0) };
+    saveLedger(ledger);
+    gamerTick();
+  }
+
+  function wireGamer() {
+    loadLedger();
+    $("awards-body").addEventListener("click", (event) => {
+      const show = event.target.closest(".gm-show");
+      if (show) { gamerShowMe(show.dataset.show); return; }
+      const playButton = event.target.closest(".gm-play");
+      if (playButton) { openGame(playButton.dataset.game, { who: playButton.dataset.who, returnFocus: playButton }); return; }
+      if (event.target.closest("#gamerReset")) confirmResetGame();
+    });
+  }
+  // ---- Gamer mini games (Gamer style only) ----
+  // Four short, original games (rules in games.js, WmtiGames) in one pop-up (#gameDialog), opened from the Awards
+  // view's Mini games and from the walkthrough's "Quick game" buttons. Three rounds, no clock; Close or Escape any
+  // time (an unfinished run grants nothing). Finishing records the play with gamerRecordPlay (51-gamer.js). The games
+  // read fixed law data (state.info.law), the person's benefitTables rows (Claim Age Showdown) or generic numbers and
+  // change nothing, except Claim Age Showdown's confirmed "Set my claim age" (one Undo step, never at Low).
+  const gameRules = window.WmtiGames;
+  const GAME_TITLES = Object.fromEntries(gameRules.GAMES.map((game) => [game.id, game.title]));
+  const GAME_DIGITS = { 1: 0, 2: 1, 3: 2, 4: 3 };  // Receipt Sort: a number key sends the chosen card to that bin
+  const play = { id: null, who: "you", round: 0, rounds: null, results: [], answer: undefined, checked: false,
+    finished: false, stars: 0, data: null, returnFocus: null, returnSelector: null, turn: 0, lifespan: 90, pick: null,
+    chosen: null, reveal: null, placeReceipt: null, wasInert: false };
+  window.wmtiGames = { state: () => play };  // for the tests
+
+  function gameEl(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text != null) element.textContent = text;
+    return element;
+  }
+
+  function gameButton(text, className, onClick, id) {
+    const button = gameEl("button", className, text);
+    button.type = "button";
+    if (id) button.id = id;
+    if (onClick) button.addEventListener("click", onClick);
+    return button;
+  }
+
+  // The polite status line under the title: each check's result and the final stars.
+  function gameStatus(text) {
+    $("gameStatus").textContent = text || "";
+  }
+
+  // A radio group of answers; picking one sets the round's answer. `options` are [value, label].
+  function gameChoices(legend, options) {
+    const group = gameEl("fieldset");
+    group.append(gameEl("legend", "", legend));
+    const name = "gameChoice" + play.round;
+    options.forEach(([value, label], index) => {
+      const option = gameEl("label", "gm-card");
+      const input = gameEl("input");
+      input.type = "radio";
+      input.name = name;
+      input.id = name + "-" + index;
+      input.value = String(value);
+      input.addEventListener("change", () => { if (!play.checked) play.answer = value; });
+      option.append(input, document.createTextNode(" " + label));
+      group.append(option);
+    });
+    return group;
+  }
+
+  // Bars of named amounts, each with its figure in words beside the bar. `rows` are [label, amount].
+  function gameBars(rows, label) {
+    const holder = gameEl("div", "gm-bars");
+    holder.setAttribute("role", "group");
+    holder.setAttribute("aria-label", label);
+    const top = Math.max(1, ...rows.map(([, amount]) => amount));
+    for (const [name, amount] of rows) {
+      const row = gameEl("div");
+      const meter = gameEl("meter");
+      meter.min = 0;
+      meter.max = top;
+      meter.value = Math.max(0, amount);
+      meter.setAttribute("aria-hidden", "true");
+      row.append(gameEl("span", "", name + ": " + fullMoney(amount)), meter);
+      holder.append(row);
+    }
+    return holder;
+  }
+
+  // Open game `id`; `who` picks the person for Claim Age Showdown, `returnFocus` gets the focus back on Close.
+  async function openGame(id, { who = "you", returnFocus = null } = {}) {
+    if (!GAME_TITLES[id] || !gamerOn() || !state.inputs) return;
+    const turn = ++play.turn;
+    Object.assign(play, { id, who: who === "partner" && state.inputs.partner ? "partner" : "you", round: 0,
+      rounds: null, results: [], answer: undefined, checked: false, finished: false, stars: 0, data: null,
+      lifespan: 90, pick: null, chosen: null, reveal: null, placeReceipt: null });
+    play.returnFocus = returnFocus || document.activeElement;
+    play.returnSelector = play.returnFocus && play.returnFocus.dataset && play.returnFocus.dataset.game
+      ? ".gm-play[data-game=\"" + id + "\"][data-who=\"" + play.who + "\"]" : null;
+    $("gameTitle").textContent = GAME_TITLES[id];
+    $("gameRound").textContent = "";
+    gameStatus("");
+    $("gameBody").replaceChildren(gameEl("p", "gm-readout", id === "claim" ? "Reading your benefit table" : ""));
+    gameActions([]);
+    if ($("gameDialog").hidden) play.wasInert = $("app").inert;
+    $("app").inert = false;  // the pop-up is in the page, which the walkthrough keeps inert
+    $("gameDialog").hidden = false;
+    $("gameBackdrop").hidden = false;
+    $("gameTitle").focus();
+    const seed = Math.floor(Math.random() * 1e9) + 1;
+    if (id === "claim") {
+      const loaded = await loadClaimTables();
+      if (turn !== play.turn) return;
+      const rounds = loaded.rows ? gameRules.claimRounds(loaded.rows, seed) : null;
+      if (!rounds) {
+        $("gameBody").replaceChildren(gameEl("p", "gm-readout", loaded.error || "Enter your benefit first: Claim Age "
+          + "Showdown needs at least two claim ages with a monthly benefit (Inputs, Retirement)."));
+        gameActions([]);
+        $("gameClose").focus();
+        return;
+      }
+      play.data = { rows: loaded.rows };
+      play.rounds = rounds;
+    } else if (id === "bracket") {
+      play.data = { brackets: gameBrackets() };
+      play.rounds = gameRules.bracketRounds({ brackets: { key: play.data.brackets } }, "key", seed);
+    } else if (id === "receipts") {
+      play.rounds = gameRules.receiptRounds(seed);
+    } else {
+      play.rounds = gameRules.decadeRounds(seed);
+    }
+    renderGameRound();
+  }
+
+  // The federal brackets of the open scenario's filing status, from the fixed law data in appInfo.
+  function gameBrackets() {
+    const law = state.info.law;
+    const key = law.filingKeys[String(state.inputs.filingStatus || "").toUpperCase()] || "SINGLE";
+    return law.brackets[key] || law.brackets.SINGLE;
+  }
+
+  // The person's benefit rows from benefitTables (lane "game"); `{rows}` or `{error}`.
+  async function loadClaimTables() {
+    let reply;
+    try {
+      reply = await engine.call("benefitTables", [JSON.stringify(state.inputs)], "game");
+    } catch (error) {
+      return { error: "The benefit table could not be read: " + String((error && error.message) || error) };
+    }
+    const value = reply && reply.value;
+    if (!value || !value.ok) return { error: (value && value.error) || "The benefit table could not be read." };
+    const person = (value.people || []).find((item) => item.role === play.who);
+    return { rows: person ? gameRules.claimRows(person.table) : [] };
+  }
+
+  // The footer: `buttons` (each from gameButton) and Close, always last.
+  function gameActions(buttons) {
+    $("gameActions").replaceChildren(...buttons, gameButton("Close", "button button-quiet", closeGame, "gameClose"));
+  }
+
+  const GAME_SCREENS = { bracket: bracketScreen, claim: claimScreen, receipts: receiptScreen, decade: decadeScreen };
+
+  function renderGameRound() {
+    play.answer = undefined;
+    play.checked = false;
+    play.reveal = null;
+    const round = play.rounds[play.round];
+    $("gameRound").textContent = "Round " + (play.round + 1) + " of " + gameRules.ROUNDS;
+    const { nodes, reveal } = GAME_SCREENS[play.id](round);
+    play.reveal = reveal;
+    $("gameBody").replaceChildren(...nodes);
+    $("gameBody").scrollTop = 0;
+    gameActions([gameButton("Check", "button", gameCheck, "gameCheck")]);
+    const first = $("gameBody").querySelector("input, button");
+    (first || $("gameCheck")).focus();
+  }
+
+  // Check the round's answer once; then Next (or See result after the last round).
+  function gameCheck() {
+    if (play.checked) return;
+    const round = play.rounds[play.round];
+    if (play.answer === undefined) {
+      gameStatus(play.id === "receipts" ? "Sort every receipt first." : "Choose an answer first.");
+      return;
+    }
+    const graders = { bracket: gameRules.gradeBracket, claim: gameRules.gradeClaim, receipts: gameRules.gradeReceipts,
+      decade: gameRules.gradeDecade };
+    const answer = play.answer === "never" ? null : play.answer;
+    const right = graders[play.id](round, answer);
+    play.checked = true;
+    play.results.push(right);
+    for (const input of $("gameBody").querySelectorAll("input[type=radio]")) input.disabled = true;
+    const said = play.reveal ? play.reveal(right) : "";
+    const verdict = round.kind === "pick" ? "Noted." : right ? "Right." : "Not quite.";
+    gameStatus(verdict + (said ? " " + said : ""));
+    const last = play.round + 1 >= play.rounds.length;
+    const next = gameButton(last ? "See result" : "Next", "button", last ? finishGame : gameNext, "gameNext");
+    gameActions([next]);
+    next.focus();
+  }
+
+  function gameNext() {
+    if (!play.checked || play.finished) return;
+    play.round += 1;
+    renderGameRound();
+  }
+
+  // The result card: the stars, what to remember, the not-advice line and, in Claim Age Showdown, the offer to set the
+  // claim age picked in round 3. The play is recorded once.
+  function finishGame() {
+    if (!play.checked) return;
+    if (!play.finished) {
+      play.finished = true;
+      play.stars = gameRules.starsOf(play.results);
+      gamerRecordPlay(play.id, play.stars);
+    }
+    const game = gameRules.GAMES.find((item) => item.id === play.id);
+    $("gameRound").textContent = "Finished";
+    const stars = gameEl("p", "gm-readout");
+    const shown = gameEl("span", "", "★".repeat(play.stars) + "☆".repeat(gameRules.ROUNDS - play.stars) + " ");
+    shown.setAttribute("aria-hidden", "true");
+    stars.append(shown, document.createTextNode(play.stars + " of " + gameRules.ROUNDS + " stars"));
+    const nodes = [stars, gameEl("p", "", "Remember: " + game.remember), gameEl("p", "", gameRules.NOT_ADVICE)];
+    const buttons = [gameButton("Play again", "button", () => openGame(play.id,
+      { who: play.who, returnFocus: play.returnFocus }), "gameAgain")];
+    const offer = claimOffer();
+    if (offer) nodes.push(offer);
+    $("gameBody").replaceChildren(...nodes);
+    gameActions(buttons);
+    gameStatus("Finished with " + play.stars + " of " + gameRules.ROUNDS + " stars.");
+    (offer ? offer : $("gameAgain")).focus();
+  }
+
+  function closeGame() {
+    if ($("gameDialog").hidden) return false;
+    play.turn += 1;
+    $("gameDialog").hidden = true;
+    $("gameBackdrop").hidden = true;
+    $("gameBody").replaceChildren();
+    if (play.wasInert && walk.open) $("app").inert = true;
+    let target = play.returnFocus;
+    if ((!target || !document.contains(target)) && play.returnSelector) {
+      target = document.querySelector(play.returnSelector);
+    }
+    if (target && document.contains(target)) target.focus();
+    return true;
+  }
+
+  // Escape closes the game only (a game opened from the walkthrough leaves it open). True when a game was open.
+  function gameEscape() {
+    return closeGame();
+  }
+
+  // ---- Bracket Climber ----
+  const LADDER = { width: 300, height: 200, rail: 44 };
+
+  function ladderTop(round, brackets) {
+    const third = brackets[Math.min(2, brackets.length - 1)].from;
+    if (round.kind === "target") return Math.max(third * 1.3, round.target * 1.6);
+    return Math.max(round.income * 1.4, third * 1.2);
+  }
+
+  // The to-scale ladder: one rung per bracket up to `top`, its rate at the side, and the climber at `income`.
+  function ladderSvg(brackets, top, income) {
+    const svgNs = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNs, "svg");
+    svg.setAttribute("viewBox", "0 0 " + LADDER.width + " " + LADDER.height);
+    svg.setAttribute("aria-hidden", "true");
+    const y = (value) => LADDER.height - Math.min(1, Math.max(0, value / top)) * LADDER.height;
+    brackets.filter((row) => row.from < top).forEach((row, index) => {
+      const low = y(row.from);
+      const high = y(row.to === null ? top : Math.min(row.to, top));
+      const rung = document.createElementNS(svgNs, "rect");
+      rung.setAttribute("x", LADDER.rail);
+      rung.setAttribute("y", high);
+      rung.setAttribute("width", LADDER.width - LADDER.rail);
+      rung.setAttribute("height", Math.max(0, low - high));
+      rung.setAttribute("style", "fill: " + (index % 2 ? "var(--gm-panel)" : "var(--gm-deep)")
+        + "; stroke: var(--gm-violet)");
+      svg.append(rung);
+      if (low - high >= 14) {
+        const label = document.createElementNS(svgNs, "text");
+        label.setAttribute("x", LADDER.width - 8);
+        label.setAttribute("y", (low + high) / 2 + 4);
+        label.setAttribute("text-anchor", "end");
+        label.textContent = percent(row.rate, 0);
+        svg.append(label);
+      }
+    });
+    const climber = document.createElementNS(svgNs, "circle");
+    climber.setAttribute("class", "gm-climber");
+    climber.setAttribute("cx", LADDER.rail / 2);
+    climber.setAttribute("cy", y(income));
+    climber.setAttribute("r", 9);
+    svg.append(climber);
+    return { svg, move: (value) => climber.setAttribute("cy", y(value)) };
+  }
+
+  function bracketReadout(brackets, income) {
+    const found = gameRules.bracketAt(brackets, income);
+    return "At " + fullMoney(income) + ": last dollar " + percent(found.marginal, 0) + ", average "
+      + percent(found.average, 1) + ".";
+  }
+
+  function bracketScreen(round) {
+    const brackets = play.data.brackets;
+    const top = ladderTop(round, brackets);
+    const start = round.kind === "target" ? 0 : round.income;
+    const ladder = ladderSvg(brackets, top, start);
+    const holder = gameEl("div", "gm-ladder");
+    holder.append(ladder.svg, gameEl("p", "sr-only", "Federal brackets: " + brackets.map((row) => percent(row.rate, 0)
+      + (row.to === null ? " above " + fullMoney(row.from) : " from " + fullMoney(row.from) + " to "
+      + fullMoney(row.to))).join("; ") + "."));
+    const readout = gameEl("p", "gm-readout");
+    readout.id = "gameReadout";
+    const second = brackets[1];
+    const prompts = {
+      next: "At " + fullMoney(round.income) + " of taxable income, what rate does the next $1,000 pay?",
+      target: "Climb to about " + fullMoney(round.target) + " of taxable income (within $500) and stay in the "
+        + percent(second.rate, 0) + " bracket, below " + fullMoney(second.to) + ".",
+      average: "At " + fullMoney(round.income) + " of taxable income, what is the average rate on all of it?",
+    };
+    const nodes = [gameEl("p", "", prompts[round.kind]), holder];
+    if (round.kind === "target") {
+      const label = gameEl("label", "field-label", "Taxable income");
+      label.htmlFor = "gameRange";
+      const range = gameEl("input");
+      Object.assign(range, { type: "range", id: "gameRange", min: 0, max: Math.round(top / 1000) * 1000, step: 1000,
+        value: start });
+      const step = gameEl("div", "row-buttons");
+      const update = (value) => {
+        const income = Math.max(0, Math.min(Number(range.max), value));
+        range.value = income;
+        range.setAttribute("aria-valuetext", fullMoney(income));
+        ladder.move(income);
+        readout.textContent = bracketReadout(brackets, income);
+        if (!play.checked) play.answer = income;
+      };
+      range.addEventListener("input", () => update(Number(range.value)));
+      const down = gameButton("- $1,000", "button button-quiet", () => update(Number(range.value) - 1000), "gameDown");
+      const up = gameButton("+ $1,000", "button button-quiet", () => update(Number(range.value) + 1000), "gameUp");
+      down.setAttribute("aria-label", "Down $1,000");
+      up.setAttribute("aria-label", "Up $1,000");
+      step.append(down, up);
+      nodes.push(label, range, step, readout);
+      update(start);
+      play.answer = undefined;  // the start is not an answer until the climber moves
+      return { nodes, reveal: () => readout.textContent };
+    }
+    const choices = round.kind === "next" ? round.choices.map((rate) => [rate, percent(rate, 0)])
+      : round.choices.map((rate) => [rate, percent(rate, 1)]);
+    nodes.push(gameChoices(round.kind === "next" ? "Rate of the next $1,000" : "Average rate", choices), readout);
+    return { nodes, reveal: () => {
+      const found = gameRules.bracketAt(brackets, round.income);
+      readout.textContent = bracketReadout(brackets, round.income);
+      return round.kind === "next" ? "The next $1,000 pays " + percent(round.answer, 0) + "."
+        : "The tax is " + fullMoney(found.tax) + ", an average of " + percent(round.answer, 1) + " while the last "
+          + "dollar pays " + percent(found.marginal, 0) + ".";
+    } };
+  }
+
+  // ---- Claim Age Showdown ----
+  const claimLabel = (age) => "Claiming at " + age;
+
+  function claimBars(rows, ages, upTo) {
+    return gameBars(ages.map((age) => [claimLabel(age), gameRules.cumulative(rows, age, upTo)]),
+      "Collected by age " + upTo);
+  }
+
+  function claimScreen(round) {
+    const rows = play.data.rows;
+    const used = (age) => fullMoney(rows.find((row) => row.age === age).used);
+    const whose = play.who === "partner" ? "Your partner's benefit" : "Your benefit";
+    const nodes = [gameEl("p", "gm-readout", whose)];
+    const note = gameEl("p", "field-help", "Simple sums in today's dollars: no investing of early benefits, no taxes.");
+    if (round.kind === "breakEven") {
+      nodes.push(gameEl("p", "", claimLabel(round.early) + " pays " + used(round.early) + " a month; "
+        + claimLabel(round.late).toLowerCase() + " pays " + used(round.late) + ". By about what age has the later "
+        + "claimant collected as much?"));
+      nodes.push(gameChoices("Break-even age", round.choices.map((age) => (age === null ? ["never", "Never"]
+        : [age, "About " + age]))), note);
+      return { nodes, reveal: () => (round.exact === null ? "Claiming later never catches up here."
+        : "They are even at about age " + round.exact.toFixed(1) + ".") };
+    }
+    if (round.kind === "lifespan") {
+      nodes.push(gameEl("p", "", "By age " + round.lifespan + ", which claimant has collected the most?"));
+      nodes.push(gameChoices("Collected the most", round.ages.map((age) => [age, claimLabel(age)])));
+      const explore = gameEl("div", "dialog-body");
+      explore.hidden = true;
+      nodes.push(explore, note);
+      return { nodes, reveal: () => {
+        const label = gameEl("label", "field-label", "Life span");
+        label.htmlFor = "gameLifespan";
+        const range = gameEl("input");
+        Object.assign(range, { type: "range", id: "gameLifespan", min: round.min, max: round.max, step: 1,
+          value: round.lifespan });
+        const line = gameEl("p", "gm-readout");
+        line.id = "gameReadout";
+        let bars = claimBars(rows, round.ages, round.lifespan);
+        const update = () => {
+          const upTo = Number(range.value);
+          play.lifespan = upTo;
+          range.setAttribute("aria-valuetext", "Age " + upTo);
+          const fresh = claimBars(rows, round.ages, upTo);
+          bars.replaceWith(fresh);
+          bars = fresh;
+          line.textContent = "By age " + upTo + ", " + claimLabel(gameRules.leaderAt(rows, round.ages, upTo))
+            .toLowerCase() + " has collected the most.";
+        };
+        range.addEventListener("input", update);
+        explore.append(bars, label, range, line);
+        explore.hidden = false;
+        update();
+        return claimLabel(round.answer) + " has collected the most by " + round.lifespan + ". Move the life span to "
+          + "see others.";
+      } };
+    }
+    nodes.push(gameEl("p", "", "There is no right claim age. Which would you choose?"));
+    nodes.push(gameChoices("Your claim age", round.ages.map((age) => [age, String(age)])), note);
+    return { nodes, reveal: () => {
+      play.pick = Number(play.answer);
+      return gameRules.claimSentence(rows, play.pick, play.lifespan);
+    } };
+  }
+
+  // The offer after Claim Age Showdown: set the claim age picked in round 3, absent at Low and when it is already set.
+  function claimOffer() {
+    if (play.id !== "claim" || play.pick == null || lowOn() || !state.inputs[play.who]) return null;
+    if (Number(state.inputs[play.who].socialSecurityAge) === play.pick) return null;
+    const button = gameButton("Set my claim age to " + play.pick, "button button-quiet",
+      () => confirmClaimAge(play.who, play.pick), "gameClaimSet");
+    if (play.who === "partner") button.textContent = "Set my partner's claim age to " + play.pick;
+    return button;
+  }
+
+  // Ask first (old to new; Change or Cancel), then set the claim age as one Undo step; nothing is written when the
+  // plan changed during the call, and a refusal shows the checker's message.
+  function confirmClaimAge(who, age) {
+    if (lowOn() || !state.inputs[who]) return;
+    const whose = who === "partner" ? "Your partner's" : "Your";
+    openDialog({ title: "Set the claim age?", text: whose + " Social Security claim age changes from "
+      + state.inputs[who].socialSecurityAge + " to " + age + ". Undo puts it back.",
+      actions: [["Change", "button", async () => { await setClaimAge(who, age); }, "gameClaimChange"],
+        ["Cancel", "button button-quiet", () => true, "gameClaimCancel"]] });
+  }
+
+  async function setClaimAge(who, age) {
+    if (!gamifyOn()) return;  // the mini games, and so this write, exist only with the gamify features on
+    const inputsText = JSON.stringify(state.inputs);
+    const reply = await ask("applySettings", [inputsText, JSON.stringify([{ path: who + ".socialSecurityAge",
+      value: age }])]);
+    if (inputsText !== JSON.stringify(state.inputs)) {
+      gameStatus("Your plan changed; try again.");
+      return;
+    }
+    if (!reply || !reply.ok || reply.error) {
+      gameStatus((reply && reply.error) || "The claim age could not be set.");
+      return;
+    }
+    if (settleTimer) settle();  // an edit still settling is a step of its own
+    state.inputs = reply.inputs;
+    renderSettings();
+    inputsChanged();
+    const set = $("gameClaimSet");
+    if (set) set.remove();
+    gameStatus("Claim age set to " + age + ". Undo puts it back.");
+  }
+
+  // ---- Receipt Sort ----
+  function receiptScreen(round) {
+    const placed = {};
+    play.chosen = round.cards[0];
+    const cards = gameEl("div", "gm-list");
+    cards.setAttribute("role", "group");
+    cards.setAttribute("aria-label", "Receipts");
+    const bins = gameEl("div", "gm-list");
+    bins.setAttribute("role", "group");
+    bins.setAttribute("aria-label", "Paid from");
+    const cardButtons = {};
+    const paint = () => {
+      for (const [id, button] of Object.entries(cardButtons)) button.setAttribute("aria-pressed", String(id === play.chosen));
+    };
+    const place = (bin) => {
+      if (play.checked || !play.chosen || play.chosen in placed) return;
+      const id = play.chosen;
+      const receipt = gameRules.RECEIPTS.find((item) => item.id === id);
+      const check = gameRules.receiptCheck(id, bin);
+      const binLabel = (binId) => gameRules.BINS.find((item) => item.id === binId).label;
+      placed[id] = bin;
+      const button = cardButtons[id];
+      button.dataset.result = check.correct ? "right" : "wrong";
+      button.setAttribute("aria-disabled", "true");
+      button.textContent = receipt.text + ": " + binLabel(bin) + (check.correct ? ", right. " : ", not quite: "
+        + binLabel(check.bin) + ". ") + check.why;
+      gameStatus(button.textContent);
+      play.chosen = round.cards.find((card) => !(card in placed)) || null;
+      paint();
+      if (!play.chosen) play.answer = { ...placed };
+    };
+    for (const id of round.cards) {
+      const receipt = gameRules.RECEIPTS.find((item) => item.id === id);
+      const button = gameButton(receipt.text, "gm-card", () => {
+        if (id in placed || play.checked) return;
+        play.chosen = id;
+        paint();
+      });
+      button.dataset.receipt = id;
+      cardButtons[id] = button;
+      cards.append(button);
+    }
+    gameRules.BINS.forEach((bin, index) => {
+      const button = gameButton((index + 1) + ". " + bin.label, "gm-bin", () => place(bin.id));
+      button.dataset.bin = bin.id;
+      button.setAttribute("aria-keyshortcuts", String(index + 1));
+      bins.append(button);
+    });
+    paint();
+    play.placeReceipt = place;
+    return { nodes: [gameEl("p", "", "Choose a receipt, then where it is generally paid from. Or press 1 to 4 to send "
+      + "the chosen receipt."), cards, bins], reveal: (right) => (right ? "Every receipt on this screen is sorted right."
+      : "Some receipts belong elsewhere; the reasons are on each card.") };
+  }
+
+  // ---- The Bad Decade ----
+  const RETIREE = { first: "Retiree A (down years first)", second: "Retiree B (down years last)", equal: "They end equal" };
+
+  function decadeBars(pair, label) {
+    return gameBars([[RETIREE.first, pair.ends.first], [RETIREE.second, pair.ends.second]], label);
+  }
+
+  // The paths as a table, built only when its section opens.
+  function decadeTable(pair) {
+    const details = gameEl("details");
+    details.append(gameEl("summary", "", "Show the paths as a table"));
+    details.addEventListener("toggle", () => {
+      if (!details.open || details.querySelector("table")) return;
+      const table = gameEl("table", "data-table");
+      const head = gameEl("tr");
+      for (const name of ["Year", "A return", "A balance", "B return", "B balance"]) head.append(gameEl("th", "", name));
+      table.append(head);
+      pair.returns.first.forEach((rate, year) => {
+        const row = gameEl("tr");
+        for (const text of [String(year + 1), percent(rate, 0), fullMoney(pair.first[year + 1]),
+          percent(pair.returns.second[year], 0), fullMoney(pair.second[year + 1])]) row.append(gameEl("td", "", text));
+        table.append(row);
+      });
+      details.append(table);
+    });
+    return details;
+  }
+
+  function decadeScreen(round) {
+    const start = fullMoney(gameRules.START);
+    const choices = round.choices.map((id) => [id, RETIREE[id]]);
+    const nodes = [];
+    const after = gameEl("div", "dialog-body");
+    after.hidden = true;
+    if (round.kind === "predict") {
+      nodes.push(gameEl("p", "", "Two retirees start with " + start + " and spend " + fullMoney(gameRules.SPEND)
+        + " a year. They get the same ten yearly returns (illustrative, not a forecast), A with the down years first "
+        + "and B with them last."), gameEl("p", "field-help", "A's returns: " + gameRules.RETURNS.map((rate) =>
+        percent(rate, 0)).join(", ") + ". B's: the same, last to first."));
+      nodes.push(gameChoices("Who ends higher after ten years?", choices), after);
+      return { nodes, reveal: () => {
+        const pair = gameRules.decadePair();
+        after.append(decadeBars(pair, "After ten years"), decadeTable(pair));
+        after.hidden = false;
+        return "Same returns and same average, but A ends with " + fullMoney(pair.ends.first) + " and B with "
+          + fullMoney(pair.ends.second) + ".";
+      } };
+    }
+    if (round.kind === "withdraw") {
+      nodes.push(gameEl("p", "", "Now both spend " + fullMoney(round.spend) + " a year. Who ends higher?"));
+      nodes.push(gameChoices("Who ends higher?", choices), after);
+      return { nodes, reveal: () => {
+        let spend = round.spend;
+        const line = gameEl("p", "gm-readout");
+        line.id = "gameReadout";
+        let bars = decadeBars(gameRules.decadePair(gameRules.START, spend), "After ten years");
+        const update = (value) => {
+          spend = Math.max(0, Math.min(gameRules.SPEND_MAX, value));
+          const pair = gameRules.decadePair(gameRules.START, spend);
+          const fresh = decadeBars(pair, "After ten years");
+          bars.replaceWith(fresh);
+          bars = fresh;
+          line.textContent = "Spending " + fullMoney(spend) + " a year: A ends with " + fullMoney(pair.ends.first)
+            + ", B with " + fullMoney(pair.ends.second) + ".";
+        };
+        const step = gameEl("div", "row-buttons");
+        const down = gameButton("- " + fullMoney(gameRules.SPEND_STEP), "button button-quiet",
+          () => update(spend - gameRules.SPEND_STEP), "gameDown");
+        const up = gameButton("+ " + fullMoney(gameRules.SPEND_STEP), "button button-quiet",
+          () => update(spend + gameRules.SPEND_STEP), "gameUp");
+        down.setAttribute("aria-label", "Spend " + fullMoney(gameRules.SPEND_STEP) + " less a year");
+        up.setAttribute("aria-label", "Spend " + fullMoney(gameRules.SPEND_STEP) + " more a year");
+        step.append(down, up);
+        after.append(bars, step, line);
+        after.hidden = false;
+        update(spend);
+        return line.textContent + " With nothing withdrawn the order would not matter.";
+      } };
+    }
+    nodes.push(gameEl("p", "", "Both now trim spending 10% in a year after a down year. Whose end balance gains more "
+      + "from the trim?"));
+    nodes.push(gameChoices("Gains more from the trim", choices), after);
+    return { nodes, reveal: () => {
+      const plain = gameRules.decadePair();
+      const trimmed = gameRules.trimmedPair();
+      after.append(decadeBars(trimmed, "After ten years with the trim"));
+      after.hidden = false;
+      return "With the trim A ends " + fullMoney(trimmed.ends.first - plain.ends.first) + " higher and B "
+        + fullMoney(trimmed.ends.second - plain.ends.second) + " higher: cutting back early helps most when the "
+        + "down years come first.";
+    } };
+  }
+
+  function wireGames() {
+    $("gameBackdrop").addEventListener("click", closeGame);
+    $("gameDialog").addEventListener("keydown", (event) => {
+      trapFocus(event, $("gameDialog"));
+      if (play.id !== "receipts" || !(event.key in GAME_DIGITS) || !play.placeReceipt) return;
+      if (event.target.closest("input, textarea, select")) return;
+      event.preventDefault();
+      play.placeReceipt(gameRules.BINS[GAME_DIGITS[event.key]].id);
+    });
+  }
   // ---- Compare: two configs (saved, the current settings or the example household) on the same draws ----
   function savedNames() {
     return Object.keys(state.scenarios).sort((left, right) => left.localeCompare(right));
@@ -3630,6 +4516,7 @@
 
   function renderCompare() {
     if (!state.info) return;
+    gamerTick();  // a new comparison may finish a quest
     const compare = state.compare;
     const body = $("compare-body");
     const info = state.info.compare;
@@ -3909,6 +4796,7 @@
   function renderOptimize() {
     const body = $("optimize-body");
     if (!body || !state.info) return;
+    gamerTick();  // a new search result may finish a quest
     const optimize = state.optimize;
     const info = optimize.info;
     if (!info) { body.innerHTML = "<div class=\"card\"><p class=\"muted\">Loading</p></div>"; loadOptimizeInfo(); return; }
@@ -10285,13 +11173,19 @@
       try { localStorage.removeItem(key); } catch (error) { /* storage blocked: nothing kept */ }
     }
     try {
-      if (window.caches) {  // the offline copy ("wmti:") and the saved documentation pages ("wmti-docs:", sw.js)
+      // This channel's offline copy and saved documentation pages (sw.js) and its own service worker only: the other
+      // channel (the stable app at the site root, the beta under beta/) shares the origin and keeps its own.
+      if (window.caches) {
+        const prefixes = channelCachePrefixes(CHANNEL);
         for (const key of await caches.keys()) {
-          if (key.startsWith("wmti:") || key.startsWith("wmti-docs:")) await caches.delete(key);
+          if (prefixes.some((prefix) => key.startsWith(prefix))) await caches.delete(key);
         }
       }
       if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
-        for (const registration of await navigator.serviceWorker.getRegistrations()) await registration.unregister();
+        const ownScope = new URL("./", location.href).href;
+        for (const registration of await navigator.serviceWorker.getRegistrations()) {
+          if (registration.scope === ownScope) await registration.unregister();
+        }
       }
     } catch (error) { /* no offline copy here */ }
     $("clearMessage").textContent = "Everything this app kept on this device is deleted. Reloading.";
@@ -10609,6 +11503,7 @@
 
   function walkSave() {
     saveExperience({ walk: walk.saved });  // with storage blocked `walk.saved` still keeps this visit consistent
+    gamerTick();  // an answer or the finished walkthrough may earn XP
   }
 
   // Read the open scenario's walkthrough progress (state.experience.walk). Progress an older page kept per device
@@ -11290,11 +12185,25 @@
       element.append(deeper);
       if (hasPreview) element.append(walkPreview(preview));
     }
+    const game = walkGameButton(id);
+    if (game) element.append(game);
     const quiet = document.createElement("div");
     quiet.className = "walk-quiet-row";
     quiet.append(walkButton("Skip", "walk-quiet", () => walkAnswerAndMove("skip")));
     actions.push(quiet);
     return { element, actions };
+  }
+
+  // Gamer: a quiet "Quick game" button on a question that has a mini game (appInfo experience.gameHooks); the game
+  // opens over the walkthrough and Close or Escape comes back to this button.
+  function walkGameButton(id) {
+    const hooks = state.info.experience.gameHooks || {};
+    const gameId = hooks[id];
+    if (!gameId || !gamerOn() || !GAME_TITLES[gameId]) return null;
+    const button = walkButton("Quick game: " + GAME_TITLES[gameId], "button button-quiet walk-game-button", () =>
+      openGame(gameId, { who: id === "partnerSsAge" ? "partner" : "you", returnFocus: button }));
+    button.id = "walkGame";
+    return button;
   }
 
   // Refill a question's fact hint from the facts of the inputs with the shown (not yet saved) answer applied; an
@@ -11313,9 +12222,9 @@
     if (turn === walkHintTurn && hint.isConnected && facts) hint.textContent = walkHint(node.hint.template, facts);
   }
 
-  // The effort the walkthrough's answers are given at: the open scenario's.
+  // The effort the walkthrough's answers are given at: the open scenario's (High with gamify off).
   function walkEffort() {
-    return state.experience ? state.experience.effort : "high";
+    return state.experience && gamifyOn() ? state.experience.effort : "high";
   }
 
   // Write the current question's answer: `answer` (Continue: the shown values, written only when one was changed; an
@@ -11487,9 +12396,12 @@
   function trailHtml(review) {
     const rows = walkRows();
     const facts = walk.plan.facts;
+    const questMap = !review && gamerOn();  // Gamer: the Trail reads as a quest map (51-gamer.js)
     return walkTrail(state.walkTree, walk.index, rows, walk.saved, review ? null : walk.saved.current)
       .map((group) => {
-        let html = "<li class=\"walk-topic-group\"><h3 class=\"eyebrow\">" + escapeText(group.title) + "</h3>";
+        const stage = questMap ? questMapHtml(group) : { className: "", heading: escapeText(group.title) };
+        let html = "<li class=\"walk-topic-group" + stage.className + "\"><h3 class=\"eyebrow\">" + stage.heading
+          + "</h3>";
         if (group.offer) {
           return html + "<button type=\"button\" class=\"walk-row walk-offer\" data-topic=\"" + escapeText(group.id)
             + "\">+ Go deeper: " + escapeText(group.title) + "</button>"
@@ -11519,7 +12431,8 @@
               + "class=\"walk-change\" data-jump=\"" + escapeText(item.id) + "\" aria-label=\"Change "
               + escapeText(label) + "\">Change</button>" + open + "</li>";
           }
-          return "<li" + depth + "><button type=\"button\" class=\"walk-row\" data-jump=\"" + escapeText(item.id) + "\""
+          const mapNode = questMap ? questNode(item) : "";
+          return "<li" + depth + mapNode + "><button type=\"button\" class=\"walk-row\" data-jump=\"" + escapeText(item.id) + "\""
             + (item.status === "now" ? " aria-current=\"step\"" : "") + ">" + text + tag + "</button></li>";
         }).join("") + "</ol></li>";
         return html;
@@ -11707,7 +12620,7 @@
     { title: "Pin the groups", page: "inputs", when: () => state.schema != null && !wide.on && !lowOn(),
       target: "#chipsPin",
       text: "The pin keeps the groups under the top bar while you scroll. Tap it to let them scroll away with the page." },
-    { title: "Your plan page", page: "inputs", when: () => lowOn(), target: "#lowPage",
+    { title: "Your plan page", page: "inputs", when: () => gamifyOn() && lowOn(), target: "#lowPage",
       text: "At Low effort your settings are one page: about you, pay, spending, savings, children and the "
         + "retirement and medical plans. Every change reruns the plan." },
     { title: "Outputs views", page: "outputs", view: "summary", target: "#views-outputs",
@@ -12323,7 +13236,7 @@
     $("views-outputs").chipBubble = makeBubble("viewBubbleFill");
     $("views-outputs").append($("views-outputs").chipBubble);
     wireTabKeys(document.querySelector(".tabbar"), ".tab", (tab) => selectTabFresh(tab.dataset.tab));
-    wireTabKeys($("views-outputs"), ".view-tab", (tab) => selectView(tab.dataset.view));
+    wireTabKeys($("views-outputs"), ".view-tab:not([hidden])", (tab) => selectView(tab.dataset.view));
     document.addEventListener("focusin", (event) => $("app").classList.toggle("typing", isTyping(event.target)));
     document.addEventListener("focusout", () => $("app").classList.remove("typing"));
     document.addEventListener("keyup", enterEndsEdit);
@@ -12341,6 +13254,7 @@
       if (event.key !== "Escape") return;
       if (!$("rowMenu").hidden) { closeRowMenu(); return; }
       if (!$("dialog").hidden) { closeDialog(); return; }
+      if (gameEscape()) return;  // a mini game over the walkthrough closes alone
       if (experienceEscape()) return;
       if (walkEscape()) return;
       closeMenu();
@@ -12370,6 +13284,8 @@
     wireInstall();
     wireWalk();
     wireExperience();
+    wireGamer();
+    wireGames();
     document.addEventListener("visibilitychange", coachVisibilityChanged);
     markScheme();
     wireWide();
@@ -12416,6 +13332,7 @@
     $("resetButton").addEventListener("click", (event) => resetToExample(event.currentTarget));
     $("clearDataButton").addEventListener("click", (event) => clearAllData(event.currentTarget));
     $("bootRetry").addEventListener("click", () => location.reload());
+    $("channelBadge").hidden = !isBetaChannel(CHANNEL);  // the beta app says so in the top bar
   }
 
   // ---- Documentation (menu) and the "See this state's rules" links ----
