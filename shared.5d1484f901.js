@@ -866,7 +866,7 @@
   const ROUTES = {
     setup: ["setup", null], inputs: ["inputs", null], outputs: ["outputs", null],
     summary: ["outputs", "summary"], plots: ["outputs", "plots"], compare: ["outputs", "compare"],
-    optimize: ["outputs", "optimize"],
+    optimize: ["outputs", "optimize"], awards: ["awards", null],
     results: ["outputs", "summary"], settings: ["setup", null], household: ["setup", null], config: ["inputs", null],
     more: ["setup", null], benefits: ["inputs", null, "savings"], savings: ["inputs", null, "savings"],
     healthcare: ["inputs", null, "healthcare"], retirement: ["inputs", null, "retirement"],

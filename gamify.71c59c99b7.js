@@ -1,6 +1,6 @@
 // Copyright (c) 2026 [BRAND NAME], Walk Me Through It (WMTI) ([PUBLIC REPOSITORY URL]). PolyForm Noncommercial License 1.0.0; see LICENSE.
 // Gamer style rules: levels, XP, quests and awards, worked out from what the user has done and compared, never from
-// an outcome (a success share, a balance). Progress is a small ledger kept on the device (never in a scenario file):
+// an outcome (a success share, a balance). Progress is a small ledger saved in the scenario (experience.progress.game):
 // the day each rule key was first met. XP is never stored; it is the sum of the earned keys' table values. Every
 // function is pure: no DOM, no clock (the caller passes `today` as a day number) and no argument is changed. The app's
 // Gamer part (app.js) and the tests use it; it runs in Node for the tests.

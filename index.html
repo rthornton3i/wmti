@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-prqtXIvQLKf3oZfm1J9W9sFYabEhmWvk2XTycm/poaQ=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-uCeA1AaEJwbcLv69kF/cClbJmNsXPfDpE/a8wpszdRs=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1351,7 +1351,7 @@ label.gm-card:has(input:checked) { border-color: var(--gm-mint); box-shadow: ins
 .finish-setup strong { color: var(--ink); }
 
 /* Bottom tab bar */
-.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(3, 1fr);
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
   background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -4px 18px rgb(0 0 0 / 0.1);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
@@ -1713,7 +1713,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .wide .chips-wrap[data-place^="outputs/"] { grid-column: 5; grid-row: 3; }
 .wide #panel-setup { grid-column: 1; grid-row: 2 / 5; margin-top: 48px; }  /* under its fold bar (36 px and margins) */
 .wide #panel-inputs { grid-column: 3; grid-row: 3 / 5; }
-.wide #panel-outputs { grid-column: 5; grid-row: 4; }
+.wide #panel-outputs, .wide #panel-awards { grid-column: 5; grid-row: 4; }
 .wide .panel { position: relative; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start;
   background: var(--bg); border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
   padding: 16px var(--gutter) 24px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
@@ -1765,7 +1765,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .wide .split:focus-visible { outline: 3px solid var(--chip-on); outline-offset: 0; }
 :root.split-dragging, :root.split-dragging * { cursor: col-resize !important; user-select: none; }
 .wide.split-only-outputs #panel-inputs, .wide.split-only-outputs .chips-wrap[data-place="inputs"],
-.wide.split-only-inputs #panel-outputs, .wide.split-only-inputs .chips-wrap[data-place^="outputs"] { display: none; }
+.wide.split-only-inputs :is(#panel-outputs, #panel-awards), .wide.split-only-inputs .chips-wrap[data-place^="outputs"] { display: none; }
 /* The snap icon at the divider's top; hover, keyboard focus or a tap pops out its three buttons under it. */
 .wide .split-snap { display: flex; flex-direction: column; align-items: center; grid-column: 4; grid-row: 3 / 5;
   justify-self: center; align-self: start; position: relative; z-index: 30; margin-top: 10px; }
@@ -1860,7 +1860,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <button type="button" role="tab" class="chip view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-optimize" data-view="optimize" aria-controls="view-optimize">Optimize</button>
-        <button type="button" role="tab" class="chip view-tab" id="sub-awards" data-view="awards" aria-controls="view-awards" hidden>Awards</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-awards" data-view="awards" aria-controls="panel-awards" hidden>Awards</button>
       </div>
       <button type="button" class="chips-pin" id="chipsPinOut" aria-pressed="true" aria-label="Unpin groups">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
@@ -2008,9 +2008,10 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <div class="subpanel" id="view-optimize" data-view="optimize" role="tabpanel" aria-labelledby="sub-optimize" hidden>
         <div id="optimize-body"></div>
       </div>
-      <div class="subpanel" id="view-awards" data-view="awards" role="tabpanel" aria-labelledby="sub-awards" hidden>
-        <div class="subpanel" id="awards-body"></div>
-      </div>
+    </section>
+    <!-- Awards (Gamer style only): a bottom tab of its own; in the wide layout it takes the Outputs column. -->
+    <section class="panel" id="panel-awards" data-tab="awards" role="tabpanel" aria-labelledby="tab-awards" hidden>
+      <div class="subpanel" id="awards-body"></div>
     </section>
   </main>
 
@@ -2021,6 +2022,8 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Inputs</span></button>
     <button type="button" role="tab" class="tab" id="tab-outputs" data-tab="outputs" aria-controls="panel-outputs">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Outputs</span></button>
+    <button type="button" role="tab" class="tab" id="tab-awards" data-tab="awards" aria-controls="panel-awards" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Awards</span></button>
   </nav>
 
   <!-- Every sheet and dialog: its title in a header that stays at the top, a footer that stays at the bottom with its
@@ -2219,16 +2222,16 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "1383ac104799", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
+<script>window.WMTI_BUILD = { id: "9a10b1a0d006", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.06dfb84447.js"></script>
+<script src="shared.5d1484f901.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.25d1a94d61.js"></script>
-<script src="gamify.09c3e7c6fd.js"></script>
+<script src="gamify.71c59c99b7.js"></script>
 <script src="games.feab804215.js"></script>
 <script src="report.88130cb365.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.d98bad4fdd.js"></script>
+<script src="app.163100e349.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
