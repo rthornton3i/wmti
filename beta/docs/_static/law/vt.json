@@ -1,0 +1,258 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "vt",
+  "name": "Vermont",
+  "tax_year": 2025,
+  "source": "Primary, read 2026-10-24 (s359): Vermont Department of Taxes 2025 Vermont Tax Rate Schedules (Schedules X, Y-1, Y-2, Z, tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf), 2025 Form IN-111 Instructions (standard deduction chart, 1,250 addition, 5,300 personal exemption, IN-111-Instr-2025.pdf), 2025 Schedule IN-112 Instructions (additions and subtractions, Retirement Income Exemption Worksheet, IN-112-Instr-2025.pdf), 32 V.S.A. 5822 (rates, CPI indexing, 3% of AGI minimum) and 5811(21) (standard deduction and exemption, CPI indexing) on legislature.vermont.gov; the department's tax-rates list (2026 rate schedules not yet published, 2026-10-24). Earlier: S.51 (2025) summary by the Joint Fiscal Office; second sources TaxAct Vermont guide and the IN-114 2025 instructions",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "MFS",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf",
+    "note": "One schedule per filing status: X single, Y-1 joint and surviving spouse, Y-2 married separate (Z head of household not modelled) (2025 Vermont Tax Rate Schedules, read 2026-10-24)."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.vermont.gov/sites/tax/files/documents/IN-112-Instr-2025.pdf",
+    "note": "Vermont starts from federal adjusted gross income (IN-111 line 1); the only additions are non-Vermont state and local bond interest and federal bonus depreciation (2025 IN-112 instructions, read 2026-10-24), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible (confirmed primary). Not modelled: above a federal AGI of 150,000 the tax is at least 3% of AGI (the rate schedules' note), which taxes high incomes with large deductions more; the capital gain exclusion (a flat 5,000, or 40% of gains on assets other than publicly traded stocks and bonds, capped); and the military retirement and CSRS exemptions. Vermont has no general pension or IRA exclusion (the research file's '10k pension exclusion' is the CSRS and military one)."
+  },
+  "income_brackets": {
+    "indexed": true,
+    "adjustment": "indexed",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.vermont.gov/sites/tax/files/documents/TaxRateSched-2025.pdf",
+    "note": "Every threshold and rate matches the 2025 Vermont Tax Rate Schedules (read 2026-10-24): single 3.35% to 49,400, 6.6% to 119,700, 7.6% to 249,700, 8.75% above; married separate 41,250 / 99,725 / 152,000; joint 82,500 / 199,450 / 304,000. The schedule rounds the bases to whole dollars; the file keeps the exact cumulative bases. Indexed yearly by CPI (32 V.S.A. 5822(b)); the 2026 schedules are not yet published, so the 2025 figures stand in for 2026 (approximation).",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0335,
+        "base": 0.0
+      },
+      {
+        "threshold": 49400,
+        "rate": 0.066,
+        "base": 1654.9
+      },
+      {
+        "threshold": 119700,
+        "rate": 0.076,
+        "base": 6294.7
+      },
+      {
+        "threshold": 249700,
+        "rate": 0.0875,
+        "base": 16174.7
+      }
+    ],
+    "MFS": [
+      {
+        "threshold": 0,
+        "rate": 0.0335,
+        "base": 0.0
+      },
+      {
+        "threshold": 41250,
+        "rate": 0.066,
+        "base": 1381.875
+      },
+      {
+        "threshold": 99725,
+        "rate": 0.076,
+        "base": 5241.225
+      },
+      {
+        "threshold": 152000,
+        "rate": 0.0875,
+        "base": 9214.125
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0335,
+        "base": 0.0
+      },
+      {
+        "threshold": 82500,
+        "rate": 0.066,
+        "base": 2763.75
+      },
+      {
+        "threshold": 199450,
+        "rate": 0.076,
+        "base": 10482.45
+      },
+      {
+        "threshold": 304000,
+        "rate": 0.0875,
+        "base": 18428.25
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": true,
+    "SINGLE": 7650.0,
+    "MFS": 7650.0,
+    "JOINT": 15300.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf (Line 4 chart)",
+    "note": "2025 Vermont standard deduction 7,650 single and separate, 15,300 joint (11,450 head of household, not modelled) (2025 IN-111 instructions, Line 4 chart, read 2026-10-24). Indexed yearly by CPI from 2018 (32 V.S.A. 5811(21)(D)); 2026 amounts not yet published, so 2025 stands in (approximation)."
+  },
+  "exemptions": {
+    "indexed": true,
+    "SINGLE": 5300.0,
+    "MFS": 5300.0,
+    "JOINT": 10600.0,
+    "senior": 1250.0,
+    "dependent": 5300.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.vermont.gov/sites/tax/files/documents/IN-111-Instr-2025.pdf (Lines 4 and 5)",
+    "note": "2025 personal exemption 5,300 per person and dependent (no spouse exemption on a separate return); the standard deduction rises by 1,250 for each federal 65-or-older or blind box, kept here as the senior amount (2025 IN-111 instructions, Lines 4 and 5e, read 2026-10-24). Indexed yearly by CPI (32 V.S.A. 5811(21)(D)); 2026 amounts not yet published, so 2025 stands in (approximation)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "32 V.S.A. 7442a and the Vermont Department of Taxes estate tax page",
+    "estate_tax": {
+      "exemption": 5000000.0,
+      "brackets": [
+        {
+          "threshold": 0,
+          "rate": 0.16,
+          "base": 0.0
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "Vermont estate tax: 16% of the Vermont taxable estate above the 5,000,000 exemption, fixed by statute and not indexed (Joint Fiscal Office estate tax overview 2026-01-29, search extract); no portability. Wealthspire and Creative Planning 2026 agree on 5,000,000 and 16% (one site describes graduated rates; the statute rate is flat). No inheritance tax."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "threshold",
+    "agi_limit": {
+      "SINGLE": 60000.0,
+      "JOINT": 75000.0,
+      "MFS": 60000.0
+    },
+    "max_share": 1.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.vermont.gov/sites/tax/files/documents/IN-112-Instr-2025.pdf (Retirement Income Exemption Worksheet)",
+    "note": "Figures confirmed primary (2025 Schedule IN-112 instructions, Retirement Income Exemption Worksheet, read 2026-10-24): Vermont exempts all federally taxable Social Security at a federal AGI below 55,000 (single, separate, head of household, surviving spouse) or 70,000 (joint), a share (80,000 or 65,000 less AGI, divided by 10,000) up to 80,000 / 65,000, none above; S.51 of 2025 raised the limits by 5,000. The exemption is an election: a filer may instead exempt up to 10,000 of CSRS-type pension income (not modelled). The limits change by legislation (as S.51 did), so the file keeps them unindexed. Approximation: the phase-out is replaced by a cliff at its midpoint, 60,000 / 75,000, so the tax is off by up to half the benefit tax inside the band."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.vermont.gov/business/local-option-tax",
+    "note": "Vermont cities and counties levy no income tax (state-costs.csv local_income_tax, from memory). Confirmed primary on https://tax.vermont.gov/business/local-option-tax (validation run 2, 2026-10-22)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.0043,
+    "combined_rate": 0.0643,
+    "vehicle_rate": 0.06,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Vermont revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.06 from the state's own source (Vermont purchase and use tax 6% on pleasure cars (32 V.S.A. 8903, https://legislature.vermont.gov/statutes/section/32/219/08903, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt. clothing_taxable is false (research: no; General clothing exempt; accessories sports/protective taxable). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01399,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 984.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1680.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 91.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://dmv.vermont.gov/registrations/fees",
+    "source": "Vermont DMV fee table (search extract): one-year registration of a gas or diesel car 91, including the 2 Clean Air Fund fee (167 for two years)",
+    "note": "Annual registration of a gas car; the 6% purchase-and-use tax is sales_tax.vehicle_rate. Vermont towns may tax cars as personal property but almost none do. Hand-set in s297; importStateCosts.py writes 0 here again if rerun for VT. Confirmed primary on https://dmv.vermont.gov/registrations/fees (validation run 2, 2026-10-22)."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.32,
+    "average_price_per_gallon": 3.36,
+    "confidence": "unconfirmed",
+    "check_at": "Vermont motor fuel tax page and EIA gasoline prices (https://www.eia.gov/petroleum/gasdiesel/)",
+    "source": "Excise: USGasGauge/EIA (https://usgasgauge.com/gas-tax) and Kiplinger 2026 for some states, memory for the rest; price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2395,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 391900.0,
+    "cost_index": 128.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1299.0,
+    "medigap_g_monthly": 271.0,
+    "part_d_monthly": 43.31,
+    "medicare_advantage_monthly": null,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Vermont insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Research note: ACA community rated: age 60 = age 40; MA premium 0.00 in source; suspect, check CMS landscape. The source gives a Medicare Advantage premium of 0.00 here, which is suspect, so it is null. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 100.1,
+    "bea_goods": 97.3,
+    "bea_services": 101.6,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 8294.0,
+    "assisted_living_monthly": 7872.0,
+    "nursing_home_private_monthly": 15208.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

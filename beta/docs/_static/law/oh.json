@@ -1,0 +1,181 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "oh",
+  "name": "Ohio",
+  "tax_year": 2026,
+  "source": "Ohio Legislative Service Commission final analysis of H.B. 96 (136th General Assembly; R.C. 5747.02 and 5747.025), read on lsc.ohio.gov: 2026 tax 332 plus 2.75% of Ohio taxable income over 26,050, indexing suspended for 2025 and 2026; exemption amounts from TaxAct's Ohio guide and R.C. 5747.025; second sources: Plante Moran and EY Tax News (2.75% flat over 26,050 for 2026)",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Brackets: 2026 schedule (LSC H.B. 96 analysis, primary): no tax up to 26,050 of Ohio taxable income, above it 332 plus 2.75% of the amount over 26,050; one schedule for every filing status. The loader needs cumulative bases, so the 332 is folded in as 2.75% from 13,977.27 (26,050 less 332 / 0.0275): exact above 26,050, and it charges up to 332 too much on taxable incomes from 13,977 to 26,050. Brackets and exemptions are indexed by law, suspended for 2025 and 2026 (so 2026 keeps the 2024 indexed amounts). Ohio starts from federal adjusted gross income, so 401(k) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible (confirmed primary: https://codes.ohio.gov/ohio-revised-code/section-5747.01, validation run 3, 2026-10-22). Not modelled: the retirement income credit (at most 200 a return), the senior citizen credit (50 a return), the lump-sum credits and the joint filing credit (5% to 20% of the tax, at most 650), all limited to incomes below 100,000 or smaller; leaving them out overtaxes retirees and joint filers by up to a few hundred dollars. School-district income taxes (about 190 districts, some on retirement income) are not modelled either."
+  },
+  "income_brackets": {
+    "indexed": true,
+    "adjustment": "indexed",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 13977.27,
+        "rate": 0.0275,
+        "base": 0.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 13977.27,
+        "rate": 0.0275,
+        "base": 0.0
+      }
+    ]
+  },
+  "exemptions": {
+    "indexed": true,
+    "SINGLE": 1900.0,
+    "JOINT": 3800.0,
+    "senior": 0.0,
+    "dependent": 1900.0,
+    "note": "Personal and dependent exemption 1,900 each for modified AGI above 80,000 (2,150 from 40,001 to 80,000, 2,400 at 40,000 or less; none above 500,000 from 2026). TaxAct lists 2,400 / 2,150 / 1,900 for 2025 and R.C. 5747.025 sets the base amounts that indexing raised to them; the file keeps the 1,900 tier, so incomes under 80,000 are overtaxed by at most 500 x 2.75% per exemption."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "R.C. 5731.02 (estate tax repealed for deaths on or after 2013-01-01)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Ohio repealed its estate tax for deaths from 2013 and has no inheritance tax (state-costs.csv estate_tax and inheritance_tax 'none'; Tax Foundation and Wealthspire 2026 state estate tax lists do not include Ohio)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://codes.ohio.gov/ohio-revised-code/section-5747.01",
+    "note": "Ohio deducts all Social Security benefits included in federal AGI; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://codes.ohio.gov/ohio-revised-code/section-5747.01 (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.014,
+    "applies_to": "wages",
+    "confidence": "unconfirmed",
+    "check_at": "Ohio Department of Taxation municipal income tax rate table (https://tax.ohio.gov) and the Regional Income Tax Agency rate list",
+    "note": "Ohio municipalities tax wages and self-employment income where people live or work, not retirement income (R.C. 718); 614 of 900-plus municipalities levy it, averaging 1.4% (Tax Foundation 'worst municipal income tax system' report, undated); the big cities charge 2% to 2.5% (Columbus, Cleveland, Dayton 2.5%, Cincinnati 2.1%, Toledo 2.25%) and townships often none. 1.4% is that unweighted average; a population-weighted figure is probably higher. Not modelled: the school-district income taxes, some of which do reach retirement income."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0575,
+    "avg_local_rate": 0.0154,
+    "combined_rate": 0.0729,
+    "vehicle_rate": 0.0729,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Ohio revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food for off-premises consumption exempt from state and county taxes. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01276,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1716.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1404.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 59.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://bmv.ohio.gov/doc-fees.aspx",
+    "source": "https://bmv.ohio.gov/doc-fees.aspx (validation run 2, 2026-10-22)",
+    "note": "Ohio passenger registration 36 plus the 8 deputy registrar fee plus local permissive taxes of 0 to 30, about 59 on the middle of the permissive range (no statewide average found; unconfirmed). Ohio has no annual vehicle property tax. Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.385,
+    "average_price_per_gallon": 3.195,
+    "confidence": "confirmed primary",
+    "check_at": "https://codes.ohio.gov/ohio-revised-code/section-5735.05",
+    "source": "Excise: https://codes.ohio.gov/ohio-revised-code/section-5735.05 (validation run 2, 2026-10-22); price: https://www.eia.gov/dnav/pet/pet_pri_gnd_a_epmr_pte_dpgal_a.htm (validation run 3, 2026-10-22)",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.385 (38.5 cents per gallon gasoline (from 2019-07-01)); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Price: 3.195, EIA Ohio regular retail, 2024 annual (2025: 2.960) (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.187,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 245982.0,
+    "cost_index": 85.8,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1089.0,
+    "medigap_g_monthly": 185.0,
+    "part_d_monthly": 37.06,
+    "medicare_advantage_monthly": 15.37,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Ohio insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 98.6,
+    "bea_goods": 93.7,
+    "bea_services": 98.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6292.0,
+    "assisted_living_monthly": 5500.0,
+    "nursing_home_private_monthly": 10038.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

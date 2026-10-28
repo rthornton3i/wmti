@@ -1,0 +1,193 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ia",
+  "name": "Iowa",
+  "tax_year": 2026,
+  "source": "Iowa Department of Revenue: 2026 rate announcement (flat 3.8 percent under SF 2442), individual income tax provisions page (retirement income excluded from age 55), IRC conformity page (federal taxable income is the starting point from 2023, rolling conformity) and IA 1040 expanded instructions (exemption credits), read 2026-10-22; second sources EY Tax News 2024-0941, Bloomberg Tax and TaxAct",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Iowa starts from federal adjusted gross (or taxable) income, so 401(k) deferrals, Traditional IRA deposits and HSA deposits stay deductible as on the federal return (confirmed primary: https://revenue.iowa.gov/taxes/tax-guidance/individual-income-tax/1040-expanded-instructions/conformity-irc, validation run 2, 2026-10-22)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.038,
+        "base": 0.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.038,
+        "base": 0.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 16100.0,
+    "JOINT": 32200.0,
+    "note": "Iowa taxes federal taxable income, so its deduction is the federal 2026 standard deduction (federal.json); itemizing is not modelled."
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 1650.0,
+    "dependent": 0.0,
+    "note": "senior is the federal additional standard deduction for a married person aged 65 or older (1650; 2050 for a single filer), which federal taxable income already leaves out. Not modelled: the federal senior deduction of 6000 (2025-2028, phased out above 75000/150000 of MAGI), which also flows into Iowa taxable income."
+  },
+  "exemption_credits": {
+    "indexed": false,
+    "personal": {
+      "SINGLE": 40.0,
+      "JOINT": 80.0
+    },
+    "senior": 20.0,
+    "dependent": 40.0,
+    "note": "IA 1040 Step 3: 40 per personal credit (1 single, 2 joint), 40 per dependent, 20 more for each person aged 65 or older (or blind); non-refundable."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 55,
+    "full": true,
+    "note": "Retirement income (pensions, annuities, IRA and 401(k) distributions) of a person aged 55 or older, or disabled, is excluded from tax years 2023 on (Iowa DOR individual income tax provisions page). Not modelled: the disability test and survivor rules."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "Iowa Code 450.98 (https://www.legis.iowa.gov/docs/code/2026/450.98.pdf) and rule 701-900.1",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Iowa repealed its inheritance tax (and the qualified use inheritance tax) for deaths on or after 1 January 2025 (2021 Iowa Acts ch. 177; Iowa Code 450.98 says the chapter does not apply to estates of decedents dying on or after that date). Iowa has no estate tax. Spouses and lineal heirs were exempt even before the repeal."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.iowa.gov/taxes/tax-guidance/individual-income-tax/1040-expanded-instructions/ia-1040-schedule-1",
+    "note": "Iowa does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://revenue.iowa.gov/taxes/tax-guidance/individual-income-tax/1040-expanded-instructions/ia-1040-schedule-1 (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0011,
+    "applies_to": "all income",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.iowa.gov/media/4382/download",
+    "note": "School district income surtax: a percentage (0 to 20 percent) of the Iowa income tax of residents of the district. The 2025 district rates (https://revenue.iowa.gov/media/4382/download) weighted by the tax year 2024 surtax base (https://revenue.iowa.gov/media/4438/download) average about 2.95 percent of the state tax (the largest districts levy 0), so about 0.03 x 3.8% = 0.11% of taxable income (validation run 2, 2026-10-22). County emergency medical services surtaxes are left out. It follows the state tax, so retirement income excluded by the state is not surtaxed. Triage 2026-10-23 (category A): Surtax capped at 1% of state tax in a few counties."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.0094,
+    "combined_rate": 0.0694,
+    "vehicle_rate": 0.05,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Iowa revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.05 from the state's own source (Iowa one-time registration fee of 5% of the price plus 10 in place of sales tax; local option tax does not apply (Iowa Code 321.105A(2), https://www.legis.iowa.gov/docs/code/2026/321.105A.pdf, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt from state and local option tax. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01249,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2508.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1332.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 305.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.legis.iowa.gov/docs/code/2026/321.109.pdf",
+    "source": "https://www.legis.iowa.gov/docs/code/2026/321.109.pdf (validation run 2, 2026-10-22)",
+    "note": "Iowa annual registration fee (Iowa Code 321.109(1)(a)): 1% of the list value (291) plus 0.40 per 100 lb (about 14 for an assumed 3,400 lb), about 305; the value part falls to 75% after 7 model years and 50% after 9 (321.113), not averaged in. Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.3,
+    "average_price_per_gallon": 3.12,
+    "confidence": "confirmed secondary",
+    "check_at": "https://revenue.iowa.gov/press-release/2026-01-27/iowa-fuel-tax-rate-change-effective-july-1-2026",
+    "source": "Excise: https://revenue.iowa.gov/press-release/2026-01-27/iowa-fuel-tax-rate-change-effective-july-1-2026 (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.3 (gasoline and E10-E14 $0.300 (E15+ $0.265, $0.280 from 2026-07-01)); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.142,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 236623.0,
+    "cost_index": 70.6,
+    "confidence": "confirmed primary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Both figures confirmed primary (https://fred.stlouisfed.org/series/IAUCSFRCONDOSMSAMID and https://meric.mo.gov/cost-living-data-series, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1064.0,
+    "medigap_g_monthly": 191.0,
+    "part_d_monthly": 29.85,
+    "medicare_advantage_monthly": 11.98,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Iowa insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 96.2,
+    "bea_goods": 93.7,
+    "bea_services": 92.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7436.0,
+    "assisted_living_monthly": 5184.0,
+    "nursing_home_private_monthly": 9657.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

@@ -1,0 +1,279 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "nm",
+  "name": "New Mexico",
+  "tax_year": 2026,
+  "source": "Primary sources read in s359 (2026-10-24): NMSA 1978 7-2-7 as amended by HB 252 (Laws 2024, ch. 67, sections 5 and 42-43; https://www.nmlegis.gov/Sessions/24%20Regular/final/HB0252.pdf) and the Taxation and Revenue Department schedule 'Personal income tax rates for tax years starting 2025' (every bracket of all three tables); TRD 2025 Form PIT-1 lines 9-17 and Schedule PIT-ADJ (income base, deductions and exemptions; agency forms read from the copy at https://taxsim.nber.org/historical_state_tax_forms/NM/2025/); TRD Social Security exemption page (https://www.tax.newmexico.gov/social-security-income-tax-exemption/) and the current text of NMSA 7-2-5.14 as quoted in HB 92 (2026, died); TRD 2020 bulletin on the dependent deduction; IRS 2026 inflation release and Rev. Proc. 2025-32 (federal standard deduction and the 65-or-older amount); TRD local option taxes page",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "MFS",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.nmlegis.gov/Sessions/24%20Regular/final/HB0252.pdf",
+    "note": "NMSA 7-2-7 has three schedules: A for married filing jointly, heads of household and surviving spouses, B for single individuals (and estates and trusts), C for married filing separately (HB 252 of 2024, read s359 2026-10-24)."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.newmexico.gov/individuals/online-services-overview/personal-income-tax-forms/ (2025 Form PIT-1 lines 9-17 and Schedule PIT-ADJ lines 1-6)",
+    "note": "New Mexico starts from federal adjusted gross income (PIT-1 line 9), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible: the only additions (PIT-ADJ lines 1-5) are federally exempt bond interest, a federal NOL carryover, 529 recaptures, a conservation-land donation and pass-through-entity withholding, none of them for retirement or HSA deposits (TRD 2025 Form PIT-1 and Schedule PIT-ADJ, read s359 2026-10-24). Not modelled: the itemizer's state-tax add-back (PIT-1 line 10), the low- and middle-income exemption (PIT-1 line 14; up to 2,500 per exemption below federal AGI of 36,667 single, 55,000 joint) and the income-tested age-65 exemption of up to 8,000 each (PIT-ADJ line 13; TRD personal income tax overview page)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.nmlegis.gov/Sessions/24%20Regular/final/HB0252.pdf",
+    "note": "Every threshold, rate and base of the three tables matches NMSA 7-2-7 as amended by HB 252 (2024), applicable to taxable years beginning on or after 2025-01-01 with no inflation indexing, so the 2026 figures are the legislated ones (HB 252 enrolled text and the TRD rate schedule, read 2026-10-24); no later amendment found (HB 275 of 2025 and the 2026 session made no bracket change).",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.015,
+        "base": 0.0
+      },
+      {
+        "threshold": 5500,
+        "rate": 0.032,
+        "base": 82.5
+      },
+      {
+        "threshold": 16500,
+        "rate": 0.043,
+        "base": 434.5
+      },
+      {
+        "threshold": 33500,
+        "rate": 0.047,
+        "base": 1165.5
+      },
+      {
+        "threshold": 66500,
+        "rate": 0.049,
+        "base": 2716.5
+      },
+      {
+        "threshold": 210000,
+        "rate": 0.059,
+        "base": 9748.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.015,
+        "base": 0.0
+      },
+      {
+        "threshold": 8000,
+        "rate": 0.032,
+        "base": 120.0
+      },
+      {
+        "threshold": 25000,
+        "rate": 0.043,
+        "base": 664.0
+      },
+      {
+        "threshold": 50000,
+        "rate": 0.047,
+        "base": 1739.0
+      },
+      {
+        "threshold": 100000,
+        "rate": 0.049,
+        "base": 4089.0
+      },
+      {
+        "threshold": 315000,
+        "rate": 0.059,
+        "base": 14624.0
+      }
+    ],
+    "MFS": [
+      {
+        "threshold": 0,
+        "rate": 0.015,
+        "base": 0.0
+      },
+      {
+        "threshold": 4000,
+        "rate": 0.032,
+        "base": 60.0
+      },
+      {
+        "threshold": 12500,
+        "rate": 0.043,
+        "base": 332.0
+      },
+      {
+        "threshold": 25000,
+        "rate": 0.047,
+        "base": 869.5
+      },
+      {
+        "threshold": 50000,
+        "rate": 0.049,
+        "base": 2044.5
+      },
+      {
+        "threshold": 157500,
+        "rate": 0.059,
+        "base": 7312.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 16100.0,
+    "JOINT": 32200.0,
+    "note": "New Mexico subtracts the federal standard or itemized deduction from federal Form 1040 line 12 (2025 Form PIT-1 line 12), so the federal 2026 standard deduction applies: 16,100 single and separate, 32,200 joint (IRS 2026 inflation release and Rev. Proc. 2025-32, read s359 2026-10-24). The federal 6,000 senior deduction is taken below line 12 (Schedule 1-A), so New Mexico does not allow it and the model rightly leaves it out. Married filing separately has its own brackets, half the joint ones (HB 252 of 2024).",
+    "MFS": 16100.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill (federal amounts) and https://www.tax.newmexico.gov/individuals/online-services-overview/personal-income-tax-forms/ (2025 Form PIT-1 line 12)"
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 1650.0,
+    "dependent": 4000.0,
+    "note": "No personal exemption (the federal one is zero and PIT-1 has no line for it). senior is the federal additional standard deduction for 65 or older, 1,650 for a married person in 2026 (Rev. Proc. 2025-32 section 3.14(3)), carried in through federal Form 1040 line 12. dependent: 4,000 for every dependent but one, for joint and head-of-household filers only (TRD 2020 bulletin 'New for this year's tax filing season', https://www.tax.newmexico.gov/wp-content/uploads/sites/5/2020/10/New_for_this_year_s_tax_filing_season.pdf; still 2025 Form PIT-1 line 13). Values checked against primary sources s359 2026-10-24. Approximation: the model gives the dependent amount for every dependent (overstates by one, about 190 of tax at 4.7%), and uses 1,650 for a single senior whose federal amount is 2,050 (understates the deduction by 400, about 20 of tax). Not modelled: the income-tested 8,000 exemption at 65 (PIT-ADJ line 13).",
+    "MFS": 0.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.newmexico.gov/wp-content/uploads/sites/5/2020/10/New_for_this_year_s_tax_filing_season.pdf and https://www.irs.gov/pub/irs-drop/rp-25-32.pdf"
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Tax Foundation estate and inheritance tax map (https://taxfoundation.org/data/all/state/estate-inheritance-taxes/)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "New Mexico has no estate tax and no inheritance tax (Tax Foundation 2026 estate and inheritance tax map and state-costs.csv columns estate_tax and inheritance_tax agree)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "threshold",
+    "agi_limit": {
+      "SINGLE": 100000.0,
+      "JOINT": 150000.0,
+      "MFS": 75000.0
+    },
+    "max_share": 1.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.newmexico.gov/social-security-income-tax-exemption/",
+    "note": "New Mexico exempts the federally taxed Social Security when adjusted gross income does not exceed 100,000 single, 150,000 joint (and head of household, surviving spouse) and 75,000 separate; above it nothing is exempt and the benefits are taxed as on the federal return (a cliff). Sources read s359 2026-10-24: TRD Social Security exemption page (from tax year 2022, no end date) and NMSA 7-2-5.14 current text as quoted in HB 92 of 2026 (https://www.nmlegis.gov/Sessions/26%20Regular/bills/house/HB0092.PDF; the bill, which would have phased in a partial exemption above the limits, died). Schedule PIT-ADJ line 25."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "all income",
+    "confidence": "confirmed secondary",
+    "check_at": "New Mexico Taxation and Revenue Department (no local income tax)",
+    "note": "New Mexico has no local income taxes (Tax Foundation local income tax list and state-costs.csv local_income_tax agree; the TRD local option taxes page, read s359 2026-10-24, lists only gross receipts levies for counties and cities but does not state the absence outright)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.04875,
+    "avg_local_rate": 0.02805,
+    "combined_rate": 0.0768,
+    "vehicle_rate": 0.04,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "unconfirmed",
+    "check_at": "New Mexico revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.04 from the state's own source (New Mexico motor vehicle excise tax 4% of the price less trade-in, in place of gross receipts tax (https://www.tax.newmexico.gov/businesses/motor-vehicle-excise-tax/, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: GRT deduction for food sold at retail food stores (state and local; locals held harmless); Zamp lists 4.875% full rate which conflicts - treated as exempt. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.0063,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Tax Foundation, property taxes by state and county, 2024 owner-occupied (https://taxfoundation.org/data/all/state/property-taxes-by-state-county/)",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes (2024). Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Set by hand from a secondary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 3264.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1596.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 45.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.mvd.newmexico.gov/vehicles/vehicle-registration/register-your-vehicle/",
+    "source": "https://www.mvd.newmexico.gov/vehicles/vehicle-registration/register-your-vehicle/ (validation run 2, 2026-10-22)",
+    "note": "New Mexico registration 27 to 62 a year by weight and model year, about 45 in the middle; no vehicle property tax (unconfirmed midpoint). Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.189,
+    "average_price_per_gallon": 3.02,
+    "confidence": "confirmed secondary",
+    "check_at": "New Mexico motor fuel tax page and EIA gasoline prices (https://www.eia.gov/petroleum/gasdiesel/)",
+    "source": "Excise: USGasGauge/EIA (https://usgasgauge.com/gas-tax) and Kiplinger 2026 for some states, memory for the rest; price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1508,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 315812.0,
+    "cost_index": 82.4,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1323.0,
+    "medigap_g_monthly": 171.0,
+    "part_d_monthly": 38.91,
+    "medicare_advantage_monthly": 5.44,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, New Mexico insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 95.8,
+    "bea_goods": 96.1,
+    "bea_services": 98.5,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 5339.0,
+    "assisted_living_monthly": 6162.0,
+    "nursing_home_private_monthly": 10707.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

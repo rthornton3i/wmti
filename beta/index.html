@@ -1,0 +1,2278 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-wDeCc2J9rtEX1kVRHKptkAbyhLnIlfVp/kwGIHaxKNo=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+// Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
+// another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
+// line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
+if (window.top !== window.self) {
+  document.documentElement.style.display = "none";
+  try { window.top.location = window.self.location.href; } catch (error) { /* the frame may not move the tab */ }
+}
+</script>
+<!-- Copyright (c) 2026 [BRAND NAME], Walk Me Through It (WMTI) ([PUBLIC REPOSITORY URL]). PolyForm Noncommercial License 1.0.0; see LICENSE. -->
+<title>Walk Me Through It</title>
+<meta name="description" content="Walk Me Through It: a retirement income planner that runs on this device">
+<meta name="referrer" content="no-referrer">
+<script>
+// The color scheme saved on this device, set before the first paint: Lagoon and hibiscus when none is saved or
+// storage is blocked. "device" follows the device: Lagoon in light mode, Night lagoon in dark mode. fpt.theme.v1 is
+// the key before the rename; app.js moves it to wmti.theme.v1 on this first load. The beta (build.py fills in the
+// channel) keeps its own wmti.beta.theme.v1, copied once from the stable app's by app.js.
+(function () {
+  var scheme = "lagoon";
+  var beta = "beta" === "beta";
+  try {
+    scheme = (beta ? localStorage.getItem("wmti.beta.theme.v1") || localStorage.getItem("wmti.theme.v1")
+      : localStorage.getItem("wmti.theme.v1") || localStorage.getItem("fpt.theme.v1")) || scheme;
+  } catch (error) { /* storage blocked */ }
+  if (["lagoon", "sunset", "palm", "night", "device"].indexOf(scheme) < 0) scheme = "lagoon";
+  document.documentElement.setAttribute("data-theme", scheme);
+})();
+</script>
+<style>
+/* Layout: one-column app. A dark header band (sticky top row with the section label, status, account and menu
+   buttons, and the pinned headline figures; then the title, subtitle and the chips rows with their scroll bars), a
+   light sheet with a rounded top holding the white pane cards, and a fixed bottom tab bar of three tabs (Setup,
+   Inputs, Outputs; hidden while a text field has focus); 16 px side gutters at every width, content capped at 640 px
+   on wider screens.
+   Color schemes: tokens per scheme on :root[data-theme=...] (index.html sets it before the first paint). Lagoon and
+   hibiscus is the default (plain :root, its chart series under its own name); "device" is Lagoon in light mode and
+   Night lagoon in dark mode. Colors darkened from the mockups for WCAG AA (4.5:1) text contrast: muted text (Lagoon #5F7A86 -> #4F6772, Sunset #6A7C88
+   -> #566773, Palm #6E7E74 -> #56665C, also Palm's band subtitle), the hero tile (Sunset #F2675A -> #C4452F, Palm
+   #19A7B6 -> #0E7682) and the accent used for text and buttons (the toggle colors #19B5C4, #F2675A and #2F8F6B are
+   too light for text: Lagoon #0B6E7F, Sunset #B5402C -> #AC3A27, Palm #1F6B4F). Cards stand off the page: --bg darkened
+   so white cards are at least 1.25:1 against it (Lagoon #F6EEDF -> #EFE3CC, Sunset #FFF5EA -> #F2E3D0, Palm #F3EBDD ->
+   #E9DFCC, Night #16252F -> #101D25) and a 1 px --panel-edge ring at least 3:1 against --bg. */
+/* Fonts: Public Sans and IBM Plex Mono, Latin subsets, shipped beside the page under fonts/ (SIL Open Font License;
+   legal/third-party), so the page asks no other host for them. */
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("fonts/public-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("fonts/public-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("fonts/public-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("fonts/public-sans-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
+:root {
+  /* Behind the hatch lines of a records series (charts.js); follows each scheme's surface, light and dark. */
+  --hatch-bg: var(--surface);
+  --band: #0B4F6C; --band-ink: #ffffff; --band-sub: #9FD6DE; --band-button: #14627F; --band-button-ink: #D4EEF2;
+  --band-track: #14627F; --band-thumb: #9FD6DE;
+  --chip-on: #19B5C4; --chip-on-ink: #03343B; --chip-off: #14627F; --chip-off-ink: #D4EEF2;
+  --bg: #EFE3CC;
+  /* The 1 px ring round every card and tile, at least 3:1 against --bg (WCAG 1.4.11) in each scheme. */
+  --panel-edge: #6C8086;
+  --surface: #ffffff;
+  --surface-2: #EDF4F5;
+  --field-bg: #ffffff;
+  --ink: #0B3A4F;
+  --ink-2: #2E5566;
+  --muted: #4F6772;
+  --line: #D6E2E4;
+  --accent: #0B6E7F;
+  --accent-ink: #ffffff;
+  --accent-soft: #DDF3F5;
+  --toggle: #19B5C4; --toggle-off: #CBD2D0;
+  --tint-1: #DDF3F5; --tint-2: #FDE4DF;
+  --hero: #0B4F6C; --hero-ink: #ffffff; --hero-sub: #9FD6DE;
+  --sheet-edge: transparent;
+  --scroll-thumb: rgb(79 103 114 / 0.5);
+  --bad: #b42318;
+  --bad-soft: #fde8e6;
+  --warn: #8a5a00;
+  --warn-soft: #fbf0d9;
+  --edge-shadow: rgb(20 32 43 / 0.18);
+  --good: #1a7f37;
+  /* Information boxes (notes, banners, explanations): their own blue, apart from the tinted field rows */
+  --info-bg: #E8EEFA; --info-ink: #1D3561; --info-line: #3A62B0;
+  /* The chart palette of wmti.dashboard.style in slot order (the fallback); each scheme below sets its own. Slots 8 and 9
+     are hues no other slot of that scheme uses (the flows chart's HSA and FSA bars). */
+  --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #eda100;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #e34948; --s8: #8c5a2e; --s9: #0b8f9c;
+  /* The Home timeline's primary residence: the first series deepened toward the text color, so it differs slightly from
+     a second home's --s0 in every scheme (each scheme's own --s0 and --ink, light or dark, resolve here). */
+  --tl-primary: color-mix(in srgb, var(--s0) 72%, var(--ink));
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --gutter: 16px;
+  /* Space between the cards and sections of a panel (Setup, every Inputs chip, every Outputs view). */
+  --section-gap: 22px;
+  --radius: 12px;
+  --tabbar: 64px;
+  color-scheme: light;
+}
+/* Lagoon and hibiscus: its chart series (the other tokens are the :root ones) */
+:root[data-theme="lagoon"], :root[data-theme="device"] {
+  --s0: #19B5C4; --s1: #F2675A; --s2: #1baf7a; --s3: #eda100;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #2a78d6; --s8: #8c5a2e; --s9: #e34948;
+}
+/* Sunset over the motu */
+:root[data-theme="sunset"] {
+  --band: #103F5C; --band-ink: #ffffff; --band-sub: #F9C9A5; --band-button: #1C5373; --band-button-ink: #F3DCCB;
+  --band-track: #1C5373; --band-thumb: #F9C9A5;
+  --chip-on: #F59E4C; --chip-on-ink: #3E2205; --chip-off: #1C5373; --chip-off-ink: #F3DCCB;
+  --bg: #F2E3D0; --panel-edge: #8A7A6C; --surface: #ffffff; --surface-2: #FBEEE3; --field-bg: #ffffff; --ink: #103F5C; --ink-2: #34556B;
+  --muted: #566773; --line: #EEDCCD; --accent: #AC3A27; --accent-ink: #ffffff; --accent-soft: #FFE6D3;
+  --toggle: #F2675A; --tint-1: #FFE6D3; --tint-2: #DDF2F4; --hero: #C4452F; --hero-ink: #ffffff; --hero-sub: #ffffff;
+  --scroll-thumb: rgb(86 103 115 / 0.5);
+  --info-bg: #ECEFFA; --info-ink: #263866; --info-line: #4A5FAE;
+  --s0: #F59E4C; --s1: #19A7B6; --s2: #1baf7a; --s3: #2a78d6;
+  --s4: #e87ba4; --s5: #008300; --s6: #4a3aa7; --s7: #e34948; --s8: #8c5a2e; --s9: #7f7a12;
+}
+/* Palm and sand (light band) */
+:root[data-theme="palm"] {
+  --band: #F3EBDD; --band-ink: #1F4B3F; --band-sub: #56665C; --band-button: #ffffff; --band-button-ink: #1F4B3F;
+  --band-track: rgb(0 0 0 / 0.08); --band-thumb: #56665C;
+  --chip-on: #1F4B3F; --chip-on-ink: #ffffff; --chip-off: #ffffff; --chip-off-ink: #1F4B3F;
+  --bg: #E9DFCC; --panel-edge: #73806F; --surface: #ffffff; --surface-2: #EEF3EE; --field-bg: #ffffff; --ink: #1F4B3F; --ink-2: #34584C;
+  --muted: #56665C; --line: #DCE3DA; --accent: #1F6B4F; --accent-ink: #ffffff; --accent-soft: #E3F1EA;
+  --toggle: #2F8F6B; --tint-1: #E3F1EA; --tint-2: #E0F4F6; --hero: #0E7682; --hero-ink: #ffffff; --hero-sub: #E0F4F6;
+  --sheet-edge: rgb(0 0 0 / 0.07); --scroll-thumb: rgb(86 102 92 / 0.5);
+  --info-bg: #E9EEF8; --info-ink: #213D6B; --info-line: #3D62A6;
+  --s0: #2F8F6B; --s1: #19A7B6; --s2: #eb6834; --s3: #eda100;
+  --s4: #e87ba4; --s5: #2a78d6; --s6: #4a3aa7; --s7: #e34948; --s8: #8c5a2e; --s9: #a03fb3;
+}
+/* Night lagoon (dark): dark fills with light text for inputs, tables and help */
+:root[data-theme="night"] {
+  --band: #0F1C24; --band-ink: #ffffff; --band-sub: #7FC9D3; --band-button: #1E3341; --band-button-ink: #C9DCE2;
+  --band-track: #1E3341; --band-thumb: #7FC9D3;
+  --chip-on: #2CC5D2; --chip-on-ink: #04343A; --chip-off: #1E3341; --chip-off-ink: #C9DCE2;
+  --bg: #101D25; --panel-edge: #5E7B8A; --surface: #1D303D; --surface-2: #263C4A; --field-bg: #16252F; --ink: #E4EEF1; --ink-2: #C3D3DA;
+  --muted: #93A8B2; --line: #2E4655; --accent: #2CC5D2; --accent-ink: #04343A; --accent-soft: #1F3746;
+  --toggle: #2CC5D2; --toggle-off: #4A5F6B; --tint-1: #1F3746; --tint-2: #3A2A30;
+  --hero: #0E4A60; --hero-ink: #ffffff; --hero-sub: #7FC9D3; --sheet-edge: transparent;
+  --scroll-thumb: rgb(147 168 178 / 0.45);
+  --bad: #ff8a7f; --bad-soft: #3a1d1b; --warn: #e5b45a; --warn-soft: #3a2f17; --good: #5fcf7c;
+  --edge-shadow: rgb(0 0 0 / 0.55);
+  --s0: #2CC5D2; --s1: #F2786C; --s2: #1baf7a; --s3: #b88000;
+  --s4: #d8668f; --s5: #008300; --s6: #7262d0; --s7: #5a8dee; --s8: #c28a5a; --s9: #b46ac4;
+  --info-bg: #1C2B4A; --info-ink: #DCE6FA; --info-line: #8EAEF0;
+  color-scheme: dark;
+}
+/* Match phone (data-theme "device"): Night lagoon in dark mode (the same tokens as above) */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="device"] {
+    --band: #0F1C24; --band-ink: #ffffff; --band-sub: #7FC9D3; --band-button: #1E3341; --band-button-ink: #C9DCE2;
+    --band-track: #1E3341; --band-thumb: #7FC9D3;
+    --chip-on: #2CC5D2; --chip-on-ink: #04343A; --chip-off: #1E3341; --chip-off-ink: #C9DCE2;
+    --bg: #101D25; --panel-edge: #5E7B8A; --surface: #1D303D; --surface-2: #263C4A; --field-bg: #16252F; --ink: #E4EEF1; --ink-2: #C3D3DA;
+    --muted: #93A8B2; --line: #2E4655; --accent: #2CC5D2; --accent-ink: #04343A; --accent-soft: #1F3746;
+    --toggle: #2CC5D2; --toggle-off: #4A5F6B; --tint-1: #1F3746; --tint-2: #3A2A30;
+    --hero: #0E4A60; --hero-ink: #ffffff; --hero-sub: #7FC9D3; --sheet-edge: transparent;
+    --scroll-thumb: rgb(147 168 178 / 0.45);
+    --bad: #ff8a7f; --bad-soft: #3a1d1b; --warn: #e5b45a; --warn-soft: #3a2f17; --good: #5fcf7c;
+    --edge-shadow: rgb(0 0 0 / 0.55);
+    --s0: #2CC5D2; --s1: #F2786C; --s2: #1baf7a; --s3: #b88000;
+    --s4: #d8668f; --s5: #008300; --s6: #7262d0; --s7: #5a8dee; --s8: #c28a5a; --s9: #b46ac4;
+    --info-bg: #1C2B4A; --info-ink: #DCE6FA; --info-line: #8EAEF0;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+/* Vertical scroll bars stay visible where the browser draws them: thin, rounded, muted. */
+html, .sheet-body, .menu, .table-scroll { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+body {
+  background: var(--band); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h2 { font-size: 17px; font-weight: 650; }
+p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--muted); font-size: 14px; }
+.mono { font-family: var(--font-data); font-size: 13px; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 600; color: var(--accent); }
+
+/* Boot screen */
+.boot { min-height: 100%; background: var(--bg); display: grid; place-items: center; padding-inline: var(--gutter); padding-block: 32px; }
+.boot-inner { width: 100%; max-width: 440px; display: grid; gap: 14px; }
+.boot-title { font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -0.01em; }
+.boot-lede { color: var(--ink-2); }
+.progress { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.progress span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.4s ease; }
+.boot-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.boot-steps li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; min-height: 32px;
+  color: var(--muted); font-size: 14px; }
+.boot-steps li[data-status="wait"] { color: var(--ink); font-weight: 600; }
+.boot-steps li[data-status="done"] { color: var(--ink-2); }
+.boot-steps li[data-status="fail"] { color: var(--bad); font-weight: 600; }
+.step-mark { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); justify-self: center; }
+li[data-status="wait"] .step-mark { border-color: var(--accent); border-right-color: transparent; animation: spin 0.9s linear infinite; }
+li[data-status="done"] .step-mark { background: var(--accent); border-color: var(--accent); }
+li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--bad); }
+.step-time { font-family: var(--font-data); font-size: 12px; font-variant-numeric: tabular-nums; }
+.boot-time { font-family: var(--font-data); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.boot-error { display: grid; gap: 10px; padding: 12px; border-radius: var(--radius); background: var(--bad-soft); color: var(--ink); }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* The load splash: the boot screen's look over everything for two seconds when another scenario opens; its bar fills
+   over those two seconds (full at once when the device asks for reduced motion). */
+
+/* App frame */
+/* overflow-x: clip keeps the page from scrolling sideways without making .app a scroll container, so a table or
+   the chips row inside it still takes a horizontal swipe. */
+.app { overflow-x: clip; min-height: 100%; }
+/* The header band: its top row and the pinned figures stay on screen; the title, subtitle and chips scroll away. */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--band); color: var(--band-ink);
+  padding-inline: var(--gutter); padding-block: 8px; }
+.topbar-row, .pinned, .panels { max-width: 640px; margin-inline: auto; }
+.topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.band-label { flex: 1; min-width: 0; font-size: 15px; color: var(--band-sub); overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+/* The beta app's marker beside the section label (index.html, shown for the beta channel only). */
+.channel-badge { flex: none; padding: 2px 8px; border-radius: 999px; background: var(--band-button);
+  color: var(--band-button-ink); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.round-button { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--band-button);
+  color: var(--band-button-ink); display: grid; place-items: center; cursor: pointer; }
+.round-button:disabled { opacity: 0.4; cursor: default; }
+.round-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.topbar :focus-visible, .band :focus-visible { outline-color: var(--band-sub); }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--band-button-ink);
+  padding: 4px 10px; border-radius: 999px; background: var(--band-button); white-space: nowrap; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+.status[data-state="busy"] .status-dot { background: transparent; border: 2px solid var(--accent); border-right-color: transparent;
+  animation: spin 0.9s linear infinite; }
+.status[data-state="error"] { background: var(--bad-soft); color: var(--bad); font-weight: 600; }
+.status[data-state="error"] .status-dot { background: var(--bad); }
+/* The pill shows only while a run is going or the settings need a fix: no "Ready" or "Up to date" when idle. */
+.status[data-state="idle"], .status[data-state="ok"] { display: none; }
+.help-glyph { font-size: 20px; font-weight: 700; line-height: 1; }
+.pinned { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding-top: 6px; }
+.pinned:empty { display: none; }
+.pin { min-width: 0; }
+.pin-label { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 11px; color: var(--band-sub);
+  line-height: 1.2; overflow: hidden; min-height: 2.4em; }
+.pin-value { display: block; font-size: clamp(11px, 3.4vw, 15px); font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pin-sub { display: block; font-size: 11px; color: var(--band-sub); font-variant-numeric: tabular-nums; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+.app.stale .pin-value, .app.stale .tile-value, .app.stale .chart-plot { opacity: 0.45; }
+
+.band { background: var(--band); color: var(--band-ink); padding: 2px max(var(--gutter), calc((100% - 640px) / 2)) 16px; }
+.band-title { font-size: 28px; line-height: 1.2; font-weight: 650; letter-spacing: -0.01em; }
+.band-sub { color: var(--band-sub); font-size: 15px; margin: 2px 0 14px; }
+.band > .chips-wrap[data-place="outputs"] + .chips-wrap:not([hidden]) { margin-top: 10px; }
+.chips-wrap { display: grid; gap: 8px; }
+.chips-track { height: 4px; border-radius: 2px; background: var(--band-track); overflow: hidden; }
+.chips-track span { display: block; height: 100%; width: 100%; border-radius: 2px; background: var(--band-thumb); }
+.chips-track-off { display: none; }
+/* Inputs' and Outputs' pin buttons (one shared choice) sit at the chips row's right end; pinned (app.js placeBand), the band sticks under the top bar
+   with only the chips row in view, above the sheet and below the top bar, the sheets and the bottom bar. */
+.chips-wrap:is([data-place="inputs"], [data-place="outputs"]) { grid-template-columns: minmax(0, 1fr) auto; column-gap: 6px;
+  align-items: center; }
+.chips-wrap:is([data-place="inputs"], [data-place="outputs"]) .chips { margin-inline-end: 0; padding-inline-end: 0; }
+.chips-wrap[data-place="outputs"] .chips-track { grid-column: 1 / -1; }
+.chips-pin { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--band-button);
+  color: var(--band-button-ink); display: grid; place-items: center; cursor: pointer; }
+.chips-pin svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.chips-pin[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
+.chips-pin[aria-pressed="true"] svg path:first-child { fill: currentColor; }
+.app:is(.inputs-pinned, .outputs-pinned) .band { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--band-stick, 0px)); z-index: 15; }
+/* The sheet under the band: light, with a rounded top; it holds the pane cards. */
+.panels { background: var(--bg); border-radius: 30px 30px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
+  padding-inline: var(--gutter); padding-top: 16px; min-height: 100vh;
+  padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 24px); }
+.panel { display: grid; gap: var(--section-gap); }
+/* Grid children default to min-width: auto and would grow to a wide table's width; 0 keeps them to the column, so
+   the table's own wrapper is what scrolls. */
+.panel > *, .card > *, .view-intro > *, .group > *, .sheet-body > * { min-width: 0; }
+/* Chips: an icon and a label each; the row scrolls sideways and the bar under it (.chips-track) shows where. */
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter); padding-block: 2px; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; min-height: 40px; padding: 0 14px 0 11px; border-radius: 999px; border: 0;
+  background: var(--chip-off); color: var(--chip-off-ink); font-size: 14px; font-weight: 500; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; }
+.chip-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.chip[aria-selected="true"] { background: var(--chip-on); color: var(--chip-on-ink); font-weight: 600; }
+.chip .soon { font-size: 11px; opacity: 0.8; margin-left: 6px; }
+.chip[aria-selected="true"] .soon { color: inherit; opacity: 0.7; }
+/* Inputs' chips and the Outputs view row (Summary, Plots, Compare) share one look: the selected chip keeps its own
+   colors (bolder label) under the bubble (app.js makeBubble), one SVG capsule over it with a glowing --chip-on rim and
+   a nearly clear fill; it stretches toward the next chip during a swipe and glides on a tap. The row's padding leaves
+   room for the glow inside the row's clip. */
+.chips-wrap[data-place="inputs"] .chips, .chips-wrap[data-place="outputs"] .chips { position: relative;
+  padding-block: 8px; margin-block: -6px; }
+.chips-wrap[data-place="inputs"] .chip[aria-selected="true"],
+.chips-wrap[data-place="outputs"] .chip[aria-selected="true"] { background: var(--chip-off); color: var(--chip-off-ink); }
+.chip-bubble { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none;
+  filter: drop-shadow(0 0 3px var(--chip-on)) drop-shadow(0 0 7px color-mix(in srgb, var(--chip-on) 60%, transparent)); }
+.chip-bubble path { stroke: var(--chip-on); stroke-width: 2; }
+.chip-bubble stop { stop-color: var(--chip-on); }
+/* A swipe moves between Inputs panels, Outputs views, the bottom tabs past their ends, and walkthrough questions
+   (app.js wireSwipe): vertical scrolling stays the browser's, sideways drags come to the page (a table, chart or chips
+   row takes them back). */
+/* pan-y first: Safari (iPhone, iPad) has no pinch-zoom value, drops the second line and would otherwise fall back to
+   auto, which takes the sideways drag for itself (pointercancel) so a swipe never moved on. */
+.panels, .panels > .panel, .walk-stage { touch-action: pan-y; touch-action: pan-y pinch-zoom; }
+/* The Outputs sub-tabs (the chips rows under Summary | Plots | Compare): one thin row of underline text tabs on a 1px
+   hairline, scrolling sideways if too narrow; the open one in the band's selected colour. The Inputs chips stay bubbles. */
+.chips-wrap[data-place^="outputs/"] .chips { gap: 4px; padding-block: 0;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent); }
+.chips-wrap[data-place^="outputs/"] .chip { min-height: 44px; padding: 0 12px; border-radius: 0; background: transparent;
+  color: var(--band-sub); white-space: nowrap; box-shadow: none; }
+.chips-wrap[data-place^="outputs/"] .chip-icon { display: none; }
+.chips-wrap[data-place^="outputs/"] .chip[aria-selected="true"] { background: transparent; color: var(--chip-on);
+  font-weight: 650; box-shadow: inset 0 -2px 0 var(--chip-on); }
+.chips-wrap[data-place^="outputs/"] .chip:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
+.chips-wrap[data-place^="outputs/"] .chips-track { display: none; }
+
+.card { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 20px; padding: 16px;
+  display: grid; gap: 12px; min-width: 0; box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow); }
+.stub { padding: 24px 4px; display: grid; gap: 8px; color: var(--ink-2); }
+.banner { padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 14px; }
+/* Information boxes: notes, plain banners and explanations, in the info color with an "i" icon, so they never
+   look like an input field row. */
+.info-box, .banner:not(.banner-warn):not(.banner-error) { position: relative; padding: 10px 12px 10px 40px;
+  border-radius: 10px; background: var(--info-bg); color: var(--info-ink); border-left: 4px solid var(--info-line);
+  font-size: 13.5px; }
+.info-box::before, .banner:not(.banner-warn):not(.banner-error)::before { content: "i"; position: absolute;
+  left: 10px; top: 10px; width: 20px; height: 20px; border-radius: 50%; background: var(--info-line);
+  color: var(--info-bg); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.banner-error { background: var(--bad-soft); color: var(--ink); border-left: 4px solid var(--bad); }
+.banner-error strong { color: var(--bad); }
+.banner-warn { background: var(--warn-soft); color: var(--ink); border-left: 4px solid var(--warn); }
+.warnings { display: grid; gap: 8px; }
+.warnings:not(:empty) { padding-block: 8px; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.disclosure { padding-block: 0; gap: 0; }
+.disclosure > summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; font-weight: 650; }
+.disclosure[open] { padding-bottom: 16px; }
+.disclosure[open] > summary { margin-bottom: 8px; }
+.notes { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; color: var(--ink-2); }
+.insights-title { font-size: 14px; margin: 10px 0 6px; }  /* Warnings and Opportunities in the Summary Insights card */
+.view-intro { display: grid; gap: 10px; }
+.empty-state { color: var(--ink-2); background: var(--surface-2); border: 1px dashed var(--line); }
+
+/* Results */
+.result-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tile { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 18px; padding: 12px 14px;
+  box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow);
+  display: grid; gap: 4px; align-content: start; min-width: 0; }
+.tile-first { grid-column: 1 / -1; background: var(--hero); color: var(--hero-ink); border-radius: 20px; padding: 16px; }
+.tile-first .tile-label, .tile-first .tile-change, .tile-first .tile-help { color: var(--hero-sub); }
+.tile-label { font-size: 13px; color: var(--ink-2); }
+.tile-subtitle { font-size: 12px; color: var(--ink-2); margin-top: -2px; }
+.tile-value { font-size: clamp(17px, 6vw, 24px); font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+.tile-first .tile-value { font-size: clamp(24px, 8vw, 34px); }
+.tile-change { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.report-pointer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.report-pointer p { margin: 0; color: var(--ink-2); }
+/* The Next steps card (Coach and Gamer, 49-coach.js): one row per gap, its buttons, a check's result, risk comfort. */
+.nextsteps-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.nextstep { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: var(--surface-2);
+  border: 1px solid var(--line); min-width: 0; }
+.nextstep h3 { margin: 0; font-size: 15px; }
+.nextstep p { margin: 0; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.nextstep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.nextstep-actions .button { min-height: 44px; }
+.nextstep-result:empty { display: none; }
+.nextstep-check-result { display: grid; gap: 8px; }
+.nextstep-check-result.stale-results > p:not(.banner), .nextstep-check-result.stale-results .nextstep-rows { opacity: 0.5; }
+.nextstep-rows > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 14px;
+  font-weight: 600; }
+.nextstep-rows ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13.5px; color: var(--ink-2); }
+.nextsteps-hidden { justify-self: start; }
+.risk-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px;
+  margin: 0; font-size: 14px; color: var(--ink-2); }
+.risk-row .button { min-height: 44px; }
+.nextsteps-note { margin: 0; }
+.heirs-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); min-height: 44px; cursor: pointer; }
+.heirs-toggle input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
+.tile .tile-help { font-size: 12.5px; }
+/* A tile with a note: the label and its "i" (the 44px target overlaps the tile padding, so the row stays one line). */
+.tile-head { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; }
+.tile-head .help-button { margin: -14px -14px -14px 0; }
+.tile-first .help-button { color: var(--hero-sub); }
+.tile-first .help-button[aria-expanded="true"] { color: var(--hero-ink); }
+
+/* Charts */
+.chart-card { gap: 10px; position: relative; }
+/* Full screen: the corner button, the card on the whole screen (browser full screen, or a fixed overlay turned to
+   landscape while the phone is upright where element full screen is missing) and its Close button */
+.chart-full { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.chart-full svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.chart-full-on { background: var(--surface); overflow: auto; align-content: start; }
+.chart-full-on:fullscreen { padding: 12px 16px; border-radius: 0; }
+.chart-full-on .chart-full, .chart-full-on .view-toggle { display: none; }
+.chart-full-on .chart { padding-right: 96px; }
+.chart-full-close { position: absolute; top: 10px; right: 12px; z-index: 2; }
+.chart-overlay { position: fixed; inset: 0; z-index: 100; margin: 0; border: 0; border-radius: 0;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px; }
+.chart-overlay.chart-rotated { inset: auto; top: 0; left: 100vw; width: 100vh; height: 100vw; transform-origin: top left;
+  transform: rotate(90deg); }
+.chart { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.chart figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.chart-title { font-weight: 650; font-size: 16px; }
+.chart-note { font-size: 12.5px; color: var(--muted); }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--ink-2); }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend .legend-group { flex-basis: 100%; font-weight: 600; color: var(--ink); margin-top: 2px; }
+/* charts.js legend: more than four items set as a grid (two columns on a phone, three on a wide card); a series item
+   that highlights its series is a plain-looking button; a long legend on a phone folds to its 44 px Key row
+   (attachLegend); an ungrouped item after a group (Left over) starts its own row under a rule. */
+.legend-dense { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.75rem, 1fr)); gap: 2px 8px; font-size: 12.5px;
+  line-height: 1.25; }
+.legend-dense .legend-group { grid-column: 1 / -1; font-size: 11.5px; margin-top: 4px; }
+.legend .legend-break { flex-basis: 100%; grid-column: 1 / -1; height: 0; border-top: 1px solid var(--line); margin: 2px 0; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; padding: 0; border: 0;
+  border-radius: 4px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.legend-item[aria-pressed="true"] { color: var(--ink); font-weight: 600; }
+.legend-item:focus { outline: none; }
+.legend-item:focus-visible, .legend-key:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.legend-label { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.legend .legend-toggle { grid-column: 1 / -1; flex-basis: 100%; }
+.legend-key { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 2px; border: 0;
+  background: transparent; color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
+.legend-key-text::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 8px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-3px) rotate(45deg); }
+.legend-key[aria-expanded="true"] .legend-key-text::after { transform: translateY(1px) rotate(-135deg); }
+.legend-strip { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; min-width: 0; }
+.legend-key[aria-expanded="true"] .legend-strip { display: none; }
+.legend[data-folded="true"] li:not(.legend-toggle) { display: none; }
+.chart-svg [data-series].dim { opacity: 0.2; }
+.key { display: inline-block; flex: none; }
+.key-box { width: 10px; height: 10px; border-radius: 2px; background: var(--key); }
+.key-line { width: 14px; height: 3px; border-radius: 2px; background: var(--key); }
+.key-band { width: 14px; height: 10px; border-radius: 2px; background: var(--key); opacity: 0.25; }
+.key-hatch { width: 10px; height: 10px; border-radius: 2px; box-sizing: border-box; border: 1px solid var(--key);
+  background: repeating-linear-gradient(45deg, var(--key) 0 2px, var(--hatch-bg) 2px 4px); }
+.key-none { width: 14px; }
+.key-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--key); }
+.chart-plot { position: relative; }
+.chart-svg { display: block; width: 100%; height: auto; touch-action: pan-y; font-family: var(--font-body); }
+.chart-svg .grid { stroke: var(--line); stroke-width: 1; }
+.chart-svg .baseline { stroke: var(--muted); stroke-width: 1; }
+.chart-svg .tick { fill: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.chart-svg .area { opacity: 0.88; }
+.chart-svg .seam { fill: none; stroke: var(--surface); stroke-width: 1.5; }
+.chart-svg .band { opacity: 0.2; }
+.chart-svg .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart-svg .dot { stroke: var(--surface); stroke-width: 2; }
+.chart-svg .after-tax-step { stroke-width: 1.5; stroke-linejoin: round; }
+.chart-svg .crosshair { stroke: var(--ink-2); stroke-width: 1; }
+.chart-svg .band-compare { opacity: 0.14; }
+.chart-svg .whisker { fill: none; stroke-width: 2; stroke-linecap: round; }
+.chart-svg .box { fill-opacity: 0.28; stroke-width: 2; }
+.chart-svg .box-picked { fill-opacity: 0.5; }
+.chart-svg .median { stroke: var(--ink); stroke-width: 2.5; }
+.chart-svg .box-label { fill: var(--ink-2); font-size: 11px; font-weight: 600; }
+.chart-empty { padding: 28px 8px; text-align: center; color: var(--muted); background: var(--surface-2); border-radius: 10px; }
+.readout { margin-top: 6px; background: var(--surface-2); border-radius: 10px; padding: 8px 10px; font-size: 13px;
+  display: grid; gap: 3px; }
+.readout-title { font-weight: 600; color: var(--ink-2); }
+.readout-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.readout-row strong { grid-column: 3; grid-row: 1; font-variant-numeric: tabular-nums; text-align: right; }
+.readout-row span:last-child { grid-column: 2; grid-row: 1; color: var(--ink-2); overflow-wrap: anywhere; }
+.chart-svg:focus { outline: none; }
+.chart-svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; justify-self: start; }
+.view-toggle button { min-height: 40px; min-width: 76px; border: 0; background: transparent; border-radius: 999px; color: var(--ink-2); cursor: pointer; }
+.view-toggle button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); font-weight: 600; }
+/* A wide table scrolls inside its own box. The right edge carries a shadow while more columns lie beyond it: the
+   surface-coloured cover scrolls with the content (local) and hides the shadow (scroll) once the end is reached. */
+.table-scroll { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--line); border-radius: 10px; max-width: 100%;
+  -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; overscroll-behavior-x: contain;
+  background: linear-gradient(to left, var(--surface) 40%, transparent) right / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--edge-shadow), transparent) right / 14px 100% no-repeat scroll, var(--surface); }
+.data-table { border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; width: max-content; min-width: 100%; }
+.data-table th, .data-table td { padding: 6px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.data-table thead th { background: var(--surface-2); font-weight: 600; color: var(--ink-2); }
+.data-table thead th.records { color: var(--muted); font-weight: 500; font-style: italic; cursor: help; }
+.data-table thead th:first-child { position: sticky; left: 0; z-index: 1; }
+.data-table tbody th { text-align: left; font-weight: 500; position: sticky; left: 0; background: var(--surface);
+  box-shadow: 1px 0 0 var(--line); }
+.data-table td.text { text-align: left; white-space: normal; min-width: 8em; }
+/* Long row labels (scenario names, setting paths) wrap so the sticky first column leaves room for the figures. */
+.data-table.wrap-first th:first-child { white-space: normal; min-width: 7.5em; max-width: 10.5em; overflow-wrap: anywhere;
+  text-align: left; }
+
+/* Low results (charts.js renderGauge, the fan chart's inner band; 40-setup.js lowResultCards): one accent arc on a
+   neutral track, no verdict colours. Tokens only. */
+.chart-svg .band-inner { opacity: 0.38; }
+.key-band-inner { width: 14px; height: 10px; border-radius: 2px; background: var(--key); opacity: 0.5; }
+.gauge { display: block; width: 100%; max-width: 260px; height: auto; margin: 0 auto; }
+.gauge-track, .gauge-arc { fill: none; stroke-linecap: butt; }
+.gauge-track { stroke: var(--line); }
+.gauge-arc { stroke: var(--accent); }
+.gauge-figure { fill: var(--ink); font-size: 30px; font-weight: 650; font-family: var(--font-body);
+  font-variant-numeric: tabular-nums; }
+.low-results { display: grid; gap: var(--section-gap); }
+.gauge-card { display: grid; gap: 6px; text-align: center; }
+.gauge-card h2 { margin: 0; font-size: 17px; }
+.gauge-caption { margin: 0; color: var(--ink-2); font-size: 14px; }
+.low-preview-note { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* Settings */
+.settings { display: grid; gap: var(--section-gap); }
+.group { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 20px; padding: 4px 16px 14px;
+  box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow);
+  margin: 0; min-width: 0; display: grid; }
+.group > legend { font-weight: 650; font-size: 17px; padding: 12px 0 4px; float: left; width: 100%; }
+/* A pane: the icon tile and the title, and the pane's on/off toggle (its switch field) at the right of the title. */
+.pane { position: relative; }
+.legend-title { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.pane-icon { flex: none; width: 30px; height: 30px; border-radius: 10px; background: var(--tint-1); color: var(--ink);
+  display: grid; place-items: center; }
+.pane-svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.pane:has(> .pane-switch) > legend { padding-right: 64px; }
+.pane > .pane-switch .switch { position: absolute; top: 15px; right: 16px; }
+/* A sub-section inside a pane (the HSA in the Medical plan pane): a smaller title, its toggle at the title's right. */
+.subsection > .pane-switch .switch { top: 9px; right: 0; }
+.group .group { border: 0; padding: 0; background: transparent; box-shadow: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 6px; }
+.group .group > legend { font-size: 14px; color: var(--ink-2); }
+.sheet-body .group { border: 0; padding: 0; background: transparent; border-top: 1px solid var(--line); border-radius: 0; }
+.sheet-body .group > legend { font-size: 14px; color: var(--ink-2); }
+/* A car's replacement rule: a bordered block holding Replace by and each selected rule's figures under its sub-label. */
+.sheet-body .group.replace-rule { border: 1px solid var(--line); border-radius: 14px; padding: 0 12px 12px; margin-top: 8px; }
+.replace-rule-note { margin: 6px 0 0; }
+.replace-rule-part { margin-top: 10px; padding-left: 10px; border-left: 3px solid var(--line); }
+.replace-rule-label { margin: 0; color: var(--ink-2); }
+/* Field rows: rounded and tinted, one tint per section of a pane or sheet (tintSections: the sections alternate the two
+   tints, a pane without sections keeps the first). */
+.field { display: grid; gap: 4px; padding: 10px 12px; margin-top: 8px; border-radius: 12px; background: var(--tint-1);
+  min-width: 0; }
+.field.tint-alt, .tint-alt .field { background: var(--tint-2); }
+.field .field { background: transparent; padding: 0; margin: 0; }
+/* After Undo, the field it changed back: an accent tint that fades to the field's own background over a second
+   (app.js showUndone); held still for that second when the device asks for reduced motion. */
+.undo-flash { animation: undo-flash 1s ease-out; }
+@keyframes undo-flash { from { background-color: color-mix(in srgb, var(--accent) 35%, transparent); } }
+.group > legend + .field, .group > .note + .field, .sheet-body > .field:first-child { border-top: 0; }
+.field-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+.field-label { font-size: 14px; font-weight: 550; color: var(--ink); }
+.help-button { flex: none; width: 44px; height: 44px; margin: -8px -12px -8px 0; border: 0; background: transparent; color: var(--muted);
+  border-radius: 50%; cursor: pointer; display: grid; place-items: center; }
+.help-button span { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 12px; font-weight: 700;
+  display: grid; place-items: center; }
+.help-button[aria-expanded="true"] { color: var(--accent); }
+/* Red only for help that notes the mean inflation is subtracted from the value in today's dollars. */
+.help-button.help-inflation { color: var(--bad); }
+/* A heading with its "i" button; the explanation below it shows on a tap (tooltips only, no visible notes). */
+.title-help { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.note-help { margin-top: 8px; }  /* a short line kept on screen, its longer note behind the "i" (noteHelp) */
+.mc-notice-row { justify-content: flex-end; }  /* the Outputs legal notice sits behind this info button */
+.group > legend.legend-help { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.field-help { font-size: 13px; color: var(--muted); }
+.field-error { font-size: 13px; color: var(--bad); font-weight: 500; }
+.input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--field-bg);
+  font-variant-numeric: tabular-nums; }
+.input:focus { border-color: var(--accent); }
+.input[aria-invalid="true"] { border-color: var(--bad); }
+/* A blank sheet or panel figure showing its source's value until edited (sheetDefault, panelDefault in shared.js). */
+.input.is-default { color: var(--muted); }
+/* A field with a default: a small reset button inside its right edge, shown once edited (addResetButton in app.js).
+   The button is a 32px target around a 14px icon; the box keeps its size, only its text stops short of the icon. */
+.has-reset { position: relative; }
+.reset-default { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 32px; height: 32px; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.reset-default[hidden] { display: none; }
+.reset-default svg { width: 14px; height: 14px; }
+.reset-default:hover { color: var(--accent); background: var(--accent-soft); }
+.reset-default:focus-visible { color: var(--accent); outline-offset: 0; }
+.has-reset.reset-shown > .input { padding-right: 42px; }
+.affix[data-suffix].has-reset > .reset-default { right: 28px; }
+.affix[data-suffix].has-reset.reset-shown > .input { padding-right: 62px; }
+.has-reset > select.input ~ .reset-default { right: 28px; }
+.has-reset.reset-shown > select.input { padding-right: 64px; }
+/* A suggested expense row not filled in yet: its $0 on the list card (unfilledSuggestion in shared.js). */
+.item-value.is-default { color: var(--muted); font-weight: 400; }
+/* Benefits, Beneficiaries: one card per beneficiary (beneficiaryCards in app.js). */
+.heir-cards { display: grid; gap: 10px; }
+.heir-card { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.heir-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* The search box above the optimizer's States list (several states ticked at once): on the phone layout only. */
+.select-search { margin-bottom: 6px; }
+@media (min-width: 1100px) { .select-search { display: none; } }
+/* A state combobox (stateCombobox in app.js): one box that filters its list as you type, the list floating under it
+   (no layout shift), a chevron at its right edge; the select it stands for stays as the hidden value. */
+.combo { position: relative; }
+.combo::after { content: ""; position: absolute; top: 50%; right: 14px; width: 7px; height: 7px; margin-top: -6px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); pointer-events: none; }
+.combo-input { padding-right: 36px; text-overflow: ellipsis; }
+.combo-input.is-default { color: var(--muted); }
+.combo-list { position: absolute; z-index: 40; top: calc(100% + 4px); left: 0; right: 0; max-height: min(280px, 45vh);
+  overflow-y: auto; margin: 0; padding: 4px 0; list-style: none; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.2); overscroll-behavior: contain; }
+.combo-list[hidden] { display: none; }
+.combo-option { min-height: 44px; display: flex; align-items: center; padding: 6px 12px; cursor: pointer; }
+.combo-option:hover, .combo-option.active { background: var(--surface-2); }
+.combo-option[aria-selected="true"] { font-weight: 600; color: var(--accent); }
+.combo-empty { padding: 10px 12px; color: var(--muted); }
+select.combo-native { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important;
+  padding: 0 !important; border: 0 !important; margin: 0 !important; opacity: 0; pointer-events: none; overflow: hidden; }
+.has-reset.reset-shown > .combo > .combo-input { padding-right: 64px; }
+/* A dropdown checklist (checklistPicker in app.js, the Roth conversion's limits): a box-shaped button naming the ticked
+   options with a chevron, and the checklist opening under it in the flow, so each ticked option's field shows below. */
+.picker-button { position: relative; display: flex; align-items: center; text-align: left; padding-right: 36px;
+  color: var(--ink); cursor: pointer; font: inherit; }
+.picker-button::after { content: ""; position: absolute; top: 50%; right: 14px; width: 7px; height: 7px;
+  margin-top: -6px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); }
+.picker-button[aria-expanded="true"]::after { margin-top: -2px; transform: rotate(-135deg); }
+.picker-value { min-width: 0; overflow-wrap: anywhere; }
+.picker-value.is-default { color: var(--muted); }
+.picker-list { margin: 0; padding: 4px 0; min-width: 0; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 18px rgb(0 0 0 / 0.12); }
+.picker-list[hidden] { display: none; }
+.picker-option { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 8px 12px;
+  cursor: pointer; }
+.picker-option:hover { background: var(--surface-2); }
+.picker-option input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--accent); }
+.picker-option:has(input:disabled) { cursor: default; color: var(--muted); }
+.picker-option-text { display: grid; gap: 2px; min-width: 0; }
+.picker-option-help { font-size: 13px; color: var(--muted); }
+/* The optimizer's States list: the states to tick, in a short scrolling box. */
+.state-picks { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+.state-pick { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+.state-pick[hidden] { display: none; }
+/* The optimizer's changes: one card per change, values wrapping on a phone; a change that improves the score is
+   highlighted, one with no measured gain is plain. */
+.optimize-improvements { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 8px; }
+.optimize-improvement { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 8px;
+  padding: 8px 12px; overflow-wrap: anywhere; }
+.optimize-change-plain { border-left: 4px solid var(--line); border-radius: 8px; padding: 8px 12px;
+  overflow-wrap: anywhere; }
+.optimize-change-plain .optimize-gain { color: var(--muted); font-weight: 400; }
+.optimize-improvement-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.optimize-gain { color: var(--good); font-weight: 600; }
+.optimize-change { margin: 4px 0 0; }
+.optimize-now { color: var(--muted); }
+.optimize-best { font-weight: 600; }
+.optimize-total { font-weight: 600; }
+.optimize-kept summary { color: var(--muted); cursor: pointer; }
+textarea.input { resize: vertical; }
+.affix { position: relative; display: flex; align-items: center; }
+.affix .input { padding-left: 26px; }
+.affix[data-suffix] .input { padding-left: 12px; padding-right: 30px; }
+.affix::before { content: attr(data-prefix); position: absolute; left: 12px; color: var(--muted); pointer-events: none; }
+.affix[data-suffix]::after { content: attr(data-suffix); position: absolute; right: 12px; color: var(--muted); pointer-events: none; }
+.triple { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.triple label { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
+.field-group { border-top: 1px solid var(--line); padding-block: 6px; }
+.field-group > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer; }
+.field-group > .button { margin-top: 6px; }
+.field-collapse { border-top: 1px solid var(--line); padding-block: 6px; }
+.field-collapse > summary { min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer; }
+.field-collapse > .field { margin-top: 0; }
+/* Every collapsible: the browser's marker is replaced by one chevron at the right that turns when it opens. */
+details > summary { list-style: none; gap: 8px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after { content: ""; flex: none; width: 8px; height: 8px; margin-left: auto; margin-right: 4px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.15s; }
+details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.normal-part { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
+.curve-box { display: grid; gap: 2px; }
+.curve { width: 100%; height: 60px; display: block; }
+.curve path { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.curve-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.switch { position: relative; flex: none; width: 52px; height: 32px; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--toggle-off); border: 1px solid transparent; transition: background 0.15s; pointer-events: none; }
+.switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
+  background: #ffffff; box-shadow: 0 1px 3px rgb(0 0 0 / 0.3); transition: transform 0.15s; }
+.switch input:checked + span { background: var(--toggle); border-color: var(--toggle); }
+.switch input:checked + span::after { transform: translateX(20px); }
+.switch input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.switch input:disabled { cursor: not-allowed; }
+.switch input:disabled + span, .field-disabled .field-label { opacity: 0.5; }
+.switch-note { margin-top: 0; }
+.map-rows { display: grid; gap: 6px; }
+.map-row { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 44px; gap: 6px; align-items: center; }
+.icon-button { width: 44px; height: 44px; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; cursor: pointer;
+  display: grid; place-items: center; color: var(--ink-2); }
+.icon-button:disabled { opacity: 0.4; cursor: default; }
+.note { font-size: 13.5px; color: var(--ink-2); padding: 8px 0; }
+.items { display: grid; gap: 8px; padding-block: 8px; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; width: 100%; min-height: 56px;
+  text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); cursor: pointer; }
+.item-readonly { cursor: default; background: var(--surface-2); border-style: dashed; margin-top: 6px; }
+.part-b-row { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+.part-b-row .item-name { white-space: normal; font-weight: 500; }
+.mortgage-rows > .button { justify-self: start; margin-top: 6px; }
+.item-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-detail { font-size: 12.5px; color: var(--muted); grid-column: 1; }
+.item-value { grid-row: 1 / span 2; grid-column: 2; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* An ordered list's card: tick box, the card, drag handle; the bar under the list acts on the ticked cards. */
+.item-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; gap: 4px; align-items: center; }
+.item-select { display: grid; place-items: center; min-height: 56px; cursor: pointer; }
+.item-select input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.drag-handle { display: grid; place-items: center; width: 40px; min-height: 56px; padding: 0; border: 0; border-radius: 10px;
+  background: transparent; color: var(--muted); cursor: grab; touch-action: none; }
+.drag-handle svg { width: 22px; height: 22px; }
+.item-row.dragging { opacity: 0.55; }
+.item-row.dragging .drag-handle { cursor: grabbing; }
+.item-row.drop-target .item { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.list-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-bottom: 8px; }
+.list-bar .button:disabled { opacity: 0.45; cursor: default; }
+.list-bar-count { font-size: 12.5px; color: var(--muted); }
+.row-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.button { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent);
+  color: var(--accent-ink); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.button-quiet { background: transparent; color: var(--accent); }
+.button-danger { background: transparent; border-color: var(--bad); color: var(--bad); justify-self: start; }
+.button-danger[data-armed="true"] { background: var(--bad); color: var(--surface); }
+.button-danger-solid { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.about { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 13.5px; }
+.about dt { color: var(--muted); }
+.about dd { margin: 0; font-family: var(--font-data); font-size: 12.5px; overflow-wrap: anywhere; }
+
+/* Sliders: the surplus split and the deposits */
+.range { width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); background: transparent; cursor: pointer; }
+.range:disabled { cursor: default; opacity: 0.45; }
+.range-row { display: grid; grid-template-columns: minmax(0, 1fr) 4.5em; gap: 10px; align-items: center; }
+.range-value, .surplus-value { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
+.surplus-body { display: grid; gap: 4px; padding-top: 6px; }
+.split-bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; background: var(--surface-2);
+  margin-bottom: 6px; }
+.split-bar span { flex: 0 1 0; min-width: 0; }
+.surplus-row { display: grid; gap: 0; padding-block: 6px; border-top: 1px solid var(--line); }
+.surplus-head { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.surplus-head .field-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.surplus-key { width: 10px; height: 10px; border-radius: 2px; }
+.surplus-control { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; align-items: center; }
+.lock { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+  color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.lock svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.lock[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.lock[aria-pressed="true"] rect { fill: currentColor; }
+.surplus-total { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--line);
+  font-size: 14px; color: var(--ink-2); }
+.surplus-total strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.deposit-title { padding-top: 12px; }
+.deposit-owner { padding-top: 8px; }
+.deposit-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.deposit-head .field-label { overflow-wrap: anywhere; }
+.deposits .button { justify-self: start; margin-top: 8px; }
+
+/* Settings panels: the panel's note (behind the group heading's "i"), the household plan disclosure and the
+   read-only benefit card */
+.panel-note { padding-bottom: 6px; white-space: pre-line; }
+/* A section's rule on screen under its title (Roth conversion: every ceiling applies, the lowest one stops it). */
+.pane-lead { margin: 0 0 6px; font-weight: 600; color: var(--ink-2); }
+.plan-details { display: grid; gap: 4px; border-top: 1px solid var(--line); }
+.plan-details > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600;
+  color: var(--accent); }
+.benefit { display: grid; gap: 8px; padding-block: 10px; border-top: 1px solid var(--line); min-width: 0; }
+.benefit > * { min-width: 0; }
+/* Sub-headings inside a pane (Social Security: You, Partner). */
+.sub-heading-block { padding-top: 10px; }
+.sub-heading { margin: 0; font-size: 15px; font-weight: 650; color: var(--ink-2); flex: 1; }
+/* Sections inside one pane (markPaneSection: Income's You and Partner, the sub-headings) or one sheet (a child's
+   Daycare and College): a larger accent title, and every section after the pane's first below a divider. */
+.group .pane-section, .sheet-body .pane-section { border-top: 0; margin-top: 6px; padding-top: 10px; }
+.group .pane-section.section-break, .sheet-body .pane-section.section-break { margin-top: 14px; padding-top: 12px;
+  border-top: 2px solid var(--line); }
+.group .pane-section > legend, .sheet-body .pane-section > legend, .pane-section .sub-heading { font-size: 20px;
+  font-weight: 700; color: var(--accent); }
+.sheet-intro { padding-top: 8px; }
+.terminal-note { margin: 0; }
+.text-button { padding: 0 4px; border: 0; text-decoration: underline; }
+.terminal-rate .row-buttons { padding-top: 6px; }
+
+/* Monte Carlo and Compare: run controls, progress and cancel, stale results */
+.run-controls { display: grid; grid-template-columns: minmax(0, 1fr) 7.5em; gap: 10px; align-items: end; }
+.run-controls .field-label { display: block; margin-bottom: 4px; }
+.segmented { display: flex; border: 1px solid var(--line); border-radius: 10px; padding: 2px; background: var(--bg); }
+.segmented button { flex: 1; min-height: 40px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2);
+  cursor: pointer; font-variant-numeric: tabular-nums; }
+.segmented button[aria-pressed="true"], .segmented button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 650;
+  box-shadow: 0 0 0 1px var(--line); }
+.segmented button:disabled { opacity: 0.45; cursor: not-allowed; }
+/* An inset radio row (radioSegmentedField): a recessed track whose options are parted by thin --line rules (the 1 px
+   gaps show the track's --line colour, also between wrapped rows), the picked button in the accent; a picked button
+   a blank follows underlined. Labels never wrap: the row wraps instead. */
+.segmented-inset { flex-wrap: wrap; gap: 1px; padding: 0; overflow: hidden; border-color: var(--line);
+  background: var(--line); box-shadow: inset 0 2px 4px var(--edge-shadow), inset 0 0 0 1px var(--edge-shadow); }
+.segmented-inset button { flex: 1 1 auto; min-height: 40px; padding: 0 10px; white-space: nowrap; border-radius: 0;
+  background: var(--surface-2); color: var(--ink-2); }
+.segmented-inset button[aria-checked="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 650; }
+.segmented-inset button.is-followed { text-decoration: underline dotted; text-underline-offset: 3px; }
+.segmented-inset button:focus-visible { outline-offset: -3px; }
+/* An expense row's ages slider (expenseAgesField): the ages chosen beside the label, a rail with one or two round
+   knobs (44 px touch target round a 26 px knob), the run's first and last ages under its ends. The rail is inset by
+   the knob's half width so a knob at either end stays inside the sheet. */
+.age-range-field .field-head { flex-wrap: wrap; }
+.age-range-text { margin-left: auto; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ink); }
+.age-range { position: relative; min-height: 44px; padding: 0 22px; touch-action: none; cursor: pointer;
+  display: flex; align-items: center; }
+.age-range-rail { position: relative; flex: 1; height: 6px; border-radius: 3px; background: var(--toggle-off); }
+.age-range-fill { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); }
+.age-range-knob { position: absolute; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; touch-action: none; }
+.age-range-knob::before { content: ""; width: 26px; height: 26px; border-radius: 50%; background: var(--surface);
+  border: 3px solid var(--accent); box-sizing: border-box; box-shadow: 0 1px 3px var(--edge-shadow); }
+.age-range-knob.is-default::before { border-color: var(--muted); }
+.age-range-knob:focus-visible { outline: none; }
+.age-range-knob:focus-visible::before { box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 5px var(--accent); }
+.age-range-ends { display: flex; justify-content: space-between; padding: 0 9px; font-size: 13px; color: var(--muted);
+  font-variant-numeric: tabular-nums; }
+.subpanel { display: grid; gap: var(--section-gap); }
+.subpanel > * { min-width: 0; }
+/* Summary's body stacks its meta line, tiles and cards with the same gap as the subpanel. */
+#results-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
+#results-body > * { min-width: 0; }
+.run-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.run-progress { display: grid; gap: 8px; }
+.run-progress .progress span { transition: width 0.2s linear; }
+.progress-text { font-size: 13.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; flex: 1; min-width: 0; }
+.phone-note { font-size: 12.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px;
+  padding: 2px 10px; }
+.stale-results .tile-value, .stale-results .chart-plot, .stale-results .table-scroll { opacity: 0.5; }
+.pin.stale-results .pin-value { opacity: 0.5; }
+.mc-bar { display: grid; gap: 10px; }
+.mc-bar[hidden] { display: none; }
+/* Compare: the Config A and B selects, the make-match buttons and one panel per setting that differs */
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pair-field { display: grid; gap: 4px; min-width: 0; }
+.pair-names { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; overflow-wrap: anywhere; }
+.match { display: grid; gap: 6px; padding-block: 6px; }
+.match-row { display: grid; gap: 2px; }
+.match-row .button { justify-self: start; }
+.match-row .button[data-armed="true"] { background: var(--warn-soft); border-color: var(--warn); color: var(--ink); }
+.match-row .button:disabled { opacity: 0.5; cursor: default; }
+.diff-section { font-size: 15px; font-weight: 650; padding-top: 10px; }
+.diff-card { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin-top: 8px;
+  overflow-wrap: anywhere; }
+.diff-label { font-weight: 650; }
+.diff-values { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; }
+.diff-buttons { display: grid; gap: 6px; }
+.diff-merge { display: grid; gap: 2px; }
+.diff-merge .button:disabled { opacity: 0.5; cursor: default; }
+@media (min-width: 720px) { .diff-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Setup's open scenario card: accent-edged, the name large, the saved state with the Auto-save switch, then one flat
+   strip of equal-width icon buttons (one outer border, thin dividers). */
+.open-card { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent), var(--fx-glow); gap: 8px; }
+/* When another scenario opens, the card's edge glows and fades over a second (app.js highlightOpenCard, the Undo
+   flash's class); held still for that second when the device asks for reduced motion. */
+.open-card.undo-flash { animation: open-card-flash 1s ease-out; }
+@keyframes open-card-flash { from { box-shadow: inset 0 0 0 3px var(--accent),
+  0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 18px 4px color-mix(in srgb, var(--accent) 55%, transparent); } }
+.open-label { margin: 0; }
+.open-name { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
+.example-tag { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 600; color: var(--warn); }
+.open-status { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; color: var(--ink-2);
+  flex-wrap: wrap; }
+.open-status > [role="status"] { flex: 1; min-width: 0; }
+.dirty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); flex: none; }
+.mini-switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.mini-toggle { position: relative; width: 40px; height: 24px; flex: none; padding: 0; border: 0; border-radius: 999px;
+  background: var(--toggle-off); cursor: pointer; }
+.mini-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / 0.25); transition: transform 0.15s; }
+.mini-toggle[aria-checked="true"] { background: var(--toggle); }
+.mini-toggle[aria-checked="true"]::after { transform: translateX(16px); }
+.action-strip { display: flex; margin-top: 4px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  background: var(--surface); }
+.strip-button { flex: 1 1 0; min-width: 0; min-height: 56px; display: grid; justify-items: center; align-content: center;
+  gap: 2px; padding: 8px 2px; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent;
+  color: var(--ink); font-size: 12px; cursor: pointer; }
+/* Three buttons share 320 px: smaller labels on a narrow phone, so "Duplicate" fits its third. */
+@media (max-width: 380px) { .strip-button { font-size: 10.5px; letter-spacing: -0.01em; } }
+.strip-button:first-child, .strip-button[hidden] + .strip-button { border-left: 0; }
+.strip-button svg, .scenario-open svg, .scenario-delete svg, .scenario-more svg, .big-button svg { width: 22px; height: 22px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.strip-button svg { color: var(--accent); }
+.strip-danger svg { color: var(--bad); }
+.strip-button:focus-visible { outline-offset: -3px; }
+/* Scenario files (F106): Save, Import and Export, the other scenarios (one row each: tap to open, "..." for its
+   menu) and New, on a surface of its own with a top rule and a folder icon, so it reads apart from the open card. */
+.files-card { margin-top: var(--section-gap); background: var(--surface-2); border-top: 3px solid var(--chip-on);
+  overflow: visible; gap: 10px; }
+.files-head { display: flex; align-items: center; gap: 8px; }
+.files-head h2 { margin: 0; }
+.files-icon { width: 22px; height: 22px; flex: none; fill: none; stroke: var(--accent); stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; }
+.files-card .section-label { margin: 4px 0 0; padding-inline: 0; }
+.files-card .scenario-list { display: grid; padding: 0; box-shadow: none; background: transparent;
+  border-top: 1px solid var(--line); }
+.files-card .big-button { width: 100%; }
+.section-label { font-size: 13px; font-weight: 650; color: var(--ink-2); padding-inline: 4px; }
+.scenario-list { padding-block: 4px; gap: 0; }
+.scenario-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 0;
+  border-top: 1px solid var(--line); }
+.scenario-row:first-child { border-top: 0; }
+.scenario-open { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 4px; border: 0;
+  background: transparent; text-align: left; cursor: pointer; min-width: 0; }
+.scenario-open svg, .scenario-more svg { color: var(--muted); }
+.scenario-delete svg { color: var(--bad); }
+.saved-name { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.scenario-delete, .scenario-more { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 10px;
+  background: transparent; cursor: pointer; }
+.scenario-more[aria-expanded="true"] { background: var(--surface-2); }
+.big-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 650;
+  background: var(--surface); }
+/* The row menu and the scenario dialog */
+.row-menu { position: fixed; z-index: 75; min-width: 160px; display: grid; padding: 4px 0; background: var(--surface);
+  color: var(--ink); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.2); }
+.row-menu-item { min-height: 44px; padding: 0 16px; border: 0; background: transparent; text-align: left; font-size: 15px;
+  cursor: pointer; }
+.row-menu-item:hover, .row-menu-item:focus-visible { background: var(--surface-2); }
+.row-menu-item:focus-visible { outline-offset: -3px; }
+.row-menu-danger { color: var(--bad); }
+.dialog-backdrop { position: fixed; inset: 0; z-index: 85; background: rgb(0 0 0 / 0.45); }
+/* A dialog: its title stays at the top and its actions (its verb and Cancel, or Close) at the bottom; only the text and
+   fields between them scroll. Centred in the part of the screen above the on-screen keyboard. */
+.dialog { position: fixed; z-index: 90; left: 50%; top: calc((100% - var(--keyboard, 0px)) / 2);
+  transform: translate(-50%, -50%);
+  width: min(400px, calc(100% - 2 * var(--gutter))); max-height: calc(100% - 32px);
+  max-height: calc(100dvh - var(--keyboard, 0px) - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--surface); color: var(--ink); border-radius: 16px;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.3); }
+.dialog-head { padding: 18px 16px 8px; }
+.dialog h2 { overflow-wrap: anywhere; }
+.dialog-scroll { overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 10px; align-content: start;
+  padding: 2px 16px 10px; }
+.dialog-scroll > [hidden] { display: none; }
+.dialog-body { display: grid; gap: 8px; }
+.dialog-body:empty { display: none; }
+/* The final report picker: one row per saved scenario, a tick box and its name */
+.report-picks { border: 0; margin: 0; padding: 0; display: grid; gap: 4px; }
+.report-pick { display: flex; align-items: center; gap: 10px; min-height: 40px; overflow-wrap: anywhere; }
+.report-pick input { width: 20px; height: 20px; flex: none; }
+.dialog-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px;
+  padding: 10px 16px 16px; border-top: 1px solid var(--line); }
+.dialog-actions .button { padding-inline: 8px; justify-self: stretch; }
+.dialog-wide { width: 100%; }
+/* Effort and style: two radio groups (the picker in the pop-up), each choice with its one-line blurb */
+.experience-choices { display: grid; gap: 12px; }
+.experience-group { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 0; }
+.experience-group > legend { font-weight: 650; font-size: 15px; padding: 0 0 4px; }
+.experience-option { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 2px 10px; align-items: start;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); cursor: pointer; }
+.experience-option:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.experience-option input { width: 20px; height: 20px; margin: 1px 0 0; grid-row: span 2; accent-color: var(--accent); }
+.experience-label { font-weight: 600; overflow-wrap: anywhere; }
+.experience-blurb { grid-column: 2; font-size: 13px; color: var(--ink-2); }
+.experience-notice { padding-block: 0; }
+/* Effort and style cues (F106): faint glows, sheens and tints that grow with the effort (data-effort on <html>: Low a
+   calm blue, Medium warm, High hot) and the style (data-style: Accountant none, Coach a clean green, Gamer a pink and
+   violet glow), set by applyExperience (45-experience.js). They sit over every colour scheme without changing its
+   tokens, the charts (--s0..--s9), any size or any text colour: only box-shadow layers, background-image gradients, a
+   box-shadow transition and one slow breathing glow on the hero tile. --fx-e and --fx-s are the two intensities (0 to
+   1); each --fx-cap-* is the largest share (percent) a hue may take of what it tints, read by fxcontrast.test.mjs to
+   prove AA contrast in every scheme, so tune the look only by changing these numbers. No attribute means no cue. */
+:root {
+  --fx-e: 0; --fx-s: 0;
+  --fx-e-hue: transparent; --fx-s-a: transparent; --fx-s-b: transparent;
+  --fx-cap-band-e: 6; --fx-cap-band-s: 5;
+  --fx-cap-card-e: 5; --fx-cap-card-s: 4;
+  --fx-cap-hero-e: 2; --fx-cap-hero-s: 2;
+  --fx-cap-glow-e: 20; --fx-cap-glow-s: 22;
+  --fx-cap-rim-s: 40; --fx-cap-hi-s: 30;
+  /* Round a card, tile, group or pinned figure: an effort halo, a style halo and a 1 px style rim along the top. */
+  --fx-glow: 0 0 calc(4px + var(--fx-e) * 8px) 0
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
+    0 0 calc(4px + var(--fx-s) * 8px) 0
+      color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-rim-s) * 1%), transparent);
+  /* Round a filled button and the selected chip: a smaller halo of each and a 1 px light rim along the top. */
+  --fx-glow-sm: 0 0 calc(2px + var(--fx-e) * 6px) 0
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
+    0 0 calc(2px + var(--fx-s) * 6px) 0
+      color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff calc(var(--fx-s) * var(--fx-cap-hi-s) * 1%), transparent);
+  /* The breathing glow's peak on the hero tile (fx-breathe). */
+  --fx-glow-peak: 0 0 14px 1px
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
+    0 0 14px 1px color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-rim-s) * 1%), transparent);
+  /* The header band: an effort sheen from the top and a style glow in the far corner. */
+  --fx-band-sheen: linear-gradient(180deg,
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-band-e) * 1%), transparent), transparent),
+    radial-gradient(70% 140% at 100% 0%,
+      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-band-s) * 1%), transparent), transparent 70%);
+  /* Cards: a faint diagonal effort sheen from the top left and a style one from the bottom right. */
+  --fx-card-sheen: linear-gradient(135deg,
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-card-e) * 1%), transparent), transparent 60%),
+    linear-gradient(315deg,
+      color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-card-s) * 1%), transparent), transparent 60%);
+  /* The hero tile: its fill shifts toward the effort hue on the right, with a style tint from the bottom left. */
+  --fx-hero-sheen: linear-gradient(120deg, transparent 30%,
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-hero-e) * 1%), transparent)),
+    radial-gradient(80% 120% at 0% 100%,
+      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-hero-s) * 1%), transparent), transparent 70%);
+}
+:root[data-effort="low"] { --fx-e: 0.2; --fx-e-hue: #46b6d8; }
+:root[data-effort="medium"] { --fx-e: 0.55; --fx-e-hue: #f2c94c; }
+:root[data-effort="high"] { --fx-e: 1; --fx-e-hue: #eb5757; }
+:root[data-style="accountant"] { --fx-s: 0; --fx-s-a: transparent; --fx-s-b: transparent; }
+:root[data-style="coach"] { --fx-s: 0.5; --fx-s-a: #2cc492; --fx-s-b: #2cc492; }
+:root[data-style="gamer"] { --fx-s: 1; --fx-s-a: #ff5fb0; --fx-s-b: #7f5cff; }
+/* Where they show (the cards, tiles, groups, pinned figures and open card take --fx-glow in their own rules above;
+   the filled buttons of the pages and the band's selected chip a smaller one; dialogs and the menu none). */
+.topbar { background-image: var(--fx-band-sheen); }
+.tile-first { background-image: var(--fx-hero-sheen); }
+:is(.panel, .band) .button:not(.button-quiet):not(.button-danger), .band .chip[aria-selected="true"] {
+  box-shadow: var(--fx-glow-sm); }
+.card, .tile, .group, .pin, .button, .chip { transition: box-shadow 0.35s ease; }
+:root[data-effort="high"] .tile-first, :root[data-style="gamer"] .tile-first { animation: fx-breathe 6s ease-in-out infinite; }
+@keyframes fx-breathe { 50% { box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow-peak); } }
+/* Still when the device asks for reduced motion (the look stays); none at all in forced colours, high contrast or print. */
+@media (prefers-reduced-motion: reduce) {
+  .topbar, .card, .tile, .group, .pin, .button, .chip { transition: none !important; }
+  .tile-first { animation: none !important; }
+}
+@media (forced-colors: active), (prefers-contrast: more), print {
+  :root, :root[data-effort], :root[data-style] { --fx-e: 0 !important; --fx-s: 0 !important; }
+  .tile-first { animation: none !important; }
+}
+/* Gamer (F101a): the Awards view (level and XP, quests, awards), the progress toast and the walkthrough Trail drawn as
+   a quest map, shown only in Gamer style. Surfaces and text use the scheme tokens; only the hero tile gets a violet rim
+   and the --fx-glow above. The --gm-* colours are fixed: pink is a border or glow only, never text; --gm-ink and
+   --gm-mint are text only on --gm-deep or --gm-panel (the toast), each pair checked at AA by fxcontrast.test.mjs.
+   Motion is a short transform or box-shadow transition, none under reduced motion; forced colours use system colours.
+   Classes: .gm-hero (level tile), .gm-bar (its native <progress>), .gm-list (a quest or award list), .gm-quest with
+   data-state done|pending|locked|open, .gm-award with data-earned true|false, .gm-toast (role=status line) and on the
+   Trail .walk-quest (a stage: li.walk-topic-group), .walk-quest-count ("n of m" in its h3) and data-node
+   done|now|todo|skipped on each li of its .walk-trail-list. */
+:root {
+  --gm-pink: #ff5fb0; --gm-violet: #7f5cff; --gm-mint: #5dffc8;
+  --gm-ink: #ffe3f3; --gm-deep: #1c1450; --gm-panel: #34279a;
+}
+.gm-hero { display: grid; gap: 8px; padding: 16px; border-radius: 16px; background: var(--hero); color: var(--hero-ink);
+  box-shadow: 0 0 0 1px var(--gm-violet), var(--fx-glow); }
+.gm-hero h3, .gm-hero p { margin: 0; overflow-wrap: anywhere; }
+.gm-hero p { color: var(--hero-sub); }
+.gm-bar { appearance: none; -webkit-appearance: none; display: block; width: 100%; block-size: 0.75em;
+  border: 1px solid var(--hero-sub); border-radius: 999px; overflow: hidden;
+  background: color-mix(in srgb, var(--hero-ink) 18%, transparent); color: var(--hero-sub); }
+.gm-bar::-webkit-progress-bar { background: transparent; }
+.gm-bar::-webkit-progress-value { background: var(--hero-sub); border-radius: 999px; }
+.gm-bar::-moz-progress-bar { background: var(--hero-sub); border-radius: 999px; }
+.gm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.gm-quest, .gm-award { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px;
+  min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+  color: var(--ink); overflow-wrap: anywhere; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.gm-quest p, .gm-award p { grid-column: 1; margin: 0; color: var(--ink-2); font-size: 0.9rem; }
+.gm-quest .button, .gm-award .button { grid-column: 2; grid-row: 1 / span 2; }
+.gm-quest[data-state="done"], .gm-award[data-earned="true"] { border-color: var(--accent);
+  box-shadow: inset 4px 0 0 var(--accent); }
+.gm-quest[data-state="pending"] { border-color: var(--gm-pink); box-shadow: 0 0 8px 0 color-mix(in srgb, var(--gm-pink) 35%, transparent); }
+.gm-quest[data-state="locked"], .gm-award[data-earned="false"] { border-style: dashed; background: var(--surface-2); color: var(--ink-2); }
+.gm-award[data-earned="true"]:hover { transform: translateY(-1px); box-shadow: inset 4px 0 0 var(--accent),
+  0 0 8px 0 color-mix(in srgb, var(--gm-violet) 35%, transparent); }
+.gm-toast { position: fixed; z-index: 75; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); padding: 12px 16px; border-radius: 14px;
+  border: 1px solid var(--gm-pink); background: linear-gradient(180deg, var(--gm-panel), var(--gm-deep)); color: var(--gm-ink);
+  box-shadow: 0 0 12px 0 color-mix(in srgb, var(--gm-pink) 40%, transparent), 0 6px 20px var(--edge-shadow);
+  overflow-wrap: anywhere; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.gm-toast strong { color: var(--gm-mint); }
+/* The quest map: each topic a stage on one line down the left, each question a node dot (filled done, ringed now,
+   hollow to do, dashed skipped); the row's own tag still names the state in words. */
+.walk-quest { position: relative; padding-left: 26px; }
+.walk-quest::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; border-left: 2px solid var(--accent); }
+.walk-quest > h3::before { content: ""; position: absolute; left: 2px; width: 14px; height: 14px; margin-top: 1px;
+  border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--gm-violet); }
+.walk-quest-count { margin-left: 8px; color: var(--ink-2); font-weight: 600; letter-spacing: 0; text-transform: none; }
+.walk-quest li[data-node] .walk-row::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--muted); background: var(--surface); }
+.walk-quest li[data-node="done"] .walk-row::before { border-color: var(--accent); background: var(--accent); }
+.walk-quest li[data-node="now"] .walk-row::before { border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gm-pink) 45%, transparent); }
+.walk-quest li[data-node="skipped"] .walk-row::before { border-style: dashed; }
+@media (prefers-reduced-motion: reduce) {
+  .gm-quest, .gm-award, .gm-toast { transition: none !important; }
+  .gm-award[data-earned="true"]:hover { transform: none; }
+}
+@media (forced-colors: active) {
+  .gm-hero, .gm-toast { background: Canvas; color: CanvasText; border: 1px solid CanvasText; box-shadow: none; }
+  .gm-hero p, .gm-toast strong { color: CanvasText; }
+  .gm-quest, .gm-award { border-color: CanvasText; box-shadow: none; }
+  .gm-bar { border-color: CanvasText; background: Canvas; }
+  .gm-bar::-webkit-progress-value { background: Highlight; }
+  .gm-bar::-moz-progress-bar { background: Highlight; }
+  .walk-quest::before, .walk-quest li[data-node] .walk-row::before { border-color: CanvasText; }
+  .walk-quest > h3::before, .walk-quest li[data-node="done"] .walk-row::before { background: CanvasText; box-shadow: none; }
+}
+/* Gamer games (F101b): the mini games' pop-up (52-games.js) and the game cards of the Awards view. The pop-up is a
+   fixed dark violet panel in every colour scheme (the Gamer tokens --gm-* of the "Gamer (F101a)" block, whose AA pairs
+   fxcontrast.test.mjs checks): --gm-ink text, mint for actions, focus and the climber, pink only as a border or glow,
+   never text. Its title and actions stay in view (the .dialog rows); only the body scrolls. Colour is never the only
+   signal: a right or wrong answer also has its words, a bar its figure. 44 px targets, no fixed heights. */
+.dialog.gm-dialog { width: min(480px, calc(100% - 2 * var(--gutter))); color: var(--gm-ink);
+  background: linear-gradient(180deg, var(--gm-panel), var(--gm-deep)); border: 1px solid var(--gm-violet);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.4), 0 0 18px color-mix(in srgb, var(--gm-pink) 30%, transparent); }
+.gm-dialog .dialog-actions { border-top-color: color-mix(in srgb, var(--gm-violet) 70%, var(--gm-ink)); }
+.gm-dialog .dialog-scroll { gap: 12px; }
+.gm-dialog :focus-visible { outline-color: var(--gm-mint); }
+.gm-dialog .button { background: var(--gm-mint); border-color: var(--gm-mint); color: var(--gm-deep); }
+.gm-dialog .button-quiet { background: transparent; color: var(--gm-mint); }
+.gm-dialog .button[aria-pressed="true"], .gm-dialog .button-quiet[aria-pressed="true"] {
+  background: var(--gm-mint); color: var(--gm-deep); }
+.gm-dialog input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--gm-mint); }
+.gm-dialog :is(.field-help, .field-label, legend, summary, .data-table th, .data-table td) { color: var(--gm-ink); }
+.gm-dialog .data-table :is(th, td) { background: var(--gm-deep); border-color: var(--gm-violet); }
+.gm-dialog fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+.gm-dialog legend { padding: 0 0 4px; font-weight: 600; }
+.gm-dialog summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+label.gm-card { display: flex; align-items: center; gap: 10px; }
+label.gm-card input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--gm-mint); }
+label.gm-card:has(input:checked) { border-color: var(--gm-mint); box-shadow: inset 0 0 0 2px var(--gm-mint); }
+.gm-dialog .dialog-head .gm-readout { font-weight: 400; margin-top: 4px; }
+.gm-dialog .dialog-head .gm-readout:empty { display: none; }
+/* Bracket Climber: the to-scale ladder (an SVG or a stack of rungs, each rung's height set inline from its range), the
+   climber marker on it and the live readout under it. */
+.gm-ladder { display: grid; gap: 2px; min-width: 0; padding: 8px; border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--gm-violet) 80%, var(--gm-ink)); background: var(--gm-deep); }
+.gm-ladder svg { display: block; width: 100%; height: auto; }
+.gm-ladder text { fill: var(--gm-ink); font-size: 12px; }
+.gm-climber { color: var(--gm-mint); fill: var(--gm-mint); stroke: var(--gm-deep);
+  transition: transform 0.2s ease; }
+.gm-readout { min-height: 24px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--gm-ink);
+  font-weight: 600; }
+/* Receipt Sort: a receipt card to choose (aria-pressed while chosen) and the four bins it can go to. */
+.gm-card, .gm-bin { min-height: 44px; padding: 10px 12px; border-radius: 10px; text-align: left; cursor: pointer;
+  color: var(--gm-ink); background: var(--gm-deep); border: 1px solid color-mix(in srgb, var(--gm-violet) 80%, var(--gm-ink));
+  overflow-wrap: anywhere; transition: transform 0.15s ease, box-shadow 0.2s ease; }
+.gm-card[aria-pressed="true"] { border-color: var(--gm-mint); box-shadow: inset 0 0 0 2px var(--gm-mint); }
+.gm-card[data-result] { cursor: default; }
+.gm-card[data-result="right"] { border-color: var(--gm-mint); }
+.gm-card[data-result="wrong"] { border-style: dashed; border-color: var(--gm-pink); }
+.gm-bin { display: grid; gap: 2px; font-weight: 600; }
+.gm-bin:hover, .gm-card:not([data-result]):hover { box-shadow: 0 0 10px color-mix(in srgb, var(--gm-pink) 40%, transparent);
+  transform: translateY(-1px); }
+/* Claim Age Showdown and The Bad Decade: bars of what each claimant or retiree has, each with its figure in text. */
+.gm-bars { display: grid; gap: 6px; min-width: 0; }
+.gm-bars > * { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; overflow-wrap: anywhere; }
+.gm-bars meter, .gm-bars progress { width: 100%; height: 14px; accent-color: var(--gm-mint); }
+.gm-bars meter::-webkit-meter-bar { background: var(--gm-deep); border: 1px solid var(--gm-violet); border-radius: 999px; }
+.gm-bars meter::-webkit-meter-optimum-value { background: var(--gm-mint); border-radius: 999px; }
+.gm-bars meter::-moz-meter-bar { background: var(--gm-mint); }
+.gm-bars svg { display: block; width: 100%; height: auto; }
+/* The Mini games section of the Awards view: one card per game with its Play button and best stars. */
+.gm-game-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center;
+  padding: 12px; border-radius: 12px; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+  box-shadow: var(--fx-glow); overflow-wrap: anywhere; transition: box-shadow 0.2s ease; }
+.gm-game-card > p { grid-column: 1 / -1; color: var(--ink-2); font-size: 14px; }
+/* Still under reduced motion; system colours in forced colours (borders keep the right and wrong cues). */
+@media (prefers-reduced-motion: reduce) {
+  .gm-climber, .gm-card, .gm-bin, .gm-game-card { transition: none !important; }
+  .gm-bin:hover, .gm-card:not([data-result]):hover { transform: none; }
+}
+@media (forced-colors: active) {
+  .dialog.gm-dialog, .gm-ladder, .gm-card, .gm-bin, .gm-game-card { background: Canvas; color: CanvasText;
+    border-color: CanvasText; box-shadow: none; forced-color-adjust: none; }
+  .gm-dialog .button, .gm-card[aria-pressed="true"], label.gm-card:has(input:checked) { background: Highlight;
+    color: HighlightText; border-color: Highlight; }
+  .gm-dialog .button-quiet { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
+  .gm-climber { color: Highlight; fill: Highlight; stroke: CanvasText; }
+  .gm-ladder text, .gm-readout { fill: CanvasText; color: CanvasText; }
+  .gm-dialog :focus-visible { outline-color: Highlight; }
+}
+/* Picker: the effort and style picker (s420, app.js experienceGroups) in the pop-up, its only place. Effort is a
+   vertical energy bar (role=slider) with a stop per level; style a 3D tile per style. Each choice's radio lies unseen
+   over its stop or tile. The bar's fill and knob sit at --pk-f (set by paintExperience, live while dragging), so
+   nothing is measured at rest. Surfaces follow the scheme tokens; only the bar's metal and energy and the three style
+   looks are fixed colours. */
+.dialog.experience-dialog { width: min(440px, calc(100% - 24px)); }
+.pk { container-type: inline-size; --pk-h: clamp(300px, 54dvh, 404px);
+  --pk-tile: max(96px, calc((var(--pk-h) - 2 * 12px) / 3));
+  padding: 10px; border-radius: 16px; color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 4px 14px var(--edge-shadow);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--ink) 4%, transparent) 0 2px, transparent 2px 9px),
+    radial-gradient(120% 80% at 20% 0%, var(--surface), color-mix(in srgb, var(--surface-2) 60%, var(--bg))); }
+.pk-grid { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: start; min-width: 0; }
+@container (max-width: 339px) {
+  .pk-grid { grid-template-columns: 104px minmax(0, 1fr); gap: 12px; }
+  .pk-lab { font-size: 12px; }
+}
+.pk-group { gap: 0; }
+.pk-group > legend.pk-legend { display: flex; align-items: center; gap: 6px; min-height: 24px; margin: 0 0 10px; padding: 0;
+  font-size: 15px; font-weight: 700; color: var(--ink); }
+.pk-info { position: relative; z-index: 2; flex: none; width: 22px; height: 22px; padding: 0; display: grid; place-items: center;
+  border-radius: 50%; border: 1px solid var(--panel-edge); background: var(--surface-2); color: var(--muted);
+  font: italic 600 13px/1 Georgia, serif; cursor: pointer; }
+.pk-info::after { content: ""; position: absolute; inset: -11px; border-radius: 50%; }  /* a 44 px touch target */
+.pk-info[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.pk-info:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pk-radio { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.pk .experience-blurb[hidden], .pk-pop[hidden] { display: none; }
+/* The energy bar */
+.pk-eff { --pk-f: 0.334; display: grid; grid-template-columns: 46px minmax(0, 1fr); column-gap: 6px; height: var(--pk-h); }
+.pk-barwrap { position: relative; touch-action: none; cursor: grab; border-radius: 12px; outline: 0; }
+.pk-barwrap:focus-visible { box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--accent); }
+.pk-cap { position: absolute; left: 15px; top: 0; width: 16px; height: 8px; border-radius: 4px 4px 0 0;
+  background: linear-gradient(#9aa4ae, #6b7580); }
+.pk-bar { position: absolute; left: 3px; top: 7px; bottom: 0; width: 40px; border-radius: 12px; padding: 4px;
+  background: linear-gradient(90deg, #4b545e, #2b3138 50%, #4b545e);
+  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.6), 0 4px 10px rgb(0 0 0 / 0.3); }
+.pk-cells { position: absolute; inset: 4px; border-radius: 9px; overflow: hidden; background: #1a1f25; }
+.pk-fill { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--pk-f) * 100%);
+  transition: height 0.35s cubic-bezier(0.3, 1.5, 0.5, 1), background 0.3s; }
+.pk-fill::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.35), transparent 35%, transparent 65%, rgb(255 255 255 / 0.15)); }
+.pk-div { position: absolute; left: 0; right: 0; height: 3px; background: #1a1f25; }
+.pk-rail { position: absolute; left: 0; right: 0; top: 11px; bottom: 4px; pointer-events: none; }  /* the cells' height */
+.pk-knob { position: absolute; left: -1px; top: calc((1 - var(--pk-f)) * 100%); z-index: 2; width: 48px; height: 30px;
+  transform: translateY(-15px); display: flex; align-items: center; justify-content: center; border-radius: 15px;
+  background: linear-gradient(180deg, #fff, #d4dbe2); border: 2px solid #2b3138; box-shadow: 0 3px 8px rgb(0 0 0 / 0.4);
+  transition: top 0.35s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.pk-knob svg { width: 22px; height: 22px; stroke: #2b3138; stroke-width: 2.4; fill: none; }
+.pk-sparks { position: absolute; left: 3px; width: 40px; height: 0; bottom: calc(var(--pk-f) * 100%);
+  transition: bottom 0.35s cubic-bezier(0.3, 1.5, 0.5, 1); }  /* at the fill's top edge */
+.pk-spark { position: absolute; left: var(--x); top: -2px; width: 4px; height: 4px; border-radius: 50%; background: #fff6c2;
+  box-shadow: 0 0 6px #ffd35a, 0 0 12px #ff8a3d; opacity: 0; }
+.pk-drag .pk-fill, .pk-drag .pk-knob, .pk-drag .pk-sparks { transition: none; }
+.pk-drag .pk-barwrap { cursor: grabbing; }
+.lv0 .pk-fill { background: linear-gradient(0deg, #2f7fd0, #46b6d8); }
+.lv1 .pk-fill { background: linear-gradient(0deg, #46b6d8, #f2c94c 70%, #f2994a); animation: pk-pulse 1.8s ease-in-out infinite;
+  box-shadow: 0 0 8px #f2c94c; }
+.lv1 .pk-spark.few { animation: pk-spark 1.8s ease-out infinite; }
+.lv1 .pk-bar { animation: pk-buzz 0.5s linear infinite; }
+.lv2 .pk-fill { background: linear-gradient(0deg, #f2994a, #eb5757 55%, #ff2d55); animation: pk-pulse 0.7s ease-in-out infinite;
+  box-shadow: 0 0 18px #ff5a3d; }
+.lv2 .pk-bar { animation: pk-buzz 0.12s linear infinite;
+  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.6), 0 0 18px rgb(255 80 60 / 0.6); }
+.lv2 .pk-spark { animation: pk-spark 1.1s ease-out infinite; }
+@keyframes pk-pulse { 50% { filter: brightness(1.25); } }
+@keyframes pk-buzz { 0% { transform: translate(0, 0); } 25% { transform: translate(0.8px, -0.5px); }
+  50% { transform: translate(-0.8px, 0.4px); } 75% { transform: translate(0.5px, 0.6px); } 100% { transform: translate(0, 0); } }
+@keyframes pk-spark { 0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); } }
+/* The stops: a label (its radio over it) and an (i) each, at the centre of the level's share of the bar */
+.pk-stops { position: relative; min-width: 0; }
+.pk-stop { position: absolute; left: 0; right: 0; top: calc(11px + (100% - 15px) * var(--pk-at)); transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.pk-lab { position: relative; display: flex; align-items: center; min-height: 26px; max-width: 100%; cursor: pointer;
+  font-size: 13px; white-space: nowrap; color: var(--muted); }
+.pk-lab .experience-label { font-weight: 600; overflow-wrap: normal; }
+.pk-stop.pk-on .pk-lab { color: var(--ink); }
+.pk-stop.pk-on .pk-lab .experience-label { font-weight: 800; }
+/* The style tiles: badge and (i) on the first row, the icon, the name */
+.pk-styles { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pk-style { position: relative; height: var(--pk-tile); min-width: 0; display: grid; grid-template-rows: 22px minmax(0, 1fr) auto;
+  justify-items: center; align-items: center; gap: 2px; padding: 8px 8px 10px; border-radius: 18px; text-align: center;
+  filter: saturate(0.8) brightness(0.96); transition: transform 0.15s, box-shadow 0.15s, filter 0.15s; }
+.pk-style:active { transform: translateY(3px); }
+.pk-style:has(.pk-radio:focus-visible) { outline: 3px solid var(--ink); outline-offset: 9px; }
+.pk-top { justify-self: stretch; display: flex; align-items: center; gap: 4px; min-width: 0; }
+.pk-top .pk-info { margin-left: auto; }
+.pk-icon { height: 100%; max-height: 58px; min-height: 0; aspect-ratio: 1; display: grid; }
+.pk-icon svg { width: 100%; height: 100%; }
+.pk-style .experience-label { max-width: 100%; overflow: hidden; white-space: nowrap; overflow-wrap: normal;
+  font-size: 17px; font-size: clamp(15px, 7cqw, 22px); font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
+.pk-accountant { color: #24242a; border: 1px solid #a9a69c;
+  background: repeating-linear-gradient(0deg, rgb(24 95 165 / 0.08) 0 1px, transparent 1px 15px), linear-gradient(180deg, #fbfaf6, #e3dfd4);
+  box-shadow: inset 0 2px 0 #fff, 0 5px 0 #b9b5a9, 0 9px 16px rgb(0 0 0 / 0.18); }
+.pk-accountant .pk-info { background: #fff; color: #5f5e5a; border-color: #b4b2a9; }
+.pk-coach { color: #fff; border: 1px solid #0f6e56; background: linear-gradient(180deg, #2cc492, #14805f);
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.35), 0 5px 0 #0b5a43, 0 9px 16px rgb(0 0 0 / 0.22); }
+.pk-coach .pk-info { background: rgb(255 255 255 / 0.2); color: #fff; border-color: rgb(255 255 255 / 0.5); }
+.pk-gamer { color: #ffe3f3; border: 2px solid #ff5fb0;
+  background: radial-gradient(circle at 80% 20%, rgb(255 95 176 / 0.45), transparent 55%),
+    radial-gradient(circle at 15% 85%, rgb(93 255 200 / 0.3), transparent 50%), linear-gradient(180deg, #34279a, #1c1450);
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.25), 0 5px 0 #120c38, 0 0 14px #ff5fb0, 0 0 28px #7f5cff; }
+.pk-gamer .pk-info { background: rgb(255 255 255 / 0.12); color: #ffe3f3; border-color: rgb(255 227 243 / 0.5); }
+.pk-style .pk-info[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.pk-style.pk-on { filter: none; transform: scale(1.03); }
+.pk-style.pk-on::after { content: ""; position: absolute; inset: -7px; border-radius: 24px; border: 4px solid var(--accent);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 16px var(--accent); pointer-events: none; }
+.pk-badge { display: none; align-items: center; gap: 4px; padding: 3px 8px 3px 5px; border-radius: 999px; background: var(--accent);
+  color: var(--accent-ink); font-size: 11px; font-weight: 800; line-height: 1.2; white-space: nowrap;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.3); }
+.pk-badge svg { width: 13px; height: 13px; flex: none; stroke: currentColor; stroke-width: 3.2; fill: none; }
+.pk-style.pk-on .pk-badge { display: inline-flex; }
+/* The description an (i) opens, under the groups */
+.pk-pop { margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--ink); font-size: 13px; line-height: 1.45; box-shadow: 0 2px 8px var(--edge-shadow); }
+.pk-pop b { display: block; margin-bottom: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .pk *, .pk *::after { animation: none !important; transition: none !important; }
+}
+/* End of the picker block */
+/* Add detail row (46-detail.js paneDetailRow): at Medium, at the end of a pane, a list sheet or Advanced settings,
+   one sentence on the inputs it shows and its Add detail / Hide detail button; the Hide it line under "Using defaults
+   for N inputs" (refreshDetailNotice). */
+.detail-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 12px;
+  border: 1px dashed var(--line); border-radius: 12px; background: var(--surface-2); min-width: 0; }
+.detail-row .detail-text { flex: 1 1 220px; margin: 0; min-width: 0; }
+.detail-row .detail-toggle { flex: none; }
+.detail-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.detail-notice[hidden] { display: none; }
+/* The Effort and style dialog's Detail added list (48-surface.js renderDetailList): each override with its Hide it. */
+.detail-added { margin-top: 12px; min-width: 0; }
+.detail-added[hidden] { display: none; }
+.detail-added .eyebrow { margin: 0 0 4px; }
+.detail-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.detail-list-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0;
+  padding: 4px 0; border-top: 1px solid var(--line); }
+.detail-list-row > span { min-width: 0; overflow-wrap: anywhere; color: var(--ink); }
+.detail-list-row .detail-hide { flex: none; min-height: 44px; }
+/* Low page and guided sheet: the Inputs tab at Low effort as one page of cards (no group chips), its Yes/No choices,
+   the plans' summary cards and notices, and the guided plan pop-up's live summary and questions */
+.app.low-effort .band > .chips-wrap[data-place="inputs"] { display: none; }
+.low-page > [hidden] { display: none; }
+.low-card { display: grid; gap: 4px; min-width: 0; }
+.low-card h2 { margin: 0 0 2px; }
+.low-card > .note, .low-card > .button { margin-top: 8px; }
+.low-card > .button { justify-self: start; }
+.low-yes-no { max-width: 260px; }
+.low-summary { display: grid; gap: 8px; margin-top: 8px; padding: 10px 12px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface-2); }
+.low-summary-text { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.low-summary .button { justify-self: start; }
+.low-raise-note, .walk-low-note { color: var(--ink-2); }
+.walk-remove { justify-self: start; }
+.guided-summary { margin-top: 0; }
+.guided-steps { display: grid; gap: 4px; }
+.guided-steps .field { margin-top: 4px; }
+.finish-setup strong { color: var(--ink); }
+
+/* Bottom tab bar */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(3, 1fr);
+  background: var(--surface); border-radius: 24px 24px 0 0; box-shadow: 0 -4px 18px rgb(0 0 0 / 0.1);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.tab { min-height: var(--tabbar); border: 0; background: transparent; color: var(--muted); display: grid; justify-items: center;
+  align-content: center; gap: 3px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
+.tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab circle { fill: var(--surface); }
+.tab[aria-selected="true"] { color: var(--ink); font-weight: 650; }
+.tab[aria-selected="true"] svg { stroke-width: 2.2; }
+.tab:focus-visible { outline-offset: -3px; }
+.app.typing .tabbar { visibility: hidden; }
+
+/* Bottom sheets (an item's edit sheet, the timeline, About, Legal, Install help): the header (title) stays at the top
+   and the footer (Cancel and Save, or Close) at the bottom; only the body between them scrolls. The sheet sits above the
+   on-screen keyboard (--keyboard, set by app.js from the visual viewport) and inside the safe areas. */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / 0.4); }
+.sheet { position: fixed; left: 0; right: 0; bottom: var(--keyboard, 0px); z-index: 50; max-height: 88%;
+  max-height: calc((100dvh - var(--keyboard, 0px) - env(safe-area-inset-top, 0px)) * 0.92);
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden;
+  background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -8px 30px rgb(0 0 0 / 0.25);
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+  max-width: 640px; margin-inline: auto; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px var(--gutter);
+  min-height: 60px; border-bottom: 1px solid var(--line); }
+.sheet-head h2 { overflow-wrap: anywhere; }
+.sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 4px var(--gutter) 16px; display: grid; gap: 0;
+  align-content: start; }
+.sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; }
+.sheet-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px var(--gutter);
+  padding-bottom: max(10px, calc(10px + env(safe-area-inset-bottom, 0px) - var(--keyboard, 0px)));
+  border-top: 1px solid var(--line); background: var(--surface); }
+.sheet-foot-actions, .sheet-foot .timeline-nav { display: flex; flex: 1; justify-content: flex-end; gap: 8px;
+  padding-top: 0; flex-wrap: nowrap; }
+.sheet-foot-actions[hidden] { display: none; }
+.sheet-foot .button { min-width: 96px; }
+.sheet-foot .timeline-nav [data-action=back] { margin-right: auto; }
+
+/* Menu (top right): the walkthrough, Appearance (the color schemes and Match phone), the help and tips */
+.menu-backdrop { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 0.4); }
+.menu { position: fixed; z-index: 70; top: calc(env(safe-area-inset-top, 0px) + 60px);
+  right: max(12px, calc((100% - 640px) / 2 + 12px)); width: min(310px, calc(100% - 24px));
+  max-height: calc(100% - env(safe-area-inset-top, 0px) - 76px); overflow-y: auto; background: var(--surface);
+  color: var(--ink); border-radius: 20px; padding: 6px 14px; box-shadow: 0 12px 40px rgb(0 0 0 / 0.3); }
+.menu svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.menu-item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 6px; border: 0;
+  border-bottom: 1px solid var(--line); background: transparent; font-size: 16px; text-align: left; cursor: pointer; }
+a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link styled as its sibling buttons */
+.menu > .menu-item:last-child { border-bottom: 0; }
+.menu-group { display: grid; gap: 2px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+/* s422 Appearance sub-menu: the entry's chevron turns down while its schemes show, indented under it */
+#menuAppearance .chev { margin-left: auto; width: 18px; height: 18px; color: var(--muted); transition: transform 0.15s; }
+#menuAppearance[aria-expanded="true"] .chev { transform: rotate(90deg); }
+#menuScheme { padding-left: 14px; }
+@media (prefers-reduced-motion: reduce) { #menuAppearance .chev { transition: none; } }
+/* end s422 */
+.scheme { display: grid; grid-template-columns: 26px minmax(0, 1fr) 20px; gap: 10px; align-items: center; min-height: 44px;
+  padding: 0 8px 0 10px; border: 0; border-radius: 10px; background: transparent; font-size: 15px; text-align: left;
+  cursor: pointer; }
+.scheme[aria-checked="true"] { background: var(--surface-2); font-weight: 600; }
+.scheme .tick { visibility: hidden; color: var(--accent); stroke-width: 2.5; }
+.scheme[aria-checked="true"] .tick { visibility: visible; }
+.swatch { width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15); }
+.swatch-lagoon { background: linear-gradient(135deg, #0B4F6C 0 50%, #19B5C4 50% 75%, #F2675A 75%); }
+.swatch-sunset { background: linear-gradient(135deg, #103F5C 0 50%, #F59E4C 50% 75%, #F2675A 75%); }
+.swatch-palm { background: linear-gradient(135deg, #F3EBDD 0 50%, #1F4B3F 50% 75%, #2F8F6B 75%); }
+.swatch-night { background: linear-gradient(135deg, #0F1C24 0 50%, #2CC5D2 50% 75%, #F2786C 75%); }
+.swatch-device { background: linear-gradient(90deg, #F6EEDF 0 50%, #0F1C24 50%); }
+.menu-help { margin: 0; padding: 4px 6px 12px 38px; display: grid; gap: 6px; font-size: 14px; color: var(--ink-2);
+  border-bottom: 1px solid var(--line); }
+
+/* The tour of the controls (the ? button): a clear layer over the page that takes every tap, a ring over the control
+   being shown (the open card's glow, with the rest of the page dimmed around it) and a card at the top or bottom. */
+.tour { position: fixed; inset: 0; z-index: 92; }
+.tour-ring { position: fixed; border-radius: 14px; pointer-events: none;
+  box-shadow: 0 0 0 3px var(--accent), 0 0 18px 4px color-mix(in srgb, var(--accent) 55%, transparent),
+  0 0 0 100vmax rgb(0 0 0 / 0.5); transition: top 200ms ease, left 200ms ease, width 200ms ease, height 200ms ease; }
+.tour-card { position: fixed; left: var(--gutter); right: var(--gutter); max-width: 30rem; margin-inline: auto;
+  display: grid; gap: 8px; padding: 14px 16px; border-radius: var(--radius); background: var(--surface);
+  color: var(--ink); box-shadow: 0 8px 28px var(--edge-shadow); }
+.tour-card[data-place="bottom"] { bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
+.tour-card[data-place="top"] { top: calc(env(safe-area-inset-top, 0px) + 16px); }
+.tour-card:focus { outline: none; }
+.tour-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tour-count { margin: 0; }
+.tour-title { margin: 0; font-size: 18px; }
+/* A hop to another page: the caption in the card ("Tap Outputs to continue"), one pulse of the ring over the control
+   to tap, then the ring held there with a tap badge on its corner (accent fill, edged in the card colour so it stands
+   off both the dimmed page and the ring in every scheme); with reduced motion no pulse and the badge just shows. */
+.tour-nav { margin: 0; font-size: 16px; font-weight: 600; color: var(--accent); }
+.tour-ring.tour-pulse { animation: tour-pulse var(--tour-pulse-ms, 600ms) ease-in-out 1; }
+@keyframes tour-pulse { 45% { transform: scale(1.08);
+  box-shadow: 0 0 0 4px var(--accent), 0 0 30px 12px color-mix(in srgb, var(--accent) 70%, transparent),
+  0 0 0 100vmax rgb(0 0 0 / 0.5); } }
+.tour-tap { position: fixed; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); box-shadow: 0 0 0 2px var(--surface), 0 2px 8px rgb(0 0 0 / 0.35);
+  cursor: pointer; animation: tour-tap-in 200ms ease-out var(--tour-pulse-ms, 600ms) both; }
+.tour-tap[hidden] { display: none; }
+.tour-tap svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round;
+  stroke-linejoin: round; }
+@keyframes tour-tap-in { from { transform: scale(0); opacity: 0; } }
+.tour-text { margin: 0; color: var(--ink-2); }
+.tour-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.tour-actions .button:disabled { opacity: 0.45; cursor: default; }
+
+/* Walkthrough: a full-screen layer over the page, one question at a time. Colors are the scheme tokens only (a test
+   reads this block), so every scheme, Night lagoon included, draws it. Forward: the old screen slides out to the left
+   while the new one slides in from the right, both fading (back: the reverse); transform and opacity only. */
+.walk { position: fixed; inset: 0; z-index: 80; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto;
+  background: var(--bg); color: var(--ink); padding-top: env(safe-area-inset-top, 0px); }
+.walk-top { width: 100%; max-width: 40rem; margin-inline: auto; padding: 12px var(--gutter) 0; }
+.walk-progress { display: flex; gap: 6px; min-height: 5px; }
+.walk-progress span { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
+.walk-progress span[data-state="done"] { background: var(--accent); }
+.walk-progress span[data-state="current"] { background: var(--toggle); }
+/* "Question X of Y", pinned to the panel's upper left (outside the scrolling stage); the total flashes when it changes. */
+.walk-count { margin: 8px 0 0; text-align: left; }
+.walk-count-total { padding: 0 4px; border-radius: 6px; }
+.walk-count-total.walk-count-flash { animation: walk-count-flash 1s ease-out both; }
+@keyframes walk-count-flash { from { background: var(--accent); color: var(--accent-ink); }
+  to { background: transparent; color: inherit; } }
+.walk-bar { display: flex; align-items: center; gap: 8px; min-height: 56px; }
+.walk-topic { flex: 1; text-align: center; color: var(--ink-2); font-size: 1rem; }
+.walk-icon { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--surface);
+  color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.walk-icon:disabled { visibility: hidden; }
+.walk-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.walk-stage { display: grid; overflow-y: auto; overflow-x: hidden; padding: 8px var(--gutter) 24px; }
+.walk-screen { grid-area: 1 / 1; align-self: center; width: 100%; max-width: 34rem; margin-inline: auto; display: grid;
+  gap: 14px; }
+.walk-screen.walk-review { align-self: start; }
+.walk-eyebrow { color: var(--accent); font-size: 0.8rem; }
+.walk-eyebrow.walk-deeper { color: var(--bad); }
+.walk-head { display: flex; align-items: flex-start; gap: 4px; }
+.walk-question { flex: 1; font-size: clamp(1.6rem, 6vw, 2.2rem); line-height: 1.18; font-weight: 650; letter-spacing: -0.01em; }
+.walk-question:focus { outline: none; }
+.walk-question:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+.walk-head .help-button { margin: 4px 0 0; }
+.walk-lede { color: var(--ink-2); font-size: 1.05rem; }
+.walk-help { font-size: 0.95rem; }
+.walk-controls { display: grid; gap: 14px; padding-top: 6px; }
+.walk-field { display: grid; gap: 8px; }
+.walk-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 600; }
+.walk-label .help-button { margin: -8px -12px -8px 0; }
+.walk-number .input, .walk-select { min-height: 56px; font-size: 20px; border-radius: 16px; background: var(--surface);
+  color: var(--ink); }
+.walk-number .affix .input { padding-left: 32px; }
+.walk-number .affix::before { left: 16px; font-size: 20px; }
+.walk-number .affix[data-suffix]::after { right: 16px; font-size: 20px; }
+.walk-options { display: grid; gap: 10px; }
+.walk-option { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 10px 16px; border: 2px solid var(--line);
+  border-radius: 16px; background: var(--surface); color: var(--ink); font-size: 1.05rem; font-weight: 600; text-align: left;
+  cursor: pointer; }
+.walk-option[aria-checked="true"] { border-color: var(--accent); }
+.walk-radio { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--muted); display: grid;
+  place-items: center; }
+.walk-option[aria-checked="true"] .walk-radio { border-color: var(--accent); }
+.walk-option[aria-checked="true"] .walk-radio::after { content: ""; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent); }
+.walk-field .field { background: var(--surface); margin: 0; }
+.walk-example { justify-self: start; padding: 4px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--ink-2);
+  font-size: 0.85rem; }
+.walk-error { color: var(--bad); font-weight: 600; }
+.walk-actions { width: 100%; max-width: 34rem; margin-inline: auto; display: grid; gap: 8px;
+  padding: 10px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); }
+.walk-primary { min-height: 56px; border-radius: 16px; font-size: 1.05rem; }
+.walk-deeper-button { min-height: 48px; border-radius: 16px; }
+.walk-preview { margin: -2px 0 2px; padding-left: 1.4em; color: var(--ink-2); font-size: 0.9rem; }
+.walk-quiet-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 12px; }
+.walk-quiet { min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--ink-2); font-size: 0.95rem;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+.walk.walk-swapping .walk-stage, .walk.walk-swapping .walk-actions { pointer-events: none; }
+.walk-screen.leaving, .walk-screen.entering { animation: 340ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.walk-screen.leaving.forward { animation-name: walk-out-left; }
+.walk-screen.leaving.back { animation-name: walk-out-right; }
+.walk-screen.entering.forward { animation-name: walk-in-right; }
+.walk-screen.entering.back { animation-name: walk-in-left; }
+.walk-screen.fading-out { animation: walk-fade-out 300ms ease-out both; }
+.walk-screen.fading-in { animation: walk-fade-in 300ms ease-out both; }
+@keyframes walk-out-left { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-48px); } }
+@keyframes walk-out-right { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(48px); } }
+@keyframes walk-in-right { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: none; } }
+@keyframes walk-in-left { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
+@keyframes walk-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes walk-fade-in { from { opacity: 0; } to { opacity: 1; } }
+/* The Trail (bottom sheet) and the review list: topics as headings, questions under them, deeper ones indented. */
+.walk-backdrop { position: fixed; inset: 0; z-index: 85; background: var(--edge-shadow); }
+.walk-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; max-height: 88dvh; max-width: 40rem; margin-inline: auto;
+  display: grid; grid-template-rows: auto 1fr; background: var(--surface); color: var(--ink); border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 30px var(--edge-shadow); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.walk-sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 18px var(--gutter) 8px; }
+.walk-sheet-head h2 { font-size: 1.4rem; }
+.walk-sheet-body { overflow-y: auto; padding: 0 var(--gutter) 20px; }
+.walk-leave { grid-template-rows: none; gap: 10px; padding: 20px var(--gutter) calc(20px + env(safe-area-inset-bottom, 0px)); }
+.walk-leave .button-danger { justify-self: stretch; }
+.walk-trail, .walk-trail-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.walk-topic-group { padding-top: 14px; display: grid; gap: 4px; }
+.walk-trail-list > li { padding-left: calc(var(--depth, 0) * 18px); border-bottom: 1px solid var(--line); }
+.walk-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 10px; border: 0;
+  border-radius: 12px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+.walk-row[aria-current="step"] { background: var(--accent-soft); }
+.walk-row.walk-offer { min-height: 44px; color: var(--accent); font-weight: 600; border: 1px dashed var(--line); margin: 4px 0; }
+.walk-row-text { flex: 1; display: grid; min-width: 0; }
+.walk-row-label { font-weight: 550; }
+.walk-row-answer { color: var(--muted); font-size: 0.9rem; overflow-wrap: anywhere; }
+.walk-tag { flex: none; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); font-size: 0.8rem; }
+.walk-tag[data-status="answered"] { background: var(--accent-soft); color: var(--accent); }
+.walk-tag[data-status="now"] { background: var(--accent); color: var(--accent-ink); }
+.walk-review-row { display: flex; align-items: center; gap: 10px; min-height: 48px; padding-block: 4px; }
+.walk-change { flex: none; min-height: 44px; min-width: 44px; padding: 0 10px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--accent); font-weight: 600; cursor: pointer; }
+.walk-resume { position: fixed; z-index: 75; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); min-height: 44px; padding: 0 18px; border: 0;
+  border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 600;
+  box-shadow: 0 6px 20px var(--edge-shadow); cursor: pointer; }
+.walk-toast { position: fixed; z-index: 75; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); padding: 12px 16px; border-radius: 14px;
+  background: var(--hero); color: var(--hero-ink); box-shadow: 0 6px 20px var(--edge-shadow); }
+/* Back to Social Security, on Income after Earnings history was chosen on Retirement: a pill above the tab bar */
+.earnings-return { position: fixed; z-index: 74; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center;
+  max-width: calc(100% - 2 * var(--gutter)); border-radius: 999px; background: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 6px 20px var(--edge-shadow); }
+.earnings-return button { min-height: 44px; border: 0; background: transparent; color: inherit; font-weight: 600;
+  cursor: pointer; }
+.earnings-return-back { padding: 0 6px 0 18px; }
+.earnings-return-close { min-width: 44px; padding: 0 12px; font-size: 20px; line-height: 1; }
+.earnings-return button:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: -4px; border-radius: 999px; }
+/* The "New version ready" bar of the installed (static host) build, above the tab bar */
+.update-bar { position: fixed; z-index: 75; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center;
+  justify-content: space-between; gap: 12px; padding: 10px 12px 10px 16px; border-radius: 14px;
+  background: var(--hero); color: var(--hero-ink); box-shadow: 0 6px 20px var(--edge-shadow); }
+.update-actions { display: flex; flex: none; gap: 8px; }
+/* About: the version line, Check for updates (static host build only) and its short result */
+.about-update { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.about-update #aboutUpdateStatus { flex-basis: 100%; }
+.about-update #aboutUpdateStatus:empty { display: none; }
+
+/* Terms and agreement: the full-screen step before the app on a first visit or a new Terms version */
+.terms { position: fixed; inset: 0; z-index: 95; height: 100dvh; overflow-y: auto; background: var(--bg); color: var(--ink);
+  padding: calc(env(safe-area-inset-top, 0px) + 24px) var(--gutter) calc(env(safe-area-inset-bottom, 0px) + 24px); }
+.terms-inner { width: 100%; max-width: 40rem; margin-inline: auto; display: grid; gap: 14px; }
+.terms-title { font-size: 26px; line-height: 1.15; font-weight: 700; margin: 0; }
+.terms-title:focus { outline: none; }
+.terms-summary { display: grid; gap: 6px; color: var(--ink-2); }
+.terms-summary p { margin: 0; }
+.legal-summary { color: var(--ink-2); }
+.legal-summary ul { margin: 0 0 6px; padding-left: 20px; }
+.legal-summary li { margin: 0 0 2px; }
+.terms-text { max-height: 40dvh; overflow-y: auto; padding: 4px 14px 12px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--surface); font-size: 13.5px; }
+.terms-check { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; }
+.terms-check input { width: 22px; height: 22px; flex: none; margin: 1px 0 0; accent-color: var(--accent); }
+.terms-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.terms .button:disabled { opacity: 0.5; cursor: not-allowed; }
+/* The legal documents, drawn as plain headings and paragraphs (Terms step and Legal window) */
+.legal-doc h3 { font-size: 15px; margin: 14px 0 4px; }
+.legal-doc h4 { font-size: 14px; margin: 12px 0 2px; }
+.legal-doc p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.legal-docs { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
+
+/* "See this state's rules" under the Home state and Relocation state selects: a link to that state's page of the
+   user documentation, opened in a new tab (app.js, stateRulesLink). */
+.state-rules-link { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; color: var(--accent);
+  font-size: 14px; text-decoration: underline; }
+
+/* The ownership timeline on the Home and Cars panes: one group per lane, its bar row (owned filled, rented hatched,
+   leased outlined, no car blank, a car's calculated replacements gray) then its segment cards with their buttons and
+   its calculated replacement cards (gray, dashed); and the workflow's fields in the bottom sheet. */
+.timeline-body { display: grid; gap: 10px; }
+.earnings-editor .input { width: 100%; min-width: 6em; }
+.timeline-group { display: grid; gap: 8px; padding: 6px 0; }
+.timeline-group + .timeline-group { border-top: 1px solid var(--line); padding-top: 12px; }
+.timeline-lane { position: relative; height: 22px; border-radius: 6px; background: var(--surface-2); }
+.timeline-bar { position: absolute; top: 0; bottom: 0; border-radius: 6px; box-sizing: border-box; }
+.timeline-bar[data-mode=own] { background: var(--s0); }
+.timeline-bar[data-mode=rent] { background: repeating-linear-gradient(45deg, var(--s1) 0 4px, transparent 4px 8px); }
+.timeline-bar[data-mode=lease] { border: 2px solid var(--s2); }
+.timeline-bar[data-mode=gap] { background: transparent; }
+/* Homes: the primary residence lane (owned or rented) in --tl-primary, a second home in --s0. */
+.timeline-bar[data-mode=own][data-primary=true] { background: var(--tl-primary); }
+.timeline-bar[data-mode=rent][data-primary=true] {
+  background: repeating-linear-gradient(45deg, var(--tl-primary) 0 4px, transparent 4px 8px); }
+.timeline-bar.timeline-calculated { border-left: 2px solid var(--surface); }
+.timeline-bar.timeline-calculated[data-mode=own] { background: var(--muted); opacity: .45; }
+.timeline-bar.timeline-calculated[data-mode=rent] {
+  background: repeating-linear-gradient(45deg, var(--muted) 0 4px, transparent 4px 8px); opacity: .7; }
+.timeline-bar.timeline-calculated[data-mode=lease] { background: var(--surface-2); border: 2px dashed var(--muted); }
+.timeline-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.timeline-card, .timeline-replacement { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 10px; background: var(--surface); min-width: 0; overflow-wrap: anywhere; }
+.timeline-replacement.is-calculated { margin-left: 14px; border-style: dashed; background: var(--surface-2);
+  color: var(--muted); }
+.timeline-replacement .timeline-text { font-weight: 400; }
+.timeline-text { font-weight: 600; }
+.timeline-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.timeline-actions .button[data-action=edit] { display: inline-flex; align-items: center; gap: 6px; }
+.button-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; }
+.timeline-legend { display: flex; align-items: center; gap: 6px; margin: 0; }
+.timeline-swatch { width: 18px; height: 10px; border-radius: 3px; background: var(--muted); opacity: .45; flex: none; }
+/* The Home timeline's legend: one swatch and its words per kind of bar, wrapping on a phone. */
+.timeline-legend-home { list-style: none; padding: 0; flex-wrap: wrap; gap: 6px 14px; }
+.timeline-legend-home li { display: inline-flex; align-items: center; gap: 6px; }
+.timeline-swatch[data-swatch=primary] { background: var(--tl-primary); opacity: 1; }
+.timeline-swatch[data-swatch=second] { background: var(--s0); opacity: 1; }
+.timeline-swatch[data-swatch=rent] {
+  background: repeating-linear-gradient(45deg, var(--tl-primary) 0 3px, transparent 3px 6px); opacity: 1;
+  box-shadow: inset 0 0 0 1px var(--tl-primary); }
+.timeline-state-note { display: block; }
+.timeline-details { justify-self: start; }
+.timeline-question { display: grid; gap: 8px; }
+.timeline-field { display: grid; gap: 4px; padding: 6px 0; }
+.timeline-field[hidden] { display: none; }
+.timeline-field:has(input[type="checkbox"]) { grid-template-columns: 1fr auto; align-items: center; }
+
+/* Wide layout (app.js wireWide: html.wide on a window 1100 px or wider, such as a PC monitor): the top bar is one banner
+   across the top (Undo, the pinned headline figures, the status, ? and the menu), then Setup, Inputs and Outputs side by
+   side (1:2:2 of the width by default) down to the bottom of the window, each scrolling on its own under its chips rows,
+   which stay put; no bottom bar, no band title or subtitle and no pin button. A narrower window keeps the phone layout.
+   Columns: Setup | gap | Inputs | divider | Outputs. The divider (app.js wireSplit, #splitBar) splits the Inputs and
+   Outputs room: --split-in and --split-out are their fr (2fr each when equal, 0fr when shut), --split Inputs' share
+   (0 to 1); html.split-only-outputs or html.split-only-inputs hides the shut column and its chips rows. The icon at the
+   divider's top (#splitSnap) pops out Show only Outputs, Split equally and Show only Inputs on hover or keyboard focus.
+   Over Setup a bar (#setupFold, app.js wireSetupFold) folds the column to a --setup-rail wide rail (html.setup-folded,
+   kept per device); Inputs and Outputs take the freed width at the split they had, and the rail brings Setup back.
+   Each column is positioned so a visually hidden table caption in it scrolls with it, not the page or the grid. */
+/* --setup-min: Setup's column never gets narrower than a small phone's panel, so its labels, the open scenario's
+   buttons and the help buttons fit (on an iPad in landscape, 1133 to 1366 px, a fifth of the width is only 215 to
+   262 px and words went one to a line); Inputs and Outputs share what is left. From 1858 px up the column is the
+   plain fifth, as before. */
+:root.wide { --tabbar: 0px; --wide-pad: 16px; --wide-gap: 12px; --wide-divider: 14px; --setup-min: 340px;
+  --setup-rail: 44px; }
+.wide .app { display: grid; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden;
+  grid-template-columns: minmax(var(--setup-min), 1fr) var(--wide-gap) minmax(0, var(--split-in, 2fr)) var(--wide-divider)
+    minmax(0, var(--split-out, 2fr));
+  grid-template-rows: auto auto auto minmax(0, 1fr); padding-inline: var(--wide-pad); }
+.wide .topbar { grid-column: 1 / -1; grid-row: 1; position: static; display: flex; align-items: center; gap: 12px;
+  padding-inline: 0; }
+.wide .topbar-row { display: contents; }
+.wide .band-label { display: none; }
+.wide .topbar > .pinned { order: 1; flex: 1; min-width: 0; max-width: none; margin: 0; padding: 0 12px; column-gap: 16px; }
+.wide .pin-value { font-size: 18px; }
+.wide #status, .wide #helpButton, .wide #menuButton { order: 2; }
+.wide .band, .wide .panels { display: contents; }
+.wide .band-title, .wide .band-sub, .wide .chips-pin { display: none; }
+.wide .band > .chips-wrap { align-self: start; padding: 2px var(--gutter) 10px; }
+/* Each panel starts right under its own chips: Inputs' chips take row 2 and its panel rows 3 and 4, beside Outputs'
+   view chips (row 2), sub-tab chips (row 3, none on most views) and panel (row 4). Both top rows start level (no
+   phone gap between the rows) and keep room for their scroll bar even when it is off, so they are one height. */
+.wide .band > .chips-wrap[data-place] + .chips-wrap:not([hidden]) { margin-top: 0; }
+.wide .chips-wrap:is([data-place="inputs"], [data-place="outputs"]) .chips-track-off { display: block; visibility: hidden; }
+.wide .chips-wrap[data-place="inputs"] .chips-track { grid-column: 1 / -1; }  /* under the chips: no pin button here */
+.wide .chips-wrap[data-place="inputs"] { grid-column: 3; grid-row: 2; }
+.wide .chips-wrap[data-place="outputs"] { grid-column: 5; grid-row: 2; }
+.wide .chips-wrap[data-place^="outputs/"] { grid-column: 5; grid-row: 3; }
+.wide #panel-setup { grid-column: 1; grid-row: 2 / 5; margin-top: 48px; }  /* under its fold bar (36 px and margins) */
+.wide #panel-inputs { grid-column: 3; grid-row: 3 / 5; }
+.wide #panel-outputs { grid-column: 5; grid-row: 4; }
+.wide .panel { position: relative; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start;
+  background: var(--bg); border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
+  padding: 16px var(--gutter) 24px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+.wide .tabbar { display: none; }
+/* Setup's narrow column: the open scenario's three buttons in one row of equal thirds. (The Scenario files strip
+   keeps its flex row, so Import and Export share it evenly while Auto-save hides Save.) */
+.wide #panel-setup #savedCard .action-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.wide .menu { right: 12px; }
+/* Back to Social Security floats over the middle of the Inputs column. */
+.wide .earnings-return { --wide-room: calc(100% - 2 * var(--wide-pad) - var(--wide-gap) - var(--wide-divider));
+  --wide-setup: max(var(--setup-min), var(--wide-room) / 5);
+  left: calc(var(--wide-pad) + var(--wide-gap) + var(--wide-setup) + var(--split, 0.5) * (var(--wide-room) - var(--wide-setup)) / 2); }
+.wide.setup-folded .earnings-return { --wide-setup: var(--setup-rail); }
+/* Setup's fold (#setupFold): a bar over the column ("Setup" and a chevron) that folds it to a --setup-rail wide rail;
+   the rail is the same button, the chevron at its top and the open scenario's name down it. */
+.setup-fold { display: none; }
+.wide .setup-fold { display: flex; align-items: center; gap: 8px; grid-column: 1; grid-row: 2; align-self: start;
+  min-width: 0; height: 36px; margin: 2px 0 10px; padding: 0 6px 0 var(--gutter); border: 0; border-radius: 999px;
+  background: transparent; color: var(--band-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  text-align: start; }
+.setup-fold-text { flex: 1; min-width: 0; }
+.setup-fold-name { display: none; }
+.setup-fold-icon { display: grid; width: 26px; height: 26px; padding: 6px; border-radius: 999px;
+  background: var(--band-button); color: var(--band-button-ink); }
+.wide .setup-fold:hover, .wide .setup-fold:focus-visible { background: var(--chip-off); color: var(--chip-off-ink); }
+.wide .setup-fold:hover .setup-fold-icon { background: var(--chip-on); color: var(--chip-on-ink); }
+.wide .setup-fold:focus-visible { outline: 3px solid var(--chip-on); outline-offset: 0; }
+.wide.setup-folded .app { grid-template-columns: var(--setup-rail) var(--wide-gap) minmax(0, var(--split-in, 2fr))
+  var(--wide-divider) minmax(0, var(--split-out, 2fr)); }
+.wide.setup-folded #panel-setup { display: none; }
+.wide.setup-folded .setup-fold { grid-row: 2 / 5; align-self: stretch; flex-direction: column; justify-content: flex-start;
+  gap: 12px; height: auto; margin: 0; padding: 10px 0 24px; overflow: hidden; border-radius: 24px 24px 0 0;
+  background: var(--band-button); color: var(--band-button-ink); box-shadow: 0 -1px 0 var(--sheet-edge); }
+.wide.setup-folded .setup-fold:hover { background: var(--chip-off); color: var(--chip-off-ink); }
+.wide.setup-folded .setup-fold-icon { order: -1; flex: none; transform: scaleX(-1); background: var(--chip-on);
+  color: var(--chip-on-ink); }
+.wide.setup-folded .setup-fold-text, .wide.setup-folded .setup-fold-name { flex: none; writing-mode: vertical-rl;
+  text-wrap: nowrap; }  /* not white-space, which the walkthrough color check reads as a color */
+.wide.setup-folded .setup-fold-name { display: block; min-height: 0; flex: 0 1 auto; overflow: hidden;
+  text-overflow: ellipsis; font-weight: 400; color: inherit; opacity: 0.85; }
+/* The divider between Inputs and Outputs: a bar with a grip down the middle, the full height of the two panes. */
+.split, .split-snap { display: none; }
+.wide .split { display: block; grid-column: 4; grid-row: 3 / 5; position: relative; cursor: col-resize;
+  touch-action: none; border-radius: 999px; }
+.wide .split::before { content: ""; position: absolute; inset: 0 -4px; }  /* a wider target than the bar */
+.split-grip { position: absolute; left: 50%; top: 50%; width: 4px; height: 48px; transform: translate(-50%, -50%);
+  border-radius: 999px; background: var(--band-thumb); opacity: 0.55; transition: opacity 0.15s, background-color 0.15s; }
+.wide .split:hover .split-grip, :root.split-dragging .split-grip { opacity: 1; background: var(--chip-on); }
+.wide .split:focus-visible { outline: 3px solid var(--chip-on); outline-offset: 0; }
+:root.split-dragging, :root.split-dragging * { cursor: col-resize !important; user-select: none; }
+.wide.split-only-outputs #panel-inputs, .wide.split-only-outputs .chips-wrap[data-place="inputs"],
+.wide.split-only-inputs #panel-outputs, .wide.split-only-inputs .chips-wrap[data-place^="outputs"] { display: none; }
+/* The snap icon at the divider's top; hover, keyboard focus or a tap pops out its three buttons under it. */
+.wide .split-snap { display: flex; flex-direction: column; align-items: center; grid-column: 4; grid-row: 3 / 5;
+  justify-self: center; align-self: start; position: relative; z-index: 30; margin-top: 10px; }
+.split-snap-open, .split-snap-button { display: inline-grid; place-items: center; border: 0; border-radius: 999px;
+  background: var(--band-button); color: var(--band-button-ink); cursor: pointer; padding: 0; }
+.split-snap-open { width: 26px; height: 26px; }
+.split-snap-open .button-icon { width: 14px; height: 14px; }
+.split-snap-open:hover, .split-snap-button:hover { background: var(--chip-on); color: var(--chip-on-ink); }
+.split-snap-menu { position: absolute; top: 100%; display: flex; gap: 4px; padding: 8px 4px 4px; visibility: hidden;
+  opacity: 0; transform: translateY(-4px); transition: opacity 0.15s, transform 0.15s, visibility 0s linear 0.15s; }
+.split-snap-menu::before { content: ""; position: absolute; inset: 4px 0 0; z-index: -1; border-radius: 999px;
+  background: var(--band); box-shadow: 0 4px 14px var(--edge-shadow), 0 0 0 1px var(--band-track); }
+.split-snap:hover .split-snap-menu, .split-snap:has(:focus-visible) .split-snap-menu,
+.split-snap.open .split-snap-menu { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+.split-snap-button { width: 36px; height: 36px; }
+.split-snap-button .button-icon { width: 18px; height: 18px; }
+.split-snap-button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--chip-on); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .undo-flash, .field.undo-flash, .tint-alt .field.undo-flash { animation: none;
+    background-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .open-card.undo-flash { animation: none; background-color: var(--accent-soft); box-shadow: inset 0 0 0 3px var(--accent),
+    0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 18px 4px color-mix(in srgb, var(--accent) 55%, transparent); }
+  /* The walkthrough still cross-fades (opacity only, no slide). */
+  .walk-stage .walk-screen.fading-out, .walk-stage .walk-screen.fading-in { animation-duration: 300ms !important; }
+  /* A changed question total stays highlighted for the flash's second, without fading. */
+  .walk-count-total.walk-count-flash { animation: none !important; background: var(--accent); color: var(--accent-ink); }
+  .tour-ring.tour-pulse, .tour-tap { animation: none !important; }
+}
+
+/* Setup's Advanced settings at the bottom: a closed card (open or shut kept per device) holding the Run settings. */
+.advanced-head { display: grid; gap: 2px; min-width: 0; }
+.advanced-hint { font-size: 13.5px; font-weight: 400; color: var(--ink-2); }
+.run-card { display: grid; gap: 12px; min-width: 0; }
+.run-card > h2 { margin: 0; }
+.run-card + .run-card { margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
+
+/* The headline figures: each one a block like the Summary tiles (the surface, its edge, label over value, a rounded
+   box), and a line under the top bar that sets them apart from the rest of the app (phone and wide layouts). */
+.topbar:has(.pinned:not(:empty)) { padding-bottom: 10px;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent), 0 6px 10px -8px rgb(0 0 0 / 0.35); }
+.pinned { padding-top: 8px; }
+.pin { display: grid; align-content: start; gap: 2px; padding: 7px 10px; border-radius: 14px; background: var(--surface);
+  background-image: var(--fx-card-sheen); color: var(--ink); box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow); }
+.pin .pin-label { color: var(--ink-2); }
+@media (max-width: 480px) { .pin { padding: 7px 6px; } }
+/* A 320 px phone: the widest values (such as -$115.93k) need a little more room than the tiles leave. */
+@media (max-width: 340px) { .pinned { gap: 6px; } .pin { padding: 7px 4px; } .pin-value { font-size: 10px; } }
+.wide .topbar > .pinned { padding-top: 0; }
+.wide .pin { padding: 6px 12px; }
+
+</style>
+
+<div id="boot" class="boot" aria-live="polite">
+  <div class="boot-inner">
+    <p class="eyebrow">wmti on this device</p>
+    <h1 class="boot-title">Walk Me Through It™</h1>
+    <p class="boot-lede">Plan your retirement income, spending and taxes, then see how your plan holds up across many possible futures. Everything runs privately on this device. The first load downloads about 20 MB and takes around 20 seconds; later loads are faster.</p>
+    <div class="progress" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="bootProgress"><span id="bootBar"></span></div>
+    <ol class="boot-steps" id="bootSteps"></ol>
+    <p class="boot-time" id="bootTime">0 s</p>
+    <div class="boot-error" id="bootError" hidden>
+      <p><strong>The app did not start.</strong> <span id="bootErrorText"></span></p>
+      <button type="button" class="button" id="bootRetry">Try again</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="app" hidden>
+  <header class="topbar">
+    <div class="topbar-row">
+      <button type="button" class="round-button" id="undoButton" aria-label="Undo" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+      <span class="band-label" id="bandLabel">Outputs</span>
+      <span class="channel-badge" id="channelBadge" hidden>Beta</span>
+      <span class="status" id="status" role="status" data-state="idle"><span class="status-dot"></span><span id="statusText">Ready</span></span>
+      <button type="button" class="round-button" id="helpButton" aria-label="How to use this app" aria-haspopup="dialog" aria-controls="tour">
+        <span class="help-glyph" aria-hidden="true">?</span></button>
+      <button type="button" class="round-button" id="menuButton" aria-label="Menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+    <div class="pinned" id="pinned" aria-label="Headline figures" aria-live="polite"></div>
+  </header>
+
+  <div class="band">
+    <h1 class="band-title" id="bandTitle">Summary</h1>
+    <p class="band-sub" id="bandSub"></p>
+    <div class="chips-wrap" data-place="outputs">
+      <div class="chips" id="views-outputs" role="tablist" aria-label="Outputs sections">
+        <button type="button" role="tab" class="chip view-tab" id="sub-summary" data-view="summary" aria-controls="view-summary">Summary</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-optimize" data-view="optimize" aria-controls="view-optimize">Optimize</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-awards" data-view="awards" aria-controls="view-awards" hidden>Awards</button>
+      </div>
+      <button type="button" class="chips-pin" id="chipsPinOut" aria-pressed="true" aria-label="Unpin groups">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
+      <div class="chips-track" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="chips-wrap" data-place="inputs">
+      <div class="chips" role="tablist" aria-label="Settings groups" id="chips-settings"></div>
+      <button type="button" class="chips-pin" id="chipsPin" aria-pressed="true" aria-label="Unpin groups">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
+      <div class="chips-track" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="chips-wrap" data-place="outputs/plots">
+      <div class="chips" role="tablist" aria-label="Charts" id="chips-plots"></div>
+      <div class="chips-track" aria-hidden="true"><span></span></div>
+    </div>
+    <p class="sr-only" id="chipsLive" aria-live="polite"></p>
+  </div>
+
+  <main class="panels">
+    <!-- Wide layout only: the bar over Setup that folds it to a rail, and the rail that brings it back (app.js
+         wireSetupFold). -->
+    <button type="button" class="setup-fold" id="setupFold" aria-controls="panel-setup" aria-expanded="true"
+      aria-label="Hide Setup" title="Hide Setup"><span class="setup-fold-text" aria-hidden="true">Setup</span><span
+      class="setup-fold-name" id="setupFoldName" aria-hidden="true"></span><svg class="button-icon setup-fold-icon"
+      viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <section class="panel" id="panel-setup" data-tab="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
+      <div class="card open-card" id="savedCard">
+        <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
+        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, and Clear empties every setting (Undo, top left, brings them back). The Scenario files panel below saves it, imports and exports scenario files, and lists the other scenarios kept here. Your current settings are also kept as you edit.</p>
+        <p class="open-name" id="loadedName"></p>
+        <p class="example-tag" id="exampleTag" hidden><span>Tough example</span><button type="button" class="help-button" aria-expanded="false" aria-controls="help-example" aria-label="About the tough example"><span>i</span></button></p>
+        <p class="field-help" id="help-example" hidden>This example household runs out of money in many of the Monte Carlo runs, so its first results look like a plan in trouble. That is on purpose: it shows what a struggling plan looks like. Its figures are fictional. Change them, or start a new scenario, to try your own.</p>
+        <div class="open-status">
+          <span class="dirty-dot" id="dirtyDot" aria-hidden="true"></span><span id="saveStatus" role="status"></span>
+          <label class="mini-switch"><span>Auto-save</span><button type="button" class="mini-toggle" id="autoSave" role="switch" aria-checked="false" aria-label="Auto-save"></button></label>
+        </div>
+        <div class="action-strip" role="group" aria-label="Open scenario">
+          <button type="button" class="strip-button" id="renameButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg><span>Rename</span></button>
+          <button type="button" class="strip-button" id="duplicateButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8z"/><path d="M16 8V4H4v12h4"/></svg><span>Duplicate</span></button>
+          <button type="button" class="strip-button strip-danger" id="clearButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11M3 11h9M3 16h6"/><path d="M14 13l7 7M21 13l-7 7"/></svg><span>Clear</span></button>
+        </div>
+        <p class="banner" id="fileMessage" role="status" hidden></p>
+      </div>
+      <!-- Scenario files (F106): save, import, export, the other saved scenarios (a row opens one) and New. -->
+      <section class="card files-card" id="filesCard" aria-labelledby="filesTitle">
+        <div class="files-head"><svg class="files-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"/></svg><h2 id="filesTitle">Scenario files</h2></div>
+        <div class="action-strip" role="group" aria-label="Scenario files">
+          <button type="button" class="strip-button" id="saveButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span>Save</span></button>
+          <button type="button" class="strip-button" id="importButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M12 18v-7M9 14l3-3 3 3"/></svg><span>Import</span></button>
+          <button type="button" class="strip-button" id="exportButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Export</span></button>
+        </div>
+        <input id="importFile" type="file" hidden>
+        <h3 class="section-label" id="otherTitle">Other scenarios</h3>
+        <div class="scenario-list" id="savedList" role="list" aria-labelledby="otherTitle"></div>
+        <p class="banner" id="savedMessage" role="status" hidden></p>
+        <button type="button" class="button button-quiet big-button" id="newButton">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
+      </section>
+      <!-- Using defaults, the detail added and the raise note (45-experience.js, 46-detail.js, 47-low.js); effort and style themselves are picked in the menu. -->
+      <p class="note" id="defaultsNotice" role="status" hidden></p>
+      <p class="note detail-notice" id="detailNotice" hidden></p>
+      <p class="note low-raise-note" id="lowRaiseNote" role="status" hidden></p>
+      <div class="settings" id="householdCard">
+        <div class="banner banner-error" id="household-error" role="alert" hidden></div>
+        <form id="household-body" class="settings" novalidate></form>
+      </div>
+      <div class="card">
+        <div class="title-help"><h2>Start over</h2><button type="button" class="help-button" aria-expanded="false" aria-controls="help-reset" aria-label="About Start over"><span>i</span></button></div>
+        <p class="field-help" id="help-reset" hidden>Replace your settings with the example household that ships with the model (its figures are fictional). Clear all data removes everything this app keeps in this browser: your settings, saved scenarios, walkthrough progress, preferences, your agreement to the Terms and the offline copy; use it on a shared device when you finish.</p>
+        <div class="row-buttons">
+          <button type="button" class="button button-danger" id="resetButton">Load example household</button>
+          <button type="button" class="button button-danger" id="clearDataButton">Clear all data on this device</button>
+        </div>
+        <p class="banner" id="clearMessage" role="status" hidden></p>
+      </div>
+      <details class="card disclosure advanced" id="advancedSettings">
+        <summary id="advancedSummary"><span class="advanced-head"><span>Advanced settings</span><span class="advanced-hint">Inflation, years to simulate, Monte Carlo runs and seed, for people who know what they change</span></span></summary>
+        <div class="run-card" id="inflationCard">
+          <h2>Inflation</h2>
+          <div id="inflation-body"></div>
+        </div>
+        <div class="run-card" id="runCard">
+          <h2>Run</h2>
+          <div id="run-body"></div>
+        </div>
+        <div id="advancedDetail"></div>
+      </details>
+    </section>
+    <section class="panel" id="panel-inputs" data-tab="inputs" role="tabpanel" aria-labelledby="tab-inputs" hidden>
+      <div class="banner banner-error" id="settings-error" role="alert" hidden></div>
+      <form id="settings-body" class="settings" novalidate></form>
+      <!-- Low effort only (app.js renderLowPage): the Inputs tab as one page of cards, in place of the groups. -->
+      <div id="lowPage" class="settings low-page" hidden></div>
+    </section>
+    <!-- Wide layout only: the divider between Inputs and Outputs and, at its top, the icon that pops out the snap
+         buttons (app.js wireSplit). -->
+    <div class="split" id="splitBar" role="separator" tabindex="0" aria-orientation="vertical"
+      aria-controls="panel-inputs panel-outputs" aria-label="Resize Inputs and Outputs" aria-valuemin="0"
+      aria-valuemax="100" aria-valuenow="50" aria-valuetext="Inputs 50%, Outputs 50%"
+      title="Drag to resize; double-click to split equally"><span class="split-grip" aria-hidden="true"></span></div>
+    <div class="split-snap" id="splitSnap">
+      <button type="button" class="split-snap-open" id="splitSnapOpen" aria-label="Snap Inputs and Outputs"
+        aria-expanded="false" aria-controls="splitSnapMenu" title="Snap Inputs and Outputs"><svg class="button-icon"
+        viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14"/></svg></button>
+      <div class="split-snap-menu" id="splitSnapMenu" role="group" aria-label="Snap Inputs and Outputs">
+        <button type="button" class="split-snap-button" data-split="0" aria-label="Show only Outputs"
+          title="Show only Outputs"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path
+          d="M4 4v16M15 7l-5 5 5 5M10 12h10"/></svg></button>
+        <button type="button" class="split-snap-button" data-split="0.5" aria-label="Split equally"
+          title="Split equally"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5"
+          width="18" height="14" rx="2"/><path d="M12 5v14"/></svg></button>
+        <button type="button" class="split-snap-button" data-split="1" aria-label="Show only Inputs"
+          title="Show only Inputs"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path
+          d="M20 4v16M9 7l5 5-5 5M14 12H4"/></svg></button>
+      </div>
+    </div>
+    <section class="panel" id="panel-outputs" data-tab="outputs" role="tabpanel" aria-labelledby="tab-outputs">
+      <div class="card mc-bar" id="mc-bar" aria-label="Monte Carlo run"></div>
+      <div class="title-help mc-notice-row"><button type="button" class="help-button" aria-expanded="false" aria-controls="help-mc-notice" aria-label="About these results: not advice, hypothetical"><span>i</span></button></div>
+      <div id="help-mc-notice" hidden>
+      <p class="field-help mc-disclaimer" id="mcAdvice">Not financial, tax, legal or investment advice, and we are not your fiduciary: verify any result with a licensed professional before you act. Projections are hypothetical, not guarantees; the assumed returns and law figures may be wrong or outdated.</p>
+      <p class="field-help mc-disclaimer" id="mcDisclaimer">IMPORTANT: THE PROJECTIONS OR OTHER INFORMATION GENERATED BY THE SOFTWARE REGARDING THE LIKELIHOOD OF VARIOUS OUTCOMES ARE HYPOTHETICAL IN NATURE, DO NOT REFLECT ACTUAL RESULTS AND ARE NOT GUARANTEES OF FUTURE RESULTS.</p>
+      </div>
+      <p class="banner" id="exampleBanner" role="status" hidden></p>
+      <div class="subpanel" id="view-summary" data-view="summary" role="tabpanel" aria-labelledby="sub-summary">
+        <div class="warnings" id="summary-warnings"></div>
+        <div id="results-body"></div>
+      </div>
+      <div class="subpanel" id="view-plots" data-view="plots" role="tabpanel" aria-labelledby="sub-plots" hidden>
+        <div id="plots-body"></div>
+      </div>
+      <div class="subpanel" id="view-compare" data-view="compare" role="tabpanel" aria-labelledby="sub-compare" hidden>
+        <div id="compare-body"></div>
+      </div>
+      <div class="subpanel" id="view-optimize" data-view="optimize" role="tabpanel" aria-labelledby="sub-optimize" hidden>
+        <div id="optimize-body"></div>
+      </div>
+      <div class="subpanel" id="view-awards" data-view="awards" role="tabpanel" aria-labelledby="sub-awards" hidden>
+        <div class="subpanel" id="awards-body"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" class="tab" id="tab-setup" data-tab="setup" aria-controls="panel-setup">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>Setup</span></button>
+    <button type="button" role="tab" class="tab" id="tab-inputs" data-tab="inputs" aria-controls="panel-inputs">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Inputs</span></button>
+    <button type="button" role="tab" class="tab" id="tab-outputs" data-tab="outputs" aria-controls="panel-outputs">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Outputs</span></button>
+  </nav>
+
+  <!-- Every sheet and dialog: its title in a header that stays at the top, a footer that stays at the bottom with its
+       actions (Cancel and Save on an edit sheet, Close on a read-only one), and only the body between them scrolls. -->
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Edit</h2>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-foot" id="sheetFoot">
+      <div class="sheet-foot-actions" id="sheetFootActions">
+        <button type="button" class="button button-quiet" id="sheetCancel">Cancel</button>
+        <button type="button" class="button" id="sheetDone">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-backdrop" id="aboutBackdrop" hidden></div>
+  <div class="sheet" id="aboutSheet" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" hidden>
+    <div class="sheet-head">
+      <h2 id="aboutTitle">About</h2>
+    </div>
+    <div class="sheet-body">
+      <p class="field-help">Walk Me Through It (WMTI), a retirement income planner. Everything runs on this device. Nothing you enter is sent anywhere; your settings stay in this browser.</p>
+      <p class="field-help">This planner gives estimates for education only; it is not financial, tax or legal advice. It models United States federal tax and the income taxes of the 50 states and the District of Columbia for the tax year shown below (Law data) only. The example household's figures are fictional.</p>
+      <p class="field-help" id="aboutBuild"></p>
+      <div class="about-update">
+        <p class="field-help" id="aboutVersion"></p>
+        <button type="button" class="button" id="aboutCheck" hidden>Check for updates</button>
+        <p class="field-help" id="aboutUpdateStatus" role="status" aria-live="polite"></p>
+      </div>
+      <dl class="about" id="about"></dl>
+    </div>
+    <div class="sheet-foot"><button type="button" class="button" id="aboutClose">Close</button></div>
+  </div>
+
+  <div class="sheet-backdrop" id="legalBackdrop" hidden></div>
+  <div class="sheet" id="legalSheet" role="dialog" aria-modal="true" aria-labelledby="legalTitle" hidden>
+    <div class="sheet-head">
+      <h2 id="legalTitle">Legal</h2>
+    </div>
+    <div class="sheet-body">
+      <div class="legal-summary"></div>
+      <p class="field-help" id="legalAccepted"></p>
+      <div class="legal-docs" id="legalDocs" role="group" aria-label="Legal documents"></div>
+      <div class="legal-doc" id="legalDoc"></div>
+    </div>
+    <div class="sheet-foot"><button type="button" class="button" id="legalClose">Close</button></div>
+  </div>
+
+  <!-- A Gamer mini game (app.js openGame): over the page or the walkthrough, under the scenario dialog (its confirm). -->
+  <div class="dialog-backdrop" id="gameBackdrop" hidden></div>
+  <div class="dialog gm-dialog" id="gameDialog" role="dialog" aria-modal="true" aria-labelledby="gameTitle" hidden>
+    <div class="dialog-head"><h2 id="gameTitle" tabindex="-1"></h2><p class="gm-readout" id="gameRound"></p>
+      <p class="gm-readout" id="gameStatus" role="status" aria-live="polite"></p></div>
+    <div class="dialog-scroll" id="gameBody"></div>
+    <div class="dialog-actions" id="gameActions"></div>
+  </div>
+  <div class="dialog-backdrop" id="dialogBackdrop" hidden></div>
+  <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogText" hidden>
+    <div class="dialog-head"><h2 id="dialogTitle"></h2></div>
+    <div class="dialog-scroll" id="dialogScroll">
+      <p class="muted" id="dialogText"></p>
+      <div class="dialog-body" id="dialogBody"></div>
+      <p class="field-error" id="dialogError" role="alert" hidden></p>
+    </div>
+    <div class="dialog-actions" id="dialogActions"></div>
+  </div>
+  <!-- The effort and style picker (app.js openExperiencePicker): from the menu with Save and Cancel, and with Continue
+       once at start-up until it has been kept (a new user's first launch, or once for a returning user). -->
+  <div class="dialog-backdrop" id="experienceBackdrop" hidden></div>
+  <div class="dialog experience-dialog" id="experience" role="dialog" aria-modal="true" aria-labelledby="experienceTitle" hidden>
+    <div class="dialog-head"><h2 id="experienceTitle">Effort and style</h2></div>
+    <div class="dialog-scroll">
+      <div class="experience-choices pk" id="experienceChoices"></div>
+      <div class="detail-added" id="experienceDetail" hidden></div>
+      <p class="note experience-notice">You can switch effort and style any time in the menu. Your answers are kept.</p>
+    </div>
+    <div class="dialog-actions" id="experienceActions"></div>
+  </div>
+  <div class="row-menu" id="rowMenu" role="menu" hidden></div>
+
+  <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+  <div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+    <button type="button" class="menu-item" id="menuWalk">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20c2-6 5-4 7-9s4-6 7-7"/><circle cx="5" cy="20" r="1.5"/><circle cx="19" cy="4" r="1.5"/></svg><span id="menuWalkText">Walk me through it...</span></button>
+    <button type="button" class="menu-item" id="menuExperience">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span>Effort and style...</span></button>
+    <a class="menu-item" id="menuDocs" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/></svg><span>Documentation</span></a>
+    <button type="button" class="menu-item" id="menuAppearance" aria-expanded="false" aria-controls="menuScheme">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.2-1-1.6-1-2.6 0-.9.7-1.7 1.7-1.7H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="11" cy="7.5" r="1.2"/><circle cx="15.5" cy="8.5" r="1.2"/></svg><span>Appearance</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    <div class="menu-group" id="menuScheme" role="radiogroup" aria-label="Appearance" hidden>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="lagoon"><span class="swatch swatch-lagoon"></span><span class="scheme-name">Lagoon and hibiscus</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="sunset"><span class="swatch swatch-sunset"></span><span class="scheme-name">Sunset over the motu</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="palm"><span class="swatch swatch-palm"></span><span class="scheme-name">Palm and sand</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="night"><span class="swatch swatch-night"></span><span class="scheme-name">Night lagoon</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+      <button type="button" class="scheme" role="radio" aria-checked="false" data-scheme="device"><span class="swatch swatch-device"></span><span class="scheme-name">Match phone</span><svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></button>
+    </div>
+    <button type="button" class="menu-item" id="menuHelpButton" aria-expanded="false" aria-controls="menuHelp">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg><span>Help and tips</span></button>
+    <ul class="menu-help" id="menuHelp" hidden>
+      <li>Tap the "i" beside a field or a heading for its help.</li>
+      <li>Swipe a row of chips sideways for more groups; the bar under it shows where you are.</li>
+      <li>Swipe the page sideways on Inputs or Outputs to move to the next group or view.</li>
+      <li>Outputs reruns on its own after every change. Setup holds your scenarios (open, saved, new and imported) and the run; Undo (top left) steps back through your last changes.</li>
+      <li>Tap ? (top right) for a short tour of the controls.</li>
+    </ul>
+    <button type="button" class="menu-item" id="menuReport">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 17v-3M12 17v-6M15 17v-4"/></svg><span>Final report (PDF)</span></button>
+    <button type="button" class="menu-item" id="menuAbout">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h0"/></svg><span>About</span></button>
+    <button type="button" class="menu-item" id="menuLegal">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg><span>Legal</span></button>
+  </div>
+</div>
+
+<!-- The tour of the controls (the ? button): a ring over one control at a time and a card that names it, with Back,
+     Next (Done on the last step) and a close button; the page is inert meanwhile. Before a step on another page the
+     card shows the step's title and "Tap Inputs to continue" while the ring, after one pulse, holds on the control to
+     tap with the tap badge (tourTap) on its corner; a tap there or Next goes on. app.js fills it (TOUR_STEPS). -->
+<div class="tour" id="tour" hidden>
+  <div class="tour-ring" id="tourRing" aria-hidden="true"></div>
+  <div class="tour-tap" id="tourTap" aria-hidden="true" hidden><svg viewBox="0 0 24 24"><path d="M9 14.6V7.2a1.5 1.5 0 0 1 3 0v4.6l3.7.6a2 2 0 0 1 1.7 2.3l-.7 4a2.5 2.5 0 0 1-2.5 2.1H11a2.5 2.5 0 0 1-2-1l-3-4a1.4 1.4 0 0 1 2.1-1.9z"/><path d="M10.5 1.8v1.7M6.4 3.4l1.2 1.2M14.6 3.4l-1.2 1.2"/></svg></div>
+  <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText" tabindex="-1">
+    <div class="tour-head">
+      <p class="eyebrow tour-count" id="tourCount"></p>
+      <button type="button" class="walk-icon tour-close" id="tourClose" aria-label="Close the tour">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <h2 class="tour-title" id="tourTitle"></h2>
+    <p class="tour-nav" id="tourNav" aria-live="polite" hidden></p>
+    <p class="tour-text" id="tourText" aria-live="polite"></p>
+    <div class="tour-actions">
+      <button type="button" class="button button-quiet" id="tourBack">Back</button>
+      <button type="button" class="button" id="tourNext">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Terms and agreement: shown before the app (and before the walkthrough) on a first visit and whenever the Terms
+     version changes; the app stays locked until the box is ticked and Agree and continue is pressed. -->
+<div class="terms" id="terms" role="dialog" aria-modal="true" aria-labelledby="termsTitle" hidden>
+  <div class="terms-inner">
+    <p class="eyebrow">Before you start</p>
+    <h1 class="terms-title" id="termsTitle" tabindex="-1">Terms and agreement</h1>
+    <div class="terms-summary legal-summary"></div>
+    <div class="terms-text legal-doc" id="termsText" tabindex="0" aria-label="Terms, Privacy notice and license"></div>
+    <label class="terms-check"><input type="checkbox" id="termsAgree"><span>I have read and agree to the Terms</span></label>
+    <div class="terms-actions">
+      <button type="button" class="button" id="termsAccept" disabled>Agree and continue</button>
+      <button type="button" class="button button-quiet" id="termsDecline">Decline</button>
+    </div>
+    <p class="banner banner-error" id="termsDeclined" role="alert" hidden>This app cannot be used without agreeing to the Terms. To use it, tick the box and choose Agree and continue.</p>
+  </div>
+</div>
+
+<!-- The guided walkthrough: one question at a time over the page (which is inert meanwhile), its Trail and the
+     leave sheet. app.js draws the screens from the tree wmti.dashboard.walkthrough sends. -->
+<form class="walk" id="walk" role="dialog" aria-modal="true" aria-labelledby="walkTitle" novalidate hidden>
+  <div class="walk-top">
+    <div class="walk-progress" id="walkProgress" role="progressbar" aria-label="Walkthrough progress" aria-valuemin="0"></div>
+    <p class="eyebrow walk-count" id="walkCount" aria-hidden="true" hidden>Question <span id="walkCountNumber"></span> of <span class="walk-count-total" id="walkCountTotal"></span></p>
+    <div class="walk-bar">
+      <button type="button" class="walk-icon" id="walkBack" aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="walk-topic" id="walkTopic"></span>
+      <button type="button" class="walk-icon" id="walkMapButton" aria-label="Your trail" aria-haspopup="dialog" aria-expanded="false" aria-controls="walkMap">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c4 0 3-7 7-7s3-7 7-7"/><circle cx="5" cy="19" r="1.6"/><circle cx="19" cy="5" r="1.6"/></svg></button>
+      <button type="button" class="walk-icon" id="walkClose" aria-label="Leave the walkthrough">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+  </div>
+  <p class="sr-only" id="walkLive" aria-live="polite"></p>
+  <div class="walk-stage" id="walkStage"></div>
+  <div class="walk-actions" id="walkActions"></div>
+  <div class="walk-backdrop" id="walkMapBackdrop" hidden></div>
+  <div class="walk-sheet" id="walkMap" role="dialog" aria-modal="true" aria-labelledby="walkMapTitle" hidden>
+    <div class="walk-sheet-head">
+      <div><h2 id="walkMapTitle">Your trail</h2><p class="muted">Tap any step to go there</p></div>
+      <button type="button" class="button button-quiet" id="walkMapDone">Close</button>
+    </div>
+    <div class="walk-sheet-body" id="walkMapBody"></div>
+  </div>
+  <div class="walk-backdrop" id="walkLeaveBackdrop" hidden></div>
+  <div class="walk-sheet walk-leave" id="walkLeave" role="dialog" aria-modal="true" aria-labelledby="walkLeaveTitle" hidden>
+    <h2 id="walkLeaveTitle">Leave the walkthrough?</h2>
+    <p class="muted">Your answers are already in your settings.</p>
+    <button type="button" class="button" id="walkKeep">Keep going</button>
+    <button type="button" class="button button-quiet" id="walkLater">Continue later</button>
+    <button type="button" class="button button-danger" id="walkUndo">Undo my answers</button>
+  </div>
+</form>
+<button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
+<p class="walk-toast" id="walkToast" role="status" hidden></p>
+<p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
+
+<script>window.WMTI_BUILD = { id: "487dc67d2475", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script src="legal.5beed0797f.js"></script>
+<script src="shared.06dfb84447.js"></script>
+<script src="charts.c22ca6d6cc.js"></script>
+<script src="insights.25d1a94d61.js"></script>
+<script src="gamify.09c3e7c6fd.js"></script>
+<script src="games.feab804215.js"></script>
+<script src="report.2b162219ac.js"></script>
+<script src="jspdf.822d41ab6f.js"></script>
+<script src="app.fa6457255d.js"></script>
+<script>
+// Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
+// served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
+// newer build has installed; its Reload button lets the new build take over and reloads the page. The bar names the
+// build this copy runs; its Later button hides it until the next page load (a fresh load, or the next check that
+// finds the waiting build after one, shows it again). The page asks the host for a newer build whenever it comes back
+// into view. The About window's "Check for updates" asks too, through window.wmtiServiceWorker, and shows the bar
+// through window.wmtiOfferUpdate even after Later. Nothing ever reloads the page on its own.
+(function () {
+  "use strict";
+  var ARTIFACT_HOSTS = /(^|\.)(claude\.ai|claudeusercontent\.com|anthropic\.com)$/;
+  if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)
+      || ARTIFACT_HOSTS.test(location.hostname)) return;
+  var reloading = false;
+  var dismissed = false;  // Later was pressed: no bar until the next page load (or an explicit check)
+
+  function offerUpdate(waiting) {
+    if (dismissed || document.getElementById("updateBar")) return;
+    var bar = document.createElement("div");
+    bar.id = "updateBar";
+    bar.className = "update-bar";
+    bar.setAttribute("role", "status");
+    bar.innerHTML = "<span>New version ready</span><span class=\"update-actions\">"
+      + "<button type=\"button\" class=\"button\" id=\"updateLater\">Later</button>"
+      + "<button type=\"button\" class=\"button\" id=\"updateReload\">Reload</button></span>";
+    bar.firstChild.textContent = "New version ready (this copy is build "
+      + String((window.WMTI_BUILD && window.WMTI_BUILD.id) || "unknown") + ")";
+    document.body.appendChild(bar);
+    bar.querySelector("#updateReload").addEventListener("click", function () {
+      reloading = true;
+      waiting.postMessage({ type: "skipWaiting" });
+    });
+    bar.querySelector("#updateLater").addEventListener("click", function () {
+      dismissed = true;
+      bar.remove();
+    });
+  }
+
+  // Show the bar for a waiting build at the user's request (About, Check for updates), even after Later.
+  window.wmtiOfferUpdate = function (waiting) {
+    dismissed = false;
+    offerUpdate(waiting);
+  };
+
+  try {
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (reloading) location.reload();
+    });
+    window.wmtiServiceWorker = navigator.serviceWorker.register("sw.js").then(function (registration) {
+      if (registration.waiting && navigator.serviceWorker.controller) offerUpdate(registration.waiting);
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState !== "visible") return;
+        registration.update().then(function () {
+          if (registration.waiting && navigator.serviceWorker.controller) offerUpdate(registration.waiting);
+        }).catch(function () { /* offline */ });
+      });
+      registration.addEventListener("updatefound", function () {
+        var incoming = registration.installing;
+        if (!incoming) return;
+        incoming.addEventListener("statechange", function () {
+          if (incoming.state === "installed" && navigator.serviceWorker.controller) offerUpdate(incoming);
+        });
+      });
+      return registration;
+    }).catch(function () { return null; });
+  } catch (error) { /* no offline support in this browser */ }
+})();
+</script>
+</body></html>

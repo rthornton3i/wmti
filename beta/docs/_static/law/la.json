@@ -1,0 +1,181 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "la",
+  "name": "Louisiana",
+  "tax_year": 2026,
+  "source": "Louisiana Act 11 of the 2024 third extraordinary session (flat 3 percent from 2025, standard deduction indexed to CPI-U from 2026); LDR 2026 withholding-table emergency rule (LAC 61:I.1501, standard deduction 12875/25750); R.S. 47:44.1 (retirement exclusion, read on legis.la.gov 2026-10-22); second sources EY Tax News 2024-2322, Kiplinger and Bloomberg Tax",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Louisiana starts from federal adjusted gross (or taxable) income, so 401(k) deferrals, Traditional IRA deposits and HSA deposits stay deductible as on the federal return (confirmed primary: https://dam.ldr.la.gov/taxforms/IT540WEB-BC(2025) F.pdf, validation run 2, 2026-10-22)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.03,
+        "base": 0.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.03,
+        "base": 0.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 12875.0,
+    "JOINT": 25750.0,
+    "note": "2026 amounts the Louisiana Department of Revenue used for its 2026 withholding tables (12500/25000 for 2025 raised by the CPI-U); it says the amounts for 2026 returns may differ slightly. Head of household also gets 25750 (not modelled). No 65-or-older extra deduction for 2026: SB 240 (2025) died in committee and HB 667 stalled (https://legis.la.gov/LEGIS/BillInfo.aspx?i=248928, validation run 3, 2026-10-22)."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 65,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 12324.0,
+      "JOINT": 24648.0,
+      "MFS": 12324.0
+    },
+    "note": "R.S. 47:44.1: 12000 of pension and annuity income per person aged 65 or older, adjusted by the CPI-U each year from 2026: 12,324 for tax year 2026 per spouse, also on separate returns (LDR notice of intent for LAC 61:I.1311, https://dam.ldr.la.gov/lawspolicies/NOI (Clean) LAC  61.I.1311 PDF.pdf, confirmed primary, validation run 2, 2026-10-22). Not modelled: the full exemption of federal, state and Louisiana public pensions and military retirement pay."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Louisiana R.S. 47:2401 to 47:2462 (inheritance tax repealed for deaths after 30 June 2004; estate transfer tax tied to the federal state death tax credit)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Louisiana has no estate tax and no inheritance tax: the inheritance tax was repealed for deaths after 30 June 2004 and the estate transfer tax depended on the federal state death tax credit, which ended in 2005 (state-costs.csv estate_tax and inheritance_tax 'none'; Tax Foundation 2026 map)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://dam.ldr.la.gov/taxforms/IT540WEB-BC(2025) F.pdf",
+    "note": "Louisiana does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://dam.ldr.la.gov/taxforms/IT540WEB-BC(2025) F.pdf (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "Louisiana Constitution and LDR: no parish or municipal income tax on individuals",
+    "note": "Louisiana cities, parishes and counties levy no income tax on individuals (state-costs.csv local_income_tax 'none'; Tax Foundation local income tax map)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.05,
+    "avg_local_rate": 0.0513,
+    "combined_rate": 0.1013,
+    "vehicle_rate": 0.1013,
+    "grocery_rate": 0.0513,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Louisiana revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: yes); research note: Food for home consumption exempt from state tax only; parish/municipal taxes apply; 2025 HB 229 (local exemption) not confirmed enacted. clothing_taxable is true (research: yes; taxed). Some towns tax groceries and others do not; the estimate uses the general average local rate, so it overstates. Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00557,
+    "confidence": "confirmed primary",
+    "check_at": "https://data.census.gov/api/access/data/table?id=ACSDT1Y2024.B25090&g=040XX00US22",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Confirmed primary on the Census ACS 2024 1-year tables (https://data.census.gov/api/access/data/table?id=ACSDT1Y2024.B25090&g=040XX00US22, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 5028.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2508.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 29.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://legis.la.gov/Legis/Law.aspx?d=102143",
+    "source": "WalletHub, 2026's Property Taxes by State, vehicle tax table (https://wallethub.com/edu/t/states-with-the-highest-and-lowest-property-taxes/11585/), read 2026-10-22",
+    "note": "Annual vehicle tax on a 29100 car (2026 Toyota Camry LE): registration licence tax of about 0.1 percent of value. One source, so unconfirmed; flat registration and title fees are not in it. Set by hand after .claude/state/scratch/importStateCosts.py (which writes 0); rerunning the importer resets it. Confirmed primary on https://legis.la.gov/Legis/Law.aspx?d=102143 (validation run 2, 2026-10-22)."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.2,
+    "average_price_per_gallon": 2.91,
+    "confidence": "unconfirmed",
+    "check_at": "Louisiana motor fuel tax page and EIA gasoline prices (https://www.eia.gov/petroleum/gasdiesel/)",
+    "source": "Excise: USGasGauge/EIA (https://usgasgauge.com/gas-tax) and Kiplinger 2026 for some states, memory for the rest; price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1335,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 213867.0,
+    "cost_index": 81.3,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1372.0,
+    "medigap_g_monthly": 209.0,
+    "part_d_monthly": 45.51,
+    "medicare_advantage_monthly": 8.76,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Louisiana insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 95.2,
+    "bea_goods": 93.7,
+    "bea_services": 95.7,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 4195.0,
+    "assisted_living_monthly": 5100.0,
+    "nursing_home_private_monthly": 7604.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

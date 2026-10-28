@@ -1,0 +1,254 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ma",
+  "name": "Massachusetts",
+  "tax_year": 2026,
+  "source": "Massachusetts Department of Revenue pages read directly on 2026-10-24 (s359): Tax Rates (https://www.mass.gov/info-details/tax-rates, updated 2025-12-30) and Massachusetts 4% Surtax on Taxable Income (https://www.mass.gov/info-details/massachusetts-4-surtax-on-taxable-income, updated 2026-06-01): 5% Part B rate and the 4% surtax on taxable income over 1,107,750 for tax year 2026, one threshold per return whatever the filing status; Personal Income Tax Exemptions (https://www.mass.gov/info-details/personal-income-tax-exemptions, updated 2026-10-14); Differences Between MA and Federal Tax Law for Personal Income (https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income, updated 2026-10-22); 2025 Form 1 instructions and Schedule Y (DOR)",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [
+      "traditional_ira_deposit"
+    ],
+    "note": "Massachusetts allows no deduction for Traditional IRA deposits, so they are added back; 401(k) and 403(b) deferrals are left out of Massachusetts wages (Form 1 line 3 takes the W-2 state wages, generally the federal Form 1040 line 1z amount) and HSA deposits are deductible (Schedule Y line 8 takes the federal amount), as on the federal return. Not modelled: the deduction of up to 2,000 per person of Social Security, Medicare and public pension contributions. Confirmed primary on the DOR page Differences Between MA and Federal Tax Law for Personal Income (updated 2026-10-22) and the DOR 2025 Form 1 instructions and Schedule Y, read 2026-10-24 (s359).",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income"
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.mass.gov/info-details/massachusetts-4-surtax-on-taxable-income",
+    "note": "5% on all taxable income plus the 4% surtax above 1,107,750 for 2026, one threshold for every filing status (DOR Tax Rates and 4% Surtax pages, read 2026-10-24); base 55,387.50 is 5% of the threshold.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.05,
+        "base": 0.0
+      },
+      {
+        "threshold": 1107750,
+        "rate": 0.09,
+        "base": 55387.5
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.05,
+        "base": 0.0
+      },
+      {
+        "threshold": 1107750,
+        "rate": 0.09,
+        "base": 55387.5
+      }
+    ]
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 4400.0,
+    "JOINT": 8800.0,
+    "senior": 700.0,
+    "dependent": 1000.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.mass.gov/info-details/personal-income-tax-exemptions",
+    "note": "Personal exemption 4,400 single or married filing separately and 8,800 joint (head of household 6,800, not modelled), 700 more for each person 65 or older by 31 December, 1,000 per dependent; amounts fixed by statute, not indexed. Confirmed primary on the DOR Personal Income Tax Exemptions page (updated 2026-10-14), read 2026-10-24 (s359)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.mass.gov/info-details/massachusetts-law-about-estate-taxation and M.G.L. c. 65C, s. 2A (Form M-706 instructions)",
+    "estate_tax": {
+      "exemption": 2000000.0,
+      "brackets": [
+        {
+          "threshold": 0,
+          "rate": 0.072,
+          "base": 0.0
+        },
+        {
+          "threshold": 100000,
+          "rate": 0.08,
+          "base": 7200.0
+        },
+        {
+          "threshold": 600000,
+          "rate": 0.088,
+          "base": 47200.0
+        },
+        {
+          "threshold": 1100000,
+          "rate": 0.096,
+          "base": 91200.0
+        },
+        {
+          "threshold": 1600000,
+          "rate": 0.104,
+          "base": 139200.0
+        },
+        {
+          "threshold": 2100000,
+          "rate": 0.112,
+          "base": 191200.0
+        },
+        {
+          "threshold": 3100000,
+          "rate": 0.12,
+          "base": 303200.0
+        },
+        {
+          "threshold": 4100000,
+          "rate": 0.128,
+          "base": 423200.0
+        },
+        {
+          "threshold": 5100000,
+          "rate": 0.136,
+          "base": 551200.0
+        },
+        {
+          "threshold": 6100000,
+          "rate": 0.144,
+          "base": 687200.0
+        },
+        {
+          "threshold": 7100000,
+          "rate": 0.152,
+          "base": 831200.0
+        },
+        {
+          "threshold": 8100000,
+          "rate": 0.16,
+          "base": 983200.0
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "Massachusetts estate tax (M.G.L. c. 65C) for deaths from 1 January 2023: the old federal state death tax credit table (0.8% to 16%) on the adjusted taxable estate (taxable estate less 60,000), less a credit of 99,600, which is the table tax on an estate of exactly 2,000,000. So no tax is due at or below 2,000,000 and above it the tax is the table's marginal rates on the excess: 7.2% on the first 100,000 above 2,000,000, then 8% up to 16% above 10,100,000; the brackets above are those marginal rates stored relative to the 2,000,000 exemption. Read in search extracts of the Massachusetts law library page and planners' guides (Mission Wealth, Commons) on 2026-10-22. No portability; no inheritance tax."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.mass.gov/info-details/differences-between-ma-and-federal-tax-law-for-personal-income",
+    "note": "Massachusetts does not include Social Security benefits in Massachusetts income (DOR, Differences Between MA and Federal Tax Law for Personal Income, updated 2026-10-22, read 2026-10-24, s359)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.mass.gov/info-details/tax-rates",
+    "note": "Massachusetts cities and towns levy no income tax: the DOR Tax Rates page (updated 2025-12-30, read 2026-10-24, s359) lists the personal income tax as a state tax only, and the local options it names are on room occupancy, restaurant meals and marijuana sales."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0625,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.0625,
+    "vehicle_rate": 0.0625,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Massachusetts revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0625 from the state's own source (Massachusetts motor vehicle sales and use tax 6.25% (https://www.mass.gov/guides/motor-vehicle-and-trailer-sales-and-use-tax, validation run 3)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food products exempt; local tax only on meals. clothing_taxable is false (research: partly; Items priced $175 or less exempt; tax on amount over $175 per item). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00948,
+    "confidence": "confirmed primary",
+    "check_at": "https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US25",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Confirmed primary on the Census ACS 2024 1-year tables (https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US25, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1956.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1644.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 200.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.sec.state.ma.us/divisions/cis/download/Motor_Vehicle_Excise.pdf",
+    "source": "https://www.sec.state.ma.us/divisions/cis/download/Motor_Vehicle_Excise.pdf (validation run 2, 2026-10-22)",
+    "note": "Massachusetts motor vehicle excise (MGL c.60A): 25 per 1,000 of 90%, 60%, 40%, 25% and then 10% of the list price in the first five years and after; on a 29,100 car about 200 a year over ten years. The registration fee is left out. Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.24,
+    "average_price_per_gallon": 3.234,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.mass.gov/doc/massachusetts-fuels-excise-rate-table-4th-quarter-2025/download",
+    "source": "Excise: https://www.mass.gov/doc/massachusetts-fuels-excise-rate-table-4th-quarter-2025/download (validation run 2, 2026-10-22); price: https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMM_EPMR_PTE_SMA_DPG&f=A (validation run 3, 2026-10-22)",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.24 ($0.24 gasoline, Q1 2026); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Price: 3.234, EIA Massachusetts regular retail, 2024 annual (2025: 2.970) (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.3014,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 655219.0,
+    "cost_index": 213.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1049.0,
+    "medigap_g_monthly": 235.0,
+    "part_d_monthly": 46.13,
+    "medicare_advantage_monthly": null,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Massachusetts insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Research note: ACA state age curve: age-60 value uses federal curve (approx); Medigap: state-standardized plans; source substitutes nearest plan (MA = Supplement 1A); MA premium 0.00 in source; suspect, check CMS landscape. The source gives a Medicare Advantage premium of 0.00 here, which is suspect, so it is null. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 105.3,
+    "bea_goods": 98.8,
+    "bea_services": 102.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7245.0,
+    "assisted_living_monthly": 9058.0,
+    "nursing_home_private_monthly": 15543.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

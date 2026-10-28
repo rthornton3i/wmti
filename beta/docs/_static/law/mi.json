@@ -1,0 +1,195 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "mi",
+  "name": "Michigan",
+  "tax_year": 2026,
+  "source": "Michigan Department of Treasury, read in full 2026-10-24 (s359): Form 446, 2026 Michigan Income Tax Withholding Guide (https://www.michigan.gov/taxes/-/media/Project/Websites/taxes/Forms/SUW/TY2026/446_Withholding-Guide_2026.pdf: rate 4.25%, personal exemption 5,900, 2026 retirement deduction limit 67,610 single or separate and 135,220 joint); withholding by calendar year page (https://www.michigan.gov/taxes/business-taxes/withholding/calendar-year-tax-information); Revenue Administrative Bulletin 2026-1 (retirement and pension deduction under Public Act 4 of 2023); 2025 Schedule 1; MCL 206.30 (https://www.legislature.mi.gov/Laws/MCL?objectName=mcl-206-30)",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.michigan.gov/taxes/-/media/Project/Websites/taxes/Forms/SUW/TY2026/446_Withholding-Guide_2026.pdf",
+    "note": "Michigan has one flat rate for every filing status (Form 446, 2026, read 2026-10-24), so all statuses share one rate; the two tables differ only in name."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://www.michigan.gov/taxes/-/media/Project/Websites/taxes/Forms/IIT/TY2025/Schedule-1.pdf",
+    "note": "Michigan starts from federal adjusted gross income, so 401(k) and 403(b) deferrals, Traditional IRA deposits and HSA deposits stay deductible as on the federal return: the 2025 Schedule 1 additions (lines 1 to 8, read 2026-10-24) hold no retirement-plan or HSA add-back."
+  },
+  "income_brackets": {
+    "indexed": true,
+    "adjustment": "indexed",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.michigan.gov/taxes/-/media/Project/Websites/taxes/Forms/SUW/TY2026/446_Withholding-Guide_2026.pdf",
+    "note": "Flat 4.25% for 2026 (Form 446, 2026 Michigan Income Tax Withholding Guide, read 2026-10-24).",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0425,
+        "base": 0.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0425,
+        "base": 0.0
+      }
+    ]
+  },
+  "exemptions": {
+    "indexed": true,
+    "SINGLE": 5900.0,
+    "JOINT": 11800.0,
+    "senior": 0.0,
+    "dependent": 5900.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.michigan.gov/taxes/business-taxes/withholding/calendar-year-tax-information",
+    "note": "Personal exemption 5,900 per person and per dependent for 2026 (Treasury withholding by calendar year page and Form 446, 2026, read 2026-10-24; 5,800 in 2025); no standard deduction. MCL 206.30(2) and (7) (read 2026-10-24) index the exemption every year by the US CPI, so the section is marked indexed (s359; it was fixed before). The same Form 446 confirms the flat 4.25% rate of the brackets (MCL 206.51). The bracket section's scale scales every dollar figure of the file, and the flat rate has no threshold, so the brackets are marked indexed too (s359; legislated before) so that the CPI-indexed exemption and retirement limit follow inflation. Not modelled: the special exemptions for disability, the age-67 standard deduction of those born 1946 to 1952 and after 1952 (temporarily widened for 2026 to 2028 by Public Act 24 of 2025), and the interest, dividend and gains deduction of seniors born before 1946."
+  },
+  "retirement_exclusion": {
+    "indexed": true,
+    "min_age": 59.5,
+    "full": false,
+    "per_person_cap": false,
+    "cap": {
+      "SINGLE": 67610.0,
+      "JOINT": 135220.0,
+      "MFS": 67610.0
+    },
+    "confidence": "confirmed primary",
+    "check_at": "https://www.michigan.gov/taxes/-/media/Project/Websites/taxes/Forms/SUW/TY2026/446_Withholding-Guide_2026.pdf",
+    "note": "From 2026 every retiree, whatever the birth year, may deduct combined public and private retirement and pension benefits up to the private retirement maximum: 67,610 single or married filing separately, 135,220 joint, per return (Form 446, 2026, and Revenue Administrative Bulletin 2026-1, https://www.michigan.gov/taxes/rep-legal/rab/2026-revenue-administrative-bulletins/revenue-administrative-bulletin-2026-1, both read 2026-10-24; 2025: 65,897 / 131,794 at 75%). MCL 206.30(1)(f)(iv) indexes the maximum every year by the US CPI, so the section is marked indexed (s359; it was fixed before). Approximations: IRA and 401(k) distributions qualify only as qualified distributions, so 59.5 stands in as the age test; public pensions have no age test and those born before 1946 deduct public pensions without limit (not modelled)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://archive.legislature.mi.gov/documents/2019-2020/billanalysis/House/htm/2019-HLA-4922-401E102D.htm",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Michigan has no estate or inheritance tax for deaths after 2004 (its pick-up estate tax ended with the federal state death tax credit; the inheritance tax was repealed in 1993) (state-costs.csv; Tax Foundation 2026 map). Confirmed primary on https://archive.legislature.mi.gov/documents/2019-2020/billanalysis/House/htm/2019-HLA-4922-401E102D.htm (validation run 3, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.michigan.gov/taxes/rep-legal/rab/2026-revenue-administrative-bulletins/revenue-administrative-bulletin-2026-1",
+    "note": "Michigan does not tax Social Security benefits: the 2025 Schedule 1, line 14, subtracts the taxable Social Security benefits included in AGI, and Revenue Administrative Bulletin 2026-1 describes that deduction (both read 2026-10-24, s359; Kiplinger 2026 and AARP agree)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.003,
+    "applies_to": "wages",
+    "confidence": "unconfirmed",
+    "check_at": "Michigan Department of Treasury city income tax page (Uniform City Income Tax Ordinance cities and rates)",
+    "note": "24 cities levy an income tax: Detroit 2.4% for residents, Grand Rapids, Saginaw and Highland Park 1.5% to 2%, about 20 others 1% (countrytaxcalc.com 2026 city guide). About 18% of Michiganders live in them, so a population-weighted average of about 0.3% is assumed (an estimate). City taxes exempt pensions and Social Security but tax wages, interest, dividends and gains; 'wages' is the nearest base."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.06,
+    "vehicle_rate": 0.06,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Michigan revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food for home consumption exempt; no local sales tax. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01129,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2256.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2748.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 178.0,
+    "confidence": "unconfirmed",
+    "check_at": "Michigan motor vehicle registration and vehicle property tax pages",
+    "source": "WalletHub, 2026's Property Taxes by State, vehicle tax table (https://wallethub.com/edu/t/states-with-the-highest-and-lowest-property-taxes/11585/), read 2026-10-22",
+    "note": "Annual vehicle tax on a 29100 car (2026 Toyota Camry LE): value-based registration (plate) fee. One source, so unconfirmed; flat registration and title fees are not in it. Set by hand after .claude/state/scratch/importStateCosts.py (which writes 0); rerunning the importer resets it. Accepted: low impact (triage 2026-10-23): 0.6%-of-MSRP estimate plausible."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.524,
+    "average_price_per_gallon": 3.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.michigan.gov/taxes/business-taxes/motor-fuel/current-tax-rates-for-motor-fuel-and-alternative-fuel",
+    "source": "Excise: https://www.michigan.gov/taxes/business-taxes/motor-fuel/current-tax-rates-for-motor-fuel-and-alternative-fuel (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.524 from 2026-01-01 (Public Act 20 of 2025: a 0.51 base, indexed); from 2026 fuel no longer carries the 6% sales tax; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2153,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 263760.0,
+    "cost_index": 82.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1111.0,
+    "medigap_g_monthly": 213.0,
+    "part_d_monthly": 38.23,
+    "medicare_advantage_monthly": 6.81,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Michigan insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 99.1,
+    "bea_goods": 96.0,
+    "bea_services": 100.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6483.0,
+    "assisted_living_monthly": 6040.0,
+    "nursing_home_private_monthly": 11574.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

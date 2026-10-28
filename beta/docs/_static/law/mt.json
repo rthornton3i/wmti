@@ -1,0 +1,205 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "mt",
+  "name": "Montana",
+  "tax_year": 2026,
+  "source": "Montana Department of Revenue: 2026 Publication 1 (V1 September 2025, https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf, read 2026-10-24) and 2025 Form 2 instructions (read 2026-10-24) for the 2026 brackets (4.7% to 47,500 single and separate / 95,000 joint, 5.65% above), the 3.0% / 4.1% gains rates, the federal taxable income base and the 65-or-older subtraction (5,660); HB 337 notice (read) and MCA 15-30-2103 (2025, read) agree; IRS Rev. Proc. 2025-32 (IRB 2025-45, read) for the federal standard deduction",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf",
+    "note": "Montana uses one table for single and married filing separately and one for joint (2026 Publication 1 tax tables and MCA 15-30-2103, read 2026-10-24); head of household is not modelled."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Montana starts from federal taxable income (federal AGI less the federal standard or itemized deduction and the Schedule 1-A deductions, without the qualified business income deduction) and keeps the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits: the Schedule I additions (other states' bond interest, recoveries, Montana savings account withdrawals, state income tax deducted, expenses used for a credit) have no line for them (2025 Form 2 instructions and 2026 Publication 1, read 2026-10-24).",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.mt.gov/files/forms/Montana-Individual-Income-Tax-Return-Form-2-Instructions/2025_Montana_Individual_Income_Tax_Return_Form_2_Instructions.pdf"
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf",
+    "note": "4.7% to 47,500 single and separate / 95,000 joint, 5.65% above, from the 2026 Publication 1 (read 2026-10-24); the bases equal the cumulative tax. The enacted 2027 cut and indexing from 2028 are not modelled.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.047,
+        "base": 0.0
+      },
+      {
+        "threshold": 47500,
+        "rate": 0.0565,
+        "base": 2232.5
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.047,
+        "base": 0.0
+      },
+      {
+        "threshold": 95000,
+        "rate": 0.0565,
+        "base": 4465.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 16100.0,
+    "JOINT": 32200.0,
+    "note": "Montana taxes federal taxable income, so the federal 2026 standard deduction applies: 16,100 single and separate, 32,200 joint (Rev. Proc. 2025-32 sec. 4.14, read 2026-10-24; 2026 Publication 1: the standard deduction is the federal amount). Not modelled: the federal 6,000 senior deduction (2025-2028), which Montana keeps (2025 Form 2 instructions, line 2: Schedule 1-A deductions are included in Montana taxable income).",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf (the federal amount is used) and https://www.irs.gov/irb/2025-45_IRB (Rev. Proc. 2025-32)"
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 7310.0,
+    "dependent": 0.0,
+    "note": "No exemptions. senior per person 65 or older = the federal additional standard deduction carried in through federal taxable income (1,650 married, Rev. Proc. 2025-32, read) plus Montana's subtraction for taxpayers 65 or older (5,660, 11,320 joint when both qualify; 2025 Form 2 instructions line 6 and 2026 Publication 1, read 2026-10-24). The subtraction is indexed each year; the 2026 figure is not published yet, so the 2025 figure is an approximation for 2026.",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.mt.gov/files/forms/Montana-Individual-Income-Tax-Return-Form-2-Instructions/2025_Montana_Individual_Income_Tax_Return_Form_2_Instructions.pdf (line 6) and https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf (subtractions)"
+  },
+  "capital_gains_exclusion": {
+    "indexed": false,
+    "share": 0.27,
+    "note": "Montana taxes net long-term capital gains at 3.0% up to 47,500 single / 95,000 joint less ordinary income and 4.1% above, instead of 4.7% and 5.65% (2026 Publication 1 tax tables and MCA 15-30-2103, read 2026-10-24). The schema has no separate gains rate, so it is approximated as a 27% exclusion (1 - 4.1/5.65), exact for gains in the top band and slightly overtaxing gains in the lower band (1 - 3.0/4.7 = 36%). The rates match the primary source; the section stays unconfirmed because the rule is approximated.",
+    "check_at": "https://revenuefiles.mt.gov/files/Forms/Publication-1/Publication-1-2026.pdf (2026 tax tables) and MCA 15-30-2103(2)"
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Tax Foundation estate and inheritance tax map (https://taxfoundation.org/data/all/state/estate-inheritance-taxes/)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Montana has no estate tax and no inheritance tax (Tax Foundation 2026 estate and inheritance tax map and state-costs.csv columns estate_tax and inheritance_tax agree)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "federal",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.mt.gov/files/forms/Montana-Individual-Income-Tax-Return-Form-2-Instructions/2025_Montana_Individual_Income_Tax_Return_Form_2_Instructions.pdf",
+    "note": "Montana starts from federal taxable income, so Social Security is taxed as on the federal return: Schedule I subtracts only Railroad Retirement Tier I and II benefits, not Social Security (2025 Form 2 instructions, read 2026-10-24). The 65-or-older subtraction is in exemptions.senior."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "all income",
+    "confidence": "confirmed primary",
+    "check_at": "https://mca.legmt.gov/bills/mca/title_0070/chapter_0010/part_0010/section_0120/0070-0010-0010-0120.html",
+    "note": "Montana has no local income taxes: a self-governing local government may not authorize a tax on income unless a state law delegates it (MCA 7-1-112(1), 2025, read 2026-10-24); Tax Foundation local income tax list and state-costs.csv agree."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.0,
+    "vehicle_rate": 0.0,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Montana revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: No general sales tax. clothing_taxable is false (research: no; No sales tax). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00592,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2664.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1668.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 87.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://mvdmt.gov/vehicle-registration/light-vehicle-registration-and-fees/",
+    "source": "Montana Legislature, Vehicle Fee Brochure (August 2021, https://archive.legmt.gov/content/publications/fiscal/2023-Interim/Aug-2021/Vehicle-Fee-Brochure.pdf): light vehicle registration fee 217 a year at 0 to 4 years, 87 at 5 to 10 years, 28 at 11 years and older (search extract, 2026-10-23; the MVD page refused the fetch)",
+    "note": "Floor: the registration fee of a 5 to 10 year old light vehicle. County option and other per-vehicle fees are not included. Set by hand (s328, 2026-10-23, owner decision C4: no 0 that only means unknown); a move changes the entered car tax by the dollar difference of the two states' figures, and the importer keeps a non-zero figure."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.33,
+    "average_price_per_gallon": 3.33,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.mdt.mt.gov/business/fueltax/rates.aspx",
+    "source": "Excise: https://www.mdt.mt.gov/business/fueltax/rates.aspx (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.33 (state $0.33/gal, July 1 2022 to present); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1395,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 467275.0,
+    "cost_index": 114.9,
+    "confidence": "confirmed primary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Both figures confirmed primary (https://fred.stlouisfed.org/series/MTUCSFRCONDOSMSAMID and https://meric.mo.gov/data/cost-living-data-series, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1470.0,
+    "medigap_g_monthly": 198.0,
+    "part_d_monthly": 32.74,
+    "medicare_advantage_monthly": 16.6,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Montana insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 103.8,
+    "bea_goods": 96.0,
+    "bea_services": 98.7,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7627.0,
+    "assisted_living_monthly": 6134.0,
+    "nursing_home_private_monthly": 9429.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

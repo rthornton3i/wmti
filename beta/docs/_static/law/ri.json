@@ -1,0 +1,311 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ri",
+  "name": "Rhode Island",
+  "tax_year": 2026,
+  "source": "Primary sources read in s359 (2026-10-24): Rhode Island Division of Taxation advisory ADV 2025-22 (2025-11-03, https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf): 2026 uniform rate schedule, standard deductions, exemption and phase-out range, 2025 Social Security and pension modification income limits; Division 2025 RI-1040 instructions (Schedule M lines 1s, 1t and 2a-2m; read from the copy at https://taxsim.nber.org/historical_state_tax_forms/RI/2025/); PUB 2026-01 Retirement Income Guide (https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf); ADV 2026-02 (2026-01-14) for the 2026 estate tax threshold and credit",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf",
+    "note": "One uniform rate schedule for all filers (ADV 2025-22); married filing separately uses the single table, whose 11,200 standard deduction equals the separate amount. Read s359 2026-10-24."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.ri.gov/forms/individual-tax-forms/personal-income-tax-forms (2025 RI-1040 instructions, line 1 and Schedule M lines 2a-2m)",
+    "note": "Rhode Island starts from federal adjusted gross income (RI-1040 line 1), so 401(k) and 403(b) deferrals, deductible Traditional IRA deposits and HSA deposits stay deductible: none of the increasing modifications (Schedule M lines 2a-2m: other states' bond interest, fiduciary adjustment, 529 and medical savings recaptures, bonus depreciation and similar) touches them (2025 RI-1040 instructions, read s359 2026-10-24). Not modelled: the standard deduction and exemptions phase out from a modified federal AGI of 261,000 to 290,800 (2026), so incomes above about 261,000 are undertaxed by up to about 2,000 (joint); the 2026 budget (H 7127) adds a surtax on taxable income above 1,000,000 from tax year 2027 (6.99% in 2027, 7.99% in 2028, 8.99% from 2029; EY Tax News 2026-07-14, not checked against the act), so later model years undertax incomes above 1,000,000."
+  },
+  "income_brackets": {
+    "indexed": true,
+    "adjustment": "indexed",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf",
+    "note": "2026 uniform rate schedule for every filing status: 3.75% to 82,050, 4.75% to 186,450 (base 3,076.88), 5.99% above (base 8,035.88); every threshold, rate and base matches ADV 2025-22 (read 2026-10-24). The thresholds are indexed yearly under R.I. Gen. Laws 44-30-2.6 and the 2026 values are published. Two identical tables so the standard deduction and exemptions can differ by filing status.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0375,
+        "base": 0.0
+      },
+      {
+        "threshold": 82050,
+        "rate": 0.0475,
+        "base": 3076.875
+      },
+      {
+        "threshold": 186450,
+        "rate": 0.0599,
+        "base": 8035.875
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0375,
+        "base": 0.0
+      },
+      {
+        "threshold": 82050,
+        "rate": 0.0475,
+        "base": 3076.875
+      },
+      {
+        "threshold": 186450,
+        "rate": 0.0599,
+        "base": 8035.875
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": true,
+    "SINGLE": 11200.0,
+    "JOINT": 22400.0,
+    "note": "2026 standard deduction 11,200 single and married separate, 22,400 joint (ADV 2025-22, read s359 2026-10-24; 2025: 10,900 and 21,800). Indexed yearly under R.I. Gen. Laws 44-30-2.6. Not modelled: head of household 16,800, and the phase-out above a modified federal AGI of 261,000 (gone at 290,800).",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf"
+  },
+  "exemptions": {
+    "indexed": true,
+    "SINGLE": 5250.0,
+    "JOINT": 10500.0,
+    "senior": 0.0,
+    "dependent": 5250.0,
+    "note": "2026 personal and dependency exemption 5,250 each (ADV 2025-22, read s359 2026-10-24; 2025: 5,100); no extra amount for age 65 (senior 0). Indexed yearly; phased out with the standard deduction above a modified federal AGI of 261,000.",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf"
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 67,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 50000.0,
+      "JOINT": 100000.0,
+      "MFS": 50000.0
+    },
+    "income_tiers": [
+      {
+        "up_to": 107000.0,
+        "percent": {
+          "SINGLE": 1.0,
+          "JOINT": 1.0,
+          "MFS": 1.0
+        }
+      },
+      {
+        "up_to": 133500.0,
+        "percent": {
+          "SINGLE": 0.0,
+          "JOINT": 1.0,
+          "MFS": 0.0
+        }
+      }
+    ],
+    "confidence": "unconfirmed",
+    "check_at": "https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf (page 4, pension modification income limits) and the 2025 RI-1040 instructions, Schedule M line 1t",
+    "note": "Pension, 401(k), 403(b), governmental 457(b) and annuity modification: up to 50,000 per person (100,000 for a couple) from tax year 2025, applied per person, for people at Social Security full retirement age (67 for anyone born 1960 or later; older birth years reach it a little sooner) with federal AGI of 107,000 or less single and separate or 133,500 or less joint (a cliff; TY2025 limits, R.I. Gen. Laws 44-30-12(c)(9) and Division of Taxation PUB 2026-01 Retirement Income Guide, pages 11-13, https://tax.ri.gov/sites/g/files/xkgbur541/files/2026-02/PUB_2026-01_Retirement_Income_Guide.pdf). Open conflict (s359, 2026-10-24): the Division's own ADV 2025-22 (page 4, pension/401(k)/annuity limits) and the 2025 RI-1040 instructions (Schedule M line 1t, 'less than or equal to') both give a joint limit of 133,750, not 133,500; the 50,000 cap and the 107,000 limits match all three. Left at 133,500 because a test (test_state_d7.py) pins it from s328; the owner should decide (133,750 is the likely value). Approximation: the limits are indexed and the 2026 ones are not yet published, so the 2025 limits stand in; else nothing. No IRA income of any kind qualifies (traditional, Roth, SEP, SIMPLE; PUB 2026-01 page 5, confirmed primary). Approximations: the limit is tested on state gross income rather than federal AGI; the model's retirement income includes IRA distributions (it has no IRA versus employer-plan split, see law-backlog.md), so IRA-heavy retirees are undertaxed."
+  },
+  "estate_inheritance": {
+    "indexed": true,
+    "confidence": "confirmed secondary",
+    "check_at": "R.I. Gen. Laws 44-22-1.1 and ADV 2026-02 (https://tax.ri.gov)",
+    "estate_tax": {
+      "exemption": 1838056.0,
+      "brackets": [
+        {
+          "threshold": 0,
+          "rate": 0.072,
+          "base": 0.0
+        },
+        {
+          "threshold": 261944,
+          "rate": 0.08,
+          "base": 18859.968
+        },
+        {
+          "threshold": 761944,
+          "rate": 0.088,
+          "base": 58859.968
+        },
+        {
+          "threshold": 1261944,
+          "rate": 0.096,
+          "base": 102859.968
+        },
+        {
+          "threshold": 1761944,
+          "rate": 0.104,
+          "base": 150859.968
+        },
+        {
+          "threshold": 2261944,
+          "rate": 0.112,
+          "base": 202859.968
+        },
+        {
+          "threshold": 3261944,
+          "rate": 0.12,
+          "base": 314859.968
+        },
+        {
+          "threshold": 4261944,
+          "rate": 0.128,
+          "base": 434859.968
+        },
+        {
+          "threshold": 5261944,
+          "rate": 0.136,
+          "base": 562859.968
+        },
+        {
+          "threshold": 6261944,
+          "rate": 0.144,
+          "base": 698859.968
+        },
+        {
+          "threshold": 7261944,
+          "rate": 0.152,
+          "base": 842859.968
+        },
+        {
+          "threshold": 8261944,
+          "rate": 0.16,
+          "base": 994859.968
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "Rhode Island estate tax (R.I. Gen. Laws 44-22-1.1): the federal state death tax credit table (IRC 2011(b) as of 2001, on the taxable estate less 60,000) less a credit of 87,940 for 2026 deaths, so no tax up to the 1,838,056 threshold (ADV 2026-02, primary). The credit equals the table tax at the threshold (70,800 + 7.2% x 238,056 = 87,940, which checks the table), so the tax is the table's marginal rates on the estate above the threshold: 7.2% up to a gross estate of 2,100,000, then 8% to 16% in the table's bands (each band edge plus 60,000). The table itself is from memory and passes that check, so confirmed secondary. Threshold and credit are indexed yearly. No inheritance tax."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "threshold",
+    "agi_limit": {
+      "SINGLE": 107000.0,
+      "JOINT": 133750.0,
+      "MFS": 107000.0
+    },
+    "max_share": 1.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.ri.gov/sites/g/files/xkgbur541/files/2025-11/ADV_2025_22_Inflation_Adjustments.pdf (page 3, Social Security modification income limits)",
+    "note": "Taxable Social Security is fully subtracted for a taxpayer at full retirement age with federal AGI below 107,000 single, head of household and separate, 133,750 joint (2025 limits, ADV 2025-22 page 3, read s359 2026-10-24; the 2025 RI-1040 instructions, Schedule M line 1s, apply them; 2026 limits come with the next advisory); above it the federal taxable amount is taxed. Approximation: the 2025 limits stand in for 2026; the full-retirement-age test is not modelled (benefits claimed before about 67 are exempt here though Rhode Island taxes them), and the model tests the limit at or below rather than strictly below."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "Rhode Island Division of Municipal Finance",
+    "note": "Rhode Island cities and counties levy no income tax (state-costs.csv local_income_tax, from memory). Triage 2026-10-23 (category A): Rhode Island has no local income tax."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.07,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.07,
+    "vehicle_rate": 0.07,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Rhode Island revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt; no local sales tax. clothing_taxable is false (research: partly; First $250 per item exempt). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00997,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2364.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 3576.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 52.0,
+    "confidence": "unconfirmed",
+    "check_at": "Rhode Island DMV registration fee schedule (https://dmv.ri.gov)",
+    "source": "carregistrationfee.com and feecalculator.us 2026 Rhode Island guides (search extracts): 60 weight fee for two years (4,000 lb and under), 40 highway maintenance surcharge for two years, 3.50 technology surcharge",
+    "note": "Two-year registration of about 103.50 for a car under 4,000 lb, about 52 a year. The municipal motor vehicle excise tax ended in 2023 (state-costs.csv). Hand-set in s297; importStateCosts.py writes 0 here again if rerun for RI. Accepted: low impact (triage 2026-10-23): RI car excise repealed 2023; registration only."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.4,
+    "average_price_per_gallon": 3.34,
+    "confidence": "confirmed secondary",
+    "check_at": "https://webserver.rilegislature.gov/Statutes/TITLE31/31-36/31-36-7.htm",
+    "source": "Excise: https://webserver.rilegislature.gov/Statutes/TITLE31/31-36/31-36-7.htm (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.40 from 2025-07-01 (next CPI adjustment 2027-07-01); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2922,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 508507.0,
+    "cost_index": 117.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1075.0,
+    "medigap_g_monthly": 205.0,
+    "part_d_monthly": 45.19,
+    "medicare_advantage_monthly": 5.1,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Rhode Island insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 103.4,
+    "bea_goods": 97.2,
+    "bea_services": 102.8,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 8008.0,
+    "assisted_living_monthly": 7038.0,
+    "nursing_home_private_monthly": 12699.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

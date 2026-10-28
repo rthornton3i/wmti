@@ -1,0 +1,187 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "az",
+  "name": "Arizona",
+  "tax_year": 2026,
+  "source": "Arizona Department of Revenue Form 140 (2025) read on 2026-10-22 (taxsim.nber.org copy of FORMS_INDIVIDUAL_2025_140_f.pdf): 2.5% of taxable income (line 46), 2,100 per person 65 or older (line 38), Social Security subtracted (line 30), 25% of long-term gains subtracted (line 24), government pensions up to 2,500 (line 29a); ADOR filing-threshold page (15,750 / 31,500 for 2025, the federal standard deduction); Tax Foundation 2026 state income tax table as second source",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Arizona starts from federal adjusted (or taxable) income and keeps the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits (no add-back; only California and New Jersey tax HSA deposits). Not checked against a state ruling."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.025,
+        "base": 0.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.025,
+        "base": 0.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 16100.0,
+    "JOINT": 32200.0,
+    "note": "Arizona's standard deduction matches the federal amount (ADOR: 15,750 single and 31,500 joint for 2025, primary). 2026 uses the federal 16,100 / 32,200 on the June 2026 budget's full conformity (confirmed primary: https://www.azleg.gov/ars/43/01041.htm, validation run 2, 2026-10-22); Tax Foundation on 2026-01-01 still showed the pre-conformity 8,350 / 16,700. Not modelled: the 34% charitable increase."
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 2100.0,
+    "dependent": 0.0,
+    "note": "2,100 exemption per taxpayer or spouse 65 or older (Form 140 line 38, primary). Dependents get the dependent tax credit instead (exemption_credits). Not modelled: the subtraction of the federal enhanced senior deduction (6,000 per person 65 or older, phased out above a modified AGI of 75,000 / 150,000, 2025 to 2028) that HB 4168 adds to ARS 43-1022(35) (https://www.azleg.gov/legtext/57leg/2R/bills/HB4168H.htm, validation run 3, 2026-10-22); the file has no phase-out or end year for an exemption (law-backlog)."
+  },
+  "exemption_credits": {
+    "indexed": false,
+    "dependent": 125.0,
+    "note": "Dependent tax credit: 125 per dependent under 17 for tax year 2026 (HB 4168, enacted fact sheet provision 9, https://www.azleg.gov/legtext/57leg/2R/summary/S.4168-1861ATT_ASENACTED.DOCX.htm, confirmed primary, validation run 2, 2026-10-22); 25 for older dependents (not modelled); phased out above federal AGI 200,000 single / 400,000 joint (not modelled)."
+  },
+  "capital_gains_exclusion": {
+    "indexed": false,
+    "share": 0.25,
+    "note": "25% of net long-term capital gains from assets bought after 2011 is subtracted (Form 140 lines 23-24, primary); the model assumes every gain qualifies."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "https://azdor.gov (Arizona repealed its estate tax in 2006)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Arizona has no estate tax and no inheritance tax (Tax Foundation 2026 estate and inheritance tax map, https://taxfoundation.org/data/all/state/estate-inheritance-taxes/, and state-costs.csv columns estate_tax and inheritance_tax agree)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "Arizona Form 140 (2025) line 30",
+    "note": "Arizona does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and state-costs.csv column ss_taxed. Form 140 line 30 subtracts the federally taxed benefits (read 2026-10-22). Only government pensions (up to 2,500 per taxpayer, line 29a) and military pay have exclusions; IRA and private pension income is taxed in full, so no retirement_exclusion section."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "Tax Foundation local income taxes primer",
+    "note": "Arizona cities and counties levy no income tax (Tax Foundation local income tax list and state-costs.csv local_income_tax agree)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.056,
+    "avg_local_rate": 0.0294,
+    "combined_rate": 0.0854,
+    "vehicle_rate": 0.0854,
+    "grocery_rate": 0.0294,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Arizona revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://azdor.gov/business/transaction-privilege-tax/model-city-tax-code/rate-and-code-updates and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: partly); research note: State TPT exempts food for home consumption; some cities tax it (ADOR Table 2 food column); local avg overstates. clothing_taxable is true (research: yes; taxed). Some towns tax groceries and others do not; the estimate uses the general average local rate, so it overstates. Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00426,
+    "confidence": "confirmed primary",
+    "check_at": "https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US04",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Confirmed primary on the Census ACS 2024 1-year tables (https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US04, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2184.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1944.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 256.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.azleg.gov/ars/28/05801.htm",
+    "source": "https://www.azleg.gov/ars/28/05801.htm (validation run 2, 2026-10-22)",
+    "note": "Arizona vehicle license tax (A.R.S. 28-5801 to 5808): 2.80 per 100 of 60% of the list price in the first year and 2.89 after, the assessed value falling 16.25% a year; on a 29,100 car that is 489 in the first year and about 256 a year averaged over ten years. Small registration fees are left out. Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.19,
+    "average_price_per_gallon": 3.8,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.azleg.gov/ars/49/01031.htm",
+    "source": "Excise: USGasGauge/EIA (https://usgasgauge.com/gas-tax) and Kiplinger 2026 for some states, memory for the rest; price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Gas excise confirmed primary: 0.18 excise plus a 0.01 underground storage tank fee (https://www.azleg.gov/ars/49/01031.htm, validation run 3, 2026-10-22). Set by hand in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1544,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 416733.0,
+    "cost_index": 120.5,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1130.0,
+    "medigap_g_monthly": 231.0,
+    "part_d_monthly": 37.74,
+    "medicare_advantage_monthly": 4.38,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Arizona insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 99.6,
+    "bea_goods": 95.4,
+    "bea_services": 102.8,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6864.0,
+    "assisted_living_monthly": 6370.0,
+    "nursing_home_private_monthly": 10494.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

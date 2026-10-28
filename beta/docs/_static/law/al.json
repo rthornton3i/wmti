@@ -1,0 +1,207 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "al",
+  "name": "Alabama",
+  "tax_year": 2026,
+  "source": "Alabama Department of Revenue rate schedule (Code of Alabama 40-18-5: 2%, 4%, 5%), Schedule RS and Act 2022-294 for the 6,000 retirement exclusion; brackets and standard deduction read through TaxAct and efile.com 2025 Alabama guides (second sources agree); the department's pages were not opened",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Alabama follows the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits (confirmed primary: https://www.revenue.alabama.gov/faqs/what-are-the-limitations-on-my-ira-deduction/, validation run 3, 2026-10-22). Not modelled: Alabama lets residents deduct the federal income tax they pay, and exempts defined-benefit pensions in full; the model has no defined-benefit pension income here, so only the second is moot."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 500,
+        "rate": 0.04,
+        "base": 10.0
+      },
+      {
+        "threshold": 3000,
+        "rate": 0.05,
+        "base": 110.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 1000,
+        "rate": 0.04,
+        "base": 20.0
+      },
+      {
+        "threshold": 6000,
+        "rate": 0.05,
+        "base": 220.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 2500.0,
+    "JOINT": 5000.0
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 1500.0,
+    "JOINT": 3000.0,
+    "senior": 0.0,
+    "dependent": 500.0
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 65,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 6000.0,
+      "JOINT": 12000.0,
+      "MFS": 6000.0
+    },
+    "note": "The first 6,000 of taxable retirement income of each taxpayer aged 65 or older (Act 2022-294, from tax year 2023; Schedule RS). Approximation: the standard deduction slides from 3,000 single and 8,500 joint down to its floor as income rises; the file keeps the floor (2,500 single, 5,000 joint; confirmed primary: https://www.revenue.alabama.gov/wp-content/uploads/2026/01/25stddeduction40nr.pdf, validation run 2, 2026-10-22), which applies to most households the model sees. The dependent exemption is 1,000 for AGI up to 50,000, 500 for 50,001 to 100,000 and 300 above (2025 Form 40 booklet, https://www.revenue.alabama.gov/wp-content/uploads/2026/01/25f40abk.pdf, validation run 2, 2026-10-22); the file's 500 is the middle band."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.revenue.alabama.gov/individual-corporate/alabama-estate-and-inheritance-tax/",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Alabama levies no estate tax and no inheritance tax: its estate tax was the federal state death tax credit, which ended in 2005. Confirmed primary on https://www.revenue.alabama.gov/individual-corporate/alabama-estate-and-inheritance-tax/ (validation run 2, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.revenue.alabama.gov/wp-content/uploads/2026/01/25f40abk.pdf",
+    "note": "Alabama does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://www.revenue.alabama.gov/wp-content/uploads/2026/01/25f40abk.pdf (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0015,
+    "applies_to": "wages",
+    "confidence": "unconfirmed",
+    "check_at": "Alabama Department of Revenue local tax rates and the occupational tax ordinances of Birmingham, Gadsden, Bessemer, Auburn, Opelika and Jefferson County",
+    "note": "Population-weighted state average, an estimate: about a dozen Alabama cities and counties levy an occupational license tax on wages earned there (Birmingham, Bessemer, Auburn, Opelika and others 1%, Gadsden 2%, Jefferson County 0.45% outside those cities); together about 0.15% of the state's wages. It taxes wages only, never retirement income or Social Security (state-costs.csv local_income_tax, from memory)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.04,
+    "avg_local_rate": 0.0546,
+    "combined_rate": 0.0946,
+    "vehicle_rate": 0.035,
+    "grocery_rate": 0.0746,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Alabama revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://www.revenue.alabama.gov/notice-state-sales-and-use-tax-rate-reduced-on-food-beginning-september-1-2025/ and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.035 from the state's own source (Alabama state sales tax on automotive vehicles 2% (ALDOR sales and use tax rates, https://www.revenue.alabama.gov/sales-use/tax-rates/, fetched 2026-10-23: SALES TAX AUTO 2.000%) plus the city and county automotive rates, which vary by place and have no published average; 1.5% assumed (secondary guides put the total at about 3.4% to 4%), so 0.035 (s328)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.02) plus the average local rate where locals tax them (locals: yes); research note: Act 2025-305: state food rate 3%->2% from 2025-09-01; temporary 0% state food rate 2026-05-01..06-30 only; locals tax food (some at reduced food rates) so local avg overstates. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00372,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 3408.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1704.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 23.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.revenue.alabama.gov/license-plates/standard-passenger/",
+    "source": "Alabama Department of Revenue, Standard Passenger license plate page: automobile registration fee 23.00 (search extract, 2026-10-23)",
+    "note": "Floor: the state automobile registration fee only. The county ad valorem tax on cars (research note: low) and county issuance fees are not included, so the real cost is higher. Set by hand (s328, 2026-10-23, owner decision C4: no 0 that only means unknown); a move changes the entered car tax by the dollar difference of the two states' figures, and the importer keeps a non-zero figure."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.3,
+    "average_price_per_gallon": 2.89,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.revenue.alabama.gov/wp-content/uploads/2025/02/Rebuild-Alabama-Act-Notice-February-2025.pdf",
+    "source": "Excise: https://www.revenue.alabama.gov/wp-content/uploads/2025/02/Rebuild-Alabama-Act-Notice-February-2025.pdf (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.3 (0.30 from 2025-07-01 (next index step 2027)); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1654,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 238614.0,
+    "cost_index": 68.6,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1370.0,
+    "medigap_g_monthly": 209.0,
+    "part_d_monthly": 52.06,
+    "medicare_advantage_monthly": 12.21,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Alabama insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 95.2,
+    "bea_goods": 96.4,
+    "bea_services": 96.7,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 4767.0,
+    "assisted_living_monthly": 4572.0,
+    "nursing_home_private_monthly": 8517.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

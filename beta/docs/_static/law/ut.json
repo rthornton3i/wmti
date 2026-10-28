@@ -1,0 +1,177 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ut",
+  "name": "Utah",
+  "tax_year": 2026,
+  "source": "Utah flat individual income tax rate 4.45% for taxable years from 2026-01-01: S.B. 60 (2026 General Session), enrolled text amending Utah Code 59-10-104(2), effective 2026-05-06 with retrospective operation (https://le.utah.gov/Session/2026/bills/enrolled/SB0060.pdf, read 2026-10-24); 2025 Utah TC-40 Instructions of the Utah State Tax Commission (https://files.tax.utah.gov/tax/forms/current/tc-40inst.pdf, read 2026-10-24: 4.5% for 2025, federal AGI as the start, the additions list, the taxpayer tax credit and the Social Security benefits credit); Social Security credit thresholds also from Utah Code 59-10-1042 as in force from 2026-01-01 (https://le.utah.gov/xcode/Title59/Chapter10/C59-10-S1042_2026010120250507.html, read 2026-10-24); second sources EY Tax News 2026-04-21 and Tax Foundation 2026 rates",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://le.utah.gov/Session/2026/bills/enrolled/SB0060.pdf",
+    "note": "One flat rate for every filing status (Utah Code 59-10-104(2) as amended by S.B. 60, 2026; read 2026-10-24). The SINGLE and JOINT tables differ only so the Social Security thresholds can differ."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://files.tax.utah.gov/tax/forms/current/tc-40inst.pdf",
+    "note": "Utah starts from federal adjusted gross income (TC-40 line 4) and its additions (TC-40A Part 1: lump sum distribution, Utah medical care savings account addback, my529 addback, municipal bond interest and others) add back no 401(k), 403(b), deductible Traditional IRA or HSA deposits, so they stay deductible: confirmed primary on the 2025 Utah TC-40 Instructions (https://files.tax.utah.gov/tax/forms/current/tc-40inst.pdf, read 2026-10-24). Approximation: Utah has no standard deduction or personal exemption but a taxpayer tax credit of 6% of the federal standard (or itemized) deduction, less state income tax itemized, plus 2,111 per dependent (2025), phased out by 1.3% of Utah taxable income above 18,213 single and married separate, 36,426 joint (2025 base amounts, indexed yearly; 2026 amounts not yet published in the instructions); it is left out, so the file overtaxes low and middle incomes by up to about 1,000 single and 2,000 joint a year. The retirement credit (up to 450 each, for people born on or before 1952-12-31) is not modelled."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://le.utah.gov/Session/2026/bills/enrolled/SB0060.pdf",
+    "note": "Flat 4.45% for taxable years from 2026-01-01 (enrolled S.B. 60 amending Utah Code 59-10-104(2), read 2026-10-24); legislated, not indexed. The 2025 TC-40 instructions use 4.5%.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0445,
+        "base": 0.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0445,
+        "base": 0.0
+      }
+    ]
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://le.utah.gov/xcode/Title59/C59_1800010118000101.html",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Utah levies no estate tax and no inheritance tax: its pick-up tax depended on the federal state death tax credit, which was phased out in 2005. Confirmed primary on https://le.utah.gov/xcode/Title59/C59_1800010118000101.html (validation run 3, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "threshold",
+    "agi_limit": {
+      "SINGLE": 54000.0,
+      "JOINT": 90000.0,
+      "MFS": 45000.0
+    },
+    "max_share": 1.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://le.utah.gov/xcode/Title59/Chapter10/C59-10-S1042_2026010120250507.html",
+    "note": "Approximation: Utah taxes the federally taxable benefits but gives a credit of the tax rate times them that phases out by 2.5 cents per dollar of modified AGI (AGI plus tax-exempt interest plus Utah additions) above 54,000 single, 90,000 joint and head of household and 45,000 married separate. The model exempts the benefits at or below those limits and taxes the full federal taxable amount above them, so it overstates the tax inside the phase-out band (a cliff at the limit). The thresholds, the 2.5-cent phase-out and the modified AGI measure are confirmed primary on Utah Code 59-10-1042(4) as in force from 2026-01-01 (https://le.utah.gov/xcode/Title59/Chapter10/C59-10-S1042_2026010120250507.html, read 2026-10-24) and on the Social Security Benefits Credit worksheet (code AH) of the 2025 Utah TC-40 Instructions (https://files.tax.utah.gov/tax/forms/current/tc-40inst.pdf, read 2026-10-24). They are fixed in statute, not indexed."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "Tax Foundation, Local Income Taxes in 2023 (https://taxfoundation.org/research/all/state/local-income-taxes-2023/) and https://files.tax.utah.gov/tax/forms/current/tc-40inst.pdf",
+    "note": "Utah counties and cities levy no income tax: Utah is not among the states with local income taxes in Tax Foundation, Local Income Taxes in 2023 (read in a search extract 2026-10-24), and the 2025 TC-40 Instructions (read 2026-10-24) compute only the state tax, with no local income tax line. No statute barring one was read."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.061,
+    "avg_local_rate": 0.0132,
+    "combined_rate": 0.0742,
+    "vehicle_rate": 0.0742,
+    "grocery_rate": 0.03,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Utah revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://sovos.com/blog/sut/utah-sales-tax-guide/ and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0742 from the state's own source (Utah: the tax is computed at the rate of the buyer's locality, so the combined rate (https://dmv.utah.gov/taxes-fees/, validation run 3)). Research note: sales_state_pct includes mandatory 1.25% statewide local. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0175) plus the average local rate where locals tax them (locals: yes); research note: Food rate 3% combined: 1.75% state + 1% local + 0.25% county option (uniform; not general local avg). clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00452,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1524.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1752.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 123.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://dmv.utah.gov/register/registration-taxes-fees/uniform-fees",
+    "source": "https://dmv.utah.gov/register/registration-taxes-fees/uniform-fees (validation run 2, 2026-10-22)",
+    "note": "Utah age-based uniform fee in place of property tax (150 for the first three model years, then 110, 80, 50 and 10), about 107 a year over ten years, plus about 16 of small fees (corridor 10, air pollution control 2-3, driver education 2.50, uninsured motorist 1). The base registration fee was not on the fetched pages and is left out (unconfirmed). Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.319,
+    "average_price_per_gallon": 3.33,
+    "confidence": "confirmed secondary",
+    "check_at": "https://tax.utah.gov/business/other-taxes/fuel/rates/",
+    "source": "Excise: https://tax.utah.gov/business/other-taxes/fuel/rates/ (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.319 from 2026-07-01 to 2026-12-31 (0.379 from January to June 2026; about 0.349 averaged); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1316,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 532920.0,
+    "cost_index": 102.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1359.0,
+    "medigap_g_monthly": 199.0,
+    "part_d_monthly": 39.61,
+    "medicare_advantage_monthly": 16.98,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Utah insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Research note: ACA state age curve: age-60 value uses federal curve (approx). Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 98.5,
+    "bea_goods": 96.4,
+    "bea_services": 99.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7245.0,
+    "assisted_living_monthly": 4685.0,
+    "nursing_home_private_monthly": 10646.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "pa",
+  "name": "Pennsylvania",
+  "tax_year": 2026,
+  "source": "Pennsylvania Department of Revenue flat personal income tax rate of 3.07 percent; retirement distributions from age 59.5 are not taxed; both confirmed primary in validation run 2 (2026-10-22) on https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/personal-income-tax and https://www.pa.gov/agencies/revenue/forms-and-publications/pa-personal-income-tax-guide/gross-compensation, with no standard deduction (https://www.pa.gov/agencies/revenue/forms-and-publications/pa-personal-income-tax-guide/deductions-and-credits)",
+  "as_of": "2026-10-07",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "ALL",
+    "MFS": "ALL",
+    "JOINT": "ALL"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": ["traditional_deposit"],
+    "note": "Pennsylvania taxes employee 401(k) deferrals as compensation, so they are added back to the income the state taxes; HSA deposits stay deductible (confirmed primary: https://www.pa.gov/agencies/revenue/forms-and-publications/pa-personal-income-tax-guide/gross-compensation, validation run 2, 2026-10-22)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "ALL": [
+      {
+        "threshold": 0,
+        "rate": 0.0307,
+        "base": 0.0
+      }
+    ]
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 59.5,
+    "full": true
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/inheritance-tax",
+    "estate_tax": null,
+    "inheritance_tax": {
+      "default_class": "child",
+      "classes": {
+        "spouse": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.0,
+              "base": 0.0
+            }
+          ]
+        },
+        "child": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.045,
+              "base": 0.0
+            }
+          ]
+        },
+        "sibling": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.12,
+              "base": 0.0
+            }
+          ]
+        },
+        "other": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.15,
+              "base": 0.0
+            }
+          ]
+        }
+      }
+    },
+    "note": "Pennsylvania has no estate tax; its inheritance tax is 0% to a surviving spouse (and to a parent from a child 21 or younger), 4.5% to lineal heirs (children, grandchildren, parents), 12% to siblings and 15% to other heirs, from the first dollar (no exemption). Rates read in search extracts of the Department of Revenue inheritance tax page on 2026-10-22. Not modelled: the 5% discount for paying within three months, the family exemption, and the exemptions for some retirement accounts and jointly held property; the tax is charged on each heir's share of the estate after estate taxes. Confirmed primary on the same page (validation run 2, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.pa.gov/agencies/revenue/forms-and-publications/pa-personal-income-tax-guide/gross-compensation",
+    "note": "Pennsylvania does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://www.pa.gov/agencies/revenue/forms-and-publications/pa-personal-income-tax-guide/gross-compensation (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.01,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "PA Department of Community and Economic Development municipal statistics (Earned Income Tax rates)",
+    "note": "Local earned income tax of about 1% in most municipalities (Philadelphia 3.74% for residents, Pittsburgh 3%); it taxes wages and self-employment income only, not retirement income or Social Security (state-costs.csv local_income_tax, from memory). Triage 2026-10-23 (category A): PA local EIT taxes earned income only (Act 32)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.0034,
+    "combined_rate": 0.0634,
+    "vehicle_rate": 0.0634,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Pennsylvania revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt (state and Philadelphia/Allegheny local). clothing_taxable is false (research: no; General clothing exempt; accessories fur formalwear sports taxable). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01137,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1272.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1944.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 48.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.pa.gov/content/dam/copapwp-pagov/en/penndot/documents/public/dvspubsforms/bmv/bmv-forms/mv-70s.pdf",
+    "source": "PennDOT Bureau of Motor Vehicles Schedule of Fees MV-70S (4-26): passenger registration 48.00 one year, 96.00 two years (raised from 45 under Act 89, 2025; search extract, 2026-10-23)",
+    "note": "Floor: the flat passenger registration fee; Pennsylvania has no vehicle property tax. The 5 a year fee for local use of some counties is not included. Set by hand (s328, 2026-10-23, owner decision C4: no 0 that only means unknown); a move changes the entered car tax by the dollar difference of the two states' figures, and the importer keeps a non-zero figure."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.587,
+    "average_price_per_gallon": 3.4,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.pa.gov/agencies/revenue/resources/tax-rates/motor-fuel-tax-rates",
+    "source": "Excise: https://www.pa.gov/agencies/revenue/resources/tax-rates/motor-fuel-tax-rates (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.587 (0.576 tax for 2026 plus a 0.011 underground storage tank fee); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2104,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 287078.0,
+    "cost_index": 84.8,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1215.0,
+    "medigap_g_monthly": 229.0,
+    "part_d_monthly": 38.93,
+    "medicare_advantage_monthly": 25.89,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Pennsylvania insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 98.7,
+    "bea_goods": 99.4,
+    "bea_services": 99.8,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6483.0,
+    "assisted_living_monthly": 6100.0,
+    "nursing_home_private_monthly": 12958.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

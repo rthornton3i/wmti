@@ -1,0 +1,264 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ne",
+  "name": "Nebraska",
+  "tax_year": 2026,
+  "source": "Nebraska Department of Revenue final 2026 forms (https://revenue.nebraska.gov/tax-professionals/2026-final-income-tax-forms, read 2026-10-24): 2026 Tax Calculation Schedule (https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2026/2026_tax_calculation_schedule.pdf: rates 2.46%, 3.51%, 4.55%, every threshold and base match), 2026 Form 1040N (updated 2026-10-15: standard deduction 8,850 / 17,700, personal exemption credit 176) and Schedules I to III; Neb. Rev. Stat. 77-2715.03 (rates, 3.99% from 2027, brackets indexed to CPI-U) and 77-2716.01 (standard deduction, 65-or-older and blind additions and exemption credit, indexed to CPI-U); 2025 Individual Income Tax Booklet (standard deduction chart); Tax Foundation 2026 state income tax table agrees; UNL Center for Agricultural Profitability (LB 310) for the inheritance tax",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2026/2026_tax_calculation_schedule.pdf",
+    "note": "Single and married filing separately share one schedule and married filing jointly has its own (2026 Tax Calculation Schedule, NE DOR, read 2026-10-24); the head of household schedule is not modelled."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Nebraska starts from federal adjusted gross income (Form 1040N 2026 line 5) and its Schedule I Part A adjustments increasing federal AGI add back none of the 401(k) or 403(b) deferral, the Traditional IRA deposit or the HSA deposit, so the federal treatment is kept (NE DOR 2026 Form 1040N and Schedules I to III, read 2026-10-24). Only California and New Jersey tax HSA deposits.",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2026/f_1040n_schs.pdf"
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2026/2026_tax_calculation_schedule.pdf",
+    "note": "Every threshold, rate and base matches the final 2026 Tax Calculation Schedule (read 2026-10-24): 2.46%, 3.51% and 4.55%. The 3.99% top rate from 2027 (77-2715.03) is not modelled.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0246,
+        "base": 0.0
+      },
+      {
+        "threshold": 4130,
+        "rate": 0.0351,
+        "base": 101.6
+      },
+      {
+        "threshold": 24760,
+        "rate": 0.0455,
+        "base": 825.71
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0246,
+        "base": 0.0
+      },
+      {
+        "threshold": 8250,
+        "rate": 0.0351,
+        "base": 202.95
+      },
+      {
+        "threshold": 49530,
+        "rate": 0.0455,
+        "base": 1651.88
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 8850.0,
+    "JOINT": 17700.0,
+    "note": "Nebraska standard deduction for 2026: 8,850 single and separate, 17,700 joint (Form 1040N 2026 line 6, NE DOR, updated 2026-10-15, read 2026-10-24). By statute (Neb. Rev. Stat. 77-2716.01) it is indexed to CPI-U each year, rounded down to 50; the file holds it as a fixed figure (indexed false).",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2026/f_1040n.pdf"
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 1650.0,
+    "dependent": 0.0,
+    "note": "Nebraska's exemptions are credits (exemption_credits), so the per-table and dependent figures are 0. senior is the addition to the standard deduction per person 65 or older: the 2026 amount is not published yet (the 2026 booklet with the line 6 chart comes out with the final instructions; read 2026-10-24). The 2025 booklet chart gives 1,650 per married person and 2,000 single; the statute (77-2716.01: 1,300 married and 1,600 single in 2018, indexed to CPI-U and rounded down to 50) with the published 2026 standard deduction gives 1,700 married and 2,050 or 2,100 single for 2026. The file keeps 1,650 (the 2025 married figure) until the 2026 chart is read; one per-person figure is used for every filing status.",
+    "confidence": "unconfirmed",
+    "check_at": "https://nebraskalegislature.gov/laws/statutes.php?statute=77-2716.01 and the 2026 Nebraska Individual Income Tax Booklet (line 6 chart)"
+  },
+  "exemption_credits": {
+    "indexed": false,
+    "personal": {
+      "SINGLE": 176.0,
+      "JOINT": 352.0
+    },
+    "dependent": 176.0,
+    "note": "Personal exemption credit of 176 per exemption, taxpayer, spouse and each dependent (Form 1040N 2026 line 18, NE DOR, updated 2026-10-15, read 2026-10-24). Non-refundable. Indexed to CPI-U by statute (77-2716.01); held fixed here.",
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2026/f_1040n.pdf"
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Neb. Rev. Stat. 77-2004 to 77-2006 (county inheritance tax; LB 310, 2022)",
+    "estate_tax": null,
+    "inheritance_tax": {
+      "default_class": "child",
+      "classes": {
+        "spouse": {
+          "exemption": 0.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.0,
+              "base": 0.0
+            }
+          ]
+        },
+        "child": {
+          "exemption": 100000.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.01,
+              "base": 0.0
+            }
+          ]
+        },
+        "sibling": {
+          "exemption": 100000.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.01,
+              "base": 0.0
+            }
+          ]
+        },
+        "other": {
+          "exemption": 25000.0,
+          "brackets": [
+            {
+              "threshold": 0.0,
+              "rate": 0.15,
+              "base": 0.0
+            }
+          ]
+        }
+      }
+    },
+    "note": "Nebraska has no estate tax; its county inheritance tax (LB 310, deaths from 2023) is nothing for a surviving spouse, 1% above 100,000 per heir for the closest relatives (children, grandchildren, parents, grandparents, siblings and their spouses), 11% above 40,000 for remote relatives (aunts, uncles, nieces, nephews; not a class here) and 15% above 25,000 for everyone else (UNL Center for Agricultural Profitability and state-costs.csv agree). Not modelled: heirs under 22 pay nothing, and the remote relative class."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://nebraskalegislature.gov/laws/statutes.php?statute=77-2716",
+    "note": "Nebraska exempts all Social Security benefits from tax year 2024 (LB 873): Schedule I line 34 subtracts the Social Security included in federal AGI (NE DOR 2026 Schedules I to III, read 2026-10-24) and Neb. Rev. Stat. 77-2716 (confirmed primary, validation run 2, 2026-10-22). Pensions and IRA distributions are taxed (military retirement and federal CSRS annuities are subtracted, Schedule I lines 35 and 41; not modelled)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "all income",
+    "confidence": "confirmed secondary",
+    "check_at": "Nebraska Department of Revenue (no local income tax)",
+    "note": "Nebraska has no local income taxes: the 2026 Form 1040N has no local tax line and local option taxes are sales and use taxes (NE DOR local sales tax pages; Tax Foundation local income tax list and state-costs.csv local_income_tax agree; checked 2026-10-24). No primary page states it outright."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.055,
+    "avg_local_rate": 0.0148,
+    "combined_rate": 0.0698,
+    "vehicle_rate": 0.0698,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Nebraska revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt from state and local. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01379,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 4044.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1608.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 199.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://dmv.nebraska.gov/sites/default/files/doc/data/MV-Revenue/2025_MV_Taxes%26Fees.pdf",
+    "source": "https://dmv.nebraska.gov/sites/default/files/doc/data/MV-Revenue/2025_MV_Taxes%26Fees.pdf (validation run 3, 2026-10-22)",
+    "note": "Nebraska motor vehicle tax (by value and age, statute 60-3,187) plus fees, registration fees and wheel tax: the DMV's 2025 recurring totals (about 504 million) over 2,520,030 registered vehicles come to about 196 to 202 a year, trucks and cars 14 or more years old (which pay no motor vehicle tax) included; about 199 taken. A newer car pays more (derived average, unconfirmed). Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.318,
+    "average_price_per_gallon": 3.08,
+    "confidence": "confirmed primary",
+    "check_at": "https://revenue.nebraska.gov/motor-fuels/fuel-tax-rates",
+    "source": "Excise: https://revenue.nebraska.gov/motor-fuels/fuel-tax-rates (validation run 2, 2026-10-22); price: https://dwee.nebraska.gov/sites/default/files/publications/97%20Regular_6.pdf (validation run 3, 2026-10-22)",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.318 for January to December 2026; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Price: 3.08, the average of the twelve 2024 monthly regular prices of the Nebraska Department of Water, Energy and Environment retail survey (2025: 2.91) (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.129,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 278299.0,
+    "cost_index": 76.5,
+    "confidence": "confirmed primary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Both figures confirmed primary (https://fred.stlouisfed.org/series/NEUCSFRCONDOSMSAMID and https://meric.mo.gov/data/cost-living-data-series, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1508.0,
+    "medigap_g_monthly": 209.0,
+    "part_d_monthly": 29.21,
+    "medicare_advantage_monthly": 11.37,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Nebraska insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 98.8,
+    "bea_goods": 94.1,
+    "bea_services": 93.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6864.0,
+    "assisted_living_monthly": 5118.0,
+    "nursing_home_private_monthly": 10038.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

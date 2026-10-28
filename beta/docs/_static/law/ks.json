@@ -1,0 +1,201 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ks",
+  "name": "Kansas",
+  "tax_year": 2026,
+  "source": "Kansas Department of Revenue 2025 income tax booklet (https://ksrevenue.gov/incomebook25.html, read 2026-10-22): tax computation 5.2% to 23,000 (46,000 joint) and 5.58% above, standard deduction 3,605 / 8,240 with the 65-or-older amounts, exemption allowance 9,160 / 18,320 and 2,320 per dependent, Social Security subtracted, only public pensions (KPERS, federal, military) exempt; second source Tax Foundation, State Individual Income Tax Rates and Brackets 2026 (https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/) (same figures for 2026)",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "MFS",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Kansas starts from federal AGI, so 401(k) deferrals and HSA deposits stay deductible as on the federal return (confirmed primary: https://ksrevenue.gov/incomebook25.html, validation run 3, 2026-10-22)."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.052,
+        "base": 0.0
+      },
+      {
+        "threshold": 23000,
+        "rate": 0.0558,
+        "base": 1196.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.052,
+        "base": 0.0
+      },
+      {
+        "threshold": 46000,
+        "rate": 0.0558,
+        "base": 2392.0
+      }
+    ],
+    "MFS": [
+      {
+        "threshold": 0,
+        "rate": 0.052,
+        "base": 0.0
+      },
+      {
+        "threshold": 23000,
+        "rate": 0.0558,
+        "base": 1196.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 3605.0,
+    "JOINT": 8240.0,
+    "note": "Standard deduction 3,605 single, 8,240 joint and 4,120 married filing separately (2025 booklet, https://ksrevenue.gov/incomebook25.html, confirmed primary, validation run 2, 2026-10-22); separate returns use the single brackets in a table of their own so the deduction can differ.",
+    "MFS": 4120.0
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 9160.0,
+    "JOINT": 18320.0,
+    "senior": 850.0,
+    "dependent": 2320.0,
+    "note": "Exemption allowance 9,160 single, 18,320 joint, 2,320 per dependent. senior is the additional standard deduction at 65: 850 single (4,455 less 3,605) and 700 per person joint (8,940 less 8,240); the model uses 850 for both. A separate return takes the single exemption allowance (9,160).",
+    "MFS": 9160.0
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://ksrevenue.gov/taxnotices/notice10-07.pdf",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Kansas has no estate tax (repealed for deaths from 2010) and no inheritance tax (state-costs.csv: none; AARP 2026 list of estate and inheritance tax states does not include Kansas). Confirmed primary on https://ksrevenue.gov/taxnotices/notice10-07.pdf (validation run 2, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://ksrevenue.gov/incomebook25.html (Schedule S line A10)",
+    "note": "From tax year 2024 Kansas subtracts all Social Security benefits included in federal AGI (2025 booklet, Schedule S line A10; state-costs.csv ss_taxed 'N (2024+)')."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "unconfirmed",
+    "check_at": "Kansas city and county tax codes",
+    "note": "Kansas cities and counties levy no income tax on residents (state-costs.csv local_income_tax none)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.065,
+    "avg_local_rate": 0.0221,
+    "combined_rate": 0.0871,
+    "vehicle_rate": 0.0871,
+    "grocery_rate": 0.0221,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Kansas revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://www.salestaxinstitute.com/resources/kansas-reduces-sales-and-use-tax-rate-on-food-and-food-ingredients and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0871 from the state's own source (Kansas: the dealer collects the state 6.5% plus the local rate, so the combined rate (https://www.ksrevenue.gov/pub1526.html, validation run 3)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: yes); research note: State food rate 0% from 2025-01-01; city and county taxes still apply; food sales tax refund credit status not checked. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01201,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 3996.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1884.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 450.0,
+    "confidence": "unconfirmed",
+    "check_at": "Kansas Department of Revenue vehicle property tax lookup (https://mvs.dmv.kdor.ks.gov/VehiclePropertyTaxLookup) and county mill levies",
+    "source": "Estimate from the Kansas method (county mill levy times the taxable value of the vehicle class, 15% depreciation a year; 12 minimum for cars 15 years or older) and a registration fee of about 40; no published average found",
+    "note": "Kansas: an annual county property tax on vehicles plus registration. For a car bought new at about 40,000 the tax falls from roughly 900 in the first year as the value depreciates; about 450 a year averaged over ten years with registration (rough estimate, no published average). Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand after the import: rerunning importStateCosts.py resets it to 0."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.24,
+    "average_price_per_gallon": 3.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://klrd.gov/state-motor-fuels-taxes-and-fuel-use/",
+    "source": "Excise: https://klrd.gov/state-motor-fuels-taxes-and-fuel-use/ (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.24 (24 cents/gal gasoline, unchanged since 2003); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1521,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 246055.0,
+    "cost_index": 78.7,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1423.0,
+    "medigap_g_monthly": 199.0,
+    "part_d_monthly": 32.81,
+    "medicare_advantage_monthly": 9.49,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Kansas insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 95.3,
+    "bea_goods": 94.0,
+    "bea_services": 93.8,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6101.0,
+    "assisted_living_monthly": 5950.0,
+    "nursing_home_private_monthly": 8517.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

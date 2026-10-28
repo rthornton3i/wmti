@@ -1,0 +1,206 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "sc",
+  "name": "South Carolina",
+  "tax_year": 2026,
+  "source": "H. 4216 (Act 110 of 2026, signed 2026-03-30, tax years from 2026), all read directly on 2026-10-24 (s359): SCDOR Information Letter #26-20 of 2026-08-31 (https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf) for the 2026 rates, brackets, SCIAD and its phase-out; the enacted bill (https://www.scstatehouse.gov/sess126_2025-2026/bills/4216.htm) and the SCDOR 'Information about H. 4216' page (https://dor.sc.gov/news/information-about-h-4216); S.C. Code title 12 chapter 6 (https://www.scstatehouse.gov/code/t12c006.php: 12-6-520 indexing, 12-6-1120(4) Social Security, 12-6-1150 capital gain, 12-6-1170 retirement and age-65 deductions); SCDOR 2025 SC1040 packet (https://dor.sc.gov/sites/dor/files/forms/IITPacket_2025.pdf) for the 2025 dependent exemption and the line instructions",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf",
+    "note": "One rate schedule for every filing status (12-6-510(C) as amended by Act 110; SCDOR IL 26-20, read 2026-10-24); the two identical tables let the SCIAD differ by status, and separate filers use the single table (SCIAD 15,000 for single and separate)."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "From 2026 South Carolina starts from federal adjusted gross income and no longer allows the federal standard, itemized, senior, tip, overtime, car loan interest or QBI deductions (12-6-50(21) added by Act 110; SCDOR IL 26-20, read 2026-10-24). 401(k) and 403(b) deferrals stay out of income and deductible Traditional IRA and HSA deposits stay deducted, because they are inside federal AGI and the South Carolina additions (SC1040 lines a to e, 2025 packet, read 2026-10-24) do not add them back; no add-back is modelled. Not modelled: the retirement deduction of up to 3,000 per person under 65 (12-6-1170(A); from 65 it is inside the 15,000 deduction, see exemptions), the 3% rate on active trade or business income (I-335), and the automatic top-rate cuts from 2027 when revenue grows 5% or more.",
+    "confidence": "confirmed primary",
+    "check_at": "https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf"
+  },
+  "income_brackets": {
+    "indexed": true,
+    "adjustment": "indexed",
+    "confidence": "confirmed primary",
+    "check_at": "https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf",
+    "note": "2026 schedule (12-6-510(C) as amended by Act 110; SCDOR IL 26-20 of 2026-08-31, read 2026-10-24): 1.99% of taxable income below 30,000; from 30,000, 5.21% of taxable income minus 966, the same as 597 (1.99% of 30,000) plus 5.21% above 30,000. The 30,000 is the statutory 2026 figure; after 2026 it is indexed yearly by the chained CPI, at most 4% a year, rounded to 10 (12-6-520, read 2026-10-24), so the indexed flag is right.",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0199,
+        "base": 0.0
+      },
+      {
+        "threshold": 30000,
+        "rate": 0.0521,
+        "base": 597.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0199,
+        "base": 0.0
+      },
+      {
+        "threshold": 30000,
+        "rate": 0.0521,
+        "base": 597.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 15000.0,
+    "JOINT": 30000.0,
+    "note": "South Carolina Income Adjusted Deduction (SCIAD, 12-6-1140(15) added by Act 110; SCDOR IL 26-20, read 2026-10-24): 15,000 single and separate, 30,000 joint and surviving spouse (22,500 head of household); fixed amounts, not indexed. Approximation: it is reduced by the fraction (federal AGI - 40,000) / 55,000 single, (AGI - 80,000) / 110,000 joint, the reduction rounded down to 10, and is zero from 95,000 single and 190,000 joint; the file keeps the full amount, so incomes above 40,000 / 80,000 are undertaxed by up to 781 single / 1,563 joint.",
+    "confidence": "confirmed primary",
+    "check_at": "https://dor.sc.gov/sites/dor/files/policies/IL26-20.pdf"
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 15000.0,
+    "dependent": 4930.0,
+    "note": "Each person 65 or older deducts up to 15,000 (30,000 joint when both are 65 or older), reduced by the retirement deduction (up to 10,000 from 65) taken, so a person 65 or older gets 15,000 in total either way (12-6-1170(B), read 2026-10-24; 2025 SC1040 line q-1 worksheet; a fixed amount, not indexed). Dependent exemption 4,930 per dependent for 2025 (2025 SC1040 packet, read 2026-10-24; 12-6-1140(13), indexed each December by the chained CPI); approximation: SCDOR has not published the 2026 figure yet, so the 2025 amount is used for 2026.",
+    "confidence": "confirmed primary",
+    "check_at": "https://dor.sc.gov/sites/dor/files/forms/IITPacket_2025.pdf"
+  },
+  "capital_gains_exclusion": {
+    "indexed": false,
+    "share": 0.44,
+    "note": "South Carolina deducts 44% of net capital gain held more than one year (12-6-1150 and the 2025 SC1040 line instructions, read 2026-10-24); Act 110 does not change it.",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.scstatehouse.gov/code/t12c006.php"
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.scstatehouse.gov/code/t12c016.php",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "South Carolina levies no estate tax (its tax was the federal state death tax credit, which ended in 2005) and no inheritance tax (state-costs.csv estate_tax and inheritance_tax 'none'; Wealthspire 2026 state estate tax list does not include South Carolina). Confirmed primary on https://www.scstatehouse.gov/code/t12c016.php (validation run 2, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.scstatehouse.gov/code/t12c006.php",
+    "note": "South Carolina gross income is computed without IRC 86, so Social Security and Tier 1 railroad retirement benefits are not taxed (12-6-1120(4) on https://www.scstatehouse.gov/code/t12c006.php, read 2026-10-24; the 2025 SC1040 line o subtracts any amount taxed federally). Act 110 does not change it. Kiplinger 2026 and AARP agree."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "SCDOR local tax pages",
+    "note": "South Carolina cities and counties levy no income tax (state-costs.csv local_income_tax, from memory). Triage 2026-10-23 (category A): South Carolina has no local income tax. Re-checked 2026-10-24 (s359): no SCDOR page says so in words (state law authorises no local income tax), so it stays confirmed secondary."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.0149,
+    "combined_rate": 0.0749,
+    "vehicle_rate": 0.0172,
+    "grocery_rate": 0.0149,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "South Carolina revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0172 from the state's own source (South Carolina infrastructure maintenance fee 5% capped at 500, no sales tax, so 500 / 29,100 on a 29,100 car (https://dmv.sc.gov/fees, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: partly); research note: State exempts unprepared food; many local option taxes still apply to it (varies by county ordinance). clothing_taxable is true (research: yes; taxed). Some towns tax groceries and others do not; the estimate uses the general average local rate, so it overstates. Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00438,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2700.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 3060.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 698.0,
+    "confidence": "unconfirmed",
+    "check_at": "SCDOR vehicle property tax pages and county auditor millage; SCDMV registration fees",
+    "source": "WalletHub 2026 vehicle tax ranking (vehicle property tax 678 on the best-selling car in South Carolina, rank 47), read through syndicated news extracts; registration 40 for two years",
+    "note": "Annual county property tax on cars (6% assessment ratio times local millage) of about 678 on WalletHub's typical new car, plus about 20 a year of registration; an older car pays less, so this overstates the average car. Hand-set in s297; importStateCosts.py writes 0 here again if rerun for SC."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.28,
+    "average_price_per_gallon": 2.99,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.scstatehouse.gov/code/t12c028.php",
+    "source": "Excise: https://www.scstatehouse.gov/code/t12c028.php (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.28 (28 cents/gal from 2022-07-01); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1593,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 304319.0,
+    "cost_index": 79.5,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1198.0,
+    "medigap_g_monthly": 169.0,
+    "part_d_monthly": 44.53,
+    "medicare_advantage_monthly": 11.11,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, South Carolina insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 99.1,
+    "bea_goods": 96.3,
+    "bea_services": 98.3,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 5720.0,
+    "assisted_living_monthly": 5200.0,
+    "nursing_home_private_monthly": 9536.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

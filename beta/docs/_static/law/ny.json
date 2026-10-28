@@ -1,0 +1,348 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "ny",
+  "name": "New York",
+  "tax_year": 2026,
+  "source": "New York State Department of Taxation and Finance, Form IT-2105-I (2026) rate schedules (https://www.tax.ny.gov/pdf/current_forms/it/it2105i.pdf, read in validation run 2, 2026-10-22): 2026 rates 3.9% to 10.9% on the 2025 thresholds; standard deduction, dependent exemption and the 20,000 pension exclusion confirmed on the department's pages in the same run. Not modelled: the tax benefit recapture worksheets above a New York AGI of 107,650",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "New York follows the federal treatment of 401(k) deferrals and HSA deposits."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.039,
+        "base": 0.0
+      },
+      {
+        "threshold": 8500,
+        "rate": 0.044,
+        "base": 331.5
+      },
+      {
+        "threshold": 11700,
+        "rate": 0.0515,
+        "base": 472.3
+      },
+      {
+        "threshold": 13900,
+        "rate": 0.054,
+        "base": 585.6
+      },
+      {
+        "threshold": 80650,
+        "rate": 0.059,
+        "base": 4190.1
+      },
+      {
+        "threshold": 215400,
+        "rate": 0.0685,
+        "base": 12140.35
+      },
+      {
+        "threshold": 1077550,
+        "rate": 0.0965,
+        "base": 71197.62
+      },
+      {
+        "threshold": 5000000,
+        "rate": 0.103,
+        "base": 449714.05
+      },
+      {
+        "threshold": 25000000,
+        "rate": 0.109,
+        "base": 2509714.05
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.039,
+        "base": 0.0
+      },
+      {
+        "threshold": 17150,
+        "rate": 0.044,
+        "base": 668.85
+      },
+      {
+        "threshold": 23600,
+        "rate": 0.0515,
+        "base": 952.65
+      },
+      {
+        "threshold": 27900,
+        "rate": 0.054,
+        "base": 1174.1
+      },
+      {
+        "threshold": 161550,
+        "rate": 0.059,
+        "base": 8391.2
+      },
+      {
+        "threshold": 323200,
+        "rate": 0.0685,
+        "base": 17928.55
+      },
+      {
+        "threshold": 2155350,
+        "rate": 0.0965,
+        "base": 143430.83
+      },
+      {
+        "threshold": 5000000,
+        "rate": 0.103,
+        "base": 417939.55
+      },
+      {
+        "threshold": 25000000,
+        "rate": 0.109,
+        "base": 2477939.55
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 8000.0,
+    "JOINT": 16050.0
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 0.0,
+    "dependent": 1000.0
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 59.5,
+    "full": false,
+    "per_person_cap": true,
+    "cap": {
+      "SINGLE": 20000.0,
+      "JOINT": 40000.0,
+      "MFS": 20000.0
+    },
+    "confidence": "confirmed primary",
+    "note": "Pension and annuity exclusion, Tax Law 612(c)(3-a): up to 20,000 per person from age 59 1/2, shared by all pension, annuity and IRA income in federal AGI (IT-201-I 2025 line 29, https://www.tax.ny.gov/pdf/2025/inc/it201i_2025.pdf). A Roth conversion at 59 1/2 or later counts toward the 20,000 (TSB-M-98(7)I, https://www.tax.ny.gov/pdf/memos/income/m98_7i.pdf); the model passes conversions as retirement income. A qualified charitable distribution is outside federal AGI (IRC 408(d)(8)) and so outside New York income: untaxed and using none of the 20,000, as the model treats it. Checked on the primary sources in legal-five.md G5 (s328, 2026-10-23)."
+  },
+  "estate_inheritance": {
+    "indexed": true,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.tax.ny.gov/pit/estate/etidx.htm and NY Tax Law 952 (Form ET-706 instructions)",
+    "estate_tax": {
+      "exemption": 7350000.0,
+      "cliff_multiple": 1.05,
+      "brackets": [
+        {
+          "threshold": 0.0,
+          "rate": 0.0306,
+          "base": 0.0
+        },
+        {
+          "threshold": 500000.0,
+          "rate": 0.05,
+          "base": 15300.0
+        },
+        {
+          "threshold": 1000000.0,
+          "rate": 0.055,
+          "base": 40300.0
+        },
+        {
+          "threshold": 1500000.0,
+          "rate": 0.065,
+          "base": 67800.0
+        },
+        {
+          "threshold": 2100000.0,
+          "rate": 0.08,
+          "base": 106800.0
+        },
+        {
+          "threshold": 2600000.0,
+          "rate": 0.088,
+          "base": 146800.0
+        },
+        {
+          "threshold": 3100000.0,
+          "rate": 0.096,
+          "base": 190800.0
+        },
+        {
+          "threshold": 3600000.0,
+          "rate": 0.104,
+          "base": 238800.0
+        },
+        {
+          "threshold": 4100000.0,
+          "rate": 0.112,
+          "base": 290800.0
+        },
+        {
+          "threshold": 5100000.0,
+          "rate": 0.12,
+          "base": 402800.0
+        },
+        {
+          "threshold": 6100000.0,
+          "rate": 0.128,
+          "base": 522800.0
+        },
+        {
+          "threshold": 7100000.0,
+          "rate": 0.136,
+          "base": 650800.0
+        },
+        {
+          "threshold": 8100000.0,
+          "rate": 0.144,
+          "base": 786800.0
+        },
+        {
+          "threshold": 9100000.0,
+          "rate": 0.152,
+          "base": 930800.0
+        },
+        {
+          "threshold": 10100000.0,
+          "rate": 0.16,
+          "base": 1082800.0
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "New York estate tax (Tax Law 952): the rate schedule taxes the whole New York taxable estate (3.06% up to 16% above 10,100,000); the applicable credit removes the tax at or below the basic exclusion amount (7,350,000 for deaths in 2026, indexed to CPI), shrinks in a straight line as the estate passes it, and is gone above 105% of it (the cliff), so a larger estate is taxed from its first dollar. No portability between spouses, so a couple gets one exclusion. The 2026 exclusion was read on the Department of Taxation estate tax page and the schedule on a copy of Tax Law 952 (newyork.public.law) on 2026-10-22. New York has no inheritance tax. Not modelled: gifts added back within three years of death."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.ny.gov/pdf/2025/inc/it201_2025_fill_in.pdf",
+    "note": "New York does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and AARP, as listed in .claude/state/research/state-costs.md. Confirmed primary on https://www.tax.ny.gov/pdf/2025/inc/it201_2025_fill_in.pdf (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0146,
+    "applies_to": "all income",
+    "confidence": "unconfirmed",
+    "check_at": "NYC Department of Finance resident income tax rates (Form IT-201 NYC tax rate schedule) and the Yonkers resident surcharge",
+    "note": "Population-weighted state average, an estimate: New York City residents (about 42% of the state) pay 3.078% to 3.876% of NY taxable income (about 3.5% taken), Yonkers residents a surcharge of 16.75% of their state tax; elsewhere there is no local income tax. A household outside the city pays nothing and one inside about 3.5%. It taxes the same income as the state return, so Social Security and the pension exclusions are left out (state-costs.csv local_income_tax, from memory)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.04,
+    "avg_local_rate": 0.0454,
+    "combined_rate": 0.0854,
+    "vehicle_rate": 0.0854,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "New York revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food for home consumption exempt from state and local. clothing_taxable is false (research: partly; Items under $110 exempt from 4% state tax; local tax applies unless locality opts in (NYC exempts)). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01227,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1356.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2616.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 50.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://dmv.ny.gov/registration/passenger-vehicle-registration-fees-use-taxes-and-supplemental-fees",
+    "source": "https://dmv.ny.gov/registration/passenger-vehicle-registration-fees-use-taxes-and-supplemental-fees (validation run 3, 2026-10-22)",
+    "note": "New York two-year registration by weight (about 28 a year for 3,451-3,550 lb), county use tax 5 to 15 a year (15 in New York City) and the 25 a year MCTD supplemental fee in New York City and its suburban counties: about 33 to 70 a year, about 50 taken (estimate from the DMV fee list, unconfirmed). No vehicle property tax. Typical car, averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.33,
+    "average_price_per_gallon": 3.304,
+    "confidence": "unconfirmed",
+    "check_at": "New York motor fuel tax page and EIA gasoline prices (https://www.eia.gov/petroleum/gasdiesel/)",
+    "source": "Excise: USGasGauge/EIA (https://usgasgauge.com/gas-tax) and Kiplinger 2026 for some states, memory for the rest; price: https://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_sny_a.htm (validation run 3, 2026-10-22)",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel; average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Price: 3.304, EIA New York regular retail, 2024 annual (2025: 3.056) (validation run 3, 2026-10-22). Set by hand from the primary source in validation run 3, 2026-10-22; importStateCosts.py keeps a hand-set section. Accepted: low impact (triage 2026-10-23): 4c excise confirmed; add-ons unverified."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2938,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 524942.0,
+    "cost_index": 194.8,
+    "confidence": "confirmed primary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Both figures confirmed primary (https://fred.stlouisfed.org/series/NYUCSFRCONDOSMSAMID and https://meric.mo.gov/data/cost-living-data-series, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 817.0,
+    "medigap_g_monthly": 483.0,
+    "part_d_monthly": 57.58,
+    "medicare_advantage_monthly": 38.39,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, New York insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Research note: ACA community rated: age 60 = age 40; Medigap community rated (all ages same). Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 102.5,
+    "bea_goods": 107.3,
+    "bea_services": 104.1,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6483.0,
+    "assisted_living_monthly": 6300.0,
+    "nursing_home_private_monthly": 15558.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

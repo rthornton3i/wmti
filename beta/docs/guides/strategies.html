@@ -1,0 +1,723 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strategies &mdash; Walk Me Through It  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7f41d439"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sample results" href="sample-gallery.html" />
+    <link rel="prev" title="The app: Outputs" href="app-outputs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../user_index.html" class="icon icon-home">
+            Walk Me Through It
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Start here</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the toolkit</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using the app</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="app.html">The app</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-inputs.html">The app: Setup and Inputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-flows.html">The app: scenarios and guided flows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-outputs.html">The app: Outputs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Strategies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#strategies-you-can-compare-today">Strategies you can compare today</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#roth-conversions">Roth conversions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#medicare-irmaa-and-the-two-year-lookback">Medicare IRMAA and the two-year lookback</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#roth-backdoor">Roth backdoor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#qualified-charitable-distributions-qcd">Qualified charitable distributions (QCD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#required-minimum-distributions">Required minimum distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#terminal-tax-rate">Terminal tax rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#relocation-moving-to-another-state">Relocation: moving to another state</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#finding-the-best-settings">Finding the best settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#limitations-of-the-strategies">Limitations of the strategies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sample-gallery.html">Sample results</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="model-rules.html">Model rules by group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States: taxes, living costs and moving</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tax law and legal</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tax-law.html">Tax law in the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../user_index.html">Walk Me Through It</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../user_index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Strategies</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="strategies">
+<h1>Strategies<a class="headerlink" href="#strategies" title="Link to this heading"></a></h1>
+<p>Purpose: for anyone weighing a tax strategy; what each choice changes, where to set it and how to compare it.</p>
+<p>A strategy is a choice that changes the tax you pay over the years, such as when to claim
+Social Security or whether to convert Traditional money to Roth. To judge one, save a
+scenario with it and one without, and open <strong>Compare</strong> (see <a class="reference internal" href="usage.html"><span class="doc">Using the toolkit</span></a>): both run on
+the same random draws, so the difference comes from the setting. Or let <strong>Optimize</strong>
+search for you. Everything here models the law files (<a class="reference internal" href="../law/index.html"><span class="doc">Tax law by jurisdiction</span></a>); it is not
+tax advice. Rules the model leaves out are in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>.</p>
+<section id="strategies-you-can-compare-today">
+<span id="strategies-today"></span><h2>Strategies you can compare today<a class="headerlink" href="#strategies-you-can-compare-today" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 46.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Choice</p></th>
+<th class="head"><p>What it changes</p></th>
+<th class="head"><p>Where to set it</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Withdrawal order</p></td>
+<td><p>Priority drains accounts in the order you rank them; proportional draws from
+every account by balance. Required distributions come first either way.</p></td>
+<td><p>Accounts tab: strategy and priority; or Optimize</p></td>
+</tr>
+<tr class="row-odd"><td><p>Traditional or Roth saving</p></td>
+<td><p>The share of pay deferred into a Traditional 401k (lowers taxable pay now)
+against a Roth deposit (taxed now, untaxed later). The employer match goes
+to the Traditional balance. The Roth IRA part of a deposit shrinks across
+the income phase-out; a Roth 401k has no income limit.</p></td>
+<td><p>Benefits tab (Retirement plan)</p></td>
+</tr>
+<tr class="row-even"><td><p>Where surplus cash goes</p></td>
+<td><p>How unspent cash (the <a class="reference internal" href="overview.html#term-Surplus"><span class="xref std std-term">surplus</span></a>) is split over cash, Investments and
+529 accounts. Investments sales are taxed only on the gain share.</p></td>
+<td><p>Accounts tab: surplus sliders; or Optimize</p></td>
+</tr>
+<tr class="row-odd"><td><p>When to claim Social Security</p></td>
+<td><p>The benefit and the year it starts. Taxable benefits count withdrawals and
+gains, so the claim age can change the tax on the same withdrawals.</p></td>
+<td><p>Retirement tab: benefit table (ages 62 to 70) and claim age; or Optimize</p></td>
+</tr>
+<tr class="row-even"><td><p>Health premium before or after tax</p></td>
+<td><p>A premium paid before tax lowers taxable pay, up to the pay left after
+Traditional deposits, the dependent care FSA and the HSA taken through
+payroll; one paid after tax can be itemized above the medical floor.
+Medicare premiums are always after tax.</p></td>
+<td><p>Benefits tab (Medical plan); Medicare on the Retirement tab</p></td>
+</tr>
+<tr class="row-odd"><td><p>Using an HSA</p></td>
+<td><p>Pre-tax HSA contributions lower taxable income (through payroll also Social
+Security and Medicare tax) and pay qualified healthcare costs untaxed.
+Contributing what the year’s costs need keeps the balance low; contributing
+the most lets it grow to pay costs later.</p></td>
+<td><p>Benefits tab (Medical plan, HSA)</p></td>
+</tr>
+<tr class="row-even"><td><p>Itemizing or the standard deduction</p></td>
+<td><p>Chosen each year, whichever is larger. Mortgage interest, state and
+property tax (with the SALT cap), medical costs and charity can tip it;
+separate returns must both itemize if either does. From 2026 a return on
+the standard deduction also deducts cash gifts up to 1,000 (2,000 joint).
+From 2025 to 2028 each person aged 65 or older adds a 6,000 senior
+deduction, itemizing or not; it falls by 6% of income above 75,000
+(150,000 joint), and separate returns get none. Neither reaches the state
+tax.</p></td>
+<td><p>Expenses tab (tax-deduction rows, Charity, property taxes), Loans tab,
+Benefits tab (premiums), Healthcare tab</p></td>
+</tr>
+<tr class="row-odd"><td><p>Filing jointly or separately</p></td>
+<td><p>Joint returns use the joint brackets and limits; separate returns use the
+married-filing-separately brackets, a half SALT cap and a zero Social
+Security threshold. Each account’s income goes on its owner’s return.</p></td>
+<td><p>Setup: filing status</p></td>
+</tr>
+<tr class="row-even"><td><p>Home state</p></td>
+<td><p>The state brackets, exclusions and add-backs of any of the 50 states or DC.</p></td>
+<td><p>Setup: home state</p></td>
+</tr>
+<tr class="row-odd"><td><p>Paying down a loan</p></td>
+<td><p>Extra payments, a refinance or forgiveness change the payoff date, the
+interest paid and the mortgage interest you can itemize.</p></td>
+<td><p>Loans tab</p></td>
+</tr>
+<tr class="row-even"><td><p>Cost of care</p></td>
+<td><p>Doctor visits and drugs every year, counted while healthcare costs are
+included.</p></td>
+<td><p>Healthcare tab</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>Strategies</strong> tab holds three strategies, each off by default: the Roth
+conversion, the Roth backdoor and the QCD. After them come Relocation (a move to
+another state, off by default; see <a class="reference internal" href="#relocation"><span class="std std-ref">Relocation: moving to another state</span></a>), the starting after-tax basis
+of the Traditional IRAs, a note on how the home state treats them
+(<a class="reference internal" href="tax-law.html#home-state-strategies"><span class="std std-ref">How the home state treats the strategies</span></a>), and warnings for what the model leaves out. The
+beneficiaries are not a strategy: they sit in the Beneficiaries section of the
+<strong>Benefits</strong> tab (see <a class="reference internal" href="#terminal-tax-rate"><span class="std std-ref">Terminal tax rate</span></a>).</p>
+</section>
+<section id="roth-conversions">
+<span id="id1"></span><h2>Roth conversions<a class="headerlink" href="#roth-conversions" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 78.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>What</p></td>
+<td><p>Moves Traditional money to Roth in the years you choose, paying tax now to
+lower later required distributions and taxable Social Security.</p></td>
+</tr>
+<tr class="row-even"><td><p>Set it</p></td>
+<td><p><strong>Strategies</strong> tab: an age window (your age, both ends included), an optional
+amount per year in today’s dollars, and ceilings that all apply, the lowest
+winning: a federal bracket top, an IRMAA tier, a Social Security limit, the
+0% gains bracket top or a custom AGI. Preset buttons switch the conversion
+on under one ceiling.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Modeled</p></td>
+<td><p>Required distributions and the year’s withdrawals come first and are never
+converted. The model converts the largest amount that keeps every ceiling on
+every return, with the conversion’s own tax paid by further withdrawals, so
+effects such as the Social Security “torpedo” or a switch to itemizing are
+exact. With no amount it converts as much as the ceilings allow. The money
+goes to the owner’s first Roth account and is ordinary income, not cash.</p></td>
+</tr>
+<tr class="row-even"><td><p>Limits</p></td>
+<td><p>The window follows your age even for a partner’s account (the tab warns).</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>The rollover account.</strong> If an owner of a Traditional account has no Roth account to
+receive the money, switching the conversion on adds a Roth IRA called <em>Rollover
+account</em> (worth 0, usual Roth IRA returns, last withdrawal priority). Switching it off
+removes the account while it is untouched; editing it in any field makes it your own.
+A config loaded with the conversion on and no Roth account gets one at load.</p>
+<p><strong>Early-retiree ladder.</strong> The years between the last paycheck and Social Security or
+the first RMD often have the lowest taxable income of a lifetime. Set the window to
+those years and a ceiling such as the top of the 12% or 22% bracket to fill the low
+brackets each year. The model has no 10% penalty and no Roth five-year rule before
+59.5, so the ladder’s waiting period is not modeled. Conversions before the Medicare
+age raise the income an ACA premium credit is tested on, which the model does not
+price. From 2026 the credit ends above 400% of the federal poverty level (about 62,600
+for one person, 84,600 for two); married couples filing separately get none. The tab
+warns about both.</p>
+</section>
+<section id="medicare-irmaa-and-the-two-year-lookback">
+<span id="medicare-irmaa"></span><h2>Medicare IRMAA and the two-year lookback<a class="headerlink" href="#medicare-irmaa-and-the-two-year-lookback" title="Link to this heading"></a></h2>
+<p>The IRMAA surcharge applies whenever a Medicare premium is charged (Part B on, or a
+Part D premium above zero, on the <strong>Retirement</strong> tab). It is charged on each return’s
+AGI from two years earlier, against that later year’s thresholds. So the IRMAA ceiling
+holds a year’s AGI under the threshold of the premium year it sets. In today’s-value
+runs the earlier AGI is deflated by expected inflation, so both modes charge alike.</p>
+<p>The first two years of a run look back before it. The model estimates that AGI from each
+member’s pay history on the Income tab (a person with no entry counts today’s pay), and
+the Retirement tab and the Summary warn that the early IRMAA tier is estimated. The
+model does not offer an IRMAA appeal (Form SSA-44) after a life-changing event.</p>
+<p>To compare a conversion, save one config with it on (a preset sets one ceiling) and one
+with it off, and pick both in <strong>Compare</strong>.</p>
+</section>
+<section id="roth-backdoor">
+<span id="id2"></span><h2>Roth backdoor<a class="headerlink" href="#roth-backdoor" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 78.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>What</p></td>
+<td><p>Fills the Roth IRA room that the income phase-out removes: after-tax cash goes
+into a Traditional IRA as a nondeductible deposit and is converted to the
+first Roth IRA in the same year.</p></td>
+</tr>
+<tr class="row-even"><td><p>Set it</p></td>
+<td><p><strong>Strategies</strong> tab: <strong>Make a backdoor Roth deposit</strong>, with an optional yearly
+cap in today’s dollars.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Modeled</p></td>
+<td><p>The deposit is the IRA limit (with the catch-up from age 50) times the share
+the phase-out removes, for each person who earns, and no more than their pay
+less their Traditional deposit. It is paid only from the year’s cash before any
+withdrawal and is not income. It shows as <code class="docutils literal notranslate"><span class="pre">Ret.</span> <span class="pre">Deposit</span> <span class="pre">(Backdoor)</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Backdoor</span> <span class="pre">Conversion</span></code>; <code class="docutils literal notranslate"><span class="pre">Conversion</span> <span class="pre">Taxable</span></code> is the taxable part of both
+kinds of conversion.</p></td>
+</tr>
+<tr class="row-even"><td><p>Pro-rata rule</p></td>
+<td><p>With no pre-tax IRA money the conversion is tax free. Otherwise the pre-tax
+share of the whole IRA pool is taxed (Form 8606) and the basis left carries on.
+The first year starts from the <em>IRA basis</em> on the Traditional IRA accounts, a
+fixed dollar amount that loses inflation in today’s-value runs. A Traditional
+401k is outside the pool.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Limits</p></td>
+<td><p>A Roth IRA account must exist. With no Roth 401k, the Roth deposit on the
+Benefits tab shares the IRA limit, so the backdoor gets only what is left (the
+tab warns when that is nothing).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="qualified-charitable-distributions-qcd">
+<span id="qcd"></span><h2>Qualified charitable distributions (QCD)<a class="headerlink" href="#qualified-charitable-distributions-qcd" title="Link to this heading"></a></h2>
+<p>Charity rows on the <strong>Expenses</strong> tab are charged every year as cash leaving the
+household. A QCD changes how the gift is paid, not the gift.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 78.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>What</p></td>
+<td><p>From age 70.5, pays the year’s giving straight out of the Traditional IRA.
+The withdrawal is untaxed, counts toward the RMD, and lowers AGI, taxable
+Social Security and the IRMAA surcharge two years later.</p></td>
+</tr>
+<tr class="row-even"><td><p>Set it</p></td>
+<td><p><strong>Strategies</strong> tab: <strong>Pay gifts with a QCD</strong>, all of the giving or an amount
+per year in today’s dollars.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Modeled</p></td>
+<td><p>Never more than the giving, the yearly limit (111,000 per person in 2026,
+indexed) or what the Traditional IRAs can pay out. Each person’s part comes
+only from their own Traditional IRAs (never a 401k) while they are old enough
+and within their own limit. An IRA with no owner is yours. A QCD counts toward
+that person’s RMDs together, not the other person’s. The gift is still charged
+in full, and the QCD part is not a deductible cash gift.</p></td>
+</tr>
+<tr class="row-even"><td><p>States</p></td>
+<td><p>New Jersey keeps taxing a QCD as pension income (see
+<a class="reference internal" href="tax-law.html#home-state-strategies"><span class="std std-ref">How the home state treats the strategies</span></a>). Every other state follows the federal
+treatment.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Limits</p></td>
+<td><p>A conversion never uses the QCD or the RMD. Whether Form 8606 counts a QCD in
+the IRA distributions it reads is unconfirmed.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>In RMD years</strong> a QCD is the cheapest way to give: the RMD is taken either way, and
+the part the QCD covers leaves AGI. It also beats the 1,000 (2,000 joint) non-itemizer
+gift deduction. Before the RMD age it still lowers AGI but draws down the Traditional
+IRA earlier.</p>
+</section>
+<section id="required-minimum-distributions">
+<span id="rmd-strategy"></span><h2>Required minimum distributions<a class="headerlink" href="#required-minimum-distributions" title="Link to this heading"></a></h2>
+<p>Each Traditional account’s RMD is the prior year-end balance divided by the IRS Uniform
+Lifetime Table period (27.4 at age 72 down to 2.0 at 120, then 2.0). It starts at 73, or
+75 for someone born in 1960 or later, and uses the account owner’s own age and birth
+year (a blank owner is you). A younger partner’s RMD years may fall past the plan end,
+which follows your age. RMDs come before any other withdrawal and count toward the
+year’s need. The Joint and Last Survivor Table (a spouse more than ten years younger as
+sole beneficiary, giving smaller RMDs) is not built. Each year’s schedule is under the
+chart of <strong>Deposits and withdrawals</strong> (see <a class="reference internal" href="model-rules.html#tab-flows"><span class="std std-ref">Deposits and withdrawals</span></a>).</p>
+</section>
+<section id="terminal-tax-rate">
+<span id="id3"></span><h2>Terminal tax rate<a class="headerlink" href="#terminal-tax-rate" title="Link to this heading"></a></h2>
+<p>Strategies are compared after tax, by what the beneficiaries keep. The rule and its
+example are in <a class="reference internal" href="model-rules.html#tab-beneficiaries"><span class="std std-ref">Beneficiaries</span></a>; this section is the short
+version.</p>
+<ul class="simple">
+<li><p><strong>Payout.</strong> Traditional money left at the end is taxed as each beneficiary
+withdraws it, at the federal and their state brackets on top of their other income.
+The default, <strong>Over 10 years</strong>, spreads the share over 10 equal yearly withdrawals
+(the 10-year inherited-account rule). <strong>All at once</strong> takes it in the year after
+the death, which usually reaches higher brackets. Roth money, investments and
+homes pass untaxed (basis steps up at death); each home still owned is treated as
+sold on the last day, less selling costs.</p></li>
+<li><p><strong>Beneficiaries.</strong> Set them in the Beneficiaries section of the <strong>Benefits</strong> tab:
+name, share (the shares must total 100%), other income, filing status, state and
+payout. The default is one beneficiary with the whole estate. They change how the
+final value is measured, not the plan.</p></li>
+<li><p><strong>Estate taxes.</strong> The federal estate tax (40% above the basic exclusion, 15,000,000
+a person in 2026, doubled for a joint return, indexed) applies to the gross estate.
+The state you live in at the end charges its estate tax on the gross estate and its
+inheritance tax on each share, at the rate for children (tables in
+<a class="reference internal" href="tax-law.html#state-death-taxes"><span class="std std-ref">State estate and inheritance taxes</span></a>). The federal deduction for state death taxes is not
+modeled.</p></li>
+<li><p><strong>A typed rate.</strong> The beneficiaries’ tax rate box (0% to 50%) replaces the payouts’
+tax with one flat rate on all Traditional money. While blank, its caption shows the
+model’s estimate, read from one seeded run with every strategy off: the trend of each
+year’s tax rate on Traditional withdrawals over the last 15 years of the run
+(at least 10 such years needed), clamped to 0% to 50% and rounded to a half point.
+With fewer such years it uses the average tax rate over the first five retirement
+years, and with no usable year it uses 25%. <strong>Use the beneficiaries’ payout</strong> clears a
+typed rate.</p></li>
+<li><p><strong>Where it shows.</strong> <strong>Summary</strong> shows <strong>What beneficiaries keep</strong>: each run’s final
+net worth less estate and inheritance taxes, the beneficiaries’ income tax and the
+homes’ selling costs, as the median with the middle half (25th to 75th percentile).
+<strong>Compare</strong> uses the first scenario’s saved rate for every row, or with none each
+row’s own payout.</p></li>
+</ul>
+<p>The estimate is noisy because it comes from one run, and it can step when an input
+change moves a household across the 10-year line.</p>
+<p>See also <a class="reference internal" href="tax-law.html#home-state-strategies"><span class="std std-ref">How the home state treats the strategies</span></a> in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a>.</p>
+</section>
+<section id="relocation-moving-to-another-state">
+<span id="relocation"></span><h2>Relocation: moving to another state<a class="headerlink" href="#relocation-moving-to-another-state" title="Link to this heading"></a></h2>
+<p>A move to another state is a plan of its own, off by default. The full treatment is in
+<a class="reference internal" href="states.html"><span class="doc">States: taxes, living costs and moving</span></a> (<a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>); the Relocation section of the <strong>Strategies</strong> tab
+holds the settings.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Move to another state</p></td>
+<td><p>The switch. A move to your home state, or with no state, changes nothing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>State you move to</p></td>
+<td><p>One of the 51 states, such as <em>NJ - New Jersey</em>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Move at your age</p></td>
+<td><p>Blank shows your Social Security claim age (or, with no benefit, the age your
+pay stops, or now if you are retired).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Home follows me</p></td>
+<td><p>On by default: the old home is sold and a comparable one bought in the new
+state. Off keeps the old home as a second home.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Both of you move at the start of the move year. From then, state income tax, state
+estate and inheritance taxes, car and health costs, sales tax and your home change as
+<a class="reference internal" href="states.html"><span class="doc">States: taxes, living costs and moving</span></a> describes. A move changes no random draw, so a config with a move and one
+without compare on the same draws.</p>
+</section>
+<section id="finding-the-best-settings">
+<span id="finding-best-settings"></span><h2>Finding the best settings<a class="headerlink" href="#finding-the-best-settings" title="Link to this heading"></a></h2>
+<p>The <strong>Optimize</strong> view under Outputs searches the strategy settings for the best score
+and shows it beside your current settings. It is a search on the model, not advice:
+nothing changes until you apply it. How to run it is in <a class="reference internal" href="app.html"><span class="doc">The app</span></a>.</p>
+<figure class="align-default" id="id4">
+<a class="reference internal image-reference" href="../_images/optimizer-before-after.png"><img alt="Paired bars, now against best found, for the 10th percentile, median, 90th percentile and score." src="../_images/optimizer-before-after.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The current settings against the best settings the optimizer found.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id5">
+<a class="reference internal image-reference" href="../_images/optimizer-loop.svg"><img alt="Strategy list, candidate settings, same random draws, score, keep best, re-check on fresh draws." src="../_images/optimizer-loop.svg" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">How the optimizer searches.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p><strong>What is searched.</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>What is tried</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Roth conversion</p></td>
+<td><p>Off, or one ceiling (a bracket top from 10% to 32% that your table has, an
+IRMAA threshold, the 0% gains limit or a Social Security limit), then the
+start and end ages; finer efforts step the ages by one year and add a second
+ceiling.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Social Security claim age</p></td>
+<td><p>Each person’s ages from 62 to 70.</p></td>
+</tr>
+<tr class="row-even"><td><p>Withdrawal order</p></td>
+<td><p>The groups cash, Investments, Traditional and Roth in any order, each
+group’s accounts in their own order, or proportional.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Surplus cash</p></td>
+<td><p>The shares of cash and Investments accounts, always totalling 100%: first a
+coarse grid, then steps that move 5% from one account to another. A locked
+slider keeps its share.</p></td>
+</tr>
+<tr class="row-even"><td><p>Backdoor and QCD</p></td>
+<td><p>On or off. Their amounts stay as you set them.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Filing status (couples)</p></td>
+<td><p>Joint and separate, searched right after the state and before the rest; greyed
+out with no partner. Separate returns often cost more federal tax, but some
+states let each spouse claim their own exclusions.</p></td>
+</tr>
+<tr class="row-even"><td><p>Relocation state</p></td>
+<td><p>Each state you tick, with staying put always a candidate (below).</p></td>
+</tr>
+<tr class="row-odd"><td><p>401k deposits and new accounts</p></td>
+<td><p>Six options, all on by default (below).</p></td>
+</tr>
+</tbody>
+</table>
+<p>Not searched: spending, the salary stop age, lowering a deposit, the Traditional/Roth
+deposit split, returns, healthcare choices and the beneficiaries’ payouts (over 10
+years never leaves the beneficiaries less than all at once; see
+<a class="reference internal" href="#optimizer-findings"><span class="std std-ref">known findings</span></a>). These are life choices more than
+strategies. A strategy that cannot help the household is skipped with the reason.</p>
+<p><strong>401k deposits and new accounts.</strong></p>
+<ul class="simple">
+<li><p><em>Raise 401k deposits</em>: the Traditional share of pay (tried at 25, 50, 75 and 100% of
+the gap to what the 401k limit allows) and a Roth 401k deposit. Deposits only go up.</p></li>
+<li><p><em>Add an IRA</em>: a Roth or Traditional IRA for a paid person with no 401k. Greyed out
+with the reason (<em>needs per-account deposits</em>, <em>no one has earned pay</em>) when it
+cannot apply. A Roth IRA above the income range is left out (the backdoor covers
+it). A spousal IRA is not modeled.</p></li>
+<li><p><em>Add a 529 per child</em>: for each child under college age with a college cost and no
+529, fed from surplus cash.</p></li>
+<li><p><em>Add Savings</em>, <em>Add CD &amp; Bonds</em>, <em>Add Investments</em>: when the household holds none and
+its settings leave surplus cash.</p></li>
+</ul>
+<p>A new account starts at $0, is named like <em>Roth IRA (added)</em> and is placed last in its
+withdrawal group. The search adds at most two accounts on Quick and three on Standard and
+Thorough; finer efforts also try removing one. A new account that gets under 1% of the
+surplus is dropped. Its returns come from draws of its own, so other accounts’ draws are
+unchanged. A later run of the saved scenario can differ slightly from the search. An
+option that cannot do anything for your settings is unticked and greyed out with its
+reason, and the search lists it as skipped.</p>
+<p id="states-in-the-optimizer"><strong>Relocation state.</strong> Tick the states to try, up to 5 per search (<em>None</em> clears the
+ticks). Each is tried as a retirement move at the move age under Strategies, Relocation
+(your claim age when blank). The state is the first step of each pass, so the other
+strategies are tuned inside it. Ticking only your own state skips it. Under the list the
+page shows what the ticked states add, for example <em>3 states and staying put: up to 672
+more runs, up to 2 minutes more (estimate)</em> (see <a class="reference internal" href="#optimizer-estimates"><span class="std std-ref">the estimates</span></a>). Homes and rent periods that start at or after the move take the
+state tried; earlier ones keep their states, and <em>Home follows me</em> stays as set. The
+result names the state, for example <em>Retire in Florida, move at 65</em>, or <em>Stay in NJ</em>, with
+a note that a move is valued on taxes and costs, not climate, family or healthcare
+access. Apply turns Relocation on with the best state, or off when staying put wins. See
+<a class="reference internal" href="states.html#states-optimizer"><span class="std std-ref">Letting the optimizer compare states</span></a>.</p>
+<p><strong>The score.</strong> Each run’s value is its after-tax final worth in today’s dollars, what the
+beneficiaries keep. The score is:</p>
+<ul class="simple">
+<li><p>the typical outcome: runs sorted by value and averaged with weights that fall with
+distance from the median run, so a few huge outcomes cannot pull it;</p></li>
+<li><p>plus a success bonus: the share of runs that do not run out, times a weight, times the
+current settings’ typical outcome (at least 100,000);</p></li>
+<li><p>less a spread penalty: a weight times the distance between the 10th and the 90th
+percentile.</p></li>
+</ul>
+<p>There is no hard limit on the failure rate; failures count through the success bonus
+only. The risk preference sets the weights:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 18.0%" />
+<col style="width: 18.0%" />
+<col style="width: 42.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Preference</p></th>
+<th class="head"><p>Success weight</p></th>
+<th class="head"><p>Spread penalty</p></th>
+<th class="head"><p>In plain words</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Growth-leaning</p></td>
+<td><p>0.5</p></td>
+<td><p>0.05</p></td>
+<td><p>Ten more points of success are worth a 5% bigger typical outcome; each dollar
+of spread costs 5 cents.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Balanced (default)</p></td>
+<td><p>1.0</p></td>
+<td><p>0.10</p></td>
+<td><p>Ten more points of success are worth a 10% bigger typical outcome; each dollar
+of spread costs 10 cents.</p></td>
+</tr>
+<tr class="row-even"><td><p>Cautious</p></td>
+<td><p>2.0</p></td>
+<td><p>0.20</p></td>
+<td><p>Ten more points of success are worth a 20% bigger typical outcome; each dollar
+of spread costs 20 cents.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The breakdown shows each part now and for the best. Scores compare only within one
+search.</p>
+<p><strong>Same draws and the re-check.</strong> Every setting faces the same random draws, so a
+difference comes from the settings. The search moves one strategy at a time with the
+others held and compares candidates in rounds: all on a few runs, the best third (at
+least two) and your current pick on more, the best two on the most. A new setting
+replaces the current pick only when its score is higher by more than half a percent of
+the reference. The winner is then run again with your current settings on one or two
+fresh sets of draws, and the result says whether it held up. One that did not is
+likely luck; it can still be applied, with a warning.</p>
+<p><strong>Effort.</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18.0%" />
+<col style="width: 30.0%" />
+<col style="width: 26.0%" />
+<col style="width: 26.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Effort</p></th>
+<th class="head"><p>Runs per round</p></th>
+<th class="head"><p>Passes</p></th>
+<th class="head"><p>Most it will use</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Quick (start)</p></td>
+<td><p>6, 14 and 30</p></td>
+<td><p>1</p></td>
+<td><p>650 runs, 6.5 minutes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Standard</p></td>
+<td><p>8, 24 and 80</p></td>
+<td><p>2, with finer steps</p></td>
+<td><p>2,500 runs, 25 minutes</p></td>
+</tr>
+<tr class="row-even"><td><p>Thorough</p></td>
+<td><p>16, 48 and 160</p></td>
+<td><p>3</p></td>
+<td><p>9,000 runs, 90 minutes</p></td>
+</tr>
+</tbody>
+</table>
+<p>A search that may add accounts gets 300, 900 or 2,500 more runs (by effort), one that may
+raise 401k deposits 200, 500 or 1,200 more, and each ticked state 50, 224 or 672 more.
+The time cap is three times the budget at 0.2 s a run, a safety stop. Stop shows the
+best so far; Cancel keeps nothing. A search that uses its run budget before finishing
+asks whether to continue: <em>Continue</em> carries on with the budget raised by the effort’s
+own budget (no setting is run twice), and <em>Stop and keep best so far</em> re-checks the best
+on fresh draws.</p>
+<p id="optimizer-estimates"><strong>Estimates.</strong> Each Effort label says how long a search should take on your device, for
+example <em>Quick (estimate 25 s to 40 s)</em>; until your options are known it shows the run
+budget instead. The low end is one pass in which no step changes anything; the high end
+allows steps that do change something and so call for another pass, plus the re-check.
+The seconds are those runs times a short timed calibration of your current settings on
+your device. The search keeps every run it made, so a later pass does not repeat a
+candidate when nothing else changed. While it runs, the time left is the measured time
+per run times the runs still expected; it grows when a step finds something better and
+shrinks when one does not.</p>
+<p><strong>Limits.</strong> The search finds a local best: a better setting that needs two strategies to
+move at once can be missed (the second pass catches some). 30 to 80 runs resolve only
+larger gains, so a small real gain may read <em>did not hold up</em>. No one dies in the model,
+so a later claim and conversions are valued as if both of you live to the end. Every
+setting runs with the zero-value rollover account a conversion adds, so settings applied
+with the conversion off can run slightly differently later.</p>
+<p><strong>The result.</strong> One card per recommended change: the setting, its value now and found,
+and the score that change added when the search took it (gains need not add up to the
+total improvement shown under the cards). Only improving changes are recommended; the
+rest fold into <em>N other settings kept as they are</em>.</p>
+<p><strong>Apply.</strong> The result also lists each setting Apply writes. <em>Apply these settings</em> changes
+the settings at once (not when your settings changed since the search) and Undo takes them
+back. Only the settings the search moves can be written, and only as it moves them: a
+deposit or the plan’s share only goes up, an existing account keeps every field but its
+surplus share, and a new account starts at $0.</p>
+<p id="optimizer-findings"><strong>Known findings.</strong> General results about the search, true for any household, are kept so
+the optimizer does not spend runs re-learning them. Each is <em>applied</em> (the optimizer acts
+on it), <em>built-in</em> (a rule its code already holds, such as skipping a claim age for
+someone already claiming) or a <em>hypothesis</em> (recorded with what was measured and never
+applied). The one applied finding removes the beneficiaries’ payout from the search:
+spreading over 10 years always leaves the beneficiaries at least as much, and leaving it
+out kept every winner while a Quick search of the pinned profiles ran 30 fewer runs.</p>
+</section>
+<section id="limitations-of-the-strategies">
+<h2>Limitations of the strategies<a class="headerlink" href="#limitations-of-the-strategies" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>No one dies in the model, so the survivor’s single brackets and surcharge thresholds,
+the main reason a married couple converts, never apply; a conversion’s value is
+understated (the tab warns).</p></li>
+<li><p>No 10% early-withdrawal penalty and no Roth five-year rules.</p></li>
+<li><p>The after-tax IRA basis (Form 8606) is one household figure, so the taxed part of
+Traditional income is spread over the returns by what each owner’s accounts paid
+out. The household plan’s Roth deposit and the backdoor deposit go to the first Roth
+account whoever earns them.</p></li>
+<li><p>No Net Investment Income Tax, so a conversion that lifts income above its threshold
+costs less here than it would.</p></li>
+<li><p>No IRMAA appeal and no ACA premium credit.</p></li>
+</ul>
+<p>See the <a class="reference internal" href="tax-law.html#law-backlog"><span class="std std-ref">Law backlog</span></a> in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a> for every rule the model does not charge
+yet, with why it matters.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app-outputs.html" class="btn btn-neutral float-left" title="The app: Outputs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sample-gallery.html" class="btn btn-neutral float-right" title="Sample results" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, [BRAND NAME].</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+ "id": "./",
+ "name": "WMTI Beta",
+ "short_name": "WMTI Beta",
+ "description": "Retirement income planner that runs entirely on your device.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "theme_color": "#0B4F6C",
+ "background_color": "#EFE3CC",
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

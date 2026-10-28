@@ -1,0 +1,252 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "mo",
+  "name": "Missouri",
+  "tax_year": 2026,
+  "source": "Missouri Department of Revenue 2026 Withholding Tax Formula (read 2026-10-22): rates 0% to 4.7% in 1,348 steps, top rate over 9,436, standard deduction 16,100 / 32,200; Tax Foundation 2026 state income tax table agrees; HB 594 (2025) capital gains subtraction (Kutak Rock, RSM alerts)",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Missouri starts from federal adjusted (or taxable) income and keeps the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits (no add-back; only California and New Jersey tax HSA deposits). Not checked against a state ruling."
+  },
+  "income_brackets": {
+    "indexed": true,
+    "adjustment": "indexed",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 1348,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 2696,
+        "rate": 0.025,
+        "base": 26.96
+      },
+      {
+        "threshold": 4044,
+        "rate": 0.03,
+        "base": 60.66
+      },
+      {
+        "threshold": 5392,
+        "rate": 0.035,
+        "base": 101.1
+      },
+      {
+        "threshold": 6740,
+        "rate": 0.04,
+        "base": 148.28
+      },
+      {
+        "threshold": 8088,
+        "rate": 0.045,
+        "base": 202.2
+      },
+      {
+        "threshold": 9436,
+        "rate": 0.047,
+        "base": 262.86
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 1348,
+        "rate": 0.02,
+        "base": 0.0
+      },
+      {
+        "threshold": 2696,
+        "rate": 0.025,
+        "base": 26.96
+      },
+      {
+        "threshold": 4044,
+        "rate": 0.03,
+        "base": 60.66
+      },
+      {
+        "threshold": 5392,
+        "rate": 0.035,
+        "base": 101.1
+      },
+      {
+        "threshold": 6740,
+        "rate": 0.04,
+        "base": 148.28
+      },
+      {
+        "threshold": 8088,
+        "rate": 0.045,
+        "base": 202.2
+      },
+      {
+        "threshold": 9436,
+        "rate": 0.047,
+        "base": 262.86
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 16100.0,
+    "JOINT": 32200.0,
+    "note": "Missouri uses the federal standard deduction (16,100 / 32,200 for 2026; MO DOR withholding formula, primary, and Tax Foundation 2026). Not modelled: the deduction for federal income tax paid (up to 5,000 / 10,000, shrinking with AGI)."
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 1650.0,
+    "dependent": 0.0,
+    "note": "No exemptions; senior is the federal additional standard deduction for 65 or older (1,650 married; 2,050 single), assumed to carry into the Missouri standard deduction (confirmed primary: https://dor.mo.gov/taxation/individual/tax-types/income/year-changes/, validation run 2, 2026-10-22). Brackets: indexed for inflation each year (1,313 steps in 2025, 1,348 in 2026; DOR year changes page, https://dor.mo.gov/taxation/individual/tax-types/income/year-changes/, confirmed primary, validation run 2, 2026-10-22), so the file flags them indexed and the whole return grows with inflation."
+  },
+  "capital_gains_exclusion": {
+    "indexed": false,
+    "share": 1.0,
+    "note": "HB 594 (signed 2025-07-10): individuals subtract 100% of the capital gains on their federal return from tax year 2025 (Kutak Rock and RSM alerts agree, confirmed primary: https://dor.mo.gov/taxation/individual/tax-types/income/year-changes/, validation run 2, 2026-10-22). The model passes only long-term gains here, so short-term gains stay taxed (they are exempt in law)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "Tax Foundation estate and inheritance tax map (https://taxfoundation.org/data/all/state/estate-inheritance-taxes/)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Missouri has no estate tax and no inheritance tax (Tax Foundation 2026 estate and inheritance tax map and state-costs.csv columns estate_tax and inheritance_tax agree)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://dor.mo.gov/faq/taxation/individual/pension.html",
+    "note": "Missouri exempts all Social Security benefits from tax year 2024 (state-costs.csv ss_taxed 'N (2024+)', Kiplinger 2026 and AARP Missouri tax guide agree). Not modelled: the public pension exemption (up to the maximum Social Security benefit) and the private pension exemption (6,000 per person, only under AGI 25,000 single / 32,000 joint, phased out above). Confirmed primary on https://dor.mo.gov/faq/taxation/individual/pension.html (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0013,
+    "applies_to": "wages",
+    "confidence": "unconfirmed",
+    "check_at": "Kansas City earnings tax (kcmo.gov) and City of St. Louis earnings tax (stlouis-mo.gov) pages",
+    "note": "Kansas City and St. Louis city each charge a 1% earnings tax on residents' wages and self-employment earnings (not on pensions, Social Security or investment income). Their residents are about 13% of Missourians (about 510,000 and 280,000 of 6.2 million, from memory), so the state average is about 0.13% of wages. A household in either city pays 1%, elsewhere nothing (state-costs.csv local_income_tax; population shares unconfirmed)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.04225,
+    "avg_local_rate": 0.04215,
+    "combined_rate": 0.0844,
+    "vehicle_rate": 0.0844,
+    "grocery_rate": 0.0544,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Missouri revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.0844 from the state's own source (Missouri state 4.225% plus the local taxes of the buyer's city and county, so the combined rate (https://dor.mo.gov/faq/motor-vehicle/titling-registration.html, validation run 3)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.01225) plus the average local rate where locals tax them (locals: yes); research note: Reduced state food rate 1.225% (1% + 0.225% conservation/parks); full local rates apply. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00849,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2904.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 2160.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 21.25,
+    "confidence": "confirmed secondary",
+    "check_at": "https://dor.mo.gov/motor-vehicle/titling-registration/fees.html",
+    "source": "Missouri DOR motor vehicle fees page: passenger vehicle of 12 to 23 taxable horsepower 21.25 for one year (search extract, 2026-10-23)",
+    "note": "Floor: the registration fee of a typical passenger car. The processing fee (9 a year) and the county personal property tax on cars (research note: high) are not included, so the real cost is higher. Set by hand (s328, 2026-10-23, owner decision C4: no 0 that only means unknown); a move changes the entered car tax by the dollar difference of the two states' figures, and the importer keeps a non-zero figure."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.295,
+    "average_price_per_gallon": 3.03,
+    "confidence": "confirmed secondary",
+    "check_at": "https://dor.mo.gov/taxation/business/tax-types/motor-fuel/",
+    "source": "Excise: https://dor.mo.gov/taxation/business/tax-types/motor-fuel/ (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.295 ($0.295 from 2025-07-01); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1396,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 265387.0,
+    "cost_index": 77.7,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1285.0,
+    "medigap_g_monthly": 257.0,
+    "part_d_monthly": 39.46,
+    "medicare_advantage_monthly": 9.4,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Missouri insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 95.3,
+    "bea_goods": 96.3,
+    "bea_services": 95.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6292.0,
+    "assisted_living_monthly": 5150.0,
+    "nursing_home_private_monthly": 7148.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

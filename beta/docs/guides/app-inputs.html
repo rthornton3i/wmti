@@ -1,0 +1,691 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The app: Setup and Inputs &mdash; Walk Me Through It  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7f41d439"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The app: scenarios and guided flows" href="app-flows.html" />
+    <link rel="prev" title="The app" href="app.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../user_index.html" class="icon icon-home">
+            Walk Me Through It
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Start here</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the toolkit</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using the app</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="app.html">The app</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The app: Setup and Inputs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-settings">Advanced settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#inputs">Inputs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#income">Income</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#children">Children</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#home-and-the-timeline">Home and the timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cars">Cars</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#loans">Loans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accounts">Accounts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#benefits">Benefits</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#beneficiaries">Beneficiaries</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#healthcare">Healthcare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#expenses">Expenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#retirement">Retirement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#strategies">Strategies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#state-boxes">State boxes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lists">Lists</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#where-surplus-cash-goes">Where surplus cash goes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deposit-per-account">Deposit per account</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sheets">Sheets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="app-flows.html">The app: scenarios and guided flows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-outputs.html">The app: Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-gallery.html">Sample results</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="model-rules.html">Model rules by group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States: taxes, living costs and moving</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tax law and legal</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tax-law.html">Tax law in the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../user_index.html">Walk Me Through It</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../user_index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The app: Setup and Inputs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-app-setup-and-inputs">
+<h1>The app: Setup and Inputs<a class="headerlink" href="#the-app-setup-and-inputs" title="Link to this heading"></a></h1>
+<p>Purpose: where you enter the household on the Setup tab and the Inputs chips, and how the timelines, lists and sheets work. Continued from <a class="reference internal" href="app.html"><span class="doc">The app</span></a>.</p>
+<p>What each setting means and its default are in <a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a>. This page covers how the screens behave.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>Setup holds the open scenario and the household basics.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Card</p></th>
+<th class="head"><p>What you do there</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Open scenario</p></td>
+<td><p>Shows the name in large type, whether it is saved and the Auto-save switch. One strip offers Rename, Duplicate and Clear.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Scenario files</p></td>
+<td><p>A strip of Save, Import and Export (the settings as a scenario file). <em>Other scenarios</em> lists those saved on this device; a tap opens one, and each has a “…” menu. <em>New</em> starts another.</p></td>
+</tr>
+<tr class="row-even"><td><p>Household</p></td>
+<td><p><em>Include a partner</em>, <em>Your age</em>, <em>Partner age</em> (only with a partner), filing status and home state. Filing separately splits joint accounts 50/50. <em>Start over</em> resets the household.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Advanced settings</p></td>
+<td><p>“Inflation, years to simulate, Monte Carlo runs and seed, for people who know what they change.” Shut until opened; the app remembers on this device whether it was open.</p></td>
+</tr>
+<tr class="row-even"><td><p>Example household</p></td>
+<td><p>Loads fictional figures to explore.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Clear all data on this device</p></td>
+<td><p>A second tap deletes everything the app stored here, including the offline copy and saved documentation pages, then reloads as on a first visit.</p></td>
+</tr>
+</tbody>
+</table>
+<p>About opens from the menu. It shows the build, version, <strong>Check for updates</strong> (in the GitHub Pages build), engine versions and run times. It also says the planner is not financial advice, models US federal tax and the income taxes of the 50 states and DC for the stated tax year only, and that the example figures are fictional.</p>
+<section id="advanced-settings">
+<h3>Advanced settings<a class="headerlink" href="#advanced-settings" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><em>Inflation-adjusted dollars</em></p></td>
+<td><p>Off by default: amounts are in today’s dollars. See <a class="reference internal" href="model-rules.html#inflation"><span class="std std-ref">Inflation and dollars</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Inflation range</p></td>
+<td><p>Shown only while the switch is on. Off, its mean is still used.</p></td>
+</tr>
+<tr class="row-even"><td><p>Years to simulate</p></td>
+<td><p>Blank by default: until you are 100, shown in grey and following your age. A typed number is kept; a reset button restores the default.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Seed</p></td>
+<td><p>A whole number, 0 or more. It sets the single run behind the headline figures and the Monte Carlo, whose first run is that single run.</p></td>
+</tr>
+<tr class="row-even"><td><p>Runs</p></td>
+<td><p>25, 50 or 100; default 25. One count for the Monte Carlo and Compare. Its help gives the time on this device.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Link to this heading"></a></h2>
+<p>Inputs has one chip per area: Income, Children, Home, Cars, Loans, Accounts, Benefits, Healthcare, Expenses, Retirement and Strategies. Labels, help, units and bounds come from the settings schema. Household basics, the Seed, the Runs and the inflation settings are on Setup.</p>
+<p>Good to know:</p>
+<ul class="simple">
+<li><p>Home, Loans and Expenses have notes behind the “i” beside the group heading.</p></li>
+<li><p>Only loans secured by a home feed the mortgage deduction.</p></li>
+<li><p>A home loan plus a Mortgage Bills row charges the payment twice.</p></li>
+<li><p>Charity rows are gifts per year. Any other row can be given a tax deduction.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">#retirement</span></code>, <code class="docutils literal notranslate"><span class="pre">#medicare</span></code> or <code class="docutils literal notranslate"><span class="pre">#social-security</span></code> link opens the Retirement chip.</p></li>
+</ul>
+<section id="income">
+<h3>Income<a class="headerlink" href="#income" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Raises and promotions</strong> is a disclosure: a mean slider (0% to 10%), a standard deviation slider (0% to 5%) with a small curve, the chance and the promotion raise, and a Reset to the shipped values.</p></li>
+<li><p><strong>Earnings history</strong> is a disclosure, closed until opened. A toggle picks <em>Manual entry</em> (year-by-year rows) or <em>Last salary</em> (the last salary, the last year it was paid and a table of filled-in years).</p></li>
+<li><p>The filled-in table is read-only until <em>Edit</em>; a typed year is marked “edited”.</p></li>
+<li><p><em>I’m retired</em>, above the salary, hides the salary and stop age (kept, not used) and opens the earnings history.</p></li>
+</ul>
+</section>
+<section id="children">
+<h3>Children<a class="headerlink" href="#children" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>Behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Child inflation factor</p></td>
+<td><p>Shown only while there is a child.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Child card</p></td>
+<td><p>Age today (or “not born yet”) and the age its child years end. <em>Add child</em> starts a child born this year, in child years up to age 21.</p></td>
+</tr>
+<tr class="row-even"><td><p>Daycare section</p></td>
+<td><p>Start age, end age, cost per year.</p></td>
+</tr>
+<tr class="row-odd"><td><p>College section</p></td>
+<td><p>Start age, years, cost per year and <em>529 account</em>, a select of the household’s 529 accounts.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>Add children as beneficiaries</em></p></td>
+<td><p>On in a new plan and the example household. Keeps one beneficiary per child on Benefits.</p></td>
+</tr>
+</tbody>
+</table>
+<p>With the switch on, each child keeps one beneficiary that follows the child’s name. Switched off, untouched ones are removed and one you edited is kept, with a warning naming it. <em>Add children</em> under the Beneficiaries list adds any missing ones.</p>
+</section>
+<section id="home-and-the-timeline">
+<h3>Home and the timeline<a class="headerlink" href="#home-and-the-timeline" title="Link to this heading"></a></h3>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="../_images/home-timeline.png"><img alt="The Home chip with its Timeline pane showing owned and rent bars." src="../_images/home-timeline.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The Timeline pane: owned stretches are filled, rent is hatched.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>Home opens with the <em>Timeline</em> pane, then three panes: Homes, Rent and Utilities.</p>
+<ul class="simple">
+<li><p><strong>Homes</strong> has one card per home: its name, “primary residence” or “second home”, “mortgage” while it counts, “buys at 60” and “sells at 70”, and its value today (or its price when bought later).</p></li>
+<li><p><strong>Rent</strong> has one card per rent period: its name, first and last years (“today” and “open” for renting now and to the end) and monthly rent.</p></li>
+<li><p><strong>Timeline</strong> draws one bar row per <a class="reference internal" href="overview.html#term-Lane"><span class="xref std std-term">lane</span></a>, with the cards of that row’s stretches in order below it. Owned is filled, rent is hatched. The primary residence is a slightly deeper color. A legend names Primary residence, Second home and Rent, and each card also names its role.</p></li>
+<li><p>Each card has <em>Edit timeline</em> and <em>Delete</em> (a second tap confirms). The pane has no Add button of its own.</p></li>
+</ul>
+<p><em>Add home</em> opens the one Add screen, “What are you adding?”:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Choice</p></th>
+<th class="head"><p>What it asks</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>I currently own it</p></td>
+<td><p>Name, optional sale year, value today, mortgage with the balance owed. Beside a home owned today, it is a second home.</p></td>
+</tr>
+<tr class="row-odd"><td><p>A future purchase</p></td>
+<td><p>Name, purchase year, optional sale year, price, buying costs, mortgage.</p></td>
+</tr>
+<tr class="row-even"><td><p>Rent</p></td>
+<td><p>Name, first year, optional last year, monthly rent. <em>Add rent period</em> opens this screen with Rent chosen.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The mortgage figures show only while its switch is ticked. The Add and Edit timeline screens also ask the state (<em>Home’s state</em>, <em>State</em>). A primary residence or rent period starting later in another state moves you there, and the note under the block names the year (“Living in FL from 2036”). See <a class="reference internal" href="model-rules.html#moving-states"><span class="std std-ref">Moving states</span></a>.</p>
+<p><em>Edit timeline</em> is titled “Edit timeline: &lt;name&gt;” and changes the years and price only. Its <em>Plan to sell it</em> tick shows the sale year. <em>Open full home details</em> (<em>Open full rent details</em>) closes it with nothing applied and opens the full sheet. The sheet has a matching <em>Edit on timeline</em> button.</p>
+<p>Every timeline screen is final: <em>Save</em> applies and closes, <em>Cancel</em> applies nothing. A refused step keeps what you typed and shows its sentence.</p>
+<p>Timeline rules:</p>
+<ul class="simple">
+<li><p>Back to back stretches share a year. Adding a home or rent period between two others refits both, and a note names the refit.</p></li>
+<li><p>With no purchase or sale, exactly one home is primary. A home cannot be primary while a rent period overlaps it; the sheet names the rent period.</p></li>
+<li><p>While Relocation adds a home or rent period (<em>Home follows me</em>), it shows as a gray, dashed, read-only card “calculated by Relocation”. See <a class="reference internal" href="strategies.html#relocation"><span class="std std-ref">Relocation: moving to another state</span></a>.</p></li>
+<li><p>A warnings box flags a Mortgage loan with no home, and Expenses rows that repeat what Home charges.</p></li>
+</ul>
+<p>A home’s sheet has the groups Basics, Mortgage, Property tax and insurance, and Other loans on this home. <em>Add loan on this home</em> adds a Second mortgage, Home equity loan, Home equity line or Mortgage. It has the Loans figures plus <em>Used on this home</em> (off: its interest is not deducted). A home bought later hides its value today and mortgage balance, and labels the months <em>Mortgage term (months)</em>.</p>
+</section>
+<section id="cars">
+<h3>Cars<a class="headerlink" href="#cars" title="Link to this heading"></a></h3>
+<p>Cars has the fuel price (only while there is a car) and one card per car. A card shows the car’s name, the driver, “loan”, the replacement rule, “buys at 55”, “sells at 62” and its value today. A leased car’s value is 0.</p>
+<p>The <em>Timeline</em> pane works as Home’s. A lease is outlined. <em>Add car</em> offers a car owned now (<em>Purchase price (as paid)</em>, <em>Year bought</em>, optional value override, loan) or a future purchase (<em>Buy in year</em>, price). A future purchase has an optional <em>Replaces</em> select (<a class="reference internal" href="overview.html#term-Replaces"><span class="xref std std-term">Replaces</span></a>), which puts it in that car’s lane from its sale year.</p>
+<p>A car’s sheet is in sections:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Section</p></th>
+<th class="head"><p>What it holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Basics</p></td>
+<td><p>Name, driver and the fields common to every car.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Value</p></td>
+<td><p><em>Purchase price (as paid)</em>, <em>Year bought</em>, <em>Depreciation first year</em>, <em>Depreciation per year</em> and <em>Value today</em>. Blank or 0 shows a gray estimate. A typed value wins; its reset button restores the estimate.</p></td>
+</tr>
+<tr class="row-even"><td><p>How it is paid</p></td>
+<td><p>A toggle: Cash, Finance or Lease. Finance shows the loan figures. Lease shows the lease payment and hides the value, loan and replacement figures.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Replacement</p></td>
+<td><p><em>Replace by</em> (Years, Miles or Both; with Both the first rule reached triggers). Each rule has its own figures. Then <em>Replacement paid by</em> with loan or lease figures.</p></td>
+</tr>
+<tr class="row-even"><td><p>Commute</p></td>
+<td><p><em>Commutes to work</em>, the commute figures and the miles per year. Without a commute the label is <em>Miles per year</em>; with one, <em>Extra miles per year (not commuting)</em>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>More car behavior:</p>
+<ul class="simple">
+<li><p>A blank figure that falls back on another shows that figure in a muted color until you change it.</p></li>
+<li><p>Replacements by rule show on the timeline as gray, dashed cards (“Sedan replacement, 2031 by miles”). A leased car has none.</p></li>
+<li><p>A warnings box names Expenses rows that repeat a car cost.</p></li>
+</ul>
+</section>
+<section id="loans">
+<h3>Loans<a class="headerlink" href="#loans" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Loans lists the Student, Auto and Other loans and any Mortgage loan a saved file left there. A new loan starts as Student.</p></li>
+<li><p>Each home’s mortgage and other loans appear as read-only rows titled with the home’s name, with an “Edit home loans on Home” button.</p></li>
+<li><p>Each car loan appears as a read-only row with an “Edit car loans on Cars” button. A car loan cannot be edited on Loans.</p></li>
+<li><p>A loan’s sheet ends with <em>Starts later</em> (<em>Starts in year</em>) and <em>Pay off early</em> (<em>Payoff age</em>, <em>Prepayment penalty</em>). Its card adds “starts at 53” or “paid off at 58”.</p></li>
+<li><p>A loan added on Home starts as a Mortgage; one added on Loans starts as Student. The Kind select offers only that panel’s kinds.</p></li>
+</ul>
+</section>
+<section id="accounts">
+<h3>Accounts<a class="headerlink" href="#accounts" title="Link to this heading"></a></h3>
+<p>Accounts adds “Where surplus cash goes” (see below). Only the owners the household has are offered.</p>
+<p>While the HSA counts (it and the medical plan on) or the dependent care FSA is on, a read-only “Benefit accounts” block shows them, with an “Edit on Benefits” button. They take no part in the withdrawal order or the surplus sliders.</p>
+<p>An account’s sheet shows the name, kind, owner and starting value, then “Returns and basis”:</p>
+<ul class="simple">
+<li><p>The returns disclosure holds the mean return, the standard deviation and a “Use the usual returns” button.</p></li>
+<li><p>Cost basis shows only for Investments, and IRA basis only for a Traditional IRA.</p></li>
+<li><p>Changing the kind clears a basis or deposit the new kind cannot hold. It replaces each return that is blank or still the old kind’s usual value.</p></li>
+</ul>
+</section>
+<section id="benefits">
+<h3>Benefits<a class="headerlink" href="#benefits" title="Link to this heading"></a></h3>
+<p>Each Benefits section opens with a switch for whether the household has that benefit. Off, the section shows only the switch.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Section</p></th>
+<th class="head"><p>What it holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Retirement plan</p></td>
+<td><p>The plan’s switch; each person’s employer match under its own sub-heading (“Your employer match”, “Partner employer match”) with one “Employer match (% of pay)” box (0% to 100%); the household plan; a deposit slider per account (see below).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Medical plan</p></td>
+<td><p>The health premium, the pre-tax switch and the plan’s cost sharing. An “HSA” sub-section shows while the plan is on.</p></td>
+</tr>
+<tr class="row-even"><td><p>HSA</p></td>
+<td><p>Its switch, then <em>HSA contribution each year</em> (“What the year’s costs need” or “The most allowed”), <em>HSA cap per year</em> (blank: the legal limit), <em>Contributed through payroll</em>, <em>Employer HSA contribution per year</em>, <em>HSA balance</em>, the mean return and standard deviation, and <em>HSA owner</em>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Dependent care FSA</p></td>
+<td><p>Its switch and figures. A warning shows when the FSA sets nothing aside.</p></td>
+</tr>
+<tr class="row-even"><td><p>Beneficiaries</p></td>
+<td><p>No switch. See below.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The HSA pane warns when the plan’s deductible is below the high-deductible minimum.</p>
+<section id="beneficiaries">
+<h4>Beneficiaries<a class="headerlink" href="#beneficiaries" title="Link to this heading"></a></h4>
+<p>The section’s note reads: “Beneficiaries set how the after-tax final value is measured (the tax they pay when they inherit Traditional money); they do not change the plan itself.” See <a class="reference internal" href="model-rules.html#tab-beneficiaries"><span class="std std-ref">Beneficiaries</span></a>.</p>
+<ul class="simple">
+<li><p>The list has one row each (name; filing status, state and payout; share). A tap opens the pop-up.</p></li>
+<li><p>The pop-up has <em>Name</em>, <em>Other income</em>, <em>Filing status</em>, <em>State</em> (<em>Same as household</em> or one of the 51 states) and <em>Takes Traditional money</em> (<em>Over 10 years</em> or <em>All at once</em>). Remove is among its actions.</p></li>
+<li><p><em>Add beneficiary</em> adds up to 20, with an equal part.</p></li>
+<li><p><em>Split among beneficiaries</em> has a linked slider and a lock per beneficiary. The shares always total 100%, and a share may be 0%. A removed beneficiary’s share passes to the others in proportion.</p></li>
+<li><p>The tax rate box comes under the sliders. Blank taxes each payout at the beneficiary’s brackets. A typed rate is charged flat. <em>Use the beneficiaries’ payout</em> clears it.</p></li>
+</ul>
+</section>
+</section>
+<section id="healthcare">
+<h3>Healthcare<a class="headerlink" href="#healthcare" title="Link to this heading"></a></h3>
+<p>Healthcare holds how costs are set (a flat amount, the default, or visit-based). Healthcare always counts. It then shows the flat amount’s two ends, or the visits, their price and the drugs. One “Reset to defaults” button puts all the visit figures back.</p>
+</section>
+<section id="expenses">
+<h3>Expenses<a class="headerlink" href="#expenses" title="Link to this heading"></a></h3>
+<p>The Expenses note lists where other costs are entered:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Cost</p></th>
+<th class="head"><p>Where</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Children, college, daycare, dependent care FSA</p></td>
+<td><p>Children and Benefits</p></td>
+</tr>
+<tr class="row-odd"><td><p>Home bills and loans</p></td>
+<td><p>Home and Loans</p></td>
+</tr>
+<tr class="row-even"><td><p>Car costs and car loans</p></td>
+<td><p>Cars</p></td>
+</tr>
+<tr class="row-odd"><td><p>Healthcare</p></td>
+<td><p>Healthcare (Medicare on Retirement)</p></td>
+</tr>
+<tr class="row-even"><td><p>Taxes, Social Security, savings deposits</p></td>
+<td><p>Worked out; no row needed</p></td>
+</tr>
+</tbody>
+</table>
+<p>Put only costs no other tab enters here. A tax-deductible cost other than Charity, or a cost only in the child years, needs no row. A loan’s payment row may stay if <em>Payment in Expenses</em> is ticked on the loan.</p>
+<ul class="simple">
+<li><p><strong>Lists.</strong> “Monthly expenses” has Bills, Planned Spending and Other Spending. “Major expenses” has Major Spending and Charity, amounts per year. Each sheet offers only its categories.</p></li>
+<li><p><strong>Suggested rows.</strong> A new scenario and the example household start the monthly list with suggested categories (Groceries, Dining out, Wi-Fi &amp; cable and so on). Each amount is blank and shows $0 in gray. Fill in the ones you spend on and remove the rest. A row left at 0 counts for nothing and is left out of the report’s Expenses table. A saved scenario keeps its own rows. Each suggested row also has a price type that sets how its cost changes after a move (see <a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>).</p></li>
+<li><p><strong>Already counted from other tabs.</strong> The panel opens with a read-only card of costs other tabs already charge, under “Bills - Other”, and the taxes note.</p></li>
+<li><p><strong>Total expenses.</strong> The panel ends with a per-month card: each monthly category, Major Spending and Charity at your age today (per year divided by 12), one “Bills - Other” row and one “Total expenses” row. It reads n/a until the notes arrive.</p></li>
+</ul>
+<p>An expense sheet says whether the amount is per month or per year in today’s dollars.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ages</p></td>
+<td><p>One slider from your age today to your age in the last year. A monthly row has <em>From age</em> and <em>To age</em>; an end knob stores a blank (the start or end of the run). A Major Spending row has <em>Age paid</em> and is paid once. Ages read beside the label (“Age 40 to 65”, “Age 52”). Charity never shows ages.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>Tax deduction</em></p></td>
+<td><p>Radio row of every real option. Tapping the picked one again clears it to none. Charity’s deduction is always Charity.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>Taxable</em></p></td>
+<td><p>Yes or No; never shown for Charity. Says whether the row pays sales tax (see <a class="reference internal" href="states.html#states-sales-tax"><span class="std std-ref">Sales tax</span></a>). While blank, the row’s default shows picked and underlined; Groceries and Clothing show neither, as the state’s rule applies.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <em>Exclude from child inflation</em>, <em>Education expense</em> and <em>Dependent care</em> ticks never show. Switching a row to Charity clears its ages and deduction.</p>
+<p>An expense card shows its period, any deduction, its ages and “not scaled by children”. A loan card shows “payment in Expenses”.</p>
+</section>
+<section id="retirement">
+<h3>Retirement<a class="headerlink" href="#retirement" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Section</p></th>
+<th class="head"><p>What it holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Social Security</p></td>
+<td><p>Under a “You” and a “Partner” sub-heading (Partner only with a partner): the benefit basis, benefit table and claim age.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Medicare</p></td>
+<td><p>Medicare age and type, Part B, Part D premium (plan-specific, entered), coinsurance and out-of-pocket maximum.</p></td>
+</tr>
+<tr class="row-even"><td><p>Medicare supplement</p></td>
+<td><p>Its switch, then four figures while it is on. Hidden on Medicare Advantage.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Spending in retirement</p></td>
+<td><p>Its switch, then <em>Equal change</em> or <em>Per expense</em>, the percent, the start age and a caption showing monthly rows before and after.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Details:</p>
+<ul class="simple">
+<li><p><strong>Benefit basis.</strong> A toggle of <em>Earnings history</em> and <em>Manual entry</em>. Without an earnings history, <em>Earnings history</em> is disabled and a hint says to enter past earnings on Income. Choosing it opens that history, with a floating <em>Back to Social Security</em> button and a labelled X.</p></li>
+<li><p><strong>Claim age.</strong> Offers every age of the benefit table (entered and estimated), with the benefit used at that age. Switching keeps the entered amounts.</p></li>
+<li><p><strong>Part B.</strong> While on, a read-only line shows the standard premium per person per month, its year and the yearly deductible. The model adds IRMAA on higher incomes. A warning says when the IRMAA tier of the first two years is estimated.</p></li>
+<li><p><strong>Out-of-pocket maximum.</strong> Hidden on Original Medicare.</p></li>
+<li><p><strong>Spending start age.</strong> Blank starts at your Social Security claim age, or the age you stop working with no benefit entered. The blank box reads “Starts at your Social Security age, 67”.</p></li>
+<li><p><strong>Per expense.</strong> Lists every Expenses row with its own percent and the amount after it.</p></li>
+</ul>
+</section>
+<section id="strategies">
+<h3>Strategies<a class="headerlink" href="#strategies" title="Link to this heading"></a></h3>
+<figure class="align-default" id="id2">
+<a class="reference internal image-reference" href="../_images/strategies-relocation.png"><img alt="The Strategies chip with Relocation switched on." src="../_images/strategies-relocation.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Relocation on the Strategies chip.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>Strategies has one section per strategy, each with its switch. Settings show only while the switch is on. Strategy warnings follow the QCD section.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Strategy</p></th>
+<th class="head"><p>What the screen shows</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Roth conversion</p></td>
+<td><p>Its rule, start and end ages, then <em>Convert up to</em>. The Social Security limit cannot be ticked while filing separately. Switching it on adds or removes the <em>Rollover account</em>, a Roth IRA for an owner of Traditional money with no Roth account. Editing that account makes it your own.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Roth backdoor</p></td>
+<td><p>Its switch and settings.</p></td>
+</tr>
+<tr class="row-even"><td><p>QCD</p></td>
+<td><p>Its switch and settings. The after-tax IRA basis is on each Traditional IRA’s account sheet.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Relocation</p></td>
+<td><p>Last. <em>Move to another state</em>, then <em>State you move to</em>, <em>Move at your age</em> and <em>Home follows me</em>.</p></td>
+</tr>
+</tbody>
+</table>
+<p><em>Convert up to</em> is a dropdown checklist. Its button names the ticked limits, or reads <em>None chosen</em>. Escape, the button or a tap outside closes it.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Limit</p></th>
+<th class="head"><p>Starting value when ticked</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><em>A fixed amount each year</em></p></td>
+<td><p>$20,000</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>Social Security tax limit</em></p></td>
+<td><p>The lower Social Security tier</p></td>
+</tr>
+<tr class="row-even"><td><p><em>0% capital gains limit</em></p></td>
+<td><p>None; the tick alone</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>Top of a tax bracket</em></p></td>
+<td><p>The 22% bracket</p></td>
+</tr>
+<tr class="row-even"><td><p><em>Below an IRMAA tier</em></p></td>
+<td><p>The first IRMAA tier</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>A custom income ceiling</em></p></td>
+<td><p>$100,000</p></td>
+</tr>
+</tbody>
+</table>
+<p>Unticking returns the field to blank, which the model ignores.</p>
+<p>Relocation, in the settings above:</p>
+<ul class="simple">
+<li><p><em>Move at your age</em> is blank by default. It shows your Social Security claim age (or, with no benefit, the age your pay stops) in gray until you type an age.</p></li>
+<li><p><em>Home follows me</em> is on by default. On, your home is sold when you move and a comparable primary residence is bought in the new state. Off, your home stays where it is and becomes a second home under its own state’s rules.</p></li>
+<li><p>The section’s “i” lists what changes at the move: income and local tax, estate and inheritance tax, car insurance and taxes, the gas price, health premiums, Expenses prices and your home. The price change and the sales tax difference show together as <em>State Cost Change</em>.</p></li>
+<li><p>See <a class="reference internal" href="strategies.html#relocation"><span class="std std-ref">Relocation: moving to another state</span></a> and <a class="reference internal" href="states.html"><span class="doc">States: taxes, living costs and moving</span></a>.</p></li>
+</ul>
+</section>
+<section id="state-boxes">
+<h3>State boxes<a class="headerlink" href="#state-boxes" title="Link to this heading"></a></h3>
+<p>Every state choice (home state, a beneficiary’s state, the state you move to, a home’s or rent period’s state, the walkthrough’s state question) uses one combobox of the 51 states, labelled like <em>NJ - New Jersey</em>.</p>
+<ul class="simple">
+<li><p>A tap opens the list; typing filters by name or code. Arrow keys, Home and End move the highlight; Enter or a tap picks; Escape restores the chosen state.</p></li>
+</ul>
+</section>
+</section>
+<section id="lists">
+<h2>Lists<a class="headerlink" href="#lists" title="Link to this heading"></a></h2>
+<p>Accounts, expenses, loans, children, cars and the other lists show one card per item, edited in a sheet.</p>
+<ul class="simple">
+<li><p>Only the accounts list is ordered; its order is the withdrawal order. Each account card has a tick box and a drag handle.</p></li>
+<li><p>A bar under the list has Move up, Move down and Delete for the ticked cards. They are greyed out until one is ticked. Ticked cards move as a block, and Delete asks for a second tap.</p></li>
+<li><p>Dragging a handle drops the card in the place of the card under your finger. With the handle focused, the up and down arrows move it one place.</p></li>
+<li><p>Lists whose order means nothing keep the tick boxes and Delete, with no handle and no Move up or Move down.</p></li>
+<li><p>An optional part, such as a loan’s refinance, has Add and Remove buttons.</p></li>
+</ul>
+<section id="where-surplus-cash-goes">
+<h3>Where surplus cash goes<a class="headerlink" href="#where-surplus-cash-goes" title="Link to this heading"></a></h3>
+<p>Each cash, Investments or 529 account has a slider (its share of the <a class="reference internal" href="overview.html#term-Surplus"><span class="xref std std-term">surplus</span></a>, in percent) and a lock button.</p>
+<ul class="simple">
+<li><p>Dragging a slider moves the unlocked others so the total stays 100%.</p></li>
+<li><p>A locked account keeps its share and its slider is greyed out.</p></li>
+<li><p>With one such account, it takes 100% and has no lock. When every other account is locked, the last is fixed too and the page says so. With none, the page asks for one.</p></li>
+<li><p>The locks are remembered in the browser. An account’s sheet does not show the share.</p></li>
+</ul>
+</section>
+<section id="deposit-per-account">
+<h3>Deposit per account<a class="headerlink" href="#deposit-per-account" title="Link to this heading"></a></h3>
+<p>The Retirement plan pane of Benefits ends with a slider per Traditional 401k, Roth 401k, Traditional IRA and Roth IRA account, by owner, from 0 to the most its limits leave, in steps of $100.</p>
+<ul class="simple">
+<li><p>Until an amount is set, the sliders show what the household plan deposits.</p></li>
+<li><p>The first move sets the amount for every account. Raising one slider lowers the most the others sharing its limit can take.</p></li>
+<li><p>“Go back to the household plan” clears every amount.</p></li>
+<li><p>An account with no room says why. When the settings are not valid, the page asks you to fix them first.</p></li>
+</ul>
+</section>
+</section>
+<section id="sheets">
+<h2>Sheets<a class="headerlink" href="#sheets" title="Link to this heading"></a></h2>
+<p>Every pop-up has a title that stays at the top and a footer that stays at the bottom. Only the body scrolls. Actions are in the footer.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pop-up</p></th>
+<th class="head"><p>Footer</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Item sheet (account, expense, loan, child, home, car)</p></td>
+<td><p><em>Cancel</em> and <em>Save</em>. Edits show as you make them. <em>Save</em> keeps them and closes, as one Undo step. <em>Cancel</em>, Escape or a tap outside restores the item (a newly added item is removed) and leaves no Undo step.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Timeline sheet</p></td>
+<td><p><em>Back</em> (once a step back is possible), <em>Cancel</em>, <em>Save</em>.</p></td>
+</tr>
+<tr class="row-even"><td><p>About, Legal, Install help</p></td>
+<td><p>A single <em>Close</em>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Scenario dialogs (New, Rename, Import, Clear, Delete, unsaved changes, Export, Final report)</p></td>
+<td><p>Their own verb and <em>Cancel</em>. Export has <em>Copy text</em> and <em>Close</em>.</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p><em>Move up</em>, <em>Move down</em>, <em>Remove</em> (a second tap confirms) and <em>Edit on timeline</em> stay in the body under the last field.</p></li>
+<li><p>No pop-up has a close (×) button.</p></li>
+<li><p>Enter in a one-line input ends the edit: the input loses focus, the value is kept and the keyboard closes. A multi-line box keeps Enter for new lines.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app.html" class="btn btn-neutral float-left" title="The app" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="app-flows.html" class="btn btn-neutral float-right" title="The app: scenarios and guided flows" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, [BRAND NAME].</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

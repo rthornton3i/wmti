@@ -1,0 +1,156 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "nh",
+  "name": "New Hampshire",
+  "tax_year": 2026,
+  "source": "New Hampshire levies no tax on wages, and its Interest and Dividends Tax (RSA 77) is repealed for taxable periods beginning on or after 1 January 2025 (RSA 77 repealed by 2021, 91:99, II, effective 2025-01-01, https://gc.nh.gov/rsa/html/V/77/77-mrg.htm, read in validation run 2, 2026-10-22; the Department of Revenue Administration reminder that the tax no longer exists, read through search extracts of Nashua Ink Link and the Nashua Telegraph, 2025-01; revenue.nh.gov refused the fetch); second sources McLane Middleton ('NH Interest and Dividends Tax repealed as of January 1') and CBIZ, and Tax Foundation, State Individual Income Tax Rates and Brackets 2026",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "ALL",
+    "MFS": "ALL",
+    "JOINT": "ALL"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "New Hampshire has no state income tax from 2025: the 3% Interest and Dividends Tax (above 2400 single, 4800 joint) ended with the 2024 tax year."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "ALL": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      }
+    ]
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://gc.nh.gov/rsa/html/V/87/87-9.htm",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "New Hampshire levies no estate tax and no inheritance tax: the legacy and succession tax was repealed in 2003 and the estate tax was only a pick-up of the federal state death tax credit, which ended in 2005 (state-costs.csv columns estate_tax and inheritance_tax; Tax Foundation and Kiplinger state death-tax lists). Confirmed primary on https://gc.nh.gov/rsa/html/V/87/87-9.htm (validation run 3, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://gc.nh.gov/rsa/html/V/77/77-mrg.htm",
+    "note": "New Hampshire has no personal income tax from 2025 (and never taxed wages or benefits), so Social Security benefits are not taxed. Confirmed primary on https://gc.nh.gov/rsa/html/V/77/77-mrg.htm (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.revenue.nh.gov (towns levy property tax, no income tax)",
+    "note": "New Hampshire towns and cities levy no income tax (state-costs.csv local_income_tax 'none'; Tax Foundation)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0,
+    "avg_local_rate": 0.0,
+    "combined_rate": 0.0,
+    "vehicle_rate": 0.0,
+    "grocery_rate": 0.0,
+    "clothing_taxable": false,
+    "confidence": "confirmed secondary",
+    "check_at": "New Hampshire revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: No general sales tax. clothing_taxable is false (research: no; No sales tax). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.0135,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1188.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1020.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 524.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://gc.nh.gov/rsa/html/XXI/261/261-153.htm",
+    "source": "WalletHub, 2026's Property Taxes by State, vehicle tax table (https://wallethub.com/edu/t/states-with-the-highest-and-lowest-property-taxes/11585/), read 2026-10-22",
+    "note": "Annual vehicle tax on a 29100 car (2026 Toyota Camry LE): the municipal permit fee, 18 mills of the list price in the first year falling to 3 mills from the sixth (WalletHub effective rate 1.80%). One source, so unconfirmed; the state registration fee is not in it. Set by hand after .claude/state/scratch/importStateCosts.py (which writes 0); rerunning the importer resets it. Confirmed primary on https://gc.nh.gov/rsa/html/XXI/261/261-153.htm (validation run 2, 2026-10-22)."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.222,
+    "average_price_per_gallon": 3.25,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.eia.gov/petroleum/marketing/monthly/xls/fueltaxes.xlsx",
+    "source": "Excise: https://www.eia.gov/petroleum/marketing/monthly/xls/fueltaxes.xlsx (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.222 (0.222 excise (+0.01546 fees)); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.2679,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 510937.0,
+    "cost_index": 113.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 852.0,
+    "medigap_g_monthly": 241.0,
+    "part_d_monthly": 41.29,
+    "medicare_advantage_monthly": 5.94,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, New Hampshire insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 99.8,
+    "bea_goods": 98.6,
+    "bea_services": 103.9,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7436.0,
+    "assisted_living_monthly": 7431.0,
+    "nursing_home_private_monthly": 13140.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

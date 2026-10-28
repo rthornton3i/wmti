@@ -1,0 +1,221 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "nd",
+  "name": "North Dakota",
+  "tax_year": 2026,
+  "source": "North Dakota Office of State Tax Commissioner, 2026 Forms ND-1/ND-EZ tax rate schedules printed in Form ND-1ES 2026 (https://www.tax.nd.gov/sites/www/files/documents/forms/individual/2025-iit/28709-form-nd-1es-2026.pdf, read in validation run 2, 2026-10-22): 0%, 1.95% and 2.5%, with separate tables for single, joint and separate returns; Tax Foundation 2026 state income tax table and TaxAct North Dakota guide agree on the rates",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "MFS",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "North Dakota starts from federal adjusted (or taxable) income and keeps the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits (no add-back; only California and New Jersey tax HSA deposits). Not checked against a state ruling."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 49575,
+        "rate": 0.0195,
+        "base": 0.0
+      },
+      {
+        "threshold": 250400,
+        "rate": 0.025,
+        "base": 3916.09
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 82800,
+        "rate": 0.0195,
+        "base": 0.0
+      },
+      {
+        "threshold": 304850,
+        "rate": 0.025,
+        "base": 4329.98
+      }
+    ],
+    "MFS": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 41400,
+        "rate": 0.0195,
+        "base": 0.0
+      },
+      {
+        "threshold": 152425,
+        "rate": 0.025,
+        "base": 2164.99
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 16100.0,
+    "JOINT": 32200.0,
+    "note": "North Dakota starts from federal taxable income, so the federal 2026 standard deduction applies (16,100 single and separate / 32,200 joint; Tax Foundation 2026 footnote). Brackets: the 2026 rate schedules of Form ND-1ES 2026 (single 49,575 / 250,400, joint 82,800 / 304,850, separate 41,400 / 152,425; https://www.tax.nd.gov/sites/www/files/documents/forms/individual/2025-iit/28709-form-nd-1es-2026.pdf, confirmed primary, validation run 2, 2026-10-22). Not modelled: the federal 6,000 senior deduction.",
+    "MFS": 16100.0
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 1650.0,
+    "dependent": 0.0,
+    "note": "No exemptions; senior is the federal additional standard deduction for 65 or older (1,650 married) carried in through federal taxable income.",
+    "MFS": 0.0
+  },
+  "capital_gains_exclusion": {
+    "indexed": false,
+    "share": 0.4,
+    "note": "40% of net long-term capital gains is excluded (N.D.C.C. 57-38-01.8; ND-1 line 7 worksheet and the ICI state tax survey agree, confirmed primary: https://www.tax.nd.gov/sites/www/files/documents/forms/individual/2025-iit/2025-individual-income-tax-booklet.pdf, validation run 2, 2026-10-22)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.nd.gov/estate-tax",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "North Dakota has no estate tax and no inheritance tax (Tax Foundation 2026 estate and inheritance tax map and state-costs.csv columns estate_tax and inheritance_tax agree). Confirmed primary on https://www.tax.nd.gov/estate-tax (validation run 3, 2026-10-22)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://www.tax.nd.gov/sites/www/files/documents/forms/individual/2025-iit/2025-individual-income-tax-booklet.pdf",
+    "note": "North Dakota exempts Social Security benefits (subtraction of the federally taxed amount;AARP North Dakota tax guide and state-costs.csv ss_taxed 'N' agree). Pensions and IRA distributions are taxed. Confirmed primary on https://www.tax.nd.gov/sites/www/files/documents/forms/individual/2025-iit/2025-individual-income-tax-booklet.pdf (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "all income",
+    "confidence": "confirmed secondary",
+    "check_at": "North Dakota Office of State Tax Commissioner (no local income tax)",
+    "note": "North Dakota has no local income taxes (Tax Foundation local income tax list and state-costs.csv local_income_tax agree)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.05,
+    "avg_local_rate": 0.0209,
+    "combined_rate": 0.0709,
+    "vehicle_rate": 0.05,
+    "grocery_rate": 0.0,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "North Dakota revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://zamp.com/resources/sales-tax-on-groceries and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: 0.05 from the state's own source (North Dakota motor vehicle excise 5% of the price, no local tax (N.D.C.C. 57-40.3-02, https://www.ndlegis.gov/cencode/t57c40-3.pdf, validation run 2)). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: no); research note: Food exempt from state and local. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00941,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2664.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1368.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 81.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.dot.nd.gov/sites/www/files/documents/Motor%20Vehicle%20Services/mvd-2-passenger-fee-2026.pdf",
+    "source": "NDDOT Passenger Fee Schedule MVD-2 (10-2025), effective 2026-01-01 to 2026-12-31, read 2026-10-23: 3,200 to 4,499 lb first registered 2018 to 2020, 81 a year (93 if first registered 2021 or later, 57 if 2014 or earlier)",
+    "note": "Floor: the registration fee of a mid-weight passenger car first registered 2018 to 2020. North Dakota has no vehicle property tax. Set by hand (s328, 2026-10-23, owner decision C4: no 0 that only means unknown); a move changes the entered car tax by the dollar difference of the two states' figures, and the importer keeps a non-zero figure."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.23,
+    "average_price_per_gallon": 3.31,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.tax.nd.gov/business/motor-fuel-tax",
+    "source": "Excise: https://www.tax.nd.gov/business/motor-fuel-tax (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.23 ($0.23 per gallon); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1236,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 290657.0,
+    "cost_index": 77.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1210.0,
+    "medigap_g_monthly": 187.0,
+    "part_d_monthly": 29.22,
+    "medicare_advantage_monthly": null,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, North Dakota insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Research note: MA premium 0.00 in source; suspect, check CMS landscape. The source gives a Medicare Advantage premium of 0.00 here, which is suspect, so it is null. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 95.5,
+    "bea_goods": 95.7,
+    "bea_services": 91.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 7627.0,
+    "assisted_living_monthly": 5335.0,
+    "nursing_home_private_monthly": 9672.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

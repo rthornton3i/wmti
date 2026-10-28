@@ -1,0 +1,520 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The app: scenarios and guided flows &mdash; Walk Me Through It  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7f41d439"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The app: Outputs" href="app-outputs.html" />
+    <link rel="prev" title="The app: Setup and Inputs" href="app-inputs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../user_index.html" class="icon icon-home">
+            Walk Me Through It
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Start here</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the toolkit</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using the app</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="app.html">The app</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-inputs.html">The app: Setup and Inputs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The app: scenarios and guided flows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#scenarios-on-setup">Scenarios on Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#auto-save">Auto-save</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#card-buttons">Card buttons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scenario-files-panel">Scenario files panel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-scenarios">Other scenarios</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#limits-and-names">Limits and names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#undo-and-reset">Undo and reset</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#terms-and-agreement">Terms and agreement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#effort-and-style">Effort and style</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#medium-effort-and-add-detail">Medium effort and Add detail</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#low-effort">Low effort</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#guided-plans">Guided plans</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spending-covers-housing-cars-and-loans">Spending covers housing, cars and loans</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#walkthrough">Walkthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#start-it">Start it</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-long-it-is">How long it is</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#answer-a-question">Answer a question</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#topics">Topics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#trail-and-review">Trail and review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leave-and-resume">Leave and resume</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="app-outputs.html">The app: Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-gallery.html">Sample results</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="model-rules.html">Model rules by group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States: taxes, living costs and moving</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tax law and legal</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tax-law.html">Tax law in the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../user_index.html">Walk Me Through It</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../user_index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The app: scenarios and guided flows</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-app-scenarios-and-guided-flows">
+<h1>The app: scenarios and guided flows<a class="headerlink" href="#the-app-scenarios-and-guided-flows" title="Link to this heading"></a></h1>
+<p>Purpose: learn to save and share scenarios, choose how much the app asks, and use the Walkthrough, continued from <a class="reference internal" href="app.html"><span class="doc">The app</span></a>.</p>
+<section id="scenarios-on-setup">
+<span id="id1"></span><h2>Scenarios on Setup<a class="headerlink" href="#scenarios-on-setup" title="Link to this heading"></a></h2>
+<p>The settings you edit are the <em>open scenario</em>. Its card sits at the top of Setup.</p>
+<div class="screen-grid docutils container">
+<figure class="align-default" id="id2">
+<a class="reference internal image-reference" href="../_images/setup.png"><img alt="The Setup tab: the open scenario card with its name, status and its strip of buttons, then the other saved scenarios." src="../_images/setup.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Setup: the open scenario, then the Scenario files panel.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<p>The status line reads:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Status</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Unsaved changes</p></td>
+<td><p>The settings differ from the copy saved on this device, or none is saved.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Saved, Saved just now</p></td>
+<td><p>The settings match the saved copy.</p></td>
+</tr>
+<tr class="row-even"><td><p>Saved automatically</p></td>
+<td><p>The <strong>Auto-save</strong> switch is on.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tough example</p></td>
+<td><p>The unedited example household, which runs short of money on purpose. Any edit removes the tag; <strong>Load example household</strong> brings it back.</p></td>
+</tr>
+</tbody>
+</table>
+<section id="auto-save">
+<h3>Auto-save<a class="headerlink" href="#auto-save" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Auto-save is on for every new scenario, duplicate and import.</p></li>
+<li><p>While it is on, each settled edit (after a 0.4 s pause) writes the saved copy, and <strong>Save</strong> is hidden.</p></li>
+<li><p>Turn it off and it stays off for that scenario only.</p></li>
+</ol>
+</section>
+<section id="card-buttons">
+<h3>Card buttons<a class="headerlink" href="#card-buttons" title="Link to this heading"></a></h3>
+<p>A strip under the status line holds three buttons:</p>
+<ul class="simple">
+<li><p><strong>Rename</strong> changes the name.</p></li>
+<li><p><strong>Duplicate</strong> saves a copy as “<em>name</em>_Copy1” (the lowest free number) and opens it. Compare offers the copy as a baseline.</p></li>
+<li><p><strong>Clear</strong> empties every setting after two confirmations. Undo brings the settings back.</p></li>
+</ul>
+</section>
+<section id="scenario-files-panel">
+<h3>Scenario files panel<a class="headerlink" href="#scenario-files-panel" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 78.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Button</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Save</strong></p></td>
+<td><p>Keeps the settings on this device under the open scenario’s name. The limit is 50 scenarios. Hidden while Auto-save is on.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Import</strong></p></td>
+<td><p>Opens a dialog to choose a file or paste the scenario text, then <strong>Open</strong>. The file’s settings become the open scenario, named after the file (“Pasted scenario” for pasted text).</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Export</strong></p></td>
+<td><p>Saves <em>name</em>.json as a download.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>New</strong></p></td>
+<td><p>Asks for a name, then <strong>Create and start</strong> opens an empty scenario in the Walkthrough. Summary and Plots show “Finish setup to see results” until your age is filled in.</p></td>
+</tr>
+</tbody>
+</table>
+<p>A message under the open card always says what happened (“Saved”, “Downloaded”, “Export cancelled”).</p>
+<p>An import named like a saved scenario with other settings opens as “<em>name</em>_1” instead of writing over it.</p>
+</section>
+<section id="other-scenarios">
+<h3>Other scenarios<a class="headerlink" href="#other-scenarios" title="Link to this heading"></a></h3>
+<p>This list holds every saved scenario except the open one, plus the example household while it is not open.</p>
+<ol class="arabic simple">
+<li><p>Tap a row to open it. With unsaved changes and Auto-save off, a dialog asks first: <strong>Save</strong>, <strong>Discard</strong> or <strong>Cancel</strong>.</p></li>
+<li><p>Use a row’s “…” menu for <strong>Duplicate</strong>, <strong>Rename</strong>, <strong>Export</strong> and <strong>Delete</strong>. Delete asks once.</p></li>
+<li><p>The example household has no <strong>Rename</strong>. Deleting it frees its name until <strong>Load example household</strong> under Start over opens it again.</p></li>
+<li><p>The open scenario cannot be deleted.</p></li>
+</ol>
+<p>Deleting a scenario removes it from the list, from Compare and from this device.</p>
+</section>
+<section id="limits-and-names">
+<h3>Limits and names<a class="headerlink" href="#limits-and-names" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>A scenario holds at most 50 accounts, 50 loans, 20 cars, 20 homes, 20 children, 100 salary-history years, 200 expense rows and 200 rows in any other list.</p></li>
+<li><p>A file with a larger list, or a number too large to hold, is refused with a message naming the field.</p></li>
+<li><p>A name uses letters, digits, spaces, “-”, “_” or “.”. It may not start with “.” or end with “.” or a space.</p></li>
+<li><p>A name may not be “Default profile”, “Current settings” or a Windows device name such as CON, so it works as a file name anywhere.</p></li>
+</ul>
+</section>
+<section id="undo-and-reset">
+<h3>Undo and reset<a class="headerlink" href="#undo-and-reset" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Undo</strong> (the round button at the top bar’s left) steps back through the last 20 settled input states, Clear included. A burst of typing is one step. It starts empty whenever another scenario opens.</p></li>
+<li><p>After a step back, the page goes to the first changed field and tints it for one second.</p></li>
+<li><p>A field that shows a gray default gets a small circular-arrow button once you edit it. It puts the default back, so a blank field follows its source again. Reset counts as an Undo step.</p></li>
+</ul>
+</section>
+</section>
+<section id="terms-and-agreement">
+<h2>Terms and agreement<a class="headerlink" href="#terms-and-agreement" title="Link to this heading"></a></h2>
+<p>A full-screen step shows before the app on a first visit, and again whenever the Terms change. See <a class="reference internal" href="legal.html"><span class="doc">Legal</span></a> for the Terms.</p>
+<ol class="arabic simple">
+<li><p>Read the four key points and the full Terms, Privacy notice and licenses.</p></li>
+<li><p>Tick “I have read and agree to the Terms”.</p></li>
+<li><p>Tap <strong>Agree and continue</strong>. <strong>Decline</strong> leaves the app locked.</p></li>
+</ol>
+<p>If browser storage is blocked, the step asks on each load.</p>
+<p>Under the Outputs run bar, two lines state that the planner is not advice. A banner (“Example figures still in use for: …”) names settings still holding the example household’s fictional figures.</p>
+</section>
+<section id="effort-and-style">
+<span id="app-experience"></span><h2>Effort and style<a class="headerlink" href="#effort-and-style" title="Link to this heading"></a></h2>
+<p><em>Effort</em> sets how much the app asks. <em>Style</em> sets how results are shown. Neither changes a result.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Choice</p></th>
+<th class="head"><p>What you get</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Low</strong></p></td>
+<td><p>Pay, savings and monthly spending. See <a class="reference internal" href="#app-low-effort"><span class="std std-ref">Low effort</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Medium</strong></p></td>
+<td><p>Adds retirement age, the 401k match, home, cars, loans and Social Security. See <a class="reference internal" href="#app-add-detail"><span class="std std-ref">Medium effort and Add detail</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>High</strong></p></td>
+<td><p>Every input.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Accountant</strong></p></td>
+<td><p>Numbers and tables.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Coach</strong></p></td>
+<td><p>Adds next steps and tips.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Gamer</strong></p></td>
+<td><p>Adds quests, awards and mini games.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Coach and Gamer add the <a class="reference internal" href="app-outputs.html#app-next-steps"><span class="std std-ref">Next steps</span></a> card. In the menu’s picker, <em>Risk comfort</em> (Cautious, Balanced, Growth-leaning, or Not set for Balanced) only picks how a Coach check scores; it changes no input or result.</p>
+<p>Gamer also gives levels and XP for what you do: answering walkthrough questions, filling in the basics, running the simulation, opening Plots, comparing and searching. XP never counts how a plan turns out. Quests and awards are on the <a class="reference internal" href="app-outputs.html#app-awards"><span class="std std-ref">Awards</span></a> view, and the walkthrough Trail shows each topic as a stage with <em>n of m</em> answered. Progress stays on this device and never goes into a scenario file. <strong>Reset progress</strong> clears it.</p>
+<p>Gamer adds four short mini games, each three rounds with no clock. Play them from Awards, or with <strong>Quick game</strong> on four walkthrough questions:</p>
+<ul class="simple">
+<li><p><strong>Bracket Climber</strong> (pay): marginal and average tax on a to-scale ladder of the federal brackets.</p></li>
+<li><p><strong>The Bad Decade</strong> (savings): the same returns in the opposite order, and what a withdrawal does.</p></li>
+<li><p><strong>Receipt Sort</strong> (medical plan): which account generally pays for what: HSA, dependent care FSA, 529 plan or regular money.</p></li>
+<li><p><strong>Claim Age Showdown</strong> (claim ages): the break-even age, from your own benefit table.</p></li>
+</ul>
+<p>The games use fixed law figures and example numbers, apart from your benefit table. They change nothing in your plan. The only exception is Claim Age Showdown’s <strong>Set my claim age</strong>, at Medium and High: it asks first (Change or Cancel), and Undo puts the old age back. Each game ends with “Illustrative, not advice.”</p>
+<p>To change them:</p>
+<ol class="arabic simple">
+<li><p>Open the menu and tap <strong>Effort and style…</strong> (<strong>Change effort</strong> on the Low page).</p></li>
+<li><p>Drag the energy bar, tap a level, or use the arrow keys. Tap one of the three style buttons.</p></li>
+<li><p>Tap an (i) for a description. Tap <strong>Save</strong> to keep the choice, or <strong>Cancel</strong> to discard it.</p></li>
+</ol>
+<div class="screen-grid docutils container">
+<figure class="align-default" id="id3">
+<a class="reference internal image-reference" href="../_images/effort-style-picker.png"><img alt="The effort and style picker: a vertical energy bar with a stop per level, and three style buttons with the chosen one badged." src="../_images/effort-style-picker.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The picker: effort bar above, style buttons below.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<p>At first start the picker follows the Terms with a single <strong>Continue</strong>. Then the Walkthrough and a tour come.</p>
+<p>Each scenario keeps its own effort and style. Opening or importing one with different choices asks which to use: “Use the scenario’s”, “Keep mine” or <strong>Cancel</strong>. A scenario saved before the pickers opens as High and Accountant.</p>
+<p>Below High, Setup notes “Using defaults for <em>N</em> inputs” (hidden inputs that still match the example household) and “Detail added on <em>N</em> pages and inputs” with a <strong>Hide it</strong> button.</p>
+<section id="medium-effort-and-add-detail">
+<span id="app-add-detail"></span><h3>Medium effort and Add detail<a class="headerlink" href="#medium-effort-and-add-detail" title="Link to this heading"></a></h3>
+<p>At Medium, each Inputs pane, each list sheet and Setup’s Household inputs leave out the High-only inputs. Each ends with an <strong>Add detail</strong> row. It names how many inputs it would show, the first three, and how many are set.</p>
+<ol class="arabic simple">
+<li><p>Tap <strong>Add detail</strong> to show that pane’s High inputs.</p></li>
+<li><p>Tap <strong>Hide detail</strong> to hide them again.</p></li>
+</ol>
+<p>Hidden inputs keep their values and the model still uses them, so results are the same at every effort.</p>
+<p>Medium also leaves out the Strategies inputs (a note and an Add detail row replace them), <strong>Where surplus cash goes</strong>, future home and car purchases or sales, and the visit-based healthcare and Social Security estimate choices.</p>
+<p>The menu’s <strong>Effort and style…</strong> pop-up lists every page and input added this way under <strong>Detail added</strong>. Each has its own <strong>Hide it</strong> button.</p>
+</section>
+</section>
+<section id="low-effort">
+<span id="app-low-effort"></span><h2>Low effort<a class="headerlink" href="#low-effort" title="Link to this heading"></a></h2>
+<p>At Low the app asks no home, car, loan or Medicare question. Inputs is one page of cards with no group chips.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Card</p></th>
+<th class="head"><p>What you enter</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>About you</strong></p></td>
+<td><p>Your age, whether a partner is part of the plan (then the partner’s age and filing status), your state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Pay</strong></p></td>
+<td><p>Yours and your partner’s.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Spending</strong></p></td>
+<td><p>One monthly number, with a hint on what the plan counts on top of it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Savings</strong></p></td>
+<td><p>Savings, Investments, Traditional 401k and Roth 401k.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Children</strong></p></td>
+<td><p>Yes or No, then how many and each age. A child you expect has a negative age.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Retirement plan</strong>, <strong>Medical plan</strong></p></td>
+<td><p>Yes or No. While on, a summary with <strong>Change</strong>.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>More detail</strong></p></td>
+<td><p>A pointer to Medium effort, with <strong>Change effort</strong>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Setup’s Household card is hidden at Low. With two accounts of one kind, that kind is read-only until Medium.</p>
+<section id="guided-plans">
+<h3>Guided plans<a class="headerlink" href="#guided-plans" title="Link to this heading"></a></h3>
+<p>Yes on the retirement or medical plan opens a pop-up with a live summary and its questions (401k share, employer matches, premium). <strong>Save</strong> keeps the answers as one Undo step; <strong>Cancel</strong> discards them. <strong>Change</strong> reopens it. No turns the plan off and keeps its other values.</p>
+</section>
+<section id="spending-covers-housing-cars-and-loans">
+<h3>Spending covers housing, cars and loans<a class="headerlink" href="#spending-covers-housing-cars-and-loans" title="Link to this heading"></a></h3>
+<p>At Low, monthly spending counts rent or mortgage, car and loan payments, property taxes, utilities and food. Health premiums are set with the medical plan. Nothing is counted twice.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>When</p></th>
+<th class="head"><p>What happens</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A Low user answers or skips the spending question, or taps Skip for now on the welcome</p></td>
+<td><p>Homes, rent periods, cars and loans that are still the example household’s are removed. <strong>Undo my answers</strong> puts them back.</p></td>
+</tr>
+<tr class="row-odd"><td><p>A Medium or High scenario with its own homes, cars, loans or utility bills is switched to Low</p></td>
+<td><p>Nothing changes. The Spending card says “Your plan also counts … on top of this number” and offers <strong>Remove them</strong> (one Undo step).</p></td>
+</tr>
+<tr class="row-even"><td><p>A Low user with none of them raises effort</p></td>
+<td><p>Nothing changes. Setup says the spending counts housing, cars and loans until the next effort change.</p></td>
+</tr>
+<tr class="row-odd"><td><p>You open or import a scenario</p></td>
+<td><p>Nothing changes.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="walkthrough">
+<h2>Walkthrough<a class="headerlink" href="#walkthrough" title="Link to this heading"></a></h2>
+<p>“Walk me through it” asks for the main settings one question at a time, over the page.</p>
+<div class="screen-grid docutils container">
+<figure class="align-default" id="id4">
+<a class="reference internal image-reference" href="../_images/walkthrough.png"><img alt="One Walkthrough question at Low effort with a large heading, a number box, Continue and Skip." src="../_images/walkthrough.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">One question: big heading, big controls, <strong>Continue</strong> and <strong>Skip</strong> at the bottom.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<section id="start-it">
+<h3>Start it<a class="headerlink" href="#start-it" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>A new user’s first launch shows the Terms, then the effort and style picker (Low and Coach chosen), then the Walkthrough, then the tour once per device.</p></li>
+<li><p>Later, choose <strong>Walk me through it…</strong> in the menu (<strong>Continue the walkthrough…</strong> while paused).</p></li>
+<li><p>A returning visitor sees the picker once (High and Accountant chosen), then the app. Opening or importing a scenario never starts it.</p></li>
+</ul>
+<p>On the example household’s settings it first asks <em>How would you like to start?</em>. <strong>Start fresh</strong> goes to the welcome. <strong>Open my file</strong> imports a scenario file and closes the Walkthrough as finished, every question marked Answered.</p>
+</section>
+<section id="how-long-it-is">
+<h3>How long it is<a class="headerlink" href="#how-long-it-is" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 30.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Effort</p></th>
+<th class="head"><p>Welcome says</p></th>
+<th class="head"><p>Questions for the example household</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Low</p></td>
+<td><p>About 3 minutes</p></td>
+<td><p>13 (9 for a single user with no children)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Medium</p></td>
+<td><p>About 10 minutes</p></td>
+<td><p>35</p></td>
+</tr>
+<tr class="row-even"><td><p>High</p></td>
+<td><p>As long as you like; stop or skip any time</p></td>
+<td><p>39</p></td>
+</tr>
+</tbody>
+</table>
+<p>Raising the effort offers <strong>Continue the walkthrough…</strong> again and opens on the first question it unlocked. Lowering the effort keeps every answer.</p>
+</section>
+<section id="answer-a-question">
+<h3>Answer a question<a class="headerlink" href="#answer-a-question" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Each control starts with your current setting, tagged “Example value” while it is the example’s.</p></li>
+<li><p>Change it, then tap <strong>Continue</strong> (or press Enter, or swipe left). <strong>Skip</strong> keeps what is shown. Swipe right to go back.</p></li>
+<li><p>Tap an (i) for the field’s help. Tap <strong>Go deeper: …</strong> for extra questions on the topic.</p></li>
+<li><p>Tap <strong>Open</strong> on a question that lives on an Inputs page. A “Back to the walkthrough” button brings you back.</p></li>
+</ol>
+<p>Answers write into the settings at once. A value out of range (“Age must be between 18 and 100.”) or an emptied number box is refused with a message under the field. Continue on an untouched question writes nothing.</p>
+<p>A follow-up question shows only after you say you have the thing, such as home questions after a Yes to owning a home.</p>
+</section>
+<section id="topics">
+<h3>Topics<a class="headerlink" href="#topics" title="Link to this heading"></a></h3>
+<p>The topics are About you, Work and pay, Savings, Spending, Retirement, Medicare and Health, plus the optional Tax strategies (Roth conversion, backdoor Roth and QCD), offered from the review only. Retirement asks the claim age and the Social Security benefit: Yes takes the table from your statement, and No or not sure estimates it from your pay. It also asks about a move to another state. <strong>Go deeper</strong> on Spending goes by category on the Expenses page instead. A monthly spending total replaces every monthly expense row with one <em>Everything else</em> row, and one-off rows stay.</p>
+</section>
+<section id="trail-and-review">
+<h3>Trail and review<a class="headerlink" href="#trail-and-review" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>A thin bar at the top has one segment per topic. <strong>Back</strong> returns to the previous question.</p></li>
+<li><p>The route button opens <strong>Your trail</strong>: every topic and question with a status (Answered, Skipped, Now, Not yet). Tap a row to go there.</p></li>
+<li><p>The last screen, <strong>Here is your plan</strong>, lists each answer with a <strong>Change</strong> button. It adds “Still from the example household” with an <strong>Open</strong> button for each item not yet replaced.</p></li>
+<li><p>At Low and Medium it ends with <strong>Change effort</strong>. At High a row also has <strong>Open in Inputs</strong>, which pauses the Walkthrough.</p></li>
+<li><p><strong>Finish</strong> opens Outputs, Summary.</p></li>
+</ul>
+</section>
+<section id="leave-and-resume">
+<h3>Leave and resume<a class="headerlink" href="#leave-and-resume" title="Link to this heading"></a></h3>
+<p>The X (or Escape; Escape first closes the trail) asks what to do:</p>
+<ul class="simple">
+<li><p><strong>Keep going</strong></p></li>
+<li><p><strong>Continue later</strong>: the answers stay, and a reload or the menu resumes at the same question.</p></li>
+<li><p><strong>Undo my answers</strong>: the settings go back to what they were when the Walkthrough started.</p></li>
+</ul>
+<p>Progress belongs to the open scenario, so switching scenarios switches which Walkthrough resumes. The automatic Monte Carlo waits while the Walkthrough is open.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app-inputs.html" class="btn btn-neutral float-left" title="The app: Setup and Inputs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="app-outputs.html" class="btn btn-neutral float-right" title="The app: Outputs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, [BRAND NAME].</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

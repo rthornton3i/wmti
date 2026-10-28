@@ -1,0 +1,221 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "il",
+  "name": "Illinois",
+  "tax_year": 2026,
+  "source": "Illinois Department of Revenue income tax rates page (4.95% of net income since 2017-07-01, read 2026-10-22) and exemption allowance answer 851 (2,850 for 2025, indexed); 2026 exemption 2,925 from the Tax Foundation 2026 table; Illinois Attorney General 2023 estate tax fact sheet (read 2026-10-22)",
+  "as_of": "2026-10-22",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT"
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "note": "Illinois starts from federal adjusted (or taxable) income and keeps the federal treatment of 401(k) deferrals, Traditional IRA deposits and HSA deposits (no add-back; only California and New Jersey tax HSA deposits). Not checked against a state ruling."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0495,
+        "base": 0.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0495,
+        "base": 0.0
+      }
+    ]
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 2925.0,
+    "JOINT": 5850.0,
+    "senior": 1000.0,
+    "dependent": 2925.0,
+    "note": "Exemption allowance 2,925 per person and dependent for 2026 (2,850 for 2025 from IDOR; 2026 from Tax Foundation), plus 1,000 per taxpayer or spouse 65 or older (IDOR). Not modelled: no exemption at all above federal AGI 250,000 (500,000 joint)."
+  },
+  "retirement_exclusion": {
+    "indexed": false,
+    "min_age": 0,
+    "full": true,
+    "note": "Illinois subtracts all federally taxed distributions from qualified employer plans and IRAs (and Social Security) at any age (IL-1040 line 5; state-costs.csv retirement_income and Kiplinger agree, confirmed primary: https://tax.illinois.gov/individuals/pension.html, validation run 2, 2026-10-22)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "https://illinoisattorneygeneral.gov/estate-taxes/ (calculator and yearly fact sheet; 35 ILCS 405)",
+    "estate_tax": {
+      "exemption": 4000000.0,
+      "brackets": [
+        {
+          "threshold": 0.0,
+          "rate": 0.285714,
+          "base": 0.0
+        },
+        {
+          "threshold": 1359167.0,
+          "rate": 0.100719,
+          "base": 388333.04
+        },
+        {
+          "threshold": 1502800.0,
+          "rate": 0.107143,
+          "base": 402799.61
+        },
+        {
+          "threshold": 2622800.0,
+          "rate": 0.113475,
+          "base": 522799.77
+        },
+        {
+          "threshold": 3750800.0,
+          "rate": 0.119718,
+          "base": 650799.57
+        },
+        {
+          "threshold": 4886800.0,
+          "rate": 0.125874,
+          "base": 786799.22
+        },
+        {
+          "threshold": 6030800.0,
+          "rate": 0.131944,
+          "base": 930799.08
+        },
+        {
+          "threshold": 7182800.0,
+          "rate": 0.137931,
+          "base": 1082798.57
+        }
+      ]
+    },
+    "inheritance_tax": null,
+    "note": "Illinois estate tax: 4,000,000 exclusion (a threshold, not a credit; unchanged for 2026 per Faegre Drinker and SB 2038 text), no portability. The tax is the interrelated computation of the Attorney General: the smaller of the old federal state death tax credit table on (taxable estate - 60,000) and 40% of the taxable estate above 4,000,000, where the taxable estate is the estate less the Illinois tax itself. The brackets here are that result solved on the estate above 4,000,000 (28.57% to 5,359,167, then r/(1+r) of each credit-table rate) and reproduce the fact sheet's examples: 4,000,000 owes 0 and 5,000,000 owes 285,714 (primary, read 2026-10-22). Not modelled: deductions other than the tax itself, apportionment for property outside Illinois."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.illinois.gov/individuals/pension.html",
+    "note": "Illinois does not tax Social Security benefits; it is not among the states that tax them in Kiplinger 2026 (https://www.kiplinger.com/taxes/states-that-tax-social-security-benefits) and state-costs.csv column ss_taxed. Confirmed primary on https://tax.illinois.gov/individuals/pension.html (validation run 2, 2026-10-22)."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "Tax Foundation local income taxes primer",
+    "note": "Illinois cities and counties levy no income tax (Tax Foundation local income tax list and state-costs.csv local_income_tax agree)."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.0625,
+    "avg_local_rate": 0.0273,
+    "combined_rate": 0.0898,
+    "vehicle_rate": 0.0898,
+    "grocery_rate": 0.0125,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Illinois revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://tax.illinois.gov/research/publications/bulletins/fy-2026-11.html and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.0) plus the average local rate where locals tax them (locals: partly); research note: State 1% grocery tax repealed 2026-01-01 (PA 103-0781); ~656 municipalities and 3 counties adopted 1% local grocery tax; RTA/MED food taxes remain; estimate 1% local + ~0.25% avg RTA/MED instead of general local avg. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.01793,
+    "confidence": "confirmed secondary",
+    "check_at": "Census ACS 2024 1-year tables B25090 and B25082 at https://data.census.gov",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 2568.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1944.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 151.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.ilga.gov/Documents/legislation/ilcs/documents/062500050K3-806.htm",
+    "source": "Illinois Secretary of State standard passenger registration fee of 151 a year, as quoted by several fee guides (s292 search, 2026-10-22) and state-costs.csv column vehicle_tax",
+    "note": "Flat annual passenger-car registration of 151; Illinois has no annual vehicle property tax. The primary fee page could not be fetched and the guides quoting it are weak, so unconfirmed. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py; average_annual set by hand in s292 (rerunning the importer resets it to 0). Confirmed primary on https://www.ilga.gov/Documents/legislation/ilcs/documents/062500050K3-806.htm (validation run 2, 2026-10-22)."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.483,
+    "average_price_per_gallon": 3.18,
+    "confidence": "confirmed secondary",
+    "check_at": "https://tax.illinois.gov/research/publications/bulletins/fy-2026-23.html",
+    "source": "Excise: https://tax.illinois.gov/research/publications/bulletins/fy-2026-23.html (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.483 for all of 2026 (P.A. 104-0468 suspended the July 2026 increase); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1922,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 295943.0,
+    "cost_index": 83.3,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1372.0,
+    "medigap_g_monthly": 217.0,
+    "part_d_monthly": 37.98,
+    "medicare_advantage_monthly": 10.23,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Illinois insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 98.9,
+    "bea_goods": 103.8,
+    "bea_services": 100.2,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6673.0,
+    "assisted_living_monthly": 5836.0,
+    "nursing_home_private_monthly": 9125.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "schema_version": 4,
+  "jurisdiction": "id",
+  "name": "Idaho",
+  "tax_year": 2026,
+  "source": "Idaho State Tax Commission, 2025 Individual Income Tax Instructions (EIN00046, https://tax.idaho.gov/document-mngr/forms_EIN00046, read 2026-10-24): tax = 5.3% of Idaho taxable income above 4,811 single and separate / 9,622 joint; Idaho Code 63-3024 (https://legislature.idaho.gov/statutesrules/idstat/Title63/T63CH30/SECT63-3024/, read 2026-10-24): 5.3% above 2,500 / 5,000, thresholds indexed by statute to the CPI since 1998, so the 2025 thresholds are an approximation for 2026 (2026 figures not yet published); standard deduction and the 65-or-older amounts from IRS Rev. Proc. 2025-32 (https://www.irs.gov/pub/irs-drop/rp-25-32.pdf, read 2026-10-24), which Idaho adopts (conformity to the IRC as of 2026-01-01); no 2026 rate change found",
+  "as_of": "2026-10-24",
+  "status": "estimate",
+  "filing_tables": {
+    "indexed": false,
+    "SINGLE": "SINGLE",
+    "MFS": "SINGLE",
+    "JOINT": "JOINT",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.idaho.gov/document-mngr/forms_EIN00046",
+    "note": "Single and married filing separately use 4,811, joint (and head of household, surviving spouse) 9,622 in the 2025 Form 40 tax worksheet (Idaho State Tax Commission, read 2026-10-24). Head of household is not modelled."
+  },
+  "state_base": {
+    "indexed": false,
+    "add_back": [],
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.idaho.gov/document-mngr/forms_EIN00046",
+    "note": "Idaho starts from federal adjusted gross income (Form 40, line 7) and keeps the federal treatment of 401(k) and 403(b) deferrals, Traditional IRA deposits and HSA deposits: the additions on Form 39R, Part A of the 2025 instructions (Idaho State Tax Commission, read 2026-10-24) hold no line for them."
+  },
+  "income_brackets": {
+    "indexed": false,
+    "adjustment": "legislated",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.idaho.gov/document-mngr/forms_EIN00046",
+    "note": "5.3% above 4,811 single and separate / 9,622 joint, matching the 2025 instructions (read 2026-10-24). Idaho Code 63-3024 indexes the threshold yearly and the 2026 figure is not published, so the 2025 threshold stands in for 2026 (approximation).",
+    "SINGLE": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 4811,
+        "rate": 0.053,
+        "base": 0.0
+      }
+    ],
+    "JOINT": [
+      {
+        "threshold": 0,
+        "rate": 0.0,
+        "base": 0.0
+      },
+      {
+        "threshold": 9622,
+        "rate": 0.053,
+        "base": 0.0
+      }
+    ]
+  },
+  "standard_deduction": {
+    "indexed": false,
+    "SINGLE": 16100.0,
+    "JOINT": 32200.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+    "note": "Idaho uses the federal standard deduction (2025 instructions, https://tax.idaho.gov/document-mngr/forms_EIN00046: 15,750 / 31,500 for 2025, conformity to the IRC as of 2026-01-01); the 2026 federal amounts 16,100 / 32,200 are from IRS Rev. Proc. 2025-32 and IR-2025-103 (read 2026-10-24). Brackets: the 0% band (4,811 / 9,622) is the 2025 figure; Idaho Code 63-3024 indexes it to the CPI each year, so using it for 2026 is an approximation (the 2026 figure, about 3% higher, is not yet published; about 7 dollars of tax a year) while the file keeps the brackets legislated. Not modelled: HB 559 (signed 2026-02-10) adopts the federal enhanced senior deduction, tips, overtime and car loan interest deductions (https://tax.idaho.gov/?p=217967, validation run 2, 2026-10-22); the model's state calculation starts before federal deductions, so the 6,000 senior deduction is left out."
+  },
+  "exemptions": {
+    "indexed": false,
+    "SINGLE": 0.0,
+    "JOINT": 0.0,
+    "senior": 1650.0,
+    "dependent": 0.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+    "note": "Idaho's personal exemption is 0 (it follows the federal return, which has none); senior is the federal additional standard deduction for 65 or older, which the Idaho standard deduction worksheet adds (2025: 1,600 married, 2,000 single; 2026: 1,650 married, 2,050 single per IRS Rev. Proc. 2025-32, read 2026-10-24; the married figure is used for both)."
+  },
+  "estate_inheritance": {
+    "indexed": false,
+    "confidence": "confirmed secondary",
+    "check_at": "https://tax.idaho.gov (no estate or inheritance tax)",
+    "estate_tax": null,
+    "inheritance_tax": null,
+    "note": "Idaho has no estate tax and no inheritance tax (Tax Foundation 2026 estate and inheritance tax map, https://taxfoundation.org/data/all/state/estate-inheritance-taxes/, and state-costs.csv columns estate_tax and inheritance_tax agree)."
+  },
+  "social_security": {
+    "indexed": false,
+    "treatment": "exempt",
+    "confidence": "confirmed primary",
+    "check_at": "https://tax.idaho.gov/document-mngr/forms_EIN00046",
+    "note": "Idaho does not tax Social Security benefits: Form 39R, Part B, line 7 subtracts the benefits included in federal income (2025 instructions, Idaho State Tax Commission, read 2026-10-24). Idaho taxes IRA and private pension income in full; its retirement benefits deduction (Form 39R line 8, up to 48,216 single / 72,324 joint for 2025, less Social Security received) covers only government, military and some other public pensions from 65 (not modelled; the model's Traditional withdrawals do not qualify, so no retirement_exclusion section). Not modelled either: the refundable food tax credit."
+  },
+  "local_income_tax": {
+    "indexed": false,
+    "avg_rate": 0.0,
+    "applies_to": "wages",
+    "confidence": "confirmed secondary",
+    "check_at": "Tax Foundation local income taxes primer",
+    "note": "Idaho cities and counties levy no income tax: Idaho is not among the 16 states with local income taxes in Tax Foundation, Local Income Taxes (https://taxfoundation.org/research/all/state/local-income-taxes-2023/, updated 2024-06-13, read 2026-10-24); state-costs.csv local_income_tax agrees."
+  },
+  "sales_tax": {
+    "indexed": false,
+    "state_rate": 0.06,
+    "avg_local_rate": 0.0003,
+    "combined_rate": 0.0603,
+    "vehicle_rate": 0.0603,
+    "grocery_rate": 0.0603,
+    "clothing_taxable": true,
+    "confidence": "confirmed secondary",
+    "check_at": "Idaho revenue department sales and use tax rate tables",
+    "source": "Tax Foundation, State and Local Sales Tax Rates, Midyear 2026 (https://taxfoundation.org/data/all/state/2026-sales-tax-rates-midyear/), as of 2026-07-01; groceries and clothing: https://apps-tax.idaho.gov/GroceryCreditWorksheet/index.html and https://zamp.com/blog/sales-tax-on-clothing",
+    "note": "Rates as fractions; avg_local_rate is the combined less the state rate, at least 0. vehicle_rate is the purchase tax on a car: assumed equal to the combined rate. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py. Groceries and clothing: grocery_rate is the state rate on groceries (0.06) plus the average local rate where locals tax them (locals: partly); research note: Full 6% state rate; food tax credit $155/person (HB 231; up to $250 with receipts); only resort-city local taxes. clothing_taxable is true (research: yes; taxed). Set by hand from .claude/state/research/grocery-tax.csv and clothing-tax.csv (s329)."
+  },
+  "property_tax": {
+    "indexed": false,
+    "effective_rate": 0.00433,
+    "confidence": "confirmed primary",
+    "check_at": "https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US16",
+    "source": "Census ACS 2024 1-year (B25090 / B25082) as compiled at https://floridaprobateandfamilylaw.com/blog/effective-property-tax-rates-by-state-2025/",
+    "note": "Effective rate: real-estate taxes paid divided by home value, owner-occupied homes. Senior relief, homestead caps and freezes are not in it (a buyer pays the full rate). Confirmed primary on the Census ACS 2024 1-year tables (https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25090,B25082&geo_ids=04000US16, validation run 3, 2026-10-22). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "home_insurance": {
+    "indexed": false,
+    "average_annual": 1728.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Homeowners Insurance Report (https://content.naic.org)",
+    "source": "Insurify state table for a 300,000 dwelling (https://insurify.com/homeowners-insurance/states/), October 2026",
+    "note": "Average annual premium for a 300,000 dwelling. Quote averages differ by 20 to 40 percent between publishers, so the model uses it as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_insurance": {
+    "indexed": false,
+    "average_annual": 1284.0,
+    "confidence": "confirmed secondary",
+    "check_at": "NAIC Auto Insurance Database Report (https://content.naic.org)",
+    "source": "Insurify full coverage, monthly times 12 (https://insurify.com/car-insurance/states/), October 2026",
+    "note": "Average annual full-coverage premium. Used as a ratio between states only. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "car_taxes": {
+    "indexed": false,
+    "average_annual": 55.0,
+    "confidence": "unconfirmed",
+    "check_at": "https://itd.idaho.gov/dmv/vehicle-registration/",
+    "source": "https://itd.idaho.gov/dmv/vehicle-registration/ (validation run 2, 2026-10-22)",
+    "note": "Idaho state registration by age (69 in years 1-2, 57 in years 3-6, 45 from year 7), about 55 a year over ten years; no vehicle property tax. The county fee is left out (unconfirmed). Typical car (29,100 list price, 2026 Toyota Camry LE), averaged over about ten years of ownership; registration and vehicle taxes only (no title, plate or inspection fees). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "fuel": {
+    "indexed": false,
+    "gas_tax_per_gallon": 0.32,
+    "average_price_per_gallon": 3.35,
+    "confidence": "confirmed secondary",
+    "check_at": "https://tax.idaho.gov/taxes/product-excise-taxes/fuels-taxes-and-fees/distributor-fuels/tax-rate/",
+    "source": "Excise: https://tax.idaho.gov/taxes/product-excise-taxes/fuels-taxes-and-fees/distributor-fuels/tax-rate/ (validation run 2, 2026-10-22); price: USGasGauge state-by-year table (AAA data), 2024 annual average",
+    "note": "gas_tax_per_gallon is the state excise in dollars, without sales tax on fuel: 0.32 ($0.32 since 2015-07-01 (plus 1c transfer fee)); average_price_per_gallon is the 2024 average pump price (grade unclear, about regular). Set by hand from the primary source in validation run 2, 2026-10-22; importStateCosts.py keeps a hand-set section."
+  },
+  "utilities": {
+    "indexed": false,
+    "electricity_per_kwh": 0.1296,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+    "source": "EIA Electric Power Monthly Table 5.6.B, residential price, January to July 2026",
+    "note": "Average residential electricity price in dollars per kWh, January to July 2026 (a partial year). Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "housing": {
+    "indexed": false,
+    "typical_home_value": 476754.0,
+    "cost_index": 98.4,
+    "confidence": "confirmed secondary",
+    "check_at": "https://fred.stlouisfed.org (Zillow Home Value Index by state) and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "Zillow Home Value Index by state via FRED (September 2026); MERIC Cost of Living Data Series housing index (C2ER, US = 100), Q2 2026",
+    "note": "typical_home_value is the Zillow Home Value Index (all homes, middle tier); cost_index is the MERIC housing cost index (US = 100), used to scale rent after a move. Imported from .claude/state/research/state-costs.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "health_premiums": {
+    "indexed": false,
+    "aca_60_monthly": 1041.0,
+    "medigap_g_monthly": 240.0,
+    "part_d_monthly": 35.01,
+    "medicare_advantage_monthly": 12.18,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.kff.org/affordable-care-act/state-indicator/average-marketplace-premiums-by-metal-tier/, Idaho insurance department Medigap rate guide and the CMS MA Landscape and Part D files (https://www.cms.gov)",
+    "source": "KFF Average Marketplace Premiums by Metal Tier 2026 (benchmark silver at 40, times the federal age curve 2.124 for 60); MoneyGeek Medicare Supplement Plan G at 65, 2026; KFF Average Monthly Premium for PDPs, 2024; MedicareSupplement.com analysis of the CMS 2026 MA Landscape files",
+    "note": "Monthly premiums per person, unsubsidized list prices: aca_60_monthly is the benchmark silver plan at 60 (estimated from the age-40 figure), medigap_g_monthly Plan G at 65, part_d_monthly the enrollment-weighted Part D plan, medicare_advantage_monthly the average Medicare Advantage premium. Null means no usable figure; a move then leaves that premium unchanged. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "price_indexes": {
+    "indexed": false,
+    "grocery_index": 103.8,
+    "bea_goods": 96.3,
+    "bea_services": 99.0,
+    "confidence": "confirmed secondary",
+    "check_at": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area and https://meric.mo.gov/data/cost-living-data-series",
+    "source": "MERIC Cost of Living Data Series grocery index (C2ER, US = 100), Q2 2026; BEA Regional Price Parities by state, goods and other services (US = 100), 2024, release of 2026-02-19 via FRED",
+    "note": "Price levels with US = 100: grocery_index is the MERIC grocery index, bea_goods and bea_services the BEA Regional Price Parities for goods and for services other than rent. Used as ratios between states only. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  },
+  "long_term_care": {
+    "indexed": false,
+    "home_health_aide_monthly": 6387.0,
+    "assisted_living_monthly": 4600.0,
+    "nursing_home_private_monthly": 10707.0,
+    "confidence": "confirmed primary",
+    "check_at": "https://www.carescout.com/cost-of-care",
+    "source": "Genworth / CareScout Cost of Care Survey 2024, Ranked State Data Tables, state medians (https://assets.carescout.com/a41bb6478c/298701.pdf)",
+    "note": "State median monthly costs: a home health aide, an assisted living facility and a private nursing home room. Stored for reference; the model does not use them. Imported from .claude/state/research/state-costs.csv and state-costs-2.csv by .claude/state/scratch/importStateCosts.py."
+  }
+}

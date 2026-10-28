@@ -1,0 +1,569 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>States: taxes, living costs and moving &mdash; Walk Me Through It  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7f41d439"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tax law in the model" href="tax-law.html" />
+    <link rel="prev" title="Model rules by group" href="model-rules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../user_index.html" class="icon icon-home">
+            Walk Me Through It
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Start here</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the toolkit</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using the app</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="app.html">The app</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-inputs.html">The app: Setup and Inputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-flows.html">The app: scenarios and guided flows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-outputs.html">The app: Outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-gallery.html">Sample results</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="model-rules.html">Model rules by group</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">States: taxes, living costs and moving</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#which-states-and-what-each-one-holds">Which states, and what each one holds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sales-tax">Sales tax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#moving-at-retirement">Moving at retirement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#letting-the-optimizer-compare-states">Letting the optimizer compare states</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-a-no-income-tax-state-can-cost-more">Why a no-income-tax state can cost more</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-state-law-is-structured-and-adding-a-rule-kind">How state law is structured, and adding a rule kind</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#limits-and-assumptions">Limits and assumptions</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tax law and legal</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tax-law.html">Tax law in the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../user_index.html">Walk Me Through It</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../user_index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">States: taxes, living costs and moving</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="states-taxes-living-costs-and-moving">
+<span id="states-guide"></span><h1>States: taxes, living costs and moving<a class="headerlink" href="#states-taxes-living-costs-and-moving" title="Link to this heading"></a></h1>
+<p>Purpose: for anyone choosing a home state or planning a move; what the model knows about each state and what a move changes.</p>
+<p>Where you live changes more than your income tax. Property tax, insurance, car costs,
+sales tax and gas differ by state and can add up to more than the income tax. You
+choose your state as the <em>home state</em> on Setup (see <a class="reference internal" href="app.html"><span class="doc">The app</span></a>). Every state list in the
+app shows the 51 choices as code and name, such as <em>NJ - New Jersey</em>; type a few letters
+to narrow it. The tax rules are in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a> and <a class="reference internal" href="model-rules.html"><span class="doc">Model rules by group</span></a>.</p>
+<section id="which-states-and-what-each-one-holds">
+<span id="states-data"></span><h2>Which states, and what each one holds<a class="headerlink" href="#which-states-and-what-each-one-holds" title="Link to this heading"></a></h2>
+<p>All 50 states and Washington, DC are supported. Each has its own law file, so
+correcting a state means editing one file (see <a class="reference internal" href="tax-law.html#states-list"><span class="std std-ref">The list of states</span></a>). Each file holds:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>What it means for you</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Income tax brackets</p></td>
+<td><p>The state’s rates, deductions and exemptions for each filing status. States
+with no wage tax have a single 0% bracket.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Average local income tax</p></td>
+<td><p>County, city and school-district taxes averaged into one statewide rate and
+added to the state tax. A local tax that reaches wages only (as in
+Pennsylvania) is charged on pay alone; otherwise on the income the state taxes.</p></td>
+</tr>
+<tr class="row-even"><td><p>Social Security, pensions and IRA withdrawals</p></td>
+<td><p>Whether the state taxes Social Security (not at all, the part the federal
+return taxes, or only above an income limit), and how much pension and IRA
+income it leaves out.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Property tax</p></td>
+<td><p>An effective rate: the typical yearly tax as a share of the home’s value.</p></td>
+</tr>
+<tr class="row-even"><td><p>Home and car insurance</p></td>
+<td><p>Typical yearly premiums for a home and for a car with full coverage.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Car taxes</p></td>
+<td><p>Registration plus any yearly vehicle property tax for a typical car, and the
+sales tax on buying a car.</p></td>
+</tr>
+<tr class="row-even"><td><p>Gas tax and pump price</p></td>
+<td><p>The state’s tax per gallon and the average price at the pump.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Electricity</p></td>
+<td><p>The average home electricity price, in cents per kilowatt-hour.</p></td>
+</tr>
+<tr class="row-even"><td><p>Typical home value</p></td>
+<td><p>What a typical home is worth, used to compare states fairly.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Estate and inheritance tax</p></td>
+<td><p>The state’s estate tax (on what you leave) and inheritance tax (on what your
+beneficiaries receive), if it has either.</p></td>
+</tr>
+<tr class="row-even"><td><p>Sales tax</p></td>
+<td><p>State and average local rates, the rate on groceries and whether clothing is
+taxed (see <a class="reference internal" href="#states-sales-tax"><span class="std std-ref">Sales tax</span></a>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Health premiums</p></td>
+<td><p>Monthly list prices per person, without subsidies: the benchmark marketplace
+silver plan at 60, Medigap Plan G at 65, the average Part D plan and the
+average Medicare Advantage plan. A figure the research could not find is left
+empty.</p></td>
+</tr>
+<tr class="row-even"><td><p>Price indexes</p></td>
+<td><p>Grocery, goods and services price levels with the US at 100. After a move they
+re-price your monthly expense rows (see <a class="reference internal" href="#states-moving"><span class="std std-ref">Moving at retirement</span></a>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Long-term care</p></td>
+<td><p>State median monthly costs of a home health aide, assisted living and a
+nursing home room. Stored for reference only; the model does not use them.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How sure are the numbers?</strong> Every item carries a confidence label (<em>confirmed primary</em>,
+<em>confirmed secondary</em> or <em>unconfirmed</em>) and every file a status (<code class="docutils literal notranslate"><span class="pre">final</span></code> or
+<code class="docutils literal notranslate"><span class="pre">estimate</span></code>); <a class="reference internal" href="../law/how-to-read.html#law-confidence"><span class="std std-ref">Confidence chips</span></a> and <a class="reference internal" href="../law/how-to-read.html#law-status"><span class="std std-ref">Status: final or estimate</span></a> in <a class="reference internal" href="../law/how-to-read.html"><span class="doc">How to read the law pages</span></a>
+define both. The table in <a class="reference internal" href="tax-law.html#states-table"><span class="std std-ref">The state law files</span></a> gives each state’s status, its weakest
+income-tax label and the rules that are approximated. The living-cost figures come from
+secondary research (Tax Foundation, Census, insurer quote sites, Zillow). They are
+averages, not quotes for your home or car.</p>
+<p><strong>Reading each state’s law.</strong> Every state has a page under <a class="reference internal" href="../law/index.html"><span class="doc">Tax law by jurisdiction</span></a>; the app’s
+<em>See this state’s rules</em> link opens it (see <a class="reference internal" href="app.html#app-documentation"><span class="std std-ref">Documentation</span></a> in
+<a class="reference internal" href="app.html"><span class="doc">The app</span></a>).</p>
+</section>
+<section id="sales-tax">
+<span id="states-sales-tax"></span><h2>Sales tax<a class="headerlink" href="#sales-tax" title="Link to this heading"></a></h2>
+<p><strong>Your expenses already include sales tax.</strong> The receipts you copy already have it in
+them, so WMTI does not add it again.</p>
+<p><strong>Which spending is taxed.</strong> Each row on the Expenses page is <em>taxable</em> or <em>not
+taxable</em>, and only taxable rows count:</p>
+<ul class="simple">
+<li><p>A row you add yourself is taxable. Suggested rows have a default: goods (Household
+supplies, Electronics, Gifts) and services most states tax (Dining out, Cell plans,
+Subscriptions, Entertainment, Travel) are taxable; Prescriptions, Education, Life
+insurance and pure services (Personal care, Home repairs, Pets, Car repairs) are not.</p></li>
+<li><p><strong>Groceries</strong> follow the state’s own grocery rate, and <strong>Clothing</strong> follows its clothing
+rule (not taxed in states such as New Jersey, Pennsylvania and Minnesota).</p></li>
+<li><p>The Home, Cars and Healthcare pages, rent and Charity rows never count.</p></li>
+</ul>
+<p>To mark a row, set <em>Taxable</em> to <em>Taxable</em> or <em>Not taxable</em> (<em>Default</em> goes back). Mark a
+row of your own that is mostly labor (a cleaner, a tutor) <em>Not taxable</em>.</p>
+<p>For each taxable row the tax inside it is amount x rate / (1 + rate), with the rate of the
+state you live in that year (combined state plus local, the grocery rate for Groceries, 0
+for exempt Clothing).</p>
+<p><em>Worked example.</em> You spend 1,000 a month on taxable rows where the combined rate is 5%,
+and move to a state where it is 8%. The tax inside it now is 12,000 x 0.05 / 1.05, about
+571 a year. After the move the same goods cost 12,000 x 1.08 / 1.05 = 12,343, about
+<strong>343 a year more</strong>. Untaxed rows (rent, insurance, medicine) do not change.</p>
+<p><strong>Shown for records, never added.</strong> The Taxes chart and tables show the sales tax already
+inside your spending as a hatched bar and a last column labelled <em>Sales tax (already in
+expenses, shown for records)</em>. Compare and the PDF report mark it the same way. It is
+never added to your total tax or any total.</p>
+</section>
+<section id="moving-at-retirement">
+<span id="states-moving"></span><h2>Moving at retirement<a class="headerlink" href="#moving-at-retirement" title="Link to this heading"></a></h2>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="../_images/relocation-timeline.svg"><img alt="A bar for the current state and one for the new state, split at a move age marker, with the home sold at the move and a new home bought." src="../_images/relocation-timeline.svg" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">A move to another state on the age axis.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>The plan is the <strong>Relocation</strong> section of the Strategies tab: switch on <em>Move to another
+state</em>, pick the <em>State you move to</em> and set <em>Move at your age</em>. The move age shows your
+Social Security claim age until you type one (with no benefit, the age your pay stops, or
+now if you are retired); clearing it goes back to that age. Both of you move at the
+start of the move year and live in the new state for the whole year. With Relocation off,
+or the new state the same as your home state, nothing changes.</p>
+<p>WMTI changes only what a move changes, by comparing the new state with the old one:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>What changes</p></th>
+<th class="head"><p>How</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Income tax</p></td>
+<td><p>Your state tax and the average local tax use the new state’s rules, including
+its treatment of Social Security, pensions and IRA withdrawals.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Your home</p></td>
+<td><p>See the next list.</p></td>
+</tr>
+<tr class="row-even"><td><p>Car costs</p></td>
+<td><p>Car insurance is scaled by the states’ average premiums. Each car’s registration
+and car taxes become your entered amount plus the new state’s typical yearly
+figure less the old one’s, never below 0. A replacement car pays the new
+state’s car sales tax.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Gas</p></td>
+<td><p>The gallons your car already uses cost the difference between the states’
+average pump prices.</p></td>
+</tr>
+<tr class="row-even"><td><p>Everyday prices</p></td>
+<td><p>Each monthly Expenses row (Bills, Planned Spending, Other Spending) follows the
+new state’s price level by its price type: Groceries the grocery index, goods
+rows the goods level, services rows the services level, and rows priced the same
+everywhere (subscriptions, travel, prescriptions, life insurance) do not change.
+A row you add yourself follows 40% goods and 60% services. Major Spending and
+Charity rows never change. <em>Example:</em> 800 a month of groceries in New Jersey
+(index 107.6) after a move to a state at 90 costs about 800 x 90 / 107.6 = 669.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sales tax</p></td>
+<td><p>Taxable rows the price levels do not re-price cost the new state’s sales tax
+instead of the old: amount x (1 + new rate) / (1 + old rate). The price levels
+already hold each state’s sales tax, so a re-priced row takes no separate
+change. Both are charged together as <code class="docutils literal notranslate"><span class="pre">State</span> <span class="pre">Cost</span> <span class="pre">Change</span></code> in your cash flow;
+moving somewhere cheaper makes it negative (a saving).</p></td>
+</tr>
+<tr class="row-even"><td><p>Health premiums</p></td>
+<td><p>Before the Medicare age, the premium is scaled by the new state’s marketplace
+premium at 60 over the old one’s. From the Medicare age, the supplement is scaled
+by Medigap Plan G and Part D by the Part D premium. Medicare Part B and IRMAA are
+federal and do not change. The change shows in the Summary column <code class="docutils literal notranslate"><span class="pre">Health</span>
+<span class="pre">Premium</span> <span class="pre">State</span> <span class="pre">Change</span></code>. A state with no figure leaves that premium unchanged.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Estate and inheritance tax</p></td>
+<td><p>The state you live in at the end of the plan sets them, and by default your
+beneficiaries’ state too; a child’s beneficiary keeps the state you lived in when
+the child years ended.</p></td>
+</tr>
+<tr class="row-even"><td><p>Any other cost</p></td>
+<td><p>A cost the old state’s file holds as 0 or leaves empty stays unchanged.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Your home.</strong> The move adds a primary residence in the new state to your Home timeline,
+priced at your home’s value then times the new state’s typical home value over the old
+one’s. Your saved homes never change. <em>Home follows me</em> (on by default) sets what happens
+to the home you live in:</p>
+<ul class="simple">
+<li><p><strong>On</strong>: it is sold at the close of the year before the move, at its value then, with its
+selling costs. The mortgage is paid from the proceeds and the rest goes to your
+accounts. Its gain is taxed like any home sale, with the exclusion, by the state it sits
+in. A comparable home is bought in the new state at the start of the move year; its
+property tax and insurance scale with the states’ ratios. Your mortgage carries over
+(balance, rate, extra payment, months left). A sale within two years gets no exclusion.</p></li>
+<li><p><strong>Off</strong>: the old home is kept as a second home with its own value, costs and mortgage,
+taxed under its own state’s rules when sold (no home sale exclusion). The new home is
+financed like a new purchase (20% down over 360 months at your old rate) when the old
+home has a mortgage, else paid in cash.</p></li>
+<li><p><strong>Renting</strong>: the rent period you are in ends and a new one starts in the move year in
+the new state, at your rent times the new state’s housing-cost index over the old one’s.
+On and Off are the same here.</p></li>
+<li><p>A home or rent period of yours that starts in the move year <em>is</em> the move: nothing is
+added (a blank state on it becomes the new state; another state you set wins, with a
+warning). With no home and no rent that year only the state moves.</p></li>
+</ul>
+<p><strong>What stays as you entered it.</strong> Salary, Social Security and pension, account balances and
+returns, entered spending (apart from the sales-tax difference), any second home, and any
+home or rent period starting after the move. Utility bills are not re-priced (see
+<a class="reference internal" href="#states-limits"><span class="std std-ref">Limits and assumptions</span></a>).</p>
+<p><strong>Moving through your homes.</strong> A primary residence you buy later, or a rent period that
+starts later, with its <em>State</em> set moves you to that state from its first year, with the
+same changes as above. A blank state keeps you where you were; a second home never moves
+you. Every cost is compared with your home state, so moving twice needs nothing more.
+Moves apply in year order; you live in one primary residence at a time.</p>
+</section>
+<section id="letting-the-optimizer-compare-states">
+<span id="states-optimizer"></span><h2>Letting the optimizer compare states<a class="headerlink" href="#letting-the-optimizer-compare-states" title="Link to this heading"></a></h2>
+<p>The <strong>Optimize</strong> view (see <a class="reference internal" href="strategies.html#finding-best-settings"><span class="std std-ref">Finding the best settings</span></a>) has a <strong>States</strong> section, first in
+its list of options. Tick the states you would consider, <strong>up to 5</strong> per search (the search
+reruns every strategy in each state, so more takes much longer).</p>
+<ul class="simple">
+<li><p><strong>It runs each one.</strong> Each ticked state is tried as a retirement move, alongside
+staying where you are, which is always a candidate. The state is searched first, then
+the other strategies are tuned inside it. Ticking only your own state does nothing.</p></li>
+<li><p><strong>More states, more time.</strong> The page shows what your ticked states add, for example
+<em>3 states and staying put: up to 672 more runs, up to 2 minutes more (estimate)</em>.</p></li>
+<li><p><strong>Later homes go with the state tried.</strong> Homes and rent periods that start at or after
+the move take the state tried; earlier ones keep theirs. Staying put restores your states.</p></li>
+<li><p><strong>The result names the best state</strong>, for example <em>Retire in Florida, move at 65</em>, or
+<em>Stay in NJ</em>, with its score beside your current settings. Applying it fills in the
+Relocation section for you.</p></li>
+</ul>
+<p>Relocation is your own plan; the States section searches and reports which state scores
+best on after-tax money left for your beneficiaries. It does not value climate, family or
+healthcare access.</p>
+</section>
+<section id="why-a-no-income-tax-state-can-cost-more">
+<span id="states-no-income-tax"></span><h2>Why a no-income-tax state can cost more<a class="headerlink" href="#why-a-no-income-tax-state-can-cost-more" title="Link to this heading"></a></h2>
+<p>For many retirees the state income tax is small: most states do not tax Social Security,
+and many leave out a large part of pension and IRA income. The costs that do not stop at
+retirement (property tax, insurance, gas, electricity, sales tax) can matter much more.</p>
+<p>The table compares ten states for one example household: a married couple, both 65 or
+older, with 80,000 a year of income (40,000 Social Security and 40,000 pension and IRA), a
+home at the state’s typical value, one car driven 12,000 miles a year, 45,000 a year of
+taxable spending and average electricity use. Figures are thousands of dollars a year.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 12.0%" />
+<col style="width: 10.0%" />
+<col style="width: 10.0%" />
+<col style="width: 10.0%" />
+<col style="width: 9.0%" />
+<col style="width: 8.0%" />
+<col style="width: 9.0%" />
+<col style="width: 9.0%" />
+<col style="width: 15.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>State</p></th>
+<th class="head"><p>Home value</p></th>
+<th class="head"><p>Income tax</p></th>
+<th class="head"><p>Property tax</p></th>
+<th class="head"><p>Home insurance</p></th>
+<th class="head"><p>Car insurance</p></th>
+<th class="head"><p>Gas</p></th>
+<th class="head"><p>Electricity</p></th>
+<th class="head"><p>Sales tax</p></th>
+<th class="head"><p><strong>Total a year</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>CA</p></td>
+<td><p>762k</p></td>
+<td><p>0.1</p></td>
+<td><p>5.3</p></td>
+<td><p>5.2</p></td>
+<td><p>2.4</p></td>
+<td><p>2.1</p></td>
+<td><p>3.6</p></td>
+<td><p>4.1</p></td>
+<td><p><strong>22.8k</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>NJ</p></td>
+<td><p>575k</p></td>
+<td><p>0.0</p></td>
+<td><p>9.6</p></td>
+<td><p>2.3</p></td>
+<td><p>3.1</p></td>
+<td><p>1.5</p></td>
+<td><p>2.6</p></td>
+<td><p>3.0</p></td>
+<td><p><strong>22.2k</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>FL</p></td>
+<td><p>375k</p></td>
+<td><p>0.0</p></td>
+<td><p>2.9</p></td>
+<td><p>8.0</p></td>
+<td><p>2.8</p></td>
+<td><p>1.5</p></td>
+<td><p>1.7</p></td>
+<td><p>3.1</p></td>
+<td><p><strong>20.0k</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>NY</p></td>
+<td><p>525k</p></td>
+<td><p>0.0</p></td>
+<td><p>6.4</p></td>
+<td><p>2.4</p></td>
+<td><p>2.6</p></td>
+<td><p>1.5</p></td>
+<td><p>3.2</p></td>
+<td><p>3.8</p></td>
+<td><p><strong>20.0k</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>TX</p></td>
+<td><p>296k</p></td>
+<td><p>0.0</p></td>
+<td><p>3.7</p></td>
+<td><p>4.6</p></td>
+<td><p>2.4</p></td>
+<td><p>1.4</p></td>
+<td><p>1.7</p></td>
+<td><p>3.7</p></td>
+<td><p><strong>17.6k</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>WA</p></td>
+<td><p>588k</p></td>
+<td><p>0.0</p></td>
+<td><p>4.3</p></td>
+<td><p>2.7</p></td>
+<td><p>2.2</p></td>
+<td><p>2.0</p></td>
+<td><p>1.6</p></td>
+<td><p>4.3</p></td>
+<td><p><strong>17.1k</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>NH</p></td>
+<td><p>511k</p></td>
+<td><p>0.0</p></td>
+<td><p>6.9</p></td>
+<td><p>2.0</p></td>
+<td><p>1.0</p></td>
+<td><p>1.6</p></td>
+<td><p>2.9</p></td>
+<td><p>0.0</p></td>
+<td><p><strong>14.4k</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>NV</p></td>
+<td><p>441k</p></td>
+<td><p>0.0</p></td>
+<td><p>2.2</p></td>
+<td><p>1.9</p></td>
+<td><p>3.1</p></td>
+<td><p>1.9</p></td>
+<td><p>1.5</p></td>
+<td><p>3.7</p></td>
+<td><p><strong>14.3k</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>TN</p></td>
+<td><p>331k</p></td>
+<td><p>0.0</p></td>
+<td><p>1.5</p></td>
+<td><p>3.4</p></td>
+<td><p>1.6</p></td>
+<td><p>1.5</p></td>
+<td><p>1.5</p></td>
+<td><p>4.3</p></td>
+<td><p><strong>13.8k</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>PA</p></td>
+<td><p>287k</p></td>
+<td><p>0.0</p></td>
+<td><p>3.3</p></td>
+<td><p>1.2</p></td>
+<td><p>1.9</p></td>
+<td><p>1.6</p></td>
+<td><p>2.3</p></td>
+<td><p>2.9</p></td>
+<td><p><strong>13.2k</strong></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reading it.</strong> Florida, Texas and Washington have no income tax, yet each costs this
+household more than Pennsylvania, which does: Florida has the highest home insurance, Texas
+high property tax and insurance, Washington high home values and sales tax.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Illustrative estimates from secondary research for one example household buying at the
+typical price; not quotes and not what WMTI shows for your plan. They leave out car taxes
+and senior property-tax relief and homestead caps (such as Florida’s Save Our Homes), which
+can cut property tax a lot for owners. A single filer, or more taxable income, pays more
+income tax in states such as California and New York. Run your own numbers.</p>
+</div>
+</section>
+<section id="how-state-law-is-structured-and-adding-a-rule-kind">
+<span id="states-law-classes"></span><h2>How state law is structured, and adding a rule kind<a class="headerlink" href="#how-state-law-is-structured-and-adding-a-rule-kind" title="Link to this heading"></a></h2>
+<p>A state’s file is read by code that names no state, and every number stays in the file.
+The files and what they hold are in <a class="reference internal" href="tax-law.html#states-table"><span class="std std-ref">The state law files</span></a> and <a class="reference internal" href="tax-law.html#states-list"><span class="std std-ref">The list of states</span></a>.</p>
+</section>
+<section id="limits-and-assumptions">
+<span id="states-limits"></span><h2>Limits and assumptions<a class="headerlink" href="#limits-and-assumptions" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Local income taxes are averages.</strong> A move within a state, or to a high-tax city such as
+New York City, is not captured exactly.</p></li>
+<li><p><strong>Some Social Security rules are approximated.</strong> A few states (for example Colorado,
+Minnesota, Montana, Utah and Vermont) have rules that do not fit the three patterns; they
+are flagged <code class="docutils literal notranslate"><span class="pre">unconfirmed</span></code> in the state’s file.</p></li>
+<li><p><strong>Insurance comes from one source.</strong> Quote sites disagree by 20 to 40%, so WMTI uses
+insurance averages only to compare states (as a ratio), never as your premium.</p></li>
+<li><p><strong>Utilities are not modeled.</strong> Electricity prices compare states, but your utility bills
+are not re-priced after a move.</p></li>
+<li><p><strong>Not modeled either:</strong> senior property-tax relief and homestead caps, part-year
+residence and marketplace premium subsidies. <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a> lists what else the model
+leaves out.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="model-rules.html" class="btn btn-neutral float-left" title="Model rules by group" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tax-law.html" class="btn btn-neutral float-right" title="Tax law in the model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, [BRAND NAME].</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
