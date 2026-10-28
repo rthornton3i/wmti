@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-i4NIezF+wNMxZOKvye/65rbDRHI5Yzonx1wZaYMU1dA=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-UdNEKzeOxksU1NPoW4vAsp1QXaKwWYjiZf0+f9JAUdM=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1818,6 +1818,42 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .wide .topbar > .pinned { padding-top: 0; }
 .wide .pin { padding: 6px 12px; }
 
+/* f102 Accountant extras: the tiles' Why? button, the Estimates and run diff cards, the Why pop-up and the ledger card.
+   Long labels wrap; every button is at least 44 px. */
+.tile-why { justify-self: start; min-height: 44px; min-width: 44px; margin-top: 4px; padding: 0 12px; font-size: 14px; }
+.accountant-card { display: grid; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.accountant-card > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }
+.accountant-card > summary h2 { margin: 0; font-size: inherit; }
+.estimate-list, .change-lines, .why-inputs, .why-law-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.estimate-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.estimate-label { flex: 1 1 12ch; min-width: 0; overflow-wrap: anywhere; }
+.estimate-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  background: var(--warn-soft); color: var(--warn); box-shadow: inset 0 0 0 1px var(--warn); }
+.estimate-why, .why-show { min-height: 44px; min-width: 44px; padding: 0 12px; }
+.change-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.change-table th, .change-table td { padding: 4px 6px 4px 0; text-align: left; vertical-align: top; overflow-wrap: break-word; }
+.change-table td { font-family: var(--font-data); font-size: 13px; }
+.change-table thead th { color: var(--ink-2); font-weight: 600; border-bottom: 1px solid var(--line); }
+.why-body { display: grid; gap: 12px; min-width: 0; overflow-wrap: anywhere; outline: none; }
+.why-section { display: grid; gap: 6px; min-width: 0; }
+.why-title { margin: 0; font-size: 15px; }
+.why-figure { margin: 0; }
+.why-line { margin: 0; }
+.why-input, .why-law { display: grid; gap: 2px 10px; min-width: 0; padding: 6px 0; border-top: 1px solid var(--line); }
+.why-input { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.why-input-label { color: var(--ink-2); }
+.why-input-value { grid-column: 1; font-family: var(--font-data); font-size: 13px; }
+.why-input .why-show { grid-column: 2; grid-row: 1 / span 2; }
+.why-law-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.why-law-facts, .why-law-check { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+.why-law .why-show { justify-self: start; }
+.why-all > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.why-focus { background: var(--accent-soft); border-radius: 8px; }
+.ledger-card { display: grid; gap: 6px; min-width: 0; }
+.ledger-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ledger-row .button, .ledger-card > .button { min-height: 44px; }
+#ledgerStatus:empty { display: none; }
+
 </style>
 
 <div id="boot" class="boot" aria-live="polite">
@@ -2222,16 +2258,16 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "9a10b1a0d006", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "f88ee564078e", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.5d1484f901.js"></script>
+<script src="shared.4f12aabf15.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.25d1a94d61.js"></script>
 <script src="gamify.71c59c99b7.js"></script>
 <script src="games.feab804215.js"></script>
-<script src="report.88130cb365.js"></script>
+<script src="report.812fe6926b.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.27a1a1a26a.js"></script>
+<script src="app.2e6e10b331.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

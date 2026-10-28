@@ -55,15 +55,11 @@
 <li class="toctree-l1"><a class="reference internal" href="app-flows.html">The app: scenarios and guided flows</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The app: Outputs</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#outputs">Outputs</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#summary">Summary</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#next-steps-coach-and-gamer">Next steps (Coach and Gamer)</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#summary">Summary</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#plots">Plots</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#monte-carlo">Monte Carlo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#compare">Compare</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#optimize">Optimize</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#awards">Awards</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#final-report-pdf">Final report (PDF)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#insights">Insights</a></li>
 </ul>
@@ -83,6 +79,10 @@
 <li class="toctree-l1"><a class="reference internal" href="tax-law.html">Tax law in the model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Beta</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../beta/index.html">Beta: effort and style</a></li>
 </ul>
 
         </div>
@@ -113,7 +113,7 @@
 <p>Purpose: read your results and run Monte Carlo, Compare, Optimize and the final report; continued from <a class="reference internal" href="app.html"><span class="doc">The app</span></a>.</p>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading"></a></h2>
-<p>The Outputs tab has four views: <strong>Summary</strong>, <strong>Plots</strong>, <strong>Compare</strong> and <strong>Optimize</strong>. Gamer style adds a fourth bottom tab, <a class="reference internal" href="#app-awards"><span class="std std-ref">Awards</span></a>. Every figure and chart comes from the last Monte Carlo. The yearly values are the middle half average: the runs between the 25th and 75th percentile of final worth. Tables are not in the app. The <a class="reference internal" href="#app-final-report"><span class="std std-ref">Final report</span></a> holds them.</p>
+<p>The Outputs tab has four views: <strong>Summary</strong>, <strong>Plots</strong>, <strong>Compare</strong> and <strong>Optimize</strong>. Every figure and chart comes from the last Monte Carlo. The yearly values are the middle half average: the runs between the 25th and 75th percentile of final worth. Tables are not in the app. The <a class="reference internal" href="#app-final-report"><span class="std std-ref">Final report</span></a> holds them.</p>
 <div class="screen-grid docutils container">
 <figure class="align-default" id="id1">
 <a class="reference internal image-reference" href="../_images/outputs-summary.png"><img alt="The Summary view: tiles for median final worth, home and cars, what beneficiaries keep and the chance of running out." src="../_images/outputs-summary.png" style="width: 260px;" />
@@ -164,18 +164,6 @@
 </tbody>
 </table>
 <p>Below the tiles are the Insights card (see <a class="reference internal" href="#app-insights"><span class="std std-ref">Insights</span></a>) and an <em>Open the Final report</em> button.</p>
-<section id="next-steps-coach-and-gamer">
-<span id="app-next-steps"></span><h4>Next steps (Coach and Gamer)<a class="headerlink" href="#next-steps-coach-and-gamer" title="Link to this heading"></a></h4>
-<p>In the Coach and Gamer styles, a <strong>Next steps</strong> card follows the tiles. It lists up to three gaps found in your inputs, such as an unpaid employer match, a child without a 529, or no HSA, Roth conversion or backdoor Roth. It shows before any Monte Carlo. At Low only the match gap shows.</p>
-<p>Each gap shows what is missing, then, after a check, its result in a <em>Checked:</em> box, then one row of buttons, then <em>What was tried</em>.</p>
-<ul class="simple">
-<li><p><strong>Show me where</strong> opens the input. At Low a button opens the retirement plan setup.</p></li>
-<li><p><strong>Check</strong> (check what it is worth) runs a short test of a few values on the same random draws, with progress and Cancel.</p></li>
-<li><p><strong>Apply</strong> shows after a check and writes the best value as one Undo step. A result goes dim, with Apply off, once the settings change.</p></li>
-<li><p><strong>Not now</strong> hides a gap; <em>Show N hidden</em> brings it back.</p></li>
-</ul>
-<p>Nothing changes until you tap Apply. Your risk comfort (see <a class="reference internal" href="app-flows.html#app-experience"><span class="std std-ref">Effort and style</span></a>) picks how a check scores better. While the card shows a person’s match gap, Insights leaves out that person’s unused-match line.</p>
-</section>
 </section>
 <section id="plots">
 <h3>Plots<a class="headerlink" href="#plots" title="Link to this heading"></a></h3>
@@ -412,18 +400,6 @@
 </tbody>
 </table>
 <p><strong>Apply these settings</strong> writes the changes as one Undo step and shows <em>Applied N settings</em>, with an Undo button. A Relocation result also moves the state of each home and rent starting at or after the move. Apply is off, with the reason, once the settings change after the search or when nothing changes.</p>
-</section>
-<section id="awards">
-<span id="app-awards"></span><h3>Awards<a class="headerlink" href="#awards" title="Link to this heading"></a></h3>
-<p><strong>Awards</strong> is a fourth bottom tab that shows only in Gamer style. Pick another style and it goes; your progress stays. In the wide layout, which has no bottom bar, an <strong>Awards</strong> chip in the Outputs row opens it in the Outputs column.</p>
-<ul class="simple">
-<li><p><strong>Level and XP:</strong> eight levels, from Starter to Legend. A bar shows the XP to the next level.</p></li>
-<li><p><strong>Quests:</strong> eleven tasks, such as <em>Fill in the basics</em> or <em>Compare two plans</em>. Open ones come first, each with <strong>Show me</strong>. A Medium quest shows <em>Unlocks at Medium</em> at Low. A quest you finished stays done in this scenario.</p></li>
-<li><p><strong>Awards:</strong> thirteen badges. An earned one shows its date; a locked one says how to earn it.</p></li>
-<li><p><strong>Mini games:</strong> the four games, each with <strong>Play</strong> and your best stars (out of 3). With a partner, Claim Age Showdown has a Play button for each of you. Finishing a game earns XP once. Playing again earns nothing more. Close stops a game at any time and costs nothing.</p></li>
-<li><p><strong>Reset progress:</strong> asks first, then clears XP, quests and awards. What is already true does not count again until you do it anew.</p></li>
-</ul>
-<p>Progress belongs to the scenario. It is saved with it and goes into its exported file, so importing the file on another device brings it along. Another scenario shows its own progress. The progress never changes a result. Progress that an older version kept on this device moves into the open scenario once.</p>
 </section>
 <section id="final-report-pdf">
 <span id="app-final-report"></span><h3>Final report (PDF)<a class="headerlink" href="#final-report-pdf" title="Link to this heading"></a></h3>
