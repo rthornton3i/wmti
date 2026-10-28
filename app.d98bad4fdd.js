@@ -213,7 +213,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.064e3ba1e6.js");
+      worker = new Worker("worker.2aaa39f35d.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -3175,7 +3175,9 @@
       + (notAdvice ? "<p class=\"field-help nextsteps-note\">" + escapeText(notAdvice) + "</p>" : "") + "</div>";
   }
 
-  // One gap's row: its title and text, its buttons, then the running check or its result.
+  // One gap's row, top to bottom: its title and text (what is missing); the kept check's result in its "Checked:" box
+  // right under it (or why the last check ended without one); one row of compact buttons (Show me where, Check, Not
+  // now, then Apply, or Applied and Undo, once a check offers it); the running check's progress; What was tried last.
   function nextStepHtml(gap) {
     const id = escapeText(gap.id);
     const low = lowOn();
@@ -3190,45 +3192,61 @@
     }
     if (gap.sweep && !running) {
       buttons.push("<button type=\"button\" class=\"button button-quiet nextstep-check\" data-gap=\"" + id + "\""
-        + (busy ? " disabled" : "") + ">Check what it is worth</button>");
+        + " aria-label=\"Check what it is worth\" title=\"Check what it is worth\"" + (busy ? " disabled" : "")
+        + ">Check</button>");
     }
     buttons.push("<button type=\"button\" class=\"button button-quiet nextstep-dismiss\" data-gap=\"" + id + "\">Not now"
       + "</button>");
+    buttons.push(nextStepApplyHtml(gap));
     return "<li class=\"nextstep\" data-gap=\"" + id + "\"><h3>" + escapeText(gap.title) + "</h3><p>"
       + escapeText(gap.text) + "</p>"
       + (!gap.sweep && gap.sweepNote ? "<p class=\"field-help\">" + escapeText(gap.sweepNote) + "</p>" : "")
+      + "<div class=\"nextstep-result\" role=\"status\" id=\"coachResult-" + id + "\">" + nextStepResultHtml(gap)
+      + "</div>"
       + "<div class=\"nextstep-actions\">" + buttons.join("") + "</div>"
       + (gap.sweep && busy && !running ? "<p class=\"field-help nextstep-busy\">" + escapeText(busy) + "</p>" : "")
       + (running ? progressHtml("coach", state.coach.job) : "")
-      + "<div class=\"nextstep-result\" role=\"status\" id=\"coachResult-" + id + "\">" + nextStepResultHtml(gap)
-      + "</div></li>";
+      + nextStepTriedHtml(gap) + "</li>";
   }
 
-  // A gap's kept check: its summary and what was tried, with Apply (or Applied and Undo); dimmed with Apply off once
-  // the settings, the risk comfort or the seed changed. A message when the last check ended without one.
+  // A gap's kept check in its "Checked:" box: the summary, dimmed under a warning once the settings, the risk comfort
+  // or the seed changed, and any Apply error. A message when the last check ended without one.
   function nextStepResultHtml(gap) {
     const coach = state.coach;
     const entry = coach.entries[gap.id];
     const message = coach.messages[gap.id];
     if (!entry) return message ? "<p class=\"field-help\">" + escapeText(message) + "</p>" : "";
-    const id = escapeText(gap.id);
-    const value = entry.value;
     const stale = coachStale(entry, gap);
-    let html = "<div class=\"nextstep-check-result" + (stale ? " stale-results" : "") + "\">"
+    return "<div class=\"nextstep-check-result" + (stale ? " stale-results" : "") + "\">"
       + (stale ? "<p class=\"banner banner-warn\" role=\"note\">Settings changed since you checked.</p>" : "")
-      + "<p>" + escapeText(value.summary) + "</p>"
-      + (value.rows && value.rows.length ? "<details class=\"nextstep-rows\"><summary>What was tried</summary><ul>"
-        + value.rows.map((row) => "<li>" + escapeText(row.text) + (row.change ? ": " + escapeText(row.change) : "")
-          + "</li>").join("") + "</ul></details>" : "");
+      + "<p><strong class=\"nextstep-checked\">Checked:</strong> " + escapeText(entry.value.summary) + "</p>"
+      + (entry.error ? "<p class=\"banner banner-error\" role=\"alert\">" + escapeText(entry.error) + "</p>" : "")
+      + "</div>";
+  }
+
+  // The kept check's buttons at the end of the button row: Apply (off once the check is stale) when it found a change
+  // that may be applied, Applied and Undo once applied; "" before a check.
+  function nextStepApplyHtml(gap) {
+    const entry = state.coach.entries[gap.id];
+    if (!entry) return "";
+    const id = escapeText(gap.id);
     if (coachApplied(entry)) {
-      html += "<div class=\"nextstep-actions\"><span class=\"muted\">Applied.</span><button type=\"button\" "
-        + "class=\"button button-quiet nextstep-undo\" data-gap=\"" + id + "\">Undo</button></div>";
-    } else if (value.changed && value.applicable) {
-      html += "<div class=\"nextstep-actions\"><button type=\"button\" class=\"button nextstep-apply\" data-gap=\"" + id
-        + "\"" + (stale ? " disabled" : "") + ">Apply</button></div>";
+      return "<span class=\"muted\">Applied.</span><button type=\"button\" class=\"button button-quiet nextstep-undo\" "
+        + "data-gap=\"" + id + "\">Undo</button>";
     }
-    if (entry.error) html += "<p class=\"banner banner-error\" role=\"alert\">" + escapeText(entry.error) + "</p>";
-    return html + "</div>";
+    if (!entry.value.changed || !entry.value.applicable) return "";
+    return "<button type=\"button\" class=\"button nextstep-apply\" data-gap=\"" + id + "\""
+      + (coachStale(entry, gap) ? " disabled" : "") + ">Apply</button>";
+  }
+
+  // What the kept check tried, last in the row (dimmed with the result once stale); "" before a check.
+  function nextStepTriedHtml(gap) {
+    const entry = state.coach.entries[gap.id];
+    const rows = entry && entry.value.rows;
+    if (!rows || !rows.length) return "";
+    return "<details class=\"nextstep-rows" + (coachStale(entry, gap) ? " stale-results" : "") + "\"><summary>What was "
+      + "tried</summary><ul>" + rows.map((row) => "<li>" + escapeText(row.text) + (row.change ? ": "
+        + escapeText(row.change) : "") + "</li>").join("") + "</ul></details>";
   }
 
   // The quiet line under the gaps: the risk comfort the checks use, with Change (opens the Effort and style dialog).
@@ -12604,9 +12622,9 @@
     { title: "Headline figures", page: "setup", fixed: true, target: "#pinned",
       text: "These figures sum up your plan: what you are worth today, a typical final worth, and what you earn or "
         + "take out and spend in an average year. They update after every change." },
-    { title: "Your scenarios", page: "setup", target: "#savedCard",
-      text: "Setup shows the scenario you are working on: rename, duplicate or clear it. The Scenario files panel "
-        + "below it saves, imports and exports scenarios and opens another one." },
+    { title: "Your scenarios", page: "setup", target: "#scenarioPanel",
+      text: "This panel holds the scenario you are working on: rename, duplicate or clear it. Scenario files, "
+        + "under it, saves, imports and exports scenarios and opens another one." },
     { title: "Your household", page: "setup", when: () => !lowOn(), target: "#householdCard legend",
       text: "Household holds your partner, your ages, how you file taxes and your home state." },
     { title: "Advanced settings", page: "setup", target: "#advancedSettings", opens: "#advancedSettings",

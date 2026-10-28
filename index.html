@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-yi3EaQmRUFhUrxBLHqGbmvGDUOzf5fL2//juU5wfFgw=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-prqtXIvQLKf3oZfm1J9W9sFYabEhmWvk2XTycm/poaQ=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -368,17 +368,22 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .tile-change { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
 .report-pointer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
 .report-pointer p { margin: 0; color: var(--ink-2); }
-/* The Next steps card (Coach and Gamer, 49-coach.js): one row per gap, its buttons, a check's result, risk comfort. */
+/* The Next steps card (Coach and Gamer, 49-coach.js): one row per gap (its text, the check's "Checked:" box, one row
+   of compact buttons, What was tried), then risk comfort. */
 .nextsteps-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .nextstep { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: var(--surface-2);
   border: 1px solid var(--line); min-width: 0; }
 .nextstep h3 { margin: 0; font-size: 15px; }
 .nextstep p { margin: 0; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
-.nextstep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.nextstep-actions .button { min-height: 44px; }
+.nextstep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.nextstep-actions .button { min-height: 44px; padding-inline: 12px; }
 .nextstep-result:empty { display: none; }
-.nextstep-check-result { display: grid; gap: 8px; }
-.nextstep-check-result.stale-results > p:not(.banner), .nextstep-check-result.stale-results .nextstep-rows { opacity: 0.5; }
+/* The check's result: a box of its own (accent edge on the left, accent-soft fill) right under the gap's text. */
+.nextstep-check-result { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px;
+  background: var(--accent-soft); border-left: 4px solid var(--accent); }
+.nextstep .nextstep-check-result p:not(.banner) { color: var(--ink); }
+.nextstep-checked { font-weight: 700; }
+.nextstep-check-result.stale-results > p:not(.banner), .nextstep-rows.stale-results { opacity: 0.5; }
 .nextstep-rows > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 14px;
   font-weight: 600; }
 .nextstep-rows ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13.5px; color: var(--ink-2); }
@@ -853,9 +858,13 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .diff-merge { display: grid; gap: 2px; }
 .diff-merge .button:disabled { opacity: 0.5; cursor: default; }
 @media (min-width: 720px) { .diff-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-/* Setup's open scenario card: accent-edged, the name large, the saved state with the Auto-save switch, then one flat
+/* Setup's scenario panel: one card holding the open scenario and Scenario files, apart from the other Setup panels;
+   its accent edge sets it off from a plain card. */
+.scenario-panel { box-shadow: inset 0 0 0 1.5px var(--accent), var(--fx-glow); gap: 0; }
+/* The open scenario: an accent-soft block, the name large, the saved state with the Auto-save switch, then one flat
    strip of equal-width icon buttons (one outer border, thin dividers). */
-.open-card { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent), var(--fx-glow); gap: 8px; }
+.open-card { display: grid; gap: 8px; min-width: 0; margin: -4px; padding: 12px; border-radius: 14px;
+  background: var(--accent-soft); }
 /* When another scenario opens, the card's edge glows and fades over a second (app.js highlightOpenCard, the Undo
    flash's class); held still for that second when the device asks for reduced motion. */
 .open-card.undo-flash { animation: open-card-flash 1s ease-out; }
@@ -889,9 +898,9 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .strip-danger svg { color: var(--bad); }
 .strip-button:focus-visible { outline-offset: -3px; }
 /* Scenario files (F106): Save, Import and Export, the other scenarios (one row each: tap to open, "..." for its
-   menu) and New, on a surface of its own with a top rule and a folder icon, so it reads apart from the open card. */
-.files-card { margin-top: var(--section-gap); background: var(--surface-2); border-top: 3px solid var(--chip-on);
-  overflow: visible; gap: 10px; }
+   menu) and New, under the open scenario in the same panel, after a rule and with a folder icon. */
+.files-card { display: grid; gap: 10px; min-width: 0; margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--line); overflow: visible; }
 .files-head { display: flex; align-items: center; gap: 8px; }
 .files-head h2 { margin: 0; }
 .files-icon { width: 22px; height: 22px; flex: none; fill: none; stroke: var(--accent); stroke-width: 2;
@@ -959,59 +968,68 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .experience-label { font-weight: 600; overflow-wrap: anywhere; }
 .experience-blurb { grid-column: 2; font-size: 13px; color: var(--ink-2); }
 .experience-notice { padding-block: 0; }
-/* Effort and style cues (F106): faint glows, sheens and tints that grow with the effort (data-effort on <html>: Low a
-   calm blue, Medium warm, High hot) and the style (data-style: Accountant none, Coach a clean green, Gamer a pink and
-   violet glow), set by applyExperience (45-experience.js). They sit over every colour scheme without changing its
-   tokens, the charts (--s0..--s9), any size or any text colour: only box-shadow layers, background-image gradients, a
-   box-shadow transition and one slow breathing glow on the hero tile. --fx-e and --fx-s are the two intensities (0 to
-   1); each --fx-cap-* is the largest share (percent) a hue may take of what it tints, read by fxcontrast.test.mjs to
-   prove AA contrast in every scheme, so tune the look only by changing these numbers. No attribute means no cue. */
+/* Effort and style cues (F106): glows, edges and sheens that grow with the effort (data-effort on <html>: Low a calm
+   blue, Medium warm, High hot) and the style (data-style: Accountant a calm slate, Coach a clean green, Gamer a pink
+   and violet glow), set by applyExperience (45-experience.js). Low and Accountant show a quiet but visible edge; High
+   and Gamer a strong halo, a bright top rim and a deeper sheen. They sit over every colour scheme without changing its
+   tokens, the charts (--s0..--s9), any size or any text colour: only box-shadow layers (halo, 2 px edge ring, top
+   rim), background-image gradients, a box-shadow transition and one slow breathing glow on the hero tile. --fx-e and
+   --fx-s are the two intensities (0 to 1); each --fx-cap-* is the largest share (percent) a hue may take of what it
+   tints, read by fxcontrast.test.mjs to prove AA contrast in every scheme, so tune the look only by changing these
+   numbers. No attribute means no cue. */
 :root {
   --fx-e: 0; --fx-s: 0;
   --fx-e-hue: transparent; --fx-s-a: transparent; --fx-s-b: transparent;
-  --fx-cap-band-e: 6; --fx-cap-band-s: 5;
-  --fx-cap-card-e: 5; --fx-cap-card-s: 4;
+  --fx-cap-band-e: 7; --fx-cap-band-s: 5;
+  --fx-cap-card-e: 6; --fx-cap-card-s: 4;
   --fx-cap-hero-e: 2; --fx-cap-hero-s: 2;
-  --fx-cap-glow-e: 20; --fx-cap-glow-s: 22;
-  --fx-cap-rim-s: 40; --fx-cap-hi-s: 30;
-  /* Round a card, tile, group or pinned figure: an effort halo, a style halo and a 1 px style rim along the top. */
-  --fx-glow: 0 0 calc(4px + var(--fx-e) * 8px) 0
+  --fx-cap-glow-e: 21; --fx-cap-glow-s: 21;
+  --fx-cap-ring-e: 50; --fx-cap-ring-s: 45;
+  --fx-cap-rim-s: 75; --fx-cap-hi-s: 40;
+  /* Round a card, tile, group or pinned figure: a 2 px effort edge ring, an effort halo, a style halo and a style
+     rim along the top (1 to 2 px). */
+  --fx-glow: 0 0 0 calc(var(--fx-e) * 2px)
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-ring-e) * 1%), transparent),
+    0 0 calc(6px + var(--fx-e) * 16px) calc(var(--fx-e) * 1px)
       color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
-    0 0 calc(4px + var(--fx-s) * 8px) 0
+    0 calc(var(--fx-s) * 3px) calc(6px + var(--fx-s) * 18px) calc(var(--fx-s) * 1px)
       color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-rim-s) * 1%), transparent);
-  /* Round a filled button and the selected chip: a smaller halo of each and a 1 px light rim along the top. */
-  --fx-glow-sm: 0 0 calc(2px + var(--fx-e) * 6px) 0
+    inset 0 calc(1px + var(--fx-s) * 1px) 0
+      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-rim-s) * 1%), transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-ring-s) * 1%), transparent);
+  /* Round a filled button and the selected chip: a smaller halo of each and a light rim along the top. */
+  --fx-glow-sm: 0 0 calc(3px + var(--fx-e) * 9px) 0
       color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
-    0 0 calc(2px + var(--fx-s) * 6px) 0
+    0 0 calc(3px + var(--fx-s) * 10px) 0
       color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
     inset 0 1px 0 color-mix(in srgb, #ffffff calc(var(--fx-s) * var(--fx-cap-hi-s) * 1%), transparent);
   /* The breathing glow's peak on the hero tile (fx-breathe). */
-  --fx-glow-peak: 0 0 14px 1px
-      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
-    0 0 14px 1px color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-rim-s) * 1%), transparent);
+  --fx-glow-peak: 0 0 0 2px
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-ring-e) * 1%), transparent),
+    0 0 26px 3px color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
+    0 0 26px 3px color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
+    inset 0 2px 0 color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-rim-s) * 1%), transparent);
   /* The header band: an effort sheen from the top and a style glow in the far corner. */
   --fx-band-sheen: linear-gradient(180deg,
       color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-band-e) * 1%), transparent), transparent),
-    radial-gradient(70% 140% at 100% 0%,
-      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-band-s) * 1%), transparent), transparent 70%);
-  /* Cards: a faint diagonal effort sheen from the top left and a style one from the bottom right. */
+    radial-gradient(80% 160% at 100% 0%,
+      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-band-s) * 1%), transparent), transparent 75%);
+  /* Cards: a diagonal effort sheen from the top left and a style one from the bottom right. */
   --fx-card-sheen: linear-gradient(135deg,
-      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-card-e) * 1%), transparent), transparent 60%),
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-card-e) * 1%), transparent), transparent 65%),
     linear-gradient(315deg,
-      color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-card-s) * 1%), transparent), transparent 60%);
+      color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-card-s) * 1%), transparent), transparent 65%);
   /* The hero tile: its fill shifts toward the effort hue on the right, with a style tint from the bottom left. */
-  --fx-hero-sheen: linear-gradient(120deg, transparent 30%,
+  --fx-hero-sheen: linear-gradient(120deg, transparent 25%,
       color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-hero-e) * 1%), transparent)),
-    radial-gradient(80% 120% at 0% 100%,
-      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-hero-s) * 1%), transparent), transparent 70%);
+    radial-gradient(90% 130% at 0% 100%,
+      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-hero-s) * 1%), transparent), transparent 75%);
 }
-:root[data-effort="low"] { --fx-e: 0.2; --fx-e-hue: #46b6d8; }
-:root[data-effort="medium"] { --fx-e: 0.55; --fx-e-hue: #f2c94c; }
+:root[data-effort="low"] { --fx-e: 0.35; --fx-e-hue: #46b6d8; }
+:root[data-effort="medium"] { --fx-e: 0.65; --fx-e-hue: #f2c94c; }
 :root[data-effort="high"] { --fx-e: 1; --fx-e-hue: #eb5757; }
-:root[data-style="accountant"] { --fx-s: 0; --fx-s-a: transparent; --fx-s-b: transparent; }
-:root[data-style="coach"] { --fx-s: 0.5; --fx-s-a: #2cc492; --fx-s-b: #2cc492; }
+:root[data-style="accountant"] { --fx-s: 0.3; --fx-s-a: #6b84a3; --fx-s-b: #6b84a3; }
+:root[data-style="coach"] { --fx-s: 0.6; --fx-s-a: #2cc492; --fx-s-b: #2cc492; }
 :root[data-style="gamer"] { --fx-s: 1; --fx-s-a: #ff5fb0; --fx-s-b: #7f5cff; }
 /* Where they show (the cards, tiles, groups, pinned figures and open card take --fx-glow in their own rules above;
    the filled buttons of the pages and the band's selected chip a smaller one; dialogs and the menu none). */
@@ -1869,9 +1887,12 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
       class="setup-fold-name" id="setupFoldName" aria-hidden="true"></span><svg class="button-icon setup-fold-icon"
       viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
     <section class="panel" id="panel-setup" data-tab="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
-      <div class="card open-card" id="savedCard">
+      <!-- The scenario panel: one card holding the open scenario (Rename, Duplicate, Clear) and Scenario files (Save,
+           Import, Export, the other saved scenarios and New), apart from the other Setup panels. -->
+      <section class="card scenario-panel" id="scenarioPanel" aria-label="Scenarios">
+      <div class="open-card" id="savedCard">
         <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
-        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, and Clear empties every setting (Undo, top left, brings them back). The Scenario files panel below saves it, imports and exports scenario files, and lists the other scenarios kept here. Your current settings are also kept as you edit.</p>
+        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, and Clear empties every setting (Undo, top left, brings them back). Scenario files, below in this panel, saves it, imports and exports scenario files, and lists the other scenarios kept here. Your current settings are also kept as you edit.</p>
         <p class="open-name" id="loadedName"></p>
         <p class="example-tag" id="exampleTag" hidden><span>Tough example</span><button type="button" class="help-button" aria-expanded="false" aria-controls="help-example" aria-label="About the tough example"><span>i</span></button></p>
         <p class="field-help" id="help-example" hidden>This example household runs out of money in many of the Monte Carlo runs, so its first results look like a plan in trouble. That is on purpose: it shows what a struggling plan looks like. Its figures are fictional. Change them, or start a new scenario, to try your own.</p>
@@ -1890,7 +1911,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <p class="banner" id="fileMessage" role="status" hidden></p>
       </div>
       <!-- Scenario files (F106): save, import, export, the other saved scenarios (a row opens one) and New. -->
-      <section class="card files-card" id="filesCard" aria-labelledby="filesTitle">
+      <section class="files-card" id="filesCard" aria-labelledby="filesTitle">
         <div class="files-head"><svg class="files-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"/></svg><h2 id="filesTitle">Scenario files</h2></div>
         <div class="action-strip" role="group" aria-label="Scenario files">
           <button type="button" class="strip-button" id="saveButton">
@@ -1906,6 +1927,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
         <p class="banner" id="savedMessage" role="status" hidden></p>
         <button type="button" class="button button-quiet big-button" id="newButton">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
+      </section>
       </section>
       <!-- Using defaults, the detail added and the raise note (45-experience.js, 46-detail.js, 47-low.js); effort and style themselves are picked in the menu. -->
       <p class="note" id="defaultsNotice" role="status" hidden></p>
@@ -2197,16 +2219,16 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "487dc67d2475", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
+<script>window.WMTI_BUILD = { id: "1383ac104799", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.06dfb84447.js"></script>
-<script src="charts.c22ca6d6cc.js"></script>
+<script src="charts.ae4d661d99.js"></script>
 <script src="insights.25d1a94d61.js"></script>
 <script src="gamify.09c3e7c6fd.js"></script>
 <script src="games.feab804215.js"></script>
-<script src="report.2b162219ac.js"></script>
+<script src="report.88130cb365.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.34f29f830b.js"></script>
+<script src="app.d98bad4fdd.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
