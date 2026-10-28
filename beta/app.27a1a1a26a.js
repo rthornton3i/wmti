@@ -86,7 +86,8 @@
   const TOUR_KEY = STORAGE_PREFIX + "tour.v1";  // "seen" once the tour has opened by itself after the first walkthrough
   const TERMS_KEY = STORAGE_PREFIX + "terms.v1";  // the Terms acceptance: {version, textHash, buildId, acceptedAt}
   const PICKER_KEY = STORAGE_PREFIX + "picker.v1";  // "done" once the effort and style picker has been kept
-  const GAME_KEY = STORAGE_PREFIX + "game.v1";  // Gamer progress (gamify.js ledger): on this device only, never in a scenario file
+  const GAME_KEY = STORAGE_PREFIX + "game.v1";  // Gamer progress kept on the device before it moved into the scenario (read once)
+  const GAME_PROGRESS_KEY = "game";  // the Gamer ledger's key in the scenario's experience.progress
   // The key points at the top of the Terms step and of the Legal window, one line each, then a pointer to the full Terms.
   const LEGAL_SUMMARY = [
     "This app is for educational and non-commercial use only and is not to be considered financial, tax, investment or legal advice.",
@@ -95,8 +96,8 @@
     "Use of this app is at your own risk. The app is provided as is, without warranty.",
   ];
   const LEGAL_SUMMARY_CLOSING = "Please read the full Terms below.";
-  const TABS = ["setup", "inputs", "outputs"];  // the bottom bar, left to right
-  const VIEWS = ["summary", "plots", "compare", "optimize", "awards"];  // the switch inside Outputs (Awards: Gamer only)
+  const TABS = ["setup", "inputs", "outputs", "awards"];  // the bottom bar, left to right (Awards: Gamer only)
+  const VIEWS = ["summary", "plots", "compare", "optimize"];  // the switch inside Outputs
   const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders", optimize: "pig", awards: "star" };  // its chips' icons
   // The color scheme, kept per viewer as plain text; index.html applies it before the first paint.
   const THEME_KEY = STORAGE_PREFIX + "theme.v1";
@@ -131,7 +132,7 @@
     "outputs/plots": ["Outputs", "Plots", "Middle half average of the runs"],
     "outputs/compare": ["Outputs", "Compare", "Two configs on the same random draws"],
     "outputs/optimize": ["Outputs", "Optimize", "The best strategy settings on the same random draws"],
-    "outputs/awards": ["Outputs", "Awards", "Your level, quests and awards, kept on this device"],
+    awards: ["Awards", "Awards", "Your level, quests and awards, saved with this scenario"],
   };
   // Inline SVG icons (24 px grid, stroked): chips and pane titles.
   const ICONS = {
@@ -176,8 +177,8 @@
     // The Next steps card (49-coach.js): the gaps and the inputs text they are for, the running check, each gap's kept
     // check and last message, and the scenario they belong to.
     coach: { gaps: null, gapsKey: null, pendingKey: null, job: null, entries: {}, messages: {}, scenarioName: null },
-    // Gamer progress (51-gamer.js): the ledger kept under GAME_KEY, and whether storage failed (this visit only).
-    game: { ledger: window.WmtiGamify.emptyLedger(), volatile: false },
+    // Gamer progress (51-gamer.js): `ledger` reads the open scenario's experience.progress.game, cleaned.
+    game: { get ledger() { return gameLedgerOf(state.experience); } },
   };
   const $ = (id) => document.getElementById(id);
   const gamifyOn = () => GAMIFY;
@@ -560,9 +561,12 @@
   const WIDE_QUERY = "(min-width: 1100px)";
   const wide = { on: false };
 
-  // Whether a tab's panel is on screen: always in the wide layout, else when it is the selected tab.
+  // Whether a tab's panel is on screen: always in the wide layout, else when it is the selected tab. Awards (Gamer)
+  // shows only while selected; in the wide layout it takes the Outputs column's place.
   function tabShown(tab) {
-    return wide.on || state.tab === tab;
+    if (tab === "awards") return state.tab === "awards";
+    if (wide.on) return tab !== "outputs" || state.tab !== "awards";
+    return state.tab === tab;
   }
 
   function wireWide() {
@@ -639,7 +643,8 @@
   // A column the split shuts: a move there (a link into Inputs while only Outputs shows) opens both again.
   function splitShuts(tab) {
     return wide.on && ((tab === "inputs" && document.documentElement.classList.contains("split-only-outputs"))
-      || (tab === "outputs" && document.documentElement.classList.contains("split-only-inputs")));
+      || ((tab === "outputs" || tab === "awards")
+        && document.documentElement.classList.contains("split-only-inputs")));
   }
 
   function wireSplit() {
@@ -767,20 +772,22 @@
 
   // Show the current tab and view: panels and sub-panels hidden or shown, tab roles and roving tabindex set.
   function showPlace() {
+    syncAwardsTab();  // the Awards tab shows only in Gamer style
     for (const name of TABS) {
       $("panel-" + name).hidden = !tabShown(name);
       $("tab-" + name).setAttribute("aria-selected", String(name === state.tab));
       $("tab-" + name).tabIndex = name === state.tab ? 0 : -1;
     }
-    const shownViews = outputViews();
-    if (!shownViews.includes(state.view)) state.view = shownViews[0];  // Awards left Gamer style: Summary
+    if (!VIEWS.includes(state.view)) state.view = VIEWS[0];
+    const onAwards = state.tab === "awards";
     for (const name of VIEWS) {
-      $("sub-" + name).hidden = !shownViews.includes(name);
       $("view-" + name).hidden = name !== state.view;
-      $("sub-" + name).setAttribute("aria-selected", String(name === state.view));
-      $("sub-" + name).tabIndex = name === state.view ? 0 : -1;
+      $("sub-" + name).setAttribute("aria-selected", String(!onAwards && name === state.view));
+      $("sub-" + name).tabIndex = !onAwards && name === state.view ? 0 : -1;
     }
-    $("mc-bar").hidden = state.view === "compare" || state.view === "optimize" || state.view === "awards";
+    $("sub-awards").setAttribute("aria-selected", String(onAwards));  // wide only: Awards from the Outputs row
+    $("sub-awards").tabIndex = onAwards ? 0 : -1;
+    $("mc-bar").hidden = state.view === "compare" || state.view === "optimize";
     // Wide: Inputs' chips, the Outputs view row and the open view's sub-tabs all show, each over its column.
     const widePlaces = ["inputs", "outputs", "outputs/" + state.view];
     for (const element of document.querySelectorAll(".band [data-place]")) {
@@ -835,10 +842,11 @@
   // The Outputs view row's bubble: over the selected view, gliding there when the view changed while Outputs showed.
   function placeViewBubble() {
     const row = $("views-outputs");
-    const shown = tabShown("outputs");
-    const moved = row.dataset.tab === "outputs" && row.dataset.selected !== state.view;
+    const shown = tabShown("outputs") || (wide.on && state.tab === "awards");
+    const selected = state.tab === "awards" ? "awards" : state.view;
+    const moved = row.dataset.tab === "outputs" && row.dataset.selected !== selected;
     row.dataset.tab = shown ? "outputs" : state.tab;
-    row.dataset.selected = state.view;
+    row.dataset.selected = selected;
     if (shown) placeBubble(row, moved);
   }
 
@@ -865,7 +873,9 @@
     centerSwipedChips();
   }
 
+  // An Outputs view; "awards" (the wide layout's Awards chip, or a Show me) opens the Awards tab.
   function selectView(view, remember) {
+    if (view === "awards") { if (state.tab !== "awards") selectTabFresh("awards"); return; }
     goTo("outputs", view, remember);
   }
 
@@ -3621,15 +3631,16 @@
   }
 
   // ---- Gamer: level, XP, quests and awards (Gamer style only) ----
-  // The rules are gamify.js (WmtiGamify); this part keeps the ledger on the device (GAME_KEY, never in a scenario
-  // file), works out the facts from the state, grants on a short debounce after results, edits and walkthrough steps
-  // (gamerTick), shows one polite toast line and draws the Awards view, built only while it is open. Nothing here reads
+  // The rules are gamify.js (WmtiGamify); this part keeps the ledger in the open scenario's experience block
+  // (experience.progress.game, so it is saved, exported and imported with the scenario, and the model never reads it),
+  // works out the facts from the state, grants on a short debounce after results, edits and walkthrough steps
+  // (gamerTick), shows one polite toast line and draws the Awards tab, built only while it is open. Nothing here reads
   // or changes an input or a result beyond looking at them.
   const gamify = window.WmtiGamify;
   const GAMER_TICK_MS = 300;  // the debounce of gamerTick
   const GAMER_TOAST_MS = 3500;  // how long the toast line shows
   const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views a visit marks seen
-  const gamer = { timer: null, toastTimer: null };
+  const gamer = { timer: null, toastTimer: null, migrated: false };
   window.wmtiGamer = { state: () => state.game, tick: gamerTickNow };  // for the tests
 
   // Whether the open scenario shows Gamer style; never with the gamify features off (gamifyOn), so no Awards view,
@@ -3639,32 +3650,42 @@
     return shownExperience().style === "gamer";
   }
 
-  // The Outputs views shown now: Awards only in Gamer style.
+  // The Outputs views (Awards is a bottom tab of its own, not a view).
   function outputViews() {
-    return VIEWS.filter((view) => view !== "awards" || gamerOn());
+    return VIEWS;
   }
 
   const gameToday = () => Math.floor(Date.now() / 86400000);  // the UTC day number the ledger records
 
-  // Read the ledger kept on this device; storage that cannot be read keeps progress for this visit only.
-  function loadLedger() {
-    let raw = null;
-    state.game.volatile = false;
-    try { raw = localStorage.getItem(GAME_KEY); } catch (error) { state.game.volatile = true; }
-    state.game.ledger = gamify.cleanLedger(raw);
+  // The ledger an experience block holds (experience.progress.game), cleaned; an empty ledger when there is none.
+  function gameLedgerOf(experience) {
+    const progress = experience && isObject(experience.progress) ? experience.progress : {};
+    return gamify.cleanLedger(hasOwn(progress, GAME_PROGRESS_KEY) ? progress[GAME_PROGRESS_KEY] : null);
   }
 
-  // Keep `ledger`, joined first with what another open tab may have written since; nothing with gamify off.
+  // Keep `ledger` in the open scenario's experience block: the draft and its saved copy, with no run, undo step or
+  // unsaved mark (saveExperience). Only in Gamer style: otherwise (another style, or a build with the gamify features
+  // off, whose shownExperience is Accountant) the ledger in the block is never written and stays as the file has it.
   function saveLedger(ledger) {
-    if (!gamifyOn()) return;
-    let next = ledger;
-    try {
-      next = gamify.mergeLedgers(ledger, localStorage.getItem(GAME_KEY));
-      if (!state.clearing) localStorage.setItem(GAME_KEY, JSON.stringify(next));
-    } catch (error) {
-      state.game.volatile = true;  // storage blocked or full: this visit only
+    if (!state.experience || !gamerOn()) return;
+    const progress = { ...(isObject(state.experience.progress) ? state.experience.progress : {}),
+      [GAME_PROGRESS_KEY]: gamify.cleanLedger(ledger) };
+    saveExperience({ progress });
+  }
+
+  // Progress kept on this device by an older page (GAME_KEY) moves once into the open scenario, joined with what the
+  // scenario already holds, and leaves the device.
+  function migrateDeviceLedger() {
+    if (gamer.migrated || !state.experience || !gamerOn()) return;
+    gamer.migrated = true;
+    let raw = null;
+    try { raw = localStorage.getItem(GAME_KEY); } catch (error) { return; }  // storage blocked: nothing to move
+    if (raw == null) return;
+    const device = gamify.cleanLedger(raw);
+    if (JSON.stringify(device) !== JSON.stringify(gamify.emptyLedger())) {
+      saveLedger(gamify.mergeLedgers(state.game.ledger, device));
     }
-    state.game.ledger = next;
+    try { localStorage.removeItem(GAME_KEY); } catch (error) { /* storage blocked */ }
   }
 
   // The facts the rules read: inputs, the experience block, the effort, whether this is the unedited example, the
@@ -3687,6 +3708,7 @@
     clearTimeout(gamer.timer);
     gamer.timer = null;
     if (!gamerOn() || !state.inputs) return;
+    migrateDeviceLedger();
     const { ledger, grants } = gamify.evaluate(gamerFacts(), state.game.ledger,
       { effort: shownExperience().effort, today: gameToday() });
     if (!grants.length && JSON.stringify(ledger) === JSON.stringify(state.game.ledger)) return;
@@ -3714,20 +3736,33 @@
     gamerTick();
   }
 
-  const awardsShown = () => tabShown("outputs") && state.view === "awards" && gamerOn();
+  const awardsShown = () => state.tab === "awards" && gamerOn();
 
-  // The Awards chip shows only in Gamer style; leaving Gamer while on Awards moves to Summary (the progress stays).
+  // Show the Awards bottom tab only in Gamer style (and, wide, its chip in the Outputs row, since the wide layout has
+  // no bottom bar); a user on Awards when it goes moves to Outputs, Summary. True when the tab's visibility changed.
+  function syncAwardsTab() {
+    const on = gamerOn();
+    const changed = $("tab-awards").hidden === on;
+    $("tab-awards").hidden = !on;
+    $("sub-awards").hidden = !(on && wide.on);
+    if (!on && state.tab === "awards") {
+      state.tab = "outputs";
+      state.view = "summary";
+    }
+    return changed;
+  }
+
+  // The style changed or another scenario opened: the Awards tab follows the style and shows that scenario's progress.
   function gamerStyleChanged() {
     const on = gamerOn();
-    const chip = $("sub-awards");
-    const changed = chip.hidden === on;
-    chip.hidden = !on;
+    const changed = syncAwardsTab();
     if (!on) {
       clearTimeout(gamer.toastTimer);
       $("gamerToast").hidden = true;
-      if (state.view === "awards") state.view = "summary";
     }
-    if (changed && state.schema) { showPlace(); savePrefs(); }
+    if (state.schema) {
+      if (changed) { showPlace(); savePrefs(); } else renderAwards();
+    }
     if (on) gamerTick();
   }
 
@@ -3750,10 +3785,6 @@
       + escapeText(level.name) + "</h3><progress class=\"gm-bar\" max=\"" + (level.next || 1) + "\" value=\""
       + (level.next == null ? 1 : level.into) + "\" aria-labelledby=\"gmLevel gmXp\"></progress><p id=\"gmXp\">" + xp
       + " XP. " + toNext + "</p></section>";
-    if (state.game.volatile) {
-      html += "<p class=\"banner\" id=\"gmVolatile\">This browser is not keeping data, so progress is kept for this "
-        + "visit only.</p>";
-    }
     const quests = gamify.questStatus(facts, ledger, shownExperience().effort)
       .map((quest, position) => ({ quest, position }))
       .sort((one, two) => QUEST_ORDER[one.quest.state] - QUEST_ORDER[two.quest.state] || one.position - two.position)
@@ -3777,7 +3808,7 @@
         : escapeText(award.how)) + "</p></li>";
     }).join("") + "</ul></div>";
     html += miniGamesHtml(ledger);
-    html += "<div class=\"card\"><p class=\"field-help\">Progress is kept on this device only, never in a scenario file. "
+    html += "<div class=\"card\"><p class=\"field-help\">Progress is saved with this scenario and goes with its file. "
       + "XP counts what you do and compare, never how a plan turns out.</p><button type=\"button\" "
       + "class=\"button button-danger\" id=\"gamerReset\">Reset progress</button></div>";
     return html;
@@ -3803,6 +3834,7 @@
 
   function renderAwards() {
     if (!awardsShown()) return;
+    migrateDeviceLedger();
     $("awards-body").innerHTML = awardsHtml();
   }
 
@@ -3817,7 +3849,7 @@
   // Reset progress, after a confirm: XP, quests, awards and views seen go, and what is true now is not granted back.
   function confirmResetGame() {
     openDialog({ title: "Reset progress?",
-      text: "This clears your XP, quests and awards on this device. Your plan does not change.",
+      text: "This clears this scenario's XP, quests and awards. Your plan does not change.",
       actions: [["Reset", "button button-danger", () => {
         saveLedger(gamify.resetLedger(gamerFacts(), state.game.ledger));
         renderAwards();
@@ -3848,7 +3880,6 @@
   }
 
   function wireGamer() {
-    loadLedger();
     $("awards-body").addEventListener("click", (event) => {
       const show = event.target.closest(".gm-show");
       if (show) { gamerShowMe(show.dataset.show); return; }
@@ -13253,7 +13284,7 @@
     }
     $("views-outputs").chipBubble = makeBubble("viewBubbleFill");
     $("views-outputs").append($("views-outputs").chipBubble);
-    wireTabKeys(document.querySelector(".tabbar"), ".tab", (tab) => selectTabFresh(tab.dataset.tab));
+    wireTabKeys(document.querySelector(".tabbar"), ".tab:not([hidden])", (tab) => selectTabFresh(tab.dataset.tab));
     wireTabKeys($("views-outputs"), ".view-tab:not([hidden])", (tab) => selectView(tab.dataset.view));
     document.addEventListener("focusin", (event) => $("app").classList.toggle("typing", isTyping(event.target)));
     document.addEventListener("focusout", () => $("app").classList.remove("typing"));
