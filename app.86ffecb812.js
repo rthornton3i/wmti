@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -56,6 +56,10 @@
   const SAVED_LIMIT = 50;
   const NO_EARNINGS_HINT = "Enter past earnings on the Income tab to use this.";  // wmti.dashboard.settings.NO_EARNINGS_HINT
   const NULL_LABELS = { owner: "Usual owner", account529: "None (the 529s together)" };  // what a blank select choice means for these fields
+  // Sheet choices shown as one inset row of radio buttons, every option at once (radioSegmentedField), by item type.
+  const RADIO_SEGMENTED = { ExpenseItem: ["deduction", "taxable"] };
+  // Of those, the choices whose picked button clears them to blank when tapped again (no blank button of their own).
+  const RADIO_CLEARABLE = { ExpenseItem: ["deduction"] };
   const LONG_SELECT_CHOICES = 12;  // a select with more choices than this (the states) is a combobox (stateCombobox)
   const RUN_DELAY_MS = 400;
   const SETTLE_MS = 400;  // a pause in editing this long makes one undo step (and, with Auto-save on, one save)
@@ -144,7 +148,7 @@
     tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
     autoSaveOff: [], exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
-    mc: { runs: 25, job: null, cache: [], message: null, skipKey: null },
+    mc: { runs: 25, job: null, cache: [], message: null, skipKey: null, preview: null },  // preview: Low's partial result
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null, diffs: null, diffsPending: null, mergeUndo: [], merging: 0 },
     optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
@@ -183,7 +187,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.313ee3b371.js");
+      worker = new Worker("worker.9391b6aa68.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -200,11 +204,12 @@
       worker.onerror = (event) => bootFailed(event.message || "the worker stopped");
     }
 
-    function job(fn, args, lane, onProgress) {
+    // `options` adds fields to the message: `partialRuns` asks a Monte Carlo for one partial result (worker.js).
+    function job(fn, args, lane, onProgress, options) {
       const id = nextId++;
       const promise = new Promise((resolve, reject) => {
         pending.set(id, { resolve, reject, onProgress });
-        worker.postMessage({ id, fn, args, lane });
+        worker.postMessage({ id, fn, args, lane, ...(options || {}) });
       });
       return { id, promise };
     }
@@ -1296,12 +1301,13 @@
     });
   }
 
-  // The header band: the section label, the title (the selected settings group on Inputs) and the subtitle.
+  // The header band: the section label, the title (the selected settings group on Inputs, "Your plan" for the Low
+  // page) and the subtitle.
   function renderBand() {
     const [label, title, sub] = PLACE_TEXT[scrollKey()];
     const chip = document.querySelector("#chips-settings .chip[aria-selected=true]");
     $("bandLabel").textContent = label;
-    $("bandTitle").textContent = title || (chip ? chip.textContent : label);
+    $("bandTitle").textContent = title || (lowOn() ? "Your plan" : chip ? chip.textContent : label);
     $("bandSub").textContent = sub;
   }
 
@@ -1341,7 +1347,8 @@
   // the chips row (title and subtitle), less a small margin, so only the chips show once the page scrolls.
   function placeBand() {
     const place = state.tab === "inputs" || state.tab === "outputs" ? state.tab : null;
-    const on = !wide.on && place != null && tabsPin.on;  // wide: the chips sit over their own column
+    // wide: the chips sit over their own column; the Low page has no Inputs chips to pin
+    const on = !wide.on && place != null && tabsPin.on && !(place === "inputs" && lowOn());
     $("app").classList.toggle("inputs-pinned", on && place === "inputs");
     $("app").classList.toggle("outputs-pinned", on && place === "outputs");
     if (!on) return;
@@ -1370,8 +1377,24 @@
     markScheme();
   }
 
+  // The menu's Appearance entry opens its color schemes in place under it, and closes them again (s422).
+  function toggleAppearance() {
+    const open = $("menuScheme").hidden;
+    $("menuScheme").hidden = !open;
+    $("menuAppearance").setAttribute("aria-expanded", String(open));
+    $("menuAppearance").classList.toggle("menu-open", open);
+  }
+
+  // The schemes folded away under Appearance, so the menu opens short.
+  function closeAppearance() {
+    $("menuScheme").hidden = true;
+    $("menuAppearance").setAttribute("aria-expanded", "false");
+    $("menuAppearance").classList.remove("menu-open");
+  }
+
   function openMenu() {
     markScheme();
+    closeAppearance();
     $("menuWalkText").textContent = walk.saved && walk.saved.status === "paused" ? "Continue the walkthrough..."
       : "Walk me through it...";
     $("menu").hidden = false;
@@ -1384,6 +1407,7 @@
     if ($("menu").hidden) return;
     $("menu").hidden = true;
     $("menuBackdrop").hidden = true;
+    closeAppearance();
     $("menuButton").setAttribute("aria-expanded", "false");
     $("menuButton").focus();
   }
@@ -1393,7 +1417,7 @@
     renderMcBar();
     renderResults();
     renderPlots();
-    renderSettings();
+    renderEffortViews();  // Inputs (the Low page at Low), with the Summary, band and run bar for the effort
     renderCompare();
     renderSaved();
     renderAbout();
@@ -1558,15 +1582,78 @@
       + (helpId ? helpTextHtml(helpId, headline.help, "tile-help") : "") + "</div>";
   }
 
+  // Whether the open scenario shows at Low effort, where Summary opens with the gauge and the fan chart (and the
+  // Inputs tab is the Low page).
+  function lowShown() {
+    return Boolean(state.info && state.experience) && shownExperience().effort === "low";
+  }
+
+  // What the Low gauge and fan chart show: the full Monte Carlo when it is current, else the partial result of the
+  // run under way on the current settings (`state.mc.preview`), else the stale full one (dimmed); null for none.
+  function lowResult(entry, stale) {
+    const preview = state.mc.preview;
+    if (entry && !stale) return { value: entry.value, preview: false, stale: false };
+    if (preview && preview.key === mcKey()) return { value: preview.value, preview: true, stale: false };
+    return entry ? { value: entry.value, preview: false, stale: true } : null;
+  }
+
+  // The Low cards above Summary's tiles: the gauge (share of runs that ended with money left, no verdict) and the fan
+  // chart card; a preview says the full runs are still going. Returns [cards, figures to attach], or null.
+  function lowResultCards(entry, stale) {
+    const shown = lowResult(entry, stale);
+    if (!shown) return null;
+    const result = shown.value;
+    const dimmed = shown.stale ? " stale-results" : "";
+    const cards = [];
+    const depleted = result.headlines.find((headline) => headline.label === "Chance of running out");
+    if (depleted && depleted.value != null) {
+      const share = 1 - depleted.value;
+      const gauge = document.createElement("div");
+      gauge.className = "card gauge-card" + dimmed;
+      gauge.id = "lowGauge";
+      gauge.innerHTML = "<h2>Chance your money lasts</h2>"
+        + charts.renderGauge({ share, runs: result.runs, preview: shown.preview })
+        + "<p class=\"gauge-caption\">" + escapeText(percent(share, 0) + " of " + result.runs
+          + " runs ended with money left.") + "</p>"
+        + (shown.preview ? "<p class=\"low-preview-note\">" + escapeText("Preview from " + result.runs + " runs; the full "
+          + state.mc.runs + " are running.") + "</p>" : "");
+      cards.push(gauge);
+    }
+    if (result.fan) {
+      const fan = chartCard(result.fan, renderResults);
+      fan.id = "lowFan";
+      if (shown.stale) fan.classList.add("stale-results");
+      if (shown.preview) {
+        fan.insertAdjacentHTML("beforeend", "<p class=\"low-preview-note\">" + escapeText("Preview from " + result.runs
+          + " runs; the full " + state.mc.runs + " are running.") + "</p>");
+      }
+      cards.push(fan);
+    }
+    return cards.length ? [cards, cards.filter((card) => card.chartSpec)
+      .map((card) => [card.querySelector("figure"), card.chartSpec])] : null;
+  }
+
+  // Put the Low cards into their holder in Summary's body and attach the chart readout.
+  function placeLowResults(body, low) {
+    const holder = body.querySelector("#lowResults");
+    if (!holder || !low) return;
+    holder.replaceChildren(...low[0]);
+    low[1].forEach(([figure, spec]) => figure && charts.attachChart(figure, spec));
+  }
+
   // Summary: the headline tiles and insights of the last Monte Carlo (the single-run headline tiles after the Monte
-  // Carlo ones), then a pointer to the Final report, which holds every table; the app itself shows none.
+  // Carlo ones), then a pointer to the Final report, which holds every table; the app itself shows none. At Low the
+  // gauge and the fan chart come first (lowResultCards), from the partial result while the first runs go on.
   function renderResults() {
     const body = $("results-body");
     if (needsSetup(state.inputs)) { body.innerHTML = FINISH_SETUP_HTML; return; }
     let html = state.error ? errorBanner(state.error) : "";
     const { entry, stale } = latestMonteCarlo();
+    const low = lowShown() ? lowResultCards(entry, stale) : null;
+    const lowHolder = low ? "<div class=\"low-results\" id=\"lowResults\"></div>" : "";
     if (!entry) {
-      body.innerHTML = html + "<div class=\"card empty-state\">No Monte Carlo yet. It starts on its own.</div>";
+      body.innerHTML = html + lowHolder + "<div class=\"card empty-state\">No Monte Carlo yet. It starts on its own.</div>";
+      placeLowResults(body, low);
       return;
     }
     const result = entry.value;
@@ -1574,12 +1661,13 @@
     html += "<div class=\"result-meta\"><span>" + result.runs + " runs</span><span>Seed " + escapeText(result.seed)
       + "</span><span>" + escapeText(dollarsText(result.dollars)) + "</span></div>"
       + "<p class=\"note dollars-note\" id=\"dollarsNote\">"  // what the dollars are, before any figure
-      + escapeText(dollarsNote(ranInputs(entry, stale), result.dollars)) + "</p><div class=\"tiles\">"
+      + escapeText(dollarsNote(ranInputs(entry, stale), result.dollars)) + "</p>" + lowHolder + "<div class=\"tiles\">"
       + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale)).join("")
       + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false)).join("") : "")
       + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "");
     html += renderInsights(result, entry, stale) + REPORT_POINTER_HTML;
     body.innerHTML = html;
+    placeLowResults(body, low);
   }
 
   // The inputs a Monte Carlo cache entry ran on: the current ones unless it is stale.
@@ -1612,45 +1700,263 @@
   // ---- Effort and style: Setup's card, the picker and "Using defaults for N inputs" ----
   // Effort (how much the app asks) and style (how it talks) are the open scenario's experience block
   // (state.experience); the choices and their blurbs come from appInfo().experience. Changing either saves the block
-  // (saveExperience): no run, no undo step and no unsaved mark. The same radio groups are drawn on Setup's card and in
+  // (saveExperience): no run, no undo step and no unsaved mark. The same picker (an energy bar for effort, a tile per
+  // style, each choice's description behind its (i)) is drawn on Setup's card and in
   // the picker, which opens from the menu (Save and Cancel) and once at start-up until it has been kept (Continue: a
   // new user's first launch, or a returning user's first visit since the picker came, wmti.picker.v1). Opening or
   // importing a scenario with another effort or style asks which to keep (askExperience).
   const experiencePicker = { mode: null, resolve: null, choice: null, returnFocus: null };
+  const { pickerLevelAt, pickerKeyLevel } = window.WmtiShared;
 
-  // The two radio groups, Effort then Style, marking `choice` ({effort, style}); `onPick` gets {effort} or {style}.
-  // `prefix` keeps the ids and radio names of the card and the picker apart.
+  // The picker's group descriptions behind the (i) beside Effort and Style; each choice's own description is its blurb
+  // from appInfo().experience.
+  const PICKER_GROUP_INFO = { effort: "How many questions you answer. Drag the bar up or down, or tap a level.",
+    style: "How results are shown. Style never changes the numbers." };
+  // The style tiles' icons (stroke colour, stroke width, 24 by 24 shapes); a style the app does not know uses the first.
+  const PICKER_STYLE_ICONS = {
+    accountant: ["#185FA5", 1.6, '<rect x="5" y="3" width="14" height="18" rx="2"/><rect x="8" y="6" width="8" height="3"/>'
+      + '<path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/>'],
+    coach: ["#FFF4DD", 1.8, '<path d="M4 18l6-6 4 4 6-8"/><path d="M15 8h5v5"/>'],
+    gamer: ["#5DFFC8", 1.8, '<rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M15 12h.01M18 13h.01"/>'],
+  };
+  const PICKER_SPARKS = 8;  // sparks over the energy bar's top edge at High; the first two also at Medium
+
+  // An (i) button of the picker: opens `title` and `text` in the picker's description panel (`popId`).
+  function pickerInfoButton(title, text, popId) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pk-info";
+    button.setAttribute("aria-expanded", "false");
+    button.setAttribute("aria-controls", popId);
+    button.setAttribute("aria-label", "About " + title);
+    button.dataset.title = title;
+    button.dataset.text = text;
+    const mark = document.createElement("span");
+    mark.setAttribute("aria-hidden", "true");
+    mark.textContent = "i";
+    button.append(mark);
+    button.addEventListener("click", () => showPickerInfo(button));
+    return button;
+  }
+
+  // Show the description of (i) `button` in its picker's panel, or close the panel when that one is already open.
+  function showPickerInfo(button) {
+    const pop = document.getElementById(button.getAttribute("aria-controls"));
+    if (!pop) return;
+    const open = button.getAttribute("aria-expanded") === "true";
+    closePickerInfo(pop);
+    if (open) return;
+    const title = document.createElement("b");
+    title.textContent = button.dataset.title;
+    pop.replaceChildren(title, document.createTextNode(button.dataset.text));
+    pop.hidden = false;
+    button.setAttribute("aria-expanded", "true");
+    pop.scrollIntoView({ block: "nearest" });
+  }
+
+  // Close the picker description panel `pop` and mark its (i) buttons closed.
+  function closePickerInfo(pop) {
+    if (!pop) return;
+    pop.hidden = true;
+    pop.replaceChildren();
+    for (const button of document.querySelectorAll('.pk-info[aria-controls="' + pop.id + '"]')) {
+      button.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  // Mark `choice` ({effort, style}) on the picker groups inside `root` without rebuilding them: the radios, the energy
+  // bar's level and fill (--pk-f), the slider's value and the chosen stop and tile. Keeps focus and the transitions.
+  function paintExperience(root, choice) {
+    for (const input of root.querySelectorAll(".pk-group input[type=radio]")) {
+      input.checked = choice[input.dataset.key] === input.value;
+      const holder = input.closest(".pk-stop, .pk-style");
+      if (holder) holder.classList.toggle("pk-on", input.checked);
+    }
+    const eff = root.querySelector(".pk-eff");
+    if (!eff) return;
+    const efforts = state.info.experience.efforts;
+    const index = Math.max(0, efforts.findIndex((item) => item.id === choice.effort));
+    const level = efforts.length > 1 ? Math.round(index * 2 / (efforts.length - 1)) : 0;
+    eff.classList.remove("pk-drag", "lv0", "lv1", "lv2");
+    eff.classList.add("lv" + level);
+    eff.style.setProperty("--pk-f", String((index + 1) / efforts.length));
+    const slider = eff.querySelector(".pk-barwrap");
+    slider.setAttribute("aria-valuenow", String(index));
+    slider.setAttribute("aria-valuetext", efforts[index] ? efforts[index].label : "");
+  }
+
+  // The two picker groups, Effort (an energy bar to drag, with a stop per level) then Style (a tile per style), and the
+  // description panel their (i) buttons open, marking `choice` ({effort, style}); `onPick` gets {effort} or {style}.
+  // `prefix` keeps the ids and radio names of the card and the picker apart. Each choice keeps a real radio (laid over
+  // its stop or tile) with its label and blurb; the effort radios leave the keyboard to the bar (role=slider).
   function experienceGroups(prefix, choice, onPick) {
     const offered = state.info.experience;
-    const group = (key, title, items) => {
+    const pop = document.createElement("p");
+    pop.className = "pk-pop";
+    pop.id = prefix + "-info";
+    pop.setAttribute("role", "status");
+    pop.setAttribute("aria-live", "polite");
+    pop.hidden = true;
+    const grid = document.createElement("div");
+    grid.className = "pk-grid";
+    // The choice the groups mark now (the card's is repainted from outside too, so it is read back, not kept).
+    const marked = () => {
+      const read = (key) => (grid.querySelector('input[data-key="' + key + '"]:checked') || {}).value;
+      return { effort: read("effort"), style: read("style") };
+    };
+    const pick = (change) => {
+      closePickerInfo(pop);
+      paintExperience(grid, { ...marked(), ...change });
+      onPick(change);
+    };
+    const group = (key, title) => {
       const fieldset = document.createElement("fieldset");
-      fieldset.className = "experience-group";
+      fieldset.className = "experience-group pk-group pk-group-" + key;
       fieldset.id = prefix + "-" + key;
       const legend = document.createElement("legend");
-      legend.textContent = title;
+      legend.className = "pk-legend";
+      const name = document.createElement("span");
+      name.textContent = title;
+      legend.append(name, pickerInfoButton(title, PICKER_GROUP_INFO[key], pop.id));
       fieldset.append(legend);
-      for (const item of items) {
-        const option = document.createElement("label");
-        option.className = "experience-option";
-        const input = document.createElement("input");
-        input.type = "radio";
-        input.name = prefix + "-" + key;
-        input.id = prefix + "-" + key + "-" + item.id;
-        input.value = item.id;
-        input.checked = choice[key] === item.id;
-        input.addEventListener("change", () => { if (input.checked) onPick({ [key]: item.id }); });
-        const label = document.createElement("span");
-        label.className = "experience-label";
-        label.textContent = item.label;
-        const blurb = document.createElement("span");
-        blurb.className = "experience-blurb";
-        blurb.textContent = item.blurb;
-        option.append(input, label, blurb);
-        fieldset.append(option);
-      }
       return fieldset;
     };
-    return [group("effort", "Effort", offered.efforts), group("style", "Style", offered.styles)];
+    const radio = (key, item) => {
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.className = "pk-radio";
+      input.name = prefix + "-" + key;
+      input.id = prefix + "-" + key + "-" + item.id;
+      input.value = item.id;
+      input.dataset.key = key;
+      input.addEventListener("change", () => { if (input.checked) pick({ [key]: item.id }); });
+      const label = document.createElement("span");
+      label.className = "experience-label";
+      label.textContent = item.label;
+      const blurb = document.createElement("span");
+      blurb.className = "experience-blurb";
+      blurb.hidden = true;
+      blurb.textContent = item.blurb;
+      return [input, label, blurb];
+    };
+
+    // Effort: the bar (its fill, two dividers, the knob and the sparks) and a stop per level, the highest on top; the
+    // DOM keeps them lowest first (Low, Medium, High).
+    const efforts = offered.efforts;
+    const effort = group("effort", "Effort");
+    const eff = document.createElement("div");
+    eff.className = "pk-eff";
+    const slider = document.createElement("div");
+    slider.className = "pk-barwrap";
+    slider.tabIndex = 0;
+    slider.setAttribute("role", "slider");
+    slider.setAttribute("aria-orientation", "vertical");
+    slider.setAttribute("aria-label", "Effort");
+    slider.setAttribute("aria-valuemin", "0");
+    slider.setAttribute("aria-valuemax", String(Math.max(0, efforts.length - 1)));
+    slider.innerHTML = '<div class="pk-cap"></div><div class="pk-bar"><div class="pk-cells"><div class="pk-fill"></div>'
+      + '<div class="pk-div" style="top: 33.3%"></div><div class="pk-div" style="top: 66.6%"></div></div></div>'
+      + '<div class="pk-rail"><div class="pk-sparks"></div><div class="pk-knob"><svg viewBox="0 0 24 24" aria-hidden="true">'
+      + '<path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></div></div>';
+    const sparks = slider.querySelector(".pk-sparks");
+    for (let index = 0; index < PICKER_SPARKS; index += 1) {
+      const spark = document.createElement("span");
+      spark.className = "pk-spark" + (index < 2 ? " few" : "");
+      spark.style.setProperty("--x", (4 + (index * 7) % 24) + "px");
+      spark.style.setProperty("--dx", ((index % 2 ? 1 : -1) * (6 + (index * 5) % 13)) + "px");
+      spark.style.setProperty("--dy", (-12 - (index * 9) % 24) + "px");
+      spark.style.animationDelay = ((index * 0.37) % 1.1).toFixed(2) + "s";
+      sparks.append(spark);
+    }
+    const stops = document.createElement("div");
+    stops.className = "pk-stops";
+    efforts.forEach((item, index) => {
+      const stop = document.createElement("div");
+      stop.className = "pk-stop";
+      stop.style.setProperty("--pk-at", String(1 - (index + 0.5) / efforts.length));
+      const option = document.createElement("label");
+      option.className = "pk-lab";
+      const [input, label, blurb] = radio("effort", item);
+      input.tabIndex = -1;
+      input.setAttribute("aria-hidden", "true");
+      // A stop's pick leaves focus on the bar, not on its hidden radio.
+      input.addEventListener("change", () => slider.focus({ preventScroll: true }));
+      option.append(input, label, blurb);
+      stop.append(option, pickerInfoButton(item.label, item.blurb, pop.id));
+      stops.append(stop);
+    });
+    eff.append(slider, stops);
+    effort.append(eff);
+
+    // Drag (mouse, touch or pen): the fill follows the pointer and the release chooses the level under it; a tap does
+    // the same. A cancelled drag puts the chosen level back.
+    const cells = slider.querySelector(".pk-cells");
+    const fractionAt = (y) => {
+      const box = cells.getBoundingClientRect();
+      const fraction = box.height > 0 ? (box.bottom - y) / box.height : 0;
+      return Math.min(1, Math.max(0.05, fraction));
+    };
+    let dragging = null;
+    slider.addEventListener("pointerdown", (event) => {
+      if (!event.isPrimary || event.button > 0) return;
+      dragging = event.pointerId;
+      try { slider.setPointerCapture(event.pointerId); } catch (error) { /* a synthetic pointer: no capture */ }
+      closePickerInfo(pop);
+      eff.classList.add("pk-drag");
+      eff.style.setProperty("--pk-f", String(fractionAt(event.clientY)));
+      event.preventDefault();
+      slider.focus({ preventScroll: true });
+    });
+    slider.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== dragging) return;
+      eff.style.setProperty("--pk-f", String(fractionAt(event.clientY)));
+    });
+    slider.addEventListener("pointerup", (event) => {
+      if (event.pointerId !== dragging) return;
+      dragging = null;
+      pick({ effort: efforts[pickerLevelAt(fractionAt(event.clientY), efforts.length)].id });
+    });
+    slider.addEventListener("pointercancel", (event) => {
+      if (event.pointerId !== dragging) return;
+      dragging = null;
+      paintExperience(grid, marked());
+    });
+    slider.addEventListener("keydown", (event) => {
+      const index = Math.max(0, efforts.findIndex((item) => item.id === marked().effort));
+      const level = pickerKeyLevel(index, event.key, efforts.length);
+      if (level === null) return;
+      event.preventDefault();
+      if (level !== index) pick({ effort: efforts[level].id });
+    });
+
+    // Style: a 3D tile per style, its radio over the whole tile; the chosen one ringed, with a Chosen badge.
+    const style = group("style", "Style");
+    const tiles = document.createElement("div");
+    tiles.className = "pk-styles";
+    for (const item of offered.styles) {
+      const look = Object.prototype.hasOwnProperty.call(PICKER_STYLE_ICONS, item.id) ? item.id : "accountant";
+      const tile = document.createElement("div");
+      tile.className = "pk-style pk-" + look;
+      const [input, label, blurb] = radio("style", item);
+      const top = document.createElement("div");
+      top.className = "pk-top";
+      const badge = document.createElement("span");
+      badge.className = "pk-badge";
+      badge.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Chosen';
+      top.append(badge, pickerInfoButton(item.label, item.blurb, pop.id));
+      const [stroke, width, shapes] = PICKER_STYLE_ICONS[look];
+      const icon = document.createElement("span");
+      icon.className = "pk-icon";
+      icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="' + stroke + '" stroke-width="' + width
+        + '" aria-hidden="true">' + shapes + "</svg>";
+      tile.append(input, top, icon, label, blurb);
+      tiles.append(tile);
+    }
+    style.append(tiles);
+
+    grid.append(effort, style);
+    paintExperience(grid, choice);
+    return [grid, pop];
   }
 
   // The effort and style shown for the open scenario: High and Accountant when its block holds one the app does not
@@ -1666,7 +1972,9 @@
   function renderExperienceCard() {
     const holder = $("experienceCardChoices");
     if (!holder || !state.info || !state.experience) return;
-    holder.replaceChildren(...experienceGroups("xpCard", shownExperience(), setExperience));
+    // Built once; later changes repaint in place so focus and the bar's motion survive (paintExperience).
+    if (holder.querySelector(".pk-grid")) paintExperience(holder, shownExperience());
+    else holder.replaceChildren(...experienceGroups("xpCard", shownExperience(), setExperience));
     refreshDefaultsNotice();
   }
 
@@ -1693,6 +2001,10 @@
     saveExperience(change);
     if (change.effort && effortRank(change.effort) > effortRank(previous)) walkEffortRaised(previous);
     renderExperienceCard();
+    if (change.effort && change.effort !== previous) {
+      lowRaiseNote(previous, change.effort);  // a raise from Low: the spending number still covers housing
+      renderEffortViews();
+    }
   }
 
   // Open the picker: "settings" (from the menu: the current choice, Save keeps it and Cancel discards it),
@@ -1709,10 +2021,6 @@
     const offered = state.info.experience;
     experiencePicker.choice = returning ? { ...offered.existingDefault }
       : first ? { ...offered.newUserDefault } : shownExperience();
-    $("experienceIntro").textContent = returning
-      ? "Choose how much the app asks and how it talks to you. Your results do not change."
-      : first ? "Choose how much the app asks and how it talks to you. Neither changes your results."
-        : "How much the app asks and how it talks to you. Neither changes your results.";
     const pick = (change) => Object.assign(experiencePicker.choice, change);
     $("experienceChoices").replaceChildren(...experienceGroups("xpPick", experiencePicker.choice, pick));
     const button = (label, className, id, onClick) => {
@@ -1730,7 +2038,7 @@
         button("Save", "button", "experienceSave", keep)]));
     $("experience").hidden = false;
     $("experienceBackdrop").hidden = false;
-    $("experience").querySelector("input:checked").focus();
+    $("experience").querySelector(".pk-barwrap").focus();
     return new Promise((resolve) => { experiencePicker.resolve = resolve; });
   }
 
@@ -1814,11 +2122,529 @@
     $("menuExperience").addEventListener("click", () => { closeMenu(); openExperiencePicker("settings"); });
     $("experienceBackdrop").addEventListener("click", () => experienceEscape());
     $("experience").addEventListener("keydown", (event) => trapFocus(event, $("experience")));
+    // A click outside the picker's (i) buttons and description panel closes an open description.
+    document.addEventListener("click", (event) => {
+      if (event.target.closest && event.target.closest(".pk-info, .pk-pop")) return;
+      for (const pop of document.querySelectorAll(".pk-pop:not([hidden])")) closePickerInfo(pop);
+    });
+  }
+
+  // ---- Low effort: the spending number that covers housing, cars and loans, and the effort-change hook ----
+  // At Low the one monthly spending number counts rent or mortgage, car and loan payments, property taxes and
+  // utilities (wmti.dashboard.lowcover). The backend clears what is still the example household's when the spending
+  // question is answered at Low (walkthroughApply with effort "low"); anything else the plan counts on top of the
+  // number is shown with Remove them (lowCoverClear: one undo step). Effort never edits the inputs by itself.
+  const low = { gen: 0, facts: null, factsTurn: 0, queue: Promise.resolve(), noteTurn: 0, tree: null, index: null };
+
+  // Whether the open scenario is at Low effort. `lowShown` (the Low results' check) is used when the page has it.
+  function lowOn() {
+    if (typeof lowShown === "function") return lowShown();
+    return Boolean(state.experience && state.info) && shownExperience().effort === "low";
+  }
+
+  // The spending question's hint at Low: the "leave them out" wording while the plan counts items on top of the
+  // number that are not the untouched example's (those are cleared on the answer), else the "count everything" one.
+  // At Medium and High the question's own hint.
+  function spendingHint(node, facts) {
+    if (!lowOn() || !node.hintLow) return node.hint;
+    return facts && lowCovered(facts) && node.hintLowCovered ? node.hintLowCovered : node.hintLow;
+  }
+
+  // Whether the plan counts homes, rent periods, cars, loans or utilities on top of a Low spending number that the
+  // answer does not clear by itself (Remove them is offered).
+  function lowCovered(facts) {
+    return Boolean(facts) && facts.coveredCount > 0 && !facts.coveredExample;
+  }
+
+  // Remove them: drop every home, rent period, car and loan and zero the utility bills (lowCoverClear), as one undo
+  // step. Returns the reply (its `facts` are the new inputs'), or null when it was refused.
+  async function removeCovered() {
+    const reply = await ask("lowCoverClear", [JSON.stringify(state.inputs)]);
+    if (!reply || !reply.ok) return null;
+    state.inputs = reply.inputs;
+    low.facts = reply.facts;
+    renderSettings();
+    inputsChanged();
+    return reply;
+  }
+
+  // "Skip for now" at Low: the example household's home, cars and loans go as they do on a spending answer, so its
+  // property tax is not counted on top of the example's spending (walkthroughApply skip at Low).
+  async function lowSkipClear() {
+    if (!lowOn()) return;
+    const reply = await ask("walkthroughApply", [JSON.stringify(state.inputs), "spending", "null", "skip", "low"]);
+    if (!reply || !reply.ok || !reply.changed || !reply.changed.length) return;
+    state.inputs = reply.inputs;
+    renderSettings();
+    inputsChanged();
+  }
+
+  // The note under Setup's effort card after a raise from Low while the plan has no home, car or loan: the spending
+  // number still covers them. It goes on the next effort change and is never stored.
+  const LOW_RAISE_NOTE = "Your monthly spending counts housing, cars and loans because none are entered. Lower it by "
+    + "what you add.";
+  // The same note on the walkthrough screens a raise from Low unlocks that add a home, a mortgage, cars or loans.
+  const LOW_RAISE_SCREENS = ["homes", "mortgage", "cars", "loansMore"];
+
+  async function lowRaiseNote(previous, effort) {
+    const note = $("lowRaiseNote");
+    const turn = ++low.noteTurn;
+    if (!note) return;
+    note.hidden = true;
+    note.textContent = "";
+    if (previous !== "low" || effortRank(effort) <= effortRank("low")) return;
+    const reply = await ask("walkthroughPlan", [JSON.stringify(state.inputs), "[]", "medium"]);
+    if (turn !== low.noteTurn || !reply || !reply.ok || !reply.facts || reply.facts.coveredCount !== 0) return;
+    note.textContent = LOW_RAISE_NOTE;
+    note.hidden = false;
+  }
+
+  // Redraw every view that depends on the effort (Inputs, the Summary, the band and the run bar); called wherever the
+  // open scenario's effort is set.
+  function renderEffortViews() {
+    renderSettings();
+    renderResults();
+    renderBand();
+    renderMcBar();
+    refreshDefaultsNotice();
+  }
+
+  // ---- The Low page: the Inputs tab at Low effort ----
+  // One card per topic (#lowPage, each `data-low-card`), in this order. Plain fields (ages, filing status, state, pay)
+  // are the schema's own controls (fieldElement: the normal edit path, undo and runs); the answers that change the
+  // shape of the inputs (partner, spending, balances, children, the two plans) go through walkthroughApply at Low
+  // (lowApply), commit when the box is left (or on Enter) and redraw only their own cards. The spending, children's
+  // ages and the plans' summaries come from the walkthrough's facts: no money rule is worked out here.
+  const LOW_CARDS = [["about", "About you"], ["pay", "Pay"], ["spending", "Spending"], ["savings", "Savings"],
+    ["children", "Children"], ["retirement", "Retirement plan"], ["medical", "Medical plan"], ["more", "More detail"]];
+  const LOW_FACT_CARDS = ["spending", "children", "retirement", "medical"];  // drawn again when the facts arrive
+  const LOW_MORE_TEXT = "Homes, cars, loans and more detail are in Medium effort. At Low your spending number covers "
+    + "housing, cars and loans, and what you are worth leaves out the value of a home.";
+  const LOW_BALANCES_NOTE = "You have more than one account of a kind; change them at Medium effort.";
+
+  // The tree's question `id` (its node), or null.
+  function lowNode(id) {
+    if (!state.walkTree) return null;
+    if (low.tree !== state.walkTree) {
+      low.tree = state.walkTree;
+      low.index = walkIndex(state.walkTree);
+    }
+    return low.index[id] ? low.index[id].node : null;
+  }
+
+  // Leave the Low page (Medium and High): the Inputs tab's groups come back.
+  function hideLowPage() {
+    const page = $("lowPage");
+    if (page && !page.hidden) {
+      page.hidden = true;
+      page.replaceChildren();
+    }
+    $("settings-body").hidden = false;
+    $("app").classList.remove("low-effort");
+  }
+
+  // Draw the Low page in place of the Inputs groups, then ask for the facts and draw the cards that show them.
+  function renderLowPage() {
+    const gen = ++low.gen;
+    $("settings-body").hidden = true;
+    $("settings-body").replaceChildren();
+    $("app").classList.add("low-effort");
+    const page = $("lowPage");
+    page.hidden = false;
+    page.replaceChildren(...LOW_CARDS.map(([id, title]) => {
+      const card = document.createElement("section");
+      card.className = "card low-card";
+      card.id = "lowCard-" + id;
+      card.dataset.lowCard = id;
+      card.setAttribute("aria-label", title);
+      return card;
+    }));
+    for (const [id] of LOW_CARDS) renderLowCard(id);
+    lowFacts().then((facts) => {
+      if (gen !== low.gen || !facts) return;
+      for (const id of LOW_FACT_CARDS) {
+        const card = $("lowCard-" + id);
+        if (card && !card.contains(document.activeElement)) renderLowCard(id);
+      }
+    });
+  }
+
+  // The walkthrough's facts for the open inputs at Low; only the latest of overlapping calls is kept (null for an
+  // older one, or when the inputs give none).
+  async function lowFacts() {
+    const turn = ++low.factsTurn;
+    const reply = await ask("walkthroughPlan", [JSON.stringify(state.inputs), "[]", "low"]);
+    if (turn !== low.factsTurn || !reply || !reply.ok) return null;
+    low.facts = reply.facts;
+    return reply.facts;
+  }
+
+  // Draw one card again from the open inputs and facts; a box that had focus gets it back.
+  function renderLowCard(id) {
+    const card = $("lowCard-" + id);
+    if (!card) return;
+    const focused = card.contains(document.activeElement) ? document.activeElement.id : null;
+    const heading = document.createElement("h2");
+    heading.textContent = (LOW_CARDS.find((item) => item[0] === id) || [id, id])[1];
+    const error = document.createElement("p");
+    error.className = "field-error low-error";
+    error.setAttribute("role", "alert");
+    error.hidden = true;
+    card.replaceChildren(heading, ...LOW_CARD_BUILDERS[id]().filter(Boolean), error);
+    if (focused && $(focused) && card.contains($(focused))) $(focused).focus({ preventScroll: true });
+  }
+
+  function lowError(cardId, text) {
+    const line = document.querySelector("#lowCard-" + cardId + " .low-error");
+    if (!line) return;
+    line.hidden = !text;
+    line.textContent = text || "";
+  }
+
+  // Write one answer at Low (walkthroughApply), after any answer still on its way; the reply's cards are drawn again.
+  // An answer whose page was drawn again since (an undo, another scenario, an effort change) is dropped. Returns the
+  // reply, or null when it was refused (its message under the card) or dropped.
+  function lowApply(questionId, values, cardId, cards) {
+    const gen = low.gen;
+    const run = async () => {
+      if (gen !== low.gen || !lowOn()) return null;
+      lowError(cardId, null);
+      const reply = await ask("walkthroughApply", [JSON.stringify(state.inputs), questionId, JSON.stringify(values),
+        "answer", "low"]);
+      if (gen !== low.gen || !lowOn()) return null;
+      if (!reply || !reply.ok) {
+        lowError(cardId, reply ? reply.error : "The answer was not saved; try again.");
+        return null;
+      }
+      state.inputs = reply.inputs;
+      low.facts = reply.facts;
+      if (reply.changed && reply.changed.length) inputsChanged();
+      for (const id of cards || [cardId]) renderLowCard(id);
+      return reply;
+    };
+    const next = low.queue.then(run, run);
+    low.queue = next.catch(() => null);
+    return next;
+  }
+
+  // A schema field drawn as on the Inputs groups, under the Low page's own label; null when the schema has none.
+  function lowSchemaField(path, label) {
+    const field = panelField(state.schema, path);
+    return field ? fieldElement({ ...field, label }, path) : null;
+  }
+
+  // A Yes/No choice (segmented); `onPick` gets true or false when the other one is tapped.
+  function lowYesNo(id, label, value, onPick) {
+    const wrap = fieldShell(label, null, null);
+    const group = document.createElement("div");
+    group.className = "segmented low-yes-no";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", label);
+    group.id = id;
+    for (const [choice, text] of [[true, "Yes"], [false, "No"]]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.choice = String(choice);
+      button.textContent = text;
+      button.setAttribute("aria-pressed", String(choice === value));
+      button.addEventListener("click", () => { if (choice !== value) onPick(choice); });
+      group.append(button);
+    }
+    wrap.append(group);
+    return wrap;
+  }
+
+  // A number box that commits when it is left or on Enter (not on each keystroke): an empty, malformed or
+  // out-of-bounds number shows its message under the box and commits nothing. `disabled` shows it read-only;
+  // `shownLabel` (a guided step's question) is shown in place of the field's label, which the messages keep.
+  function lowNumber(id, field, value, onCommit, disabled, shownLabel) {
+    const wrap = fieldShell(shownLabel || field.label, null, id);
+    let next = value;
+    wrap.append(numberInput(id, { ...field, nullable: false }, value, (number) => { next = number; }));
+    const input = wrap.querySelector("input");
+    const problem = wrap.querySelector(".field-error");
+    input.disabled = Boolean(disabled);
+    input.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); input.blur(); } });
+    input.addEventListener("change", () => {
+      if (input.getAttribute("aria-invalid") === "true") return;
+      const bounds = walkBoundsError(field, next, null);
+      if (bounds) {
+        input.setAttribute("aria-invalid", "true");
+        problem.hidden = false;
+        problem.textContent = bounds;
+        return;
+      }
+      if (!sameValue(next, value)) onCommit(next);
+    });
+    return wrap;
+  }
+
+  // A plan's short summary with Change (the guided sheet), shown while the plan is on.
+  function lowSummary(kind, text) {
+    if (!text) return null;
+    const holder = document.createElement("div");
+    holder.className = "low-summary";
+    holder.dataset.summary = kind;
+    const line = document.createElement("p");
+    line.className = "low-summary-text";
+    line.textContent = text;
+    const change = document.createElement("button");
+    change.type = "button";
+    change.className = "button button-quiet";
+    change.id = "low-" + kind + "-change";
+    change.textContent = "Change";
+    change.setAttribute("aria-label", "Change the " + kind + " plan");
+    change.addEventListener("click", () => openGuidedPlan(kind));
+    holder.append(line, change);
+    return holder;
+  }
+
+  const LOW_CARD_BUILDERS = {
+    about() {
+      const partner = state.inputs.partner != null;
+      return [lowSchemaField("you.currentAge", "Your age"),
+        lowYesNo("low-partner", "Is a partner part of this plan?", partner,
+          (hasPartner) => lowApply("partner", { hasPartner }, "about", ["about", "pay", "retirement"])),
+        partner ? lowSchemaField("partner.currentAge", "Partner age") : null,
+        partner ? lowSchemaField("filingStatus", "Filing status") : null,
+        lowSchemaField("homeState", "State")];
+    },
+    pay() {
+      return [lowSchemaField("you.salary", "Your yearly pay"),
+        state.inputs.partner != null ? lowSchemaField("partner.salary", "Partner's yearly pay") : null];
+    },
+    spending() {
+      const facts = low.facts;
+      const node = lowNode("spending");
+      const items = [lowNumber("low-spending", { kind: "number", unit: "money", label: "Monthly spending",
+        minimum: 0, maximum: null }, facts ? Math.round(facts.monthlySpending) : null,
+      (total) => lowApply("spending", { total }, "spending"))];
+      const hint = node && facts ? spendingHint(node, facts) : null;
+      if (hint) {
+        const line = document.createElement("p");
+        line.className = "note low-hint";
+        line.textContent = walkHint(hint.template, facts);
+        items.push(line);
+      }
+      if (lowCovered(facts)) {
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "button button-quiet";
+        remove.id = "lowRemoveCovered";
+        remove.textContent = "Remove them";
+        remove.addEventListener("click", async () => {
+          remove.disabled = true;
+          if (!(await removeCovered())) {
+            remove.disabled = false;
+            lowError("spending", "They were not removed; try again.");
+          }
+        });
+        const or = document.createElement("p");
+        or.className = "note";
+        or.textContent = "or raise effort to Medium to edit them.";
+        items.push(remove, or);
+      }
+      return items;
+    },
+    savings() {
+      const node = lowNode("balances");
+      if (!node) return [];
+      let shared = false;
+      const items = node.fields.map((field, index) => {
+        const kind = (/^accounts\[(.+)\]\./.exec(field.path) || [])[1];
+        const several = (state.inputs.accounts || []).filter((account) => account.kind === kind).length > 1;
+        shared = shared || several;
+        const current = walkRead(state.inputs, field.path);
+        return lowNumber("low-balance-" + index, field, current == null ? 0 : current,
+          (value) => lowApply("balances", { [field.path]: value }, "savings"), several);
+      });
+      if (shared) {
+        const note = document.createElement("p");
+        note.className = "note low-balances-note";
+        note.textContent = LOW_BALANCES_NOTE;
+        items.push(note);
+      }
+      return items;
+    },
+    children() {
+      const children = state.inputs.children || [];
+      const countNode = lowNode("children") || {};
+      const agesNode = lowNode("childAges") || {};
+      const items = [lowYesNo("low-children", "Do you have children, or expect any?", children.length > 0,
+        (yes) => lowApply("children", { count: yes ? 1 : 0 }, "children"))];
+      if (!children.length) return items;
+      items.push(lowNumber("low-child-count", { kind: "integer", unit: "count", label: "How many children",
+        minimum: Math.max(1, countNode.minimum || 0), maximum: countNode.maximum ?? null }, children.length,
+      (count) => lowApply("children", { count }, "children")));
+      const age = state.inputs.you.currentAge;
+      const ages = low.facts && Array.isArray(low.facts.childAges) && low.facts.childAges.length === children.length
+        ? low.facts.childAges.slice() : children.map((child) => (age == null ? null : age - child.yourAgeAtBirth));
+      children.forEach((child, index) => {
+        items.push(lowNumber("low-child-age-" + index, { kind: "integer", unit: "age",
+          label: (child.name || "Child " + (index + 1)) + ": age", minimum: agesNode.minimum ?? null,
+          maximum: age ?? null }, ages[index], (value) => {
+          const next = ages.slice();
+          next[index] = value;
+          lowApply("childAges", { ages: next }, "children");
+        }));
+      });
+      const hint = agesNode.hint ? document.createElement("p") : null;
+      if (hint) {
+        hint.className = "note";
+        hint.textContent = agesNode.hint.template;
+        items.push(hint);
+      }
+      return items;
+    },
+    retirement() {
+      return lowPlanCard("retirement", "plan401k", "Does your household save in a 401k at work?",
+        low.facts && low.facts.retirementSummary);
+    },
+    medical() {
+      return lowPlanCard("medical", "medicalPlan", "Do you have a medical plan before Medicare?",
+        low.facts && low.facts.medicalSummary);
+    },
+    more() {
+      const text = document.createElement("p");
+      text.className = "note";
+      text.textContent = LOW_MORE_TEXT;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "button button-quiet";
+      button.id = "lowChangeEffort";
+      button.textContent = "Change effort";
+      button.addEventListener("click", () => openExperiencePicker("settings"));
+      return [text, button];
+    },
+  };
+
+  // A plan card: its Yes/No switch (the tree question `questionId`) and, while it is on, its summary with Change.
+  // Yes turns the plan on (one undo step) and opens its guided sheet; No turns it off and keeps its other values.
+  function lowPlanCard(kind, questionId, label, summary) {
+    const node = lowNode(questionId);
+    if (!node) return [];
+    const path = node.fields[0].path;
+    const on = Boolean(walkRead(state.inputs, path));
+    return [lowYesNo("low-" + kind + "-plan", label, on, async (yes) => {
+      const reply = await lowApply(questionId, { [path]: yes }, kind);
+      if (reply && yes) await openGuidedPlan(kind);
+    }), on ? lowSummary(kind, summary) : null];
+  }
+
+  // ---- Guided plan setups: one scrolling pop-up per plan (walkthroughTree's `guided`) ----
+  // The sheet works on a copy of the inputs: a live summary at the top, then the plan's steps that apply (the
+  // walkthrough's Medium plan of the copy decides, so a follow-up shows only after its Yes), each answer checked by
+  // walkthroughApply. Save keeps the copy as one undo step; Cancel, Escape and the backdrop discard it. Over the
+  // walkthrough the page is lifted from inert while it shows (as askExperience). Returns a promise of whether it was
+  // saved.
+  function openGuidedPlan(kind) {
+    const plan = state.walkTree && (state.walkTree.guided || []).find((item) => item.id === kind);
+    if (!plan) return Promise.resolve(false);
+    const sheet = { plan, working: clone(state.inputs), turn: 0, queue: Promise.resolve(), saved: false };
+    sheet.summary = document.createElement("div");
+    sheet.summary.className = "low-summary guided-summary";
+    sheet.summary.setAttribute("role", "status");
+    sheet.summary.innerHTML = "<p class=\"low-summary-text\" id=\"guidedSummary\"></p>";
+    sheet.steps = document.createElement("div");
+    sheet.steps.className = "guided-steps";
+    sheet.steps.id = "guidedSteps";
+    const lifted = $("app").inert;
+    if (lifted) $("app").inert = false;
+    return new Promise((settle) => {
+      openDialog({ title: plan.title, text: "", body: [sheet.summary, sheet.steps],
+        actions: [["Cancel", "button button-quiet", () => true, "guidedCancel"],
+          ["Save", "button", async () => {
+            await sheet.queue;
+            if (sheet.steps.querySelector("[aria-invalid=true]")) {
+              dialogError("Fix the answer marked above, or tap Cancel.");
+              return false;
+            }
+            sheet.saved = true;
+            if (!sameValue(sheet.working, state.inputs)) {
+              state.inputs = sheet.working;
+              renderSettings();
+              inputsChanged();
+            }
+            return true;
+          }, "guidedSave"]] });
+      dialog.onClose = () => {  // Save, Cancel, Escape and the backdrop all close here
+        if (lifted && walk.open) $("app").inert = true;
+        settle(sheet.saved);
+      };
+      guidedRefresh(sheet);
+    });
+  }
+
+  // Draw the sheet's summary and the steps that apply to its copy; only the latest of overlapping refreshes is drawn,
+  // and a box that had focus gets it back.
+  async function guidedRefresh(sheet) {
+    const turn = ++sheet.turn;
+    const reply = await ask("walkthroughPlan", [JSON.stringify(sheet.working), "[]", "medium"]);
+    if (turn !== sheet.turn || !sheet.steps.isConnected) return;
+    const facts = reply && reply.ok ? reply.facts : null;
+    sheet.summary.querySelector("p").textContent = (facts && facts[sheet.plan.id + "Summary"]) || "";
+    const planned = reply && reply.ok ? reply.questions.map((row) => row.id) : [];
+    const focused = sheet.steps.contains(document.activeElement) ? document.activeElement.id : null;
+    sheet.steps.replaceChildren(...sheet.plan.steps.filter((id) => planned.includes(id))
+      .map((id) => guidedStep(sheet, id)).filter(Boolean));
+    if (focused && $(focused)) $(focused).focus({ preventScroll: true });
+  }
+
+  // One step of the sheet: a Yes/No for a switch, else a number box; its answer's message shows under it.
+  function guidedStep(sheet, id) {
+    const node = lowNode(id);
+    if (!node || !node.fields.length) return null;
+    const field = node.fields[0];
+    const holder = document.createElement("div");
+    holder.className = "guided-step";
+    holder.dataset.step = id;
+    const current = walkRead(sheet.working, field.path);
+    const answer = (value) => guidedAnswer(sheet, id, { [field.path]: value });
+    holder.append(field.kind === "toggle" ? lowYesNo("guided-" + id, node.prompt, Boolean(current), answer)
+      : lowNumber("guided-" + id, field, current == null ? null : current, answer, false, node.prompt));
+    if (node.hint && !node.hint.fact) {
+      const hint = document.createElement("p");
+      hint.className = "note";
+      hint.textContent = node.hint.template;
+      holder.append(hint);
+    }
+    const error = document.createElement("p");
+    error.className = "field-error guided-error";
+    error.setAttribute("role", "alert");
+    error.hidden = true;
+    holder.append(error);
+    return holder;
+  }
+
+  // Write one step's answer to the sheet's copy (after any answer still on its way), then draw the sheet again; a
+  // refused answer keeps the copy and shows its message under the step.
+  function guidedAnswer(sheet, id, values) {
+    const run = async () => {
+      const reply = await ask("walkthroughApply", [JSON.stringify(sheet.working), id, JSON.stringify(values),
+        "answer", "low"]);
+      if (!sheet.steps.isConnected) return;
+      if (!reply || !reply.ok) {
+        const line = sheet.steps.querySelector("[data-step=\"" + id + "\"] .guided-error");
+        if (line) {
+          line.hidden = false;
+          line.textContent = reply ? reply.error : "The answer was not saved; try again.";
+        }
+        return;
+      }
+      sheet.working = reply.inputs;
+      dialogError(null);
+      await guidedRefresh(sheet);
+    };
+    sheet.queue = sheet.queue.then(run, run);
+    return sheet.queue;
   }
 
   // ---- Monte Carlo: runs on its own after every change (and on Run), in batches, with progress and cancel;
   // results kept per inputs ----
   let mcTimer = null;
+  // At Low a Monte Carlo of more runs posts one partial result once this many are done (the same seed and runs, no
+  // extra ones), so the gauge and the fan chart show early; it is kept apart from the cache.
+  const PREVIEW_RUNS = 10;
 
   function mcKey() {
     return JSON.stringify([state.inputs, state.mc.runs, state.seed]);
@@ -1948,11 +2774,18 @@
     clearTimeout(mcTimer);
     mcTimer = null;
     const key = mcKey();
+    // Low asks for the partial result (never put in the cache, so Compare, the report and the pins never see it).
+    const partial = lowShown() && mc.runs > PREVIEW_RUNS ? { partialRuns: PREVIEW_RUNS } : null;
     const job = engine.job("monteCarlo", [JSON.stringify(state.inputs), mc.runs, state.seed], null, (message) => {
       Object.assign(mc.job, { done: message.done, total: message.total, ms: message.ms });
       showProgress("mc", mc.job);
-    });
+      if (message.partial && message.partial.ok && !mc.job.silent) {
+        mc.preview = { key, value: message.partial };
+        renderResults();
+      }
+    }, partial);
     mc.job = { id: job.id, done: 0, total: mc.runs, ms: 0, key, silent: false };
+    mc.preview = null;
     mc.message = null;
     renderPinned();
     renderMcBar();
@@ -1966,6 +2799,7 @@
     }
     const { done, silent } = mc.job;
     mc.job = null;
+    mc.preview = null;  // the full result (or nothing, after a cancel or an error) replaces it
     if (failure || (!reply && !silent) || (reply && !reply.value.ok)) mc.skipKey = key;  // not again on its own
     if (failure) mc.message = { error: true, text: failure };
     else if (!reply && silent) mc.message = null;  // replaced by newer settings or a comparison: no message
@@ -3032,6 +3866,8 @@
     state.experience = next;
     loadWalk();  // the walkthrough's progress is the scenario's own
     renderExperienceCard();
+    lowRaiseNote(null, null);  // the note after a raise from Low goes with the scenario
+    renderEffortViews();
   }
 
   function savedMessage(text, isError) {
@@ -3151,7 +3987,11 @@
     for (const panel of state.schema.panels) {
       const match = panelNames(panel).filter((name) => path === name || path.startsWith(name + "."))
         .sort((a, b) => b.length - a.length)[0];
-      if (match) places.push({ length: match.length, tab: panel.id === SETUP_PANEL ? "setup" : "inputs", chip: panel.id });
+      if (!match) continue;
+      let tab = panel.id === SETUP_PANEL ? "setup" : "inputs";
+      // At Low, Household's fields are on the Low page (Inputs); the inflation and run fields stay on Setup.
+      if (tab === "setup" && lowOn() && ![...INFLATION_CARD_FIELDS, ...RUN_CARD_FIELDS].includes(match)) tab = "inputs";
+      places.push({ length: match.length, tab, chip: panel.id });
     }
     places.sort((a, b) => b.length - a.length);
     if (!places.length && $("panel-setup").querySelector("#" + CSS.escape(fieldId(path)))) places.push({ tab: "setup" });
@@ -3196,7 +4036,7 @@
   function showUndone(paths) {
     for (const path of paths) {
       for (const place of undonePlaces(path)) {
-        if (place.tab === "inputs" && state.chips.settings !== place.chip) {
+        if (place.tab === "inputs" && state.chips.settings !== place.chip && !lowOn()) {  // the Low page has no chips
           state.chips.settings = place.chip;
           savePrefs();
           renderSettings();
@@ -3872,6 +4712,15 @@
   }
 
   function renderSettings() {
+    if (lowOn()) {  // Low: the one Low page; Setup keeps its error banner, the hidden Household card and Advanced
+      renderSettingsError();
+      renderHousehold();
+      renderRunCard();
+      renderLowPage();
+      renderBand();
+      return;
+    }
+    hideLowPage();
     const panels = state.schema.panels.filter((panel) => panel.id !== SETUP_PANEL);
     const selected = inputsChip(panels.map((panel) => panel.id), state.chips.settings);
     renderChips("chips-settings", panels.map((panel) => ({ id: panel.id, label: panel.label })), selected, (id) => {
@@ -3900,9 +4749,10 @@
   }
 
   // The Household panel on Setup: the partner switch and the panel's fields (the seed, runs and the
-  // inflation adjusted switch and range are in the Inflation and Run cards of Advanced settings).
+  // inflation adjusted switch and range are in the Inflation and Run cards of Advanced settings). At Low the card is
+  // hidden: its fields are on the Low page.
   function renderHousehold() {
-    const panel = state.schema.panels.find((item) => item.id === SETUP_PANEL);
+    const panel = lowOn() ? null : state.schema.panels.find((item) => item.id === SETUP_PANEL);
     $("householdCard").hidden = !panel;
     $("household-body").replaceChildren(...(panel ? panelSections(panel) : []));
   }
@@ -5306,7 +6156,217 @@
     const at = sheetItemOf(path);
     if (at && at.type === "Car" && at.name === "replaceBy") return segmentedField(field, path, value);
     if (at && at.type === "Car" && at.name === "payMethod") return segmentedField(field, path, carPaidBy(at.item));
+    if (at && (RADIO_SEGMENTED[at.type] || []).includes(at.name)) return radioSegmentedField(field, path);
+    if (at && at.type === "ExpenseItem" && at.name === "year") return expenseAgesField(field, path, at.item);
     return null;
+  }
+
+  // An expense row's From and To ages as one slider from your age today to your age in the run's last year
+  // (expenseAgeKnobs): two knobs for a monthly row, one for a Major Spending row paid in one year. Each knob is a
+  // role=slider stop (arrows, Page Up / Page Down by 5, Home, End); a drag on the track moves the nearer knob. A
+  // knob moved stores its age (expenseAgeStored: a knob at an end stores a blank); a stored age outside the track
+  // shows at its end and is kept until a knob moves.
+  function expenseAgesField(field, path, item) {
+    const rules = state.info.sheetRules;
+    const low = Number(state.inputs.you.currentAge);
+    const high = Math.max(low, low + planYears(state.inputs) - 1);
+    const toPath = path.replace(/\.year$/, ".toAge");
+    const shown = expenseAgeKnobs(item, low, high, rules);
+    const wrap = fieldShell(field.label, field.help, null);
+    wrap.classList.add("age-range-field");
+    const text = document.createElement("span");
+    text.className = "age-range-text";
+    text.setAttribute("aria-hidden", "true");  // each knob says its own age
+    wrap.querySelector(".field-head").append(text);
+    const track = document.createElement("div");
+    track.className = "age-range";
+    const rail = document.createElement("div");
+    rail.className = "age-range-rail";
+    const fill = document.createElement("div");
+    fill.className = "age-range-fill";
+    rail.append(fill);
+    track.append(rail);
+    const values = shown.major ? { at: shown.at } : { from: shown.from, to: shown.to };
+    const names = { at: "Age paid", from: "From age", to: "To age" };
+    const knobs = {};
+    for (const name of Object.keys(values)) {
+      const knob = document.createElement("div");
+      knob.className = "age-range-knob";
+      knob.id = fieldId(name === "to" ? toPath : path);
+      knob.tabIndex = 0;
+      knob.dataset.knob = name;
+      knob.setAttribute("role", "slider");
+      knob.setAttribute("aria-label", names[name]);
+      knob.setAttribute("aria-valuemin", String(low));
+      knob.setAttribute("aria-valuemax", String(high));
+      knob.addEventListener("keydown", (event) => {
+        const range = bounds(name);
+        const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 5, PageDown: -5 }[event.key];
+        const next = step ? values[name] + step : event.key === "Home" ? range[0] : event.key === "End" ? range[1] : null;
+        if (next === null) return;
+        event.preventDefault();
+        move(name, next);
+      });
+      knobs[name] = knob;
+      rail.append(knob);
+    }
+    let set = shown.set;
+    // The ages a knob may take: a monthly row's From knob never passes its To knob, nor the To knob its From knob.
+    const bounds = (name) => (name === "from" ? [low, values.to] : name === "to" ? [values.from, high] : [low, high]);
+    const place = (age) => (high > low ? ((age - low) / (high - low)) * 100 : 0);
+    const draw = () => {
+      for (const [name, knob] of Object.entries(knobs)) {
+        const range = bounds(name);
+        knob.style.left = place(values[name]) + "%";
+        knob.setAttribute("aria-valuenow", String(values[name]));
+        knob.setAttribute("aria-valuetext", name === "at" && !set ? "No age yet, not paid" : "Age " + values[name]);
+        knob.setAttribute("aria-valuemin", String(range[0]));
+        knob.setAttribute("aria-valuemax", String(range[1]));
+        knob.classList.toggle("is-default", name === "at" && !set);
+      }
+      fill.style.left = (shown.major ? place(values.at) : place(values.from)) + "%";
+      fill.style.width = (shown.major ? 0 : place(values.to) - place(values.from)) + "%";
+      text.textContent = expenseAgeKnobs(getPath(state.inputs, path.replace(/\.year$/, "")), low, high, rules).text;
+    };
+    // Move a knob to `age` (kept within its bounds) and store it; nothing is stored when the knob does not move.
+    const move = (name, age) => {
+      const range = bounds(name);
+      const next = Math.min(range[1], Math.max(range[0], Math.round(age)));
+      if (next === values[name] && (name !== "at" || set)) return;
+      values[name] = next;
+      set = true;
+      const stored = expenseAgeStored(name, next, low, high);
+      if ("toAge" in stored && name === "at") setPath(state.inputs, toPath, stored.toAge);
+      if ("year" in stored) setValue(path, stored.year);
+      else setValue(toPath, stored.toAge);
+      draw();
+    };
+    const ageAt = (clientX) => {
+      const box = rail.getBoundingClientRect();
+      const share = box.width > 0 ? Math.min(1, Math.max(0, (clientX - box.left) / box.width)) : 0;
+      return Math.round(low + share * (high - low));
+    };
+    let dragging = null;  // {name, pointerId}; name is null until a drag between two knobs at one age picks a side
+    track.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      const age = ageAt(event.clientX);
+      let name = "at";
+      if (!shown.major) {
+        if (values.from === values.to) name = age < values.from ? "from" : age > values.to ? "to" : null;
+        else name = Math.abs(age - values.from) <= Math.abs(age - values.to) ? "from" : "to";
+      }
+      dragging = { name, pointerId: event.pointerId, start: age };
+      track.setPointerCapture(event.pointerId);
+      if (name) {
+        knobs[name].focus({ preventScroll: true });
+        move(name, age);
+      } else {
+        knobs.to.focus({ preventScroll: true });
+      }
+    });
+    track.addEventListener("pointermove", (event) => {
+      if (!dragging || dragging.pointerId !== event.pointerId) return;
+      const age = ageAt(event.clientX);
+      if (!dragging.name) {
+        if (age === dragging.start) return;
+        dragging.name = age < dragging.start ? "from" : "to";
+        knobs[dragging.name].focus({ preventScroll: true });
+      }
+      move(dragging.name, age);
+    });
+    const stop = (event) => {
+      if (dragging && dragging.pointerId === event.pointerId) dragging = null;
+    };
+    track.addEventListener("pointerup", stop);
+    track.addEventListener("pointercancel", stop);
+    draw();
+    wrap.append(track);
+    const ends = document.createElement("div");
+    ends.className = "age-range-ends";
+    ends.setAttribute("aria-hidden", "true");
+    ends.innerHTML = "<span></span><span></span>";
+    ends.children[0].textContent = String(low);
+    ends.children[1].textContent = String(high);
+    wrap.append(ends);
+    if (shown.outside) {
+      const note = document.createElement("p");
+      note.className = "field-help age-range-note";
+      note.textContent = "A saved age falls outside this run (ages " + low + " to " + high + "); the slider shows "
+        + "the nearest end and keeps the saved age until you move a knob.";
+      wrap.append(note);
+    }
+    return wrap;
+  }
+
+  // A nullable sheet choice as an inset row of radio buttons with every real option showing, thin lines between them
+  // (an expense row's Tax deduction and Taxable); there is no blank button. A blank that shows its source's value
+  // (Taxable: the row's default) shows that value's button picked and underlined as the one it follows; a blank with
+  // no source value (a row taxed by its state's own rule) picks none. A clearable choice (RADIO_CLEARABLE: Tax
+  // deduction) is cleared to blank by tapping, Space or Enter on the picked button. One stop in the tab order; the
+  // arrow keys, Home and End move the choice. Picking one stores it in place, as the select did.
+  function radioSegmentedField(field, path) {
+    const id = fieldId(path);
+    const wrap = fieldShell(field.label, field.help, null);
+    const group = document.createElement("div");
+    group.className = "segmented segmented-inset";
+    group.setAttribute("role", "radiogroup");
+    group.setAttribute("aria-label", field.label);
+    group.id = id;
+    const at = sheetItemOf(path);
+    const clearable = Boolean(at && (RADIO_CLEARABLE[at.type] || []).includes(at.name));
+    const options = field.choices.slice();
+    const stored = () => (getPath(state.inputs, path) == null ? null : getPath(state.inputs, path));
+    const buttons = options.map((choice) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.setAttribute("role", "radio");
+      button.dataset.choice = String(choice);
+      button.textContent = choiceLabel(field, choice, NULL_LABELS[field.name]);
+      button.addEventListener("click", () => pick(clearable && sameValue(choice, stored()) ? null : choice, button));
+      return button;
+    });
+    const show = () => {
+      const value = stored();
+      const fallback = value == null ? sheetDefaultOf(path) : null;
+      const shown = fallback ? fallback.value : value;
+      buttons.forEach((button, position) => {
+        const checked = shown != null && sameValue(options[position], shown);
+        button.setAttribute("aria-checked", String(checked));
+        button.classList.toggle("is-followed", Boolean(fallback) && checked);
+      });
+      const tabbed = buttons.find((button) => button.getAttribute("aria-checked") === "true") || buttons[0];
+      buttons.forEach((button) => { button.tabIndex = button === tabbed ? 0 : -1; });
+    };
+    // Store `choice` (null clears) and keep the focus on the picked button, else on `from`, the button pressed.
+    const pick = (choice, from) => {
+      if (sameValue(choice, stored())) return;
+      setValue(path, choice);
+      show();
+      group.dispatchEvent(new Event("change", { bubbles: true }));
+      afterSheetEdit(path);
+      if (isConditionPath(path)) refreshForm();
+      const holder = document.getElementById(id);
+      const redrawn = holder && (holder.querySelector("[aria-checked=\"true\"]")
+        || Array.from(holder.querySelectorAll("[role=radio]")).find((button) => from
+          && button.dataset.choice === from.dataset.choice));
+      if (redrawn) redrawn.focus();
+    };
+    group.addEventListener("keydown", (event) => {
+      const at = buttons.indexOf(document.activeElement);
+      if (at < 0) return;
+      const last = buttons.length - 1;
+      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+      const next = step ? (at + step + buttons.length) % buttons.length
+        : event.key === "Home" ? 0 : event.key === "End" ? last : null;
+      if (next === null) return;
+      event.preventDefault();
+      pick(options[next], buttons[next]);
+    });
+    show();
+    group.append(...buttons);
+    wrap.append(group);
+    return wrap;
   }
 
   // A sheet choice of a few options as a segmented toggle (a car's Replace by: Years, Miles, Both; its How it is paid:
@@ -6625,6 +7685,9 @@
   // redraws, dropped for a path whose items were removed (the positions no longer hold).
   const listSelections = {};
   const listKey = (path, filter) => path + (filter ? " " + JSON.stringify(filter) : "");
+  // Lists whose order means nothing (children, homes, cars): no Move up, Move down or drag handle; Delete stays.
+  const UNORDERED_TYPES = new Set(["Child", "Home", "Car"]);
+  const isUnordered = (type) => UNORDERED_TYPES.has(type);
 
   function clearSelections(path) {
     for (const key of Object.keys(listSelections)) if (key === path || key.startsWith(path + " ")) delete listSelections[key];
@@ -6642,7 +7705,7 @@
   }
 
   // The bar under an ordered list: Move up, Move down and Delete act on the ticked items (Delete asks for a second tap).
-  function reorderBar(key, path, label, shown, selected) {
+  function reorderBar(key, path, label, shown, selected, ordered = true) {
     const bar = document.createElement("div");
     bar.className = "list-bar";
     bar.setAttribute("role", "toolbar");
@@ -6671,11 +7734,10 @@
       });
       return button;
     };
-    bar.append(
+    if (ordered) bar.append(
       action("up", "Move up", "button-quiet", (items, picked) => moveSelected(items, picked, -1, shown)),
-      action("down", "Move down", "button-quiet", (items, picked) => moveSelected(items, picked, 1, shown)),
-      action("delete", "Delete", "button-danger", (items, picked) => deleteSelected(items, picked)),
-      count);
+      action("down", "Move down", "button-quiet", (items, picked) => moveSelected(items, picked, 1, shown)));
+    bar.append(action("delete", "Delete", "button-danger", (items, picked) => deleteSelected(items, picked)), count);
     bar.refresh = () => {
       const picked = selected();
       for (const button of bar.querySelectorAll("button")) {
@@ -6685,7 +7747,7 @@
           button.textContent = "Delete";
         }
       }
-      count.textContent = picked.length ? picked.length + " ticked" : "Tick items to move or delete them";
+      count.textContent = picked.length ? picked.length + " ticked" : ordered ? "Tick items to move or delete them" : "Tick items to delete them";
     };
     bar.refresh();
     return bar;
@@ -6760,7 +7822,8 @@
     const shown = filteredPositions(value, filter);
     listSelections[key] = (listSelections[key] || []).filter((position) => shown.includes(position));
     const selected = () => listSelections[key];
-    const bar = reorderBar(key, path, field.label, shown, selected);
+    const ordered = !isUnordered(field.type);
+    const bar = reorderBar(key, path, field.label, shown, selected, ordered);
     shown.forEach((position, index) => {
       const item = value[position];
       const summary = itemSummary(field.type, item);
@@ -6792,7 +7855,8 @@
       button.setAttribute("aria-label", "Edit " + (summary.name || "item") + ", position " + (index + 1));
       button.dataset.position = String(position);
       button.addEventListener("click", () => openSheet(field, path, position, false, filter));
-      row.append(tick, button, dragHandle(key, path, position, name, shown, list));
+      row.append(tick, button);
+      if (ordered) row.append(dragHandle(key, path, position, name, shown, list));
       list.append(row);
     });
     if (!shown.length) {
@@ -6826,6 +7890,10 @@
       const usual = field.type === "Account" && state.info.usualReturns[item.kind];
       if (usual) [item.meanReturn, item.returnStdDev] = usual;  // a new account starts with its kind's usual returns
       if (field.type === "Child") item.yourAgeAtBirth = state.inputs.you.currentAge;  // a new child is born this year
+      // A new Major Spending row is paid this year until its knob moves (with no From age it would never be paid).
+      if (field.type === "ExpenseItem" && item.category === state.info.sheetRules.majorCategory && item.year == null) {
+        item.year = state.inputs.you.currentAge;
+      }
       // A loan added from inside its home's sheet keeps the home's sheet session to go back to.
       if (sheetOpen && sheetSession && path.startsWith(sheetOpen.path + "." + sheetOpen.position + ".")) {
         sheetSessionParents.push(sheetSession);
@@ -6926,8 +7994,8 @@
     note.textContent = item.category === rules.charityCategory
       ? "Charity amounts are per year, in today's dollars, and tax deductible; a Charity row is paid every year."
       : item.category === rules.majorCategory ? rules.majorCategory + " amounts are per year, in today's dollars, paid "
-        + "once in the year you are the age below." : "This amount is per month, in today's dollars.";
-    return note;
+        + "once in the year you are the age below." : "";
+    return note.textContent ? note : null;  // a monthly row needs no line: its amount reads Monthly
   }
 
   // The "Returns and basis" group of an account sheet: the returns in a disclosure, closed until opened, whose header
@@ -7056,6 +8124,7 @@
     // The type's titled sections (a child's Daycare and College) follow its other fields, each below a divider.
     const sections = ((state.schema.sheetSections || {})[field.type] || []).map((section) => ({ section, fields: [] }));
     for (const entry of layout.shown) {
+      if (field.type === "ExpenseItem" && entry.name === "toAge") continue;  // the year's ages slider has its knob
       const schemaChild = children.find((candidate) => candidate.name === entry.name);
       const label = sheetLabel(field.type, entry.name, items[position], state.info.sheetRules);
       const group = sheetGroup(field.type, entry.name, items[position], state.info.sheetRules);
@@ -7125,7 +8194,8 @@
       inputsChanged();
       closeSheet();
     });
-    actions.append(move(-1, "Move up"), move(1, "Move down"), remove);
+    if (!isUnordered(field.type)) actions.append(move(-1, "Move up"), move(1, "Move down"));
+    actions.append(remove);
     const onTimeline = sheetTimelineLink(field.type, position);  // a home, rent period or car: its years are there
     if (onTimeline) actions.prepend(onTimeline);
     body.append(actions);
@@ -8700,11 +9770,11 @@
   const WALK_SWAP_MS = 340;  // the overlapping slide and fade between two screens
   const WALK_FLASH_MS = 1000;  // the highlight of a question total that changed
   const WALK_SCREENS = ["start", "welcome", "review"];  // the screens that are not questions
-  // The effort the walkthrough's questions are filtered at, by the scenario's effort. The Low filter is held until
-  // G-B: Low asks the Medium questions meanwhile.
-  const WALK_PLAN_EFFORT = { low: "medium" };
+  // The walkthrough's questions are filtered at the scenario's effort (walkthroughPlan): Low asks the Low questions,
+  // and its retirement and medical plans open their guided sheets (openGuidedPlan).
+  const WALK_GUIDED = { plan401k: "retirement", medicalPlan: "medical" };  // a plan question and its guided sheet
   const walk = { saved: null, index: null, plan: null, open: false, busy: false, pending: null, swap: 0,
-    mapReturn: null, importing: false, lastTotal: null, flashTimer: null, unlockFrom: null };
+    mapReturn: null, importing: false, lastTotal: null, flashTimer: null, unlockFrom: null, fromLow: false };
 
   function walkSave() {
     saveExperience({ walk: walk.saved });  // with storage blocked `walk.saved` still keeps this visit consistent
@@ -8731,11 +9801,6 @@
     if (legacy !== null) {
       try { localStorage.removeItem(WALK_KEY); } catch (error) { /* storage blocked: nothing kept */ }
     }
-  }
-
-  // The effort walkthroughPlan filters the questions at, for the scenario's effort (WALK_PLAN_EFFORT).
-  function walkPlanEffort(effort) {
-    return hasOwn(WALK_PLAN_EFFORT, effort) ? WALK_PLAN_EFFORT[effort] : effort;
   }
 
   // The effort was raised from `previous`: a walkthrough that exists (not skipped) is offered again as "Continue the
@@ -8792,9 +9857,8 @@
   }
 
   async function walkReplan() {
-    const effort = walkPlanEffort(state.experience ? state.experience.effort : "high");
     const reply = await ask("walkthroughPlan", [JSON.stringify(state.inputs), JSON.stringify(walk.saved.opened),
-      effort]);
+      walkEffort()]);
     if (reply && reply.ok) walk.plan = reply;
     else if (!walk.plan) walk.plan = { questions: [], basicCount: 0, facts: null };
   }
@@ -8822,8 +9886,8 @@
     if (target === "start" && !walk.plan.offerImport) target = "welcome";
     if (!target || (!WALK_SCREENS.includes(target) && !walkRow(target))) target = firstUnanswered();
     if (walk.unlockFrom) {  // a raised effort: on to the first question it unlocked
-      const unlocked = firstUnlocked(walkRows(), walkPlanEffort(walk.unlockFrom),
-        walkPlanEffort(state.experience.effort));
+      if (walk.unlockFrom === "low") walk.fromLow = true;  // the screens it unlocks say the spending covers them
+      const unlocked = firstUnlocked(walkRows(), walk.unlockFrom, state.experience.effort);
       walk.unlockFrom = null;
       if (unlocked) target = unlocked;
     }
@@ -8845,6 +9909,7 @@
     $("walkActions").replaceChildren();
     $("app").inert = false;
     scheduleMc();
+    if (ended) walk.fromLow = false;
     if (ended && walk.tourAfter) {
       walk.tourAfter = false;
       setTimeout(() => { if (!walk.open) openFirstTour(); }, 0);
@@ -9035,14 +10100,21 @@
   function welcomeScreen() {
     const element = document.createElement("div");
     element.className = "walk-screen";
-    element.append(walkEyebrow("About 10 minutes"), walkHeading("Let's set up your plan"),
+    element.append(walkEyebrow(lowOn() ? "About 3 minutes" : "About 10 minutes"), walkHeading("Let's set up your plan"),
       walkParagraph("Each answer starts with your current setting, or an example if you have not entered one. "
         + "Change it to yours and tap Continue. Skip keeps what is shown. You can change anything later.",
         "walk-lede"));
     const start = walkButton("Start", "button walk-primary", null, true);
-    const skip = walkButton("Skip for now", "walk-quiet", () => {
+    const skip = walkButton("Skip for now", "walk-quiet", async () => {
+      if (walk.busy) return;
       const hinted = walk.saved.hinted;
       walk.saved.hinted = true;
+      walk.busy = true;
+      try {
+        await lowSkipClear();  // at Low the example's home, cars and loans go, as on a spending answer
+      } finally {
+        walk.busy = false;
+      }
       closeWalk("skipped");
       goTo("outputs", "summary");
       if (!hinted) walkToast("“Walk me through it...” is in the menu (top right) whenever you want it.");
@@ -9300,10 +10372,20 @@
     } else {
       element.append(head);
     }
-    if (node.hint && walk.plan.facts) {
-      element.append(walkParagraph(walkHint(node.hint.template, walk.plan.facts), "walk-lede walk-hint"));
+    const hintSpec = spendingHint(node, walk.plan.facts);  // the Low spending wording, else the question's own
+    if (hintSpec && walk.plan.facts) {
+      element.append(walkParagraph(walkHint(hintSpec.template, walk.plan.facts), "walk-lede walk-hint"));
+    }
+    if (walk.fromLow && LOW_RAISE_SCREENS.includes(id)) {  // raised from Low: the spending number still covers these
+      element.append(walkParagraph(LOW_RAISE_NOTE, "walk-lede walk-low-note"));
     }
     const actions = [];
+    if (row.control === "handoff" && lowOn()) {  // at Low only two accounts of a kind hand off: no Inputs page to open
+      element.append(walkParagraph("You have more than one account of a kind. Change them at Medium effort (Setup > "
+        + "Effort and style).", "walk-lede"));
+      actions.push(walkButton("Continue", "button walk-primary", null, true));
+      return { element, actions };
+    }
     if (row.control === "handoff") {
       const panel = node.handoff;
       element.append(walkParagraph("This is set on the " + panel.label + " page, where you can see and change every "
@@ -9317,8 +10399,24 @@
     if (node.action && node.action !== "balances") controls.append(walkAction(node));
     else node.fields.forEach((field, index) => controls.append(walkField(node, field, index)));
     element.append(controls);
+    const guided = lowOn() && WALK_GUIDED[id] && walkRead(state.inputs, node.fields[0].path)
+      && walk.plan.facts && walk.plan.facts[WALK_GUIDED[id] + "Summary"];
+    if (guided) {  // a plan that is on, at Low: its summary, and Change opens its guided sheet
+      const summary = document.createElement("div");
+      summary.className = "low-summary walk-summary";
+      summary.append(walkParagraph(guided, "low-summary-text"));
+      const change = walkButton("Change", "button button-quiet", () => walkGuided(id));
+      change.id = "walkGuidedChange";
+      summary.append(change);
+      element.append(summary);
+    }
+    if (id === "spending" && lowOn() && lowCovered(walk.plan.facts)) {  // items counted on top of the number
+      const remove = walkButton("Remove them", "button button-quiet walk-remove", walkRemoveCovered);
+      remove.id = "walkRemoveCovered";
+      element.append(remove, walkParagraph("or raise effort to Medium to edit them.", "walk-lede walk-remove-note"));
+    }
     const hint = element.querySelector(".walk-hint");
-    if (hint && node.hint.fact && !node.action) {
+    if (hint && hintSpec.fact && !node.action) {
       // A fact hint follows the shown answer as an edit ends (tap elsewhere, a choice, Enter): the facts of the inputs
       // with this answer applied, nothing saved. A shape-changing answer's hint describes what it replaces, so it stays.
       const refresh = () => walkRefreshHint(node, hint);
@@ -9359,20 +10457,27 @@
     if (walk.pending.touched) {
       if (hint.closest(".walk-screen").querySelector("[aria-invalid=true]")) return;
       const reply = await ask("walkthroughApply", [JSON.stringify(state.inputs), node.id,
-        JSON.stringify(walk.pending.values), "answer"]);
+        JSON.stringify(walk.pending.values), "answer", walkEffort()]);
       if (!reply || !reply.ok || !reply.facts) return;
       facts = reply.facts;
     }
     if (turn === walkHintTurn && hint.isConnected && facts) hint.textContent = walkHint(node.hint.template, facts);
   }
 
+  // The effort the walkthrough's answers are given at: the open scenario's.
+  function walkEffort() {
+    return state.experience ? state.experience.effort : "high";
+  }
+
   // Write the current question's answer: `answer` (Continue: the shown values, written only when one was changed; an
   // empty or invalid box is refused) or `skip` (no change). Returns false when it was refused, with the message under
-  // the field.
+  // the field. At Low the spending question always goes to the backend, which clears what is still the example
+  // household's home, cars and loans: Continue on the untouched example number sends that number, and Skip a skip.
   async function walkCommit(mode) {
     if (walk.busy) return false;
     const id = walk.saved.current;
     const row = walkRow(id);
+    const lowSpending = id === "spending" && lowOn();
     let applyMode = "skip";
     let values = null;
     let status = "skipped";
@@ -9388,23 +10493,28 @@
         if (walk.pending.touched) {
           applyMode = "answer";
           values = walk.pending.values;
+        } else if (lowSpending && walk.plan.facts && walk.plan.facts.coveredExample) {
+          applyMode = "answer";
+          values = { total: Math.round(walk.plan.facts.monthlySpending) };
         }
       }
     }
     walk.busy = true;
     try {
-      if (applyMode !== "skip") {
+      if (applyMode !== "skip" || lowSpending) {
         const reply = await ask("walkthroughApply", [JSON.stringify(state.inputs), id, JSON.stringify(values),
-          applyMode]);
+          applyMode, walkEffort()]);
         if (!reply || !reply.ok) {
           walkError(reply ? reply.error : "The answer was not saved; try again.");
           const field = $("walkStage").querySelector(".walk-screen:last-child input, .walk-screen:last-child select");
           if (field) field.focus();
           return false;
         }
-        state.inputs = reply.inputs;
-        renderSettings();
-        inputsChanged();
+        if (applyMode !== "skip" || (reply.changed && reply.changed.length)) {
+          state.inputs = reply.inputs;
+          renderSettings();
+          inputsChanged();
+        }
       }
       walk.saved.answers[id] = { status, values };
       walkSave();
@@ -9415,10 +10525,35 @@
     }
   }
 
+  // Answer and move on; at Low a plan question answered Yes first opens the plan's guided sheet (above the
+  // walkthrough).
   async function walkAnswerAndMove(mode) {
     const id = walk.saved.current;
     const following = walkAfter(id);
-    if (await walkCommit(mode)) walkGo(walkAfter(id, following), "forward");
+    if (!(await walkCommit(mode))) return;
+    if (mode === "answer" && WALK_GUIDED[id] && lowOn() && walkRead(state.inputs, walk.index[id].node.fields[0].path)) {
+      walk.busy = true;
+      try {
+        await openGuidedPlan(WALK_GUIDED[id]);
+        await walkReplan();
+      } finally {
+        walk.busy = false;
+      }
+    }
+    if (walk.open) walkGo(walkAfter(id, following), "forward");
+  }
+
+  // Change on a plan question's summary: the plan's guided sheet, then the same screen with the new summary.
+  async function walkGuided(id) {
+    if (walk.busy) return;
+    walk.busy = true;
+    try {
+      await openGuidedPlan(WALK_GUIDED[id]);
+      await walkReplan();
+    } finally {
+      walk.busy = false;
+    }
+    if (walk.open && walk.saved.current === id) showWalkScreen(id, "forward", false);
   }
 
   async function walkDeeper() {
@@ -9427,6 +10562,23 @@
     if (!walk.saved.opened.includes(id)) walk.saved.opened.push(id);
     await walkReplan();
     walkGo(walkAfter(id), "forward");
+  }
+
+  // Remove them on the Low spending screen: the homes, rent periods, cars, loans and utilities go (removeCovered),
+  // and the screen is drawn again with the new hint.
+  async function walkRemoveCovered() {
+    if (walk.busy) return;
+    walk.busy = true;
+    try {
+      if (!(await removeCovered())) {
+        walkError("They were not removed; try again.");
+        return;
+      }
+      await walkReplan();
+    } finally {
+      walk.busy = false;
+    }
+    if (walk.open) showWalkScreen(walk.saved.current, "forward", false);
   }
 
   // The form's submit (Continue, Enter in a field or a swipe forward): start, answer and move on, or finish; returns
@@ -9649,17 +10801,22 @@
     { title: "Your scenarios", page: "setup", target: "#savedCard",
       text: "Setup shows the scenario you are working on: save, rename, duplicate, clear or export it. Below it you "
         + "can open another scenario, start a new one or import a file." },
-    { title: "Your household", page: "setup", target: "#householdCard legend",
+    { title: "Your household", page: "setup", when: () => !lowOn(), target: "#householdCard legend",
       text: "Household holds your partner, your ages, how you file taxes and your home state." },
     { title: "Advanced settings", page: "setup", target: "#advancedSettings", opens: "#advancedSettings",
       text: "Advanced settings hold how every result is worked out: the Inflation-adjusted dollars switch (off shows "
         + "today's dollars), the years to plan for, how many runs (possible futures) sit behind each result, and the "
         + "random seed. The defaults suit most people." },
-    { title: "Groups of settings", page: "inputs", when: () => state.schema != null, target: "#chips-settings",
+    { title: "Groups of settings", page: "inputs", when: () => state.schema != null && !lowOn(),
+      target: "#chips-settings",
       text: "Your settings are in groups such as Income, Home and Retirement. Tap a group to open it, or slide the "
         + "row sideways to see more." },
-    { title: "Pin the groups", page: "inputs", when: () => state.schema != null && !wide.on, target: "#chipsPin",
+    { title: "Pin the groups", page: "inputs", when: () => state.schema != null && !wide.on && !lowOn(),
+      target: "#chipsPin",
       text: "The pin keeps the groups under the top bar while you scroll. Tap it to let them scroll away with the page." },
+    { title: "Your plan page", page: "inputs", when: () => lowOn(), target: "#lowPage",
+      text: "At Low effort your settings are one page: about you, pay, spending, savings, children and the "
+        + "retirement and medical plans. Every change reruns the plan." },
     { title: "Outputs views", page: "outputs", view: "summary", target: "#views-outputs",
       text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
     { title: "Summary", page: "outputs", view: "summary", target: "#view-summary",
@@ -9681,7 +10838,7 @@
         + "detail, Go deeper adds its extra questions." },
     { title: "Documentation", page: "menu", target: "#menuDocs",
       text: "Documentation opens the user guide, with the tax law and costs of every state." },
-    { title: "Appearance", page: "menu", target: "#menuScheme",
+    { title: "Appearance", page: "menu", target: "#menuAppearance",
       text: "Appearance picks the app's color scheme." },
     { title: "Final report (PDF)", page: "menu", target: "#menuReport",
       text: "Final report (PDF) makes a printable summary of this plan, with the detailed tables." },
@@ -9846,7 +11003,19 @@
     tourTapOff();
     tourCaption("Tap " + hop.label + " to continue", null, step.title);
     $("tourRing").hidden = true;
-    tourScrollInto(hop.button, token, () => tourHold(tour.move));
+    tourScrollInto(hop.button, token, () => {
+      // A chip cut off by its sideways-scrolling row (s421): the row centres it, then the ring holds on all of it.
+      const seen = tourVisibleBox(hop.button);
+      const box = hop.button.getBoundingClientRect();
+      if (seen && seen.left <= box.left + 1 && seen.right >= box.right - 1) { tourHold(tour.move); return; }
+      hop.button.scrollIntoView({ block: "nearest", inline: "center", behavior: tourScrollBehavior() });
+      tourSettle(hop.button, () => { if (token === tour.token && !$("tour").hidden) tourHold(tour.move); });
+    });
+  }
+
+  // How the tour scrolls a control sideways into its row: smooth, or at once with reduced motion or at tour speed 0.
+  function tourScrollBehavior() {
+    return reducedMotion() || tourMs(1) === 0 ? "instant" : "smooth";
   }
 
   // Ring the control a hop taps with one pulse (none with reduced motion), then hold the ring there with the tap
@@ -9854,13 +11023,14 @@
   function tourHold(move) {
     if (!move || move !== tour.move || move.token !== tour.token) return;
     const ring = $("tourRing");
-    if (!ringOver(move.hop.button)) {
-      if (move.retried) { tourAdvance(); return; }
-      move.retried = true;  // the layout changed under the scroll: there at once, once it has settled
-      move.hop.button.scrollIntoView({ block: "center", inline: "nearest" });
+    const seen = tourVisibleBox(move.hop.button);
+    if (!move.retried && (!seen || !seen.whole)) {
+      move.retried = true;  // the layout changed under the scroll: there (centred in its row), once it has settled
+      move.hop.button.scrollIntoView({ block: "nearest", inline: "center", behavior: tourScrollBehavior() });
       tourSettle(move.hop.button, () => tourHold(move));
       return;
     }
+    if (!ringOver(move.hop.button)) { tourAdvance(); return; }  // still not drawn after the retry: tapped at once
     move.phase = "held";
     const pulse = !reducedMotion() && tourMs(1) > 0;
     $("tour").style.setProperty("--tour-pulse-ms", (pulse ? tourMs(TOUR_PULSE_MS) : 0) + "ms");
@@ -9921,7 +11091,8 @@
     const move = tour.move;
     if (!move || move.phase === "going" || $("tour").hidden) return;
     const hop = tourHop(move.step);
-    if (move.phase === "held" && hop && hop.button === move.hop.button && tourVisibleBox(hop.button)) {
+    if (move.phase === "held" && hop && hop.button === move.hop.button
+      && (tourVisibleBox(hop.button) || {}).whole) {
       placeTourRing();
       return;
     }
@@ -10107,7 +11278,7 @@
   // The menu, shown or hidden for the tour's steps that point into it (no focus change; the tour card keeps focus).
   function tourMenu(open) {
     if (!open && $("menu").hidden) return;
-    if (open) markScheme();
+    if (open) { markScheme(); closeAppearance(); }
     $("menu").hidden = !open;
     $("menuBackdrop").hidden = !open;
     $("menuButton").setAttribute("aria-expanded", String(open));
@@ -10298,6 +11469,7 @@
     $("legalClose").addEventListener("click", closeLegal);
     $("legalBackdrop").addEventListener("click", closeLegal);
     $("legalDocs").addEventListener("click", showLegalDocument);
+    $("menuAppearance").addEventListener("click", toggleAppearance);
     for (const button of document.querySelectorAll(".scheme")) {
       button.addEventListener("click", () => setScheme(button.dataset.scheme));
     }

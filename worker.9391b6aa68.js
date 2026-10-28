@@ -11,7 +11,9 @@
 // another budget of runs, false ends it with the best so far. A search's progress carries its `checkpoint` (JSON text
 // that a new search started with it resumes from) at most every CHECKPOINT_MS, at its run budget and when it pauses,
 // since the page stores no more often; {fn: "pause", target} holds it after its batch (the page went to the
-// background; the paused time is not counted) until {fn: "resume", target}.
+// background; the paused time is not counted) until {fn: "resume", target}. A Monte Carlo sent with `partialRuns`
+// posts one partial result, its progress's `partial` (the result of the runs done so far, from the same seed and
+// runs), once that many or more are done and some are still to come.
 "use strict";
 
 // The host refuses .whl and .zip files, so they are published as *_whl.wasm / *_zip.wasm with unchanged bytes.
@@ -24,7 +26,7 @@ self.fetch = (input, init) => {
 
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
-const MODEL_FILE = "wmti.1c3a6bea9a.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.25ccd91857.wasm";  // the build gives it a content-hashed name
 const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;
@@ -97,7 +99,8 @@ function callWeb(job) {
 }
 
 function startBatched(job) {
-  batched = { id: job.id, fn: job.fn, batches: webCall(BATCHED[job.fn])(...job.args), started: performance.now() };
+  batched = { id: job.id, fn: job.fn, batches: webCall(BATCHED[job.fn])(...job.args), started: performance.now(),
+    partialRuns: job.fn === "monteCarlo" && job.partialRuns > 0 ? job.partialRuns : null };
 }
 
 function stopBatched(reply) {
@@ -123,17 +126,23 @@ function advanceBatched() {
     job.progress = progress;
     const due = job.fn === "optimize"
       && (progress.capped || performance.now() - (job.checkpointAt || 0) >= CHECKPOINT_MS);
-    postProgress(job, due);
+    let partial;
+    if (job.partialRuns && progress.done >= job.partialRuns) {
+      job.partialRuns = null;  // one partial result per job
+      partial = JSON.parse(job.batches.result());
+    }
+    postProgress(job, due, partial);
   }
 }
 
-// Post a batched job's latest progress; with `withCheckpoint`, a search's checkpoint too.
-function postProgress(job, withCheckpoint) {
+// Post a batched job's latest progress; with `withCheckpoint`, a search's checkpoint too; `partial`, a Monte Carlo's
+// partial result.
+function postProgress(job, withCheckpoint, partial) {
   const progress = job.progress;
   if (withCheckpoint) job.checkpointAt = performance.now();
   post({ id: job.id, kind: "progress", done: progress.done, total: progress.total, scenario: progress.scenario,
     detail: progress.detail, ms: Math.round(performance.now() - job.started),
-    checkpoint: withCheckpoint ? job.batches.checkpoint() : undefined });
+    checkpoint: withCheckpoint ? job.batches.checkpoint() : undefined, partial });
 }
 
 async function pump() {

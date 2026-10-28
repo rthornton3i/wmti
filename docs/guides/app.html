@@ -58,6 +58,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#look-and-color-scheme">Look and color scheme</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#terms-and-agreement">Terms and agreement</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#effort-and-style">Effort and style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#low-effort">Low effort</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#walkthrough">Walkthrough</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#help">Help</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#where-surplus-cash-goes">Where surplus cash goes</a></li>
@@ -1090,7 +1091,10 @@ the step’s title and says “Tap Inputs to continue” (a polite live region),
 page scrolls at a readable pace (about 900 px a second, 0.4 to 1.5 s, eased) to
 the control to tap (the bottom tab, the view’s chip, the menu button or the
 section’s header), the ring pulses on it once and then holds there with a tap
-badge (a hand) on its corner. Nothing moves on by itself: a tap on the control,
+badge (a hand) on its corner. A view’s chip that its sideways-scrolling chips row
+cuts off on a phone (Compare or Optimize on a narrow screen) is first scrolled to
+the middle of the row, so the ring and badge hold on the whole chip (at once with
+reduced motion); a resize mid-hop centres it again. Nothing moves on by itself: a tap on the control,
 on the badge or on Next takes the hop, the page slides in as a swipe slides it
 (opened at its top), the menu opens or the section opens, and the next hop holds
 the same way (Setup to Plots is the Outputs tab, then the Plots chip); only then
@@ -1122,7 +1126,7 @@ values shrink with the screen (down to 11 px) so even “Running…” fits.</p>
 <p>The top bar has no account button: scenarios live on Setup. The menu button opens a
 menu: Walk me through it… (see Walkthrough below), Effort and style… (see
 <a class="reference internal" href="#app-experience"><span class="std std-ref">Effort and style</span></a> below), Documentation (see
-<a class="reference internal" href="#app-documentation"><span class="std std-ref">Documentation</span></a> below), Appearance, Help and tips (a few
+<a class="reference internal" href="#app-documentation"><span class="std std-ref">Documentation</span></a> below), Appearance (opens the color schemes), Help and tips (a few
 lines in the menu; swiping is one line, “Swipe the page sideways on Inputs or Outputs to move to the next group or view.”), Install app (only in the GitHub Pages build, the installable web app), About, which opens in its own window (Close, a tap outside or
 Escape closes it), and Legal, a window with a short disclaimer, the date the
 Terms were agreed to and each legal document as plain text (see
@@ -1140,7 +1144,10 @@ Strategies) opens the chosen state’s law page (<code class="docutils literal n
 artifact build, which can only open the documentation’s home, the link says <em>Open the
 documentation</em> instead (<code class="docutils literal notranslate"><span class="pre">stateRulesText</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>). The address comes from the build
 (<code class="docutils literal notranslate"><span class="pre">DOCS_LOCATIONS</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/build.py</span></code>, read by <code class="docutils literal notranslate"><span class="pre">docsLink</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>).</p>
-<p>Appearance holds every color scheme: Lagoon and hibiscus (the default), Sunset over the motu,
+<p>Appearance is one menu entry with a chevron; tapping it opens its color schemes in place
+under it (as Help and tips opens its lines), and tapping it again folds them away. The menu
+always opens with them folded, and choosing a scheme leaves the menu and the schemes open.
+It holds every color scheme: Lagoon and hibiscus (the default), Sunset over the motu,
 Palm and sand, Night lagoon (dark) and Match phone (stored as <code class="docutils literal notranslate"><span class="pre">device</span></code>; Lagoon and hibiscus in
 light mode, Night lagoon in dark mode); each has a swatch and the current one
 is ticked. The choice applies at once and is kept in this browser
@@ -1186,16 +1193,24 @@ browser tests’ <code class="docutils literal notranslate"><span class="pre">op
 </section>
 <section id="effort-and-style">
 <span id="app-experience"></span><h3>Effort and style<a class="headerlink" href="#effort-and-style" title="Link to this heading"></a></h3>
-<p><em>Effort</em> sets how much the app asks: <strong>Low</strong> (just the basics), <strong>Medium</strong> (the
-usual detail behind them) or <strong>High</strong> (every input). <em>Style</em> sets how it talks:
-<strong>Accountant</strong> (plain figures), <strong>Coach</strong> (guidance and tips) or <strong>Gamer</strong>
-(progress and milestones). Neither changes a result. In this release nothing is
-hidden by effort yet and Coach and Gamer talk like Accountant; the choice is
-kept so later releases can use it. The choices and their one-line blurbs come
+<p><em>Effort</em> sets how much the app asks: <strong>Low</strong> (pay, savings and monthly
+spending), <strong>Medium</strong> (adds retirement age, the 401k match, home, cars, loans
+and Social Security) or <strong>High</strong> (everything). <em>Style</em> sets how results are
+shown: <strong>Accountant</strong> (numbers and tables), <strong>Coach</strong> (plus next steps and tips)
+or <strong>Gamer</strong> (plus quests, awards and mini games). Neither changes a result. At Low the Inputs tab is
+one short page and the walkthrough asks the Low questions only (see
+<a class="reference internal" href="#app-low-effort"><span class="std std-ref">Low effort</span></a>); Medium and High still show every input, and Coach and
+Gamer talk like Accountant; the choice is kept so later releases can use it. The choices and their descriptions come
 from <code class="docutils literal notranslate"><span class="pre">appInfo().experience</span></code> (<code class="docutils literal notranslate"><span class="pre">EFFORT_CHOICES</span></code> and <code class="docutils literal notranslate"><span class="pre">STYLE_CHOICES</span></code> in
 <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.web</span></code>).</p>
-<p>The <strong>Effort and style</strong> card on Setup, below the Scenarios card, shows the two
-choices as radio groups with their blurbs and the note “You can switch effort
+<p>The <strong>Effort and style</strong> card on Setup, below the Scenarios card, shows the
+picker: effort as a vertical energy bar with a stop per level (High at the top,
+Low at the bottom; drag the bar, tap it or a level’s name, or use the arrow
+keys, Home and End when it has focus; the bar glows and buzzes more the higher
+the effort, and keeps still when the device asks for reduced motion), and style
+as three large buttons, the chosen one ringed with a <strong>Chosen</strong> badge. Each
+level, each style and both groups have an (i) button whose description opens
+below the picker. Under the picker is the note “You can switch effort
 and style any time on Setup or in the menu. Your answers are kept.” The menu’s
 <strong>Effort and style…</strong> opens the same choice as a pop-up: <strong>Save</strong> keeps it,
 <strong>Cancel</strong> (or Escape, or a tap outside) discards it. Below High the card reads
@@ -1226,6 +1241,74 @@ the scenario’s copy, so it does not ask again, and a new scenario starts with
 the open one’s. A scenario saved or exported before the pickers opens as High
 and Accountant, so a returning user sees no change.</p>
 </section>
+<section id="low-effort">
+<span id="app-low-effort"></span><h3>Low effort<a class="headerlink" href="#low-effort" title="Link to this heading"></a></h3>
+<p>At Low the app asks no home, car, loan or Medicare question. The Inputs tab is
+one page of cards, with no group chips (the band reads “Your plan”): <strong>About
+you</strong> (your age, “Is a partner part of this plan?” with the partner’s age and
+filing status once Yes, your state), <strong>Pay</strong> (yours and your partner’s),
+<strong>Spending</strong> (one monthly number, its hint and what the plan counts on top of
+it), <strong>Savings</strong> (Savings, Investments, Traditional 401k and Roth 401k),
+<strong>Children</strong> (Yes or No, then how many and each one’s age; a child you expect
+has a negative age), <strong>Retirement plan</strong> and <strong>Medical plan</strong> (Yes or No and,
+while on, a summary with <strong>Change</strong>), and <strong>More detail</strong> (“Homes, cars, loans
+and more detail are in Medium effort”, with <strong>Change effort</strong>). Setup’s
+Household card is hidden (its fields are on the page); Advanced settings stay.
+The ages, filing status, state and pay are the same controls as on the Inputs
+groups; the partner, spending, balances, children and plan answers are written
+through <code class="docutils literal notranslate"><span class="pre">walkthroughApply</span></code> at Low when their box is left (or on Enter), each
+one Undo step (<code class="docutils literal notranslate"><span class="pre">frontend/src/app/47-low.js</span></code>). With two accounts of one kind,
+that kind is read-only with the note “You have more than one account of a kind;
+change them at Medium effort.”</p>
+<p><strong>Guided plans.</strong> Yes on the retirement or medical plan turns it on and opens
+its guided pop-up (from <code class="docutils literal notranslate"><span class="pre">walkthroughTree</span></code>’s <code class="docutils literal notranslate"><span class="pre">guided</span></code>): a summary at the
+top that follows each answer (such as “Saving 10% of each person’s pay before
+tax. Your employer matches 4% of pay.” or “Medical plan: $450 a month for each
+person.”), then its questions (the 401k share, the employer matches, the
+premium); a follow-up shows only after its Yes, and the partner’s match only
+with a partner. <strong>Save</strong> keeps the answers as one Undo step; <strong>Cancel</strong>,
+Escape and a tap outside discard them. <strong>Change</strong> on the summary opens it
+again. No turns the plan off and keeps its other values.</p>
+<p><strong>The spending number covers housing, cars and loans.</strong> At Low the monthly
+spending counts rent or mortgage, car and loan payments, property taxes,
+utilities, food and the rest (health premiums are set with the medical plan),
+so nothing is counted twice (<code class="docutils literal notranslate"><span class="pre">wmti.dashboard.lowcover</span></code>):</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>When</p></th>
+<th class="head"><p>What happens</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A Low user answers (or skips) the spending question, or taps Skip for
+now on the walkthrough’s welcome</p></td>
+<td><p>The homes, rent periods, cars and loans that are still the example
+household’s are removed (the regular rows become the one number); Undo
+my answers puts them back.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The plan holds homes, rent periods, cars, loans or utility bills of its
+own (a Medium or High scenario switched to Low)</p></td>
+<td><p>Nothing changes by itself. The Spending card and the walkthrough’s
+spending screen say “Your plan also counts … on top of this number”
+with <strong>Remove them</strong> (one Undo step) and “or raise effort to Medium to
+edit them”.</p></td>
+</tr>
+<tr class="row-even"><td><p>A Low user with none of them raises the effort to Medium or High</p></td>
+<td><p>Nothing changes. Setup’s effort card says “Your monthly spending counts
+housing, cars and loans because none are entered. Lower it by what you
+add.” until the next effort change, and the walkthrough’s homes,
+mortgage, cars and loans screens say the same.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Opening or importing a scenario</p></td>
+<td><p>Nothing changes; the rules above apply to what it holds.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="walkthrough">
 <h3>Walkthrough<a class="headerlink" href="#walkthrough" title="Link to this heading"></a></h3>
 <p>“Walk me through it” asks for the main settings one question at a time, over
@@ -1246,7 +1329,12 @@ Raising the effort while a walkthrough exists offers “Continue the
 walkthrough…” again, and it opens on the first question the raise unlocked
 (<code class="docutils literal notranslate"><span class="pre">firstUnlocked</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; the questions are filtered by
 effort through <code class="docutils literal notranslate"><span class="pre">walkthroughPlan</span></code>’s <code class="docutils literal notranslate"><span class="pre">effort</span></code>). Lowering the effort keeps
-every answer. Until G-B, Low asks the Medium questions.</p>
+every answer. At Low the welcome reads “About 3 minutes” and the walkthrough
+asks the Low questions only: 13 for the example household, 9 for a single user
+with no children (your age, partner, state, pay, savings, the retirement plan,
+spending, children and the medical plan). Yes on the retirement or medical plan
+opens its guided pop-up above the walkthrough before the next question, and the
+plan’s screen then shows its summary with <strong>Change</strong> (see <a class="reference internal" href="#app-low-effort"><span class="std std-ref">Low effort</span></a>).</p>
 <p>A fresh walkthrough on the example household’s settings (a first visit, or after Load example household)
 first asks <em>How would you like to start?</em>. <strong>Start fresh</strong>, the main button, goes on to the welcome;
 <strong>Open my file</strong>, the quiet button under it, opens the same file picker as Setup’s Import; the file’s settings replace the current ones, named after the
@@ -1488,17 +1576,30 @@ keyboard closes (<code class="docutils literal notranslate"><span class="pre">en
 <p>The expense, account and loan sheets draw every field of their type, or leave
 one off by a named rule (<code class="docutils literal notranslate"><span class="pre">sheetFields</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; the
 categories and kinds come from <code class="docutils literal notranslate"><span class="pre">appInfo().sheetRules</span></code>). An expense sheet says
-whether the amount is per month or per year in today’s dollars; the <em>From age</em> and
-<em>To age (inclusive)</em> never show for Charity, nor the <em>Tax deduction</em> select (blank
-or one of <code class="docutils literal notranslate"><span class="pre">sheetRules.deductionCategories</span></code>), whose deduction is always Charity.
+whether the amount is per month or per year in today’s dollars. Its ages are one
+slider from your age today to your age in the run’s last year (<code class="docutils literal notranslate"><span class="pre">expenseAgesField</span></code>,
+<code class="docutils literal notranslate"><span class="pre">expenseAgeKnobs</span></code>): a monthly row has two knobs, <em>From age</em> and <em>To age</em>, and a knob
+at either end stores a blank (the start or the end of the run), so a new row runs the
+whole time; a Major Spending row has one knob, <em>Age paid</em>, which stores that age with a
+blank <em>To age</em> (paid once), and a new Major Spending row starts at your age today. The
+chosen ages read beside the label (“Age 40 to 65”, “Age 52”); each knob takes the arrow
+keys, Page Up and Page Down, Home and End. A saved age outside the run shows at the
+nearest end and is kept until a knob moves. The ages never show for Charity, nor the
+<em>Tax deduction</em> choice (one of <code class="docutils literal notranslate"><span class="pre">sheetRules.deductionCategories</span></code>, or none),
+whose deduction is always Charity.
+<em>Tax deduction</em> and <em>Taxable</em> show every real option at once as an inset row of radio
+buttons with thin lines between them (<code class="docutils literal notranslate"><span class="pre">RADIO_SEGMENTED</span></code>, <code class="docutils literal notranslate"><span class="pre">radioSegmentedField</span></code>; there
+is no None or Default button; the arrow keys, Home and End move the choice; the row wraps
+on a narrow phone rather than cutting a label). Tapping the picked <em>Tax deduction</em> again,
+or Space or Enter on it, clears it to none (<code class="docutils literal notranslate"><span class="pre">RADIO_CLEARABLE</span></code>).
 The <em>Exclude from child inflation</em>, <em>Education expense</em> and <em>Dependent care</em> ticks
 never show (those costs are entered on Children and Benefits); a row saved with
-one keeps it. The <em>Taxable</em> select (<code class="docutils literal notranslate"><span class="pre">ExpenseItem.taxable</span></code>: Default, Taxable or Not
-taxable; never shown for Charity) says whether the row pays sales tax (see
-<a class="reference internal" href="states.html#states-sales-tax"><span class="std std-ref">Sales tax</span></a>); while blank it shows the row’s default in gray
-(<code class="docutils literal notranslate"><span class="pre">SHEET_DEFAULTS</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>, from <code class="docutils literal notranslate"><span class="pre">sheetRules.taxableDefaults</span></code>, each suggested
-row’s default by name; a row you add is taxable), and <em>Default</em> for Groceries and
-Clothing, which follow the state’s own rule. Switching a row to Charity clears its ages, those ticks and its tax
+one keeps it. The <em>Taxable</em> choice (<code class="docutils literal notranslate"><span class="pre">ExpenseItem.taxable</span></code>: Yes or No; never shown
+for Charity) says whether the row pays sales tax (see <a class="reference internal" href="states.html#states-sales-tax"><span class="std std-ref">Sales tax</span></a>); while
+blank, the row’s default shows picked and underlined (<code class="docutils literal notranslate"><span class="pre">SHEET_DEFAULTS</span></code> in <code class="docutils literal notranslate"><span class="pre">shared.js</span></code>,
+from <code class="docutils literal notranslate"><span class="pre">sheetRules.taxableDefaults</span></code>, each suggested row’s default by name; a row you add is
+taxable), with neither picked for Groceries and Clothing, which follow the state’s own rule.
+Picking Yes or No stores it. Switching a row to Charity clears its ages, those ticks and its tax
 deduction, so the loader accepts it. An expense card shows “per month” or “per
 year”, “tax deductible” for Charity and “deductible:” with the deduction for a
 row that has one, its ages (“ages 50 to 60”, “from age 50”, “to age 60”, or “at age

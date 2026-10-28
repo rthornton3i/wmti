@@ -338,6 +338,7 @@
       return { marks, ticks, scaleY, positionOf, values: bins.map((bin) => bin.from), xAxis, yUnit: "percent" };
     },
     // The median line and its band; a series with `afterTax` (What beneficiaries keep) ends in the dashed step to its dot.
+    // A series with `innerLow` and `innerHigh` (the fan chart: 25th to 75th percentile) adds a darker inner band.
     bands(spec) {
       const values = spec.x.values;
       const series = spec.series[0];
@@ -352,8 +353,12 @@
       const lower = series.low.map((value, position) => [scaleX(position), scaleY(number(value))]).reverse();
       const median = series.values.map((value, position) => [scaleX(position), scaleY(number(value))]);
       const last = median[median.length - 1];
+      const inner = series.innerLow && series.innerHigh ? "<path class=\"band band-inner\" fill=\"" + color(series)
+        + "\" d=\"" + areaPath(series.innerHigh.map((value, position) => [scaleX(position), scaleY(number(value))])
+          .concat(series.innerLow.map((value, position) => [scaleX(position), scaleY(number(value))]).reverse()))
+        + "\"></path>" : "";
       const marks = "<path class=\"band\" fill=\"" + color(series) + "\" d=\"" + areaPath(upper.concat(lower))
-        + "\"></path><path class=\"line\" stroke=\"" + color(series) + "\" d=\"" + linePath(median) + "\"></path>"
+        + "\"></path>" + inner + "<path class=\"line\" stroke=\"" + color(series) + "\" d=\"" + linePath(median) + "\"></path>"
         + (last ? endDot(last[0], last[1], series) : "")
         + (marked && last ? heirsStep(last, right + AFTER_TAX.out, scaleY(number(series.afterTax)), color(series),
           HEIRS_LABEL + ": " + formatValue(series.afterTax, "money")) : "");
@@ -430,8 +435,10 @@
     if (spec.type === "bands") {
       const series = spec.series[0];
       const [low, high] = spec.percentiles || [10, 90];
+      const inner = series.innerLow && series.innerHigh ? (spec.innerPercentiles || [25, 75]) : null;
       return [{ name: "Median", series, key: "line" }, { name: low + "th to " + high + "th percentile", series,
-        key: "band" }].concat(series.afterTax != null ? [{ name: HEIRS_LABEL + " " + tickMoney(series.afterTax), series,
+        key: "band" }].concat(inner ? [{ name: inner[0] + "th to " + inner[1] + "th percentile", series,
+        key: "band-inner" }] : [], series.afterTax != null ? [{ name: HEIRS_LABEL + " " + tickMoney(series.afterTax), series,
         key: "dot" }] : []);
     }
     if (spec.type === "compareBands") {
@@ -660,9 +667,12 @@
     }
     if (spec.type === "bands") {
       const series = spec.series[0];
-      const rows = [["90th percentile", formatValue(series.high[position], unit), null],
-        ["Median", formatValue(series.values[position], unit), series],
-        ["10th percentile", formatValue(series.low[position], unit), null]];
+      const inner = Boolean(series.innerLow && series.innerHigh);
+      const rows = [["90th percentile", formatValue(series.high[position], unit), null]]
+        .concat(inner ? [["75th percentile", formatValue(series.innerHigh[position], unit), null]] : [],
+          [["Median", formatValue(series.values[position], unit), series]],
+          inner ? [["25th percentile", formatValue(series.innerLow[position], unit), null]] : [],
+          [["10th percentile", formatValue(series.low[position], unit), null]]);
       if (series.afterTax != null && position === spec.x.values.length - 1) {
         rows.push([HEIRS_LABEL + " (median)", formatValue(series.afterTax, unit), series]);
       }
@@ -905,8 +915,31 @@
     return copy;
   }
 
+  // The gauge of Summary at Low effort: a half circle whose one accent arc fills the share of runs that ended with money
+  // left (`share`, 0 to 1, of `runs` runs; `preview` while the full runs go on). No verdict: no good or bad wording or
+  // colours. The arcs use a path length of 100, so the filled arc's dash is the share in percent. Returns SVG markup.
+  const GAUGE = { width: 200, height: 116, radius: 84, stroke: 18 };
+  function gaugeLabel(share) {
+    return "Chance your money lasts: " + percent(share, 0) + " of runs ended with money left";
+  }
+
+  function renderGauge({ share, runs, preview }) {
+    const shown = Math.min(1, Math.max(0, number(share)));
+    const middle = GAUGE.width / 2;
+    const base = GAUGE.radius + GAUGE.stroke / 2;
+    const arc = "M" + (middle - GAUGE.radius) + "," + base + "A" + GAUGE.radius + "," + GAUGE.radius + " 0 0 1 "
+      + (middle + GAUGE.radius) + "," + base;
+    return "<svg class=\"gauge\" viewBox=\"0 0 " + GAUGE.width + " " + GAUGE.height + "\" role=\"img\" aria-label=\""
+      + escapeText(gaugeLabel(shown)) + "\" data-runs=\"" + escapeText(runs) + "\"" + (preview ? " data-preview=\"true\"" : "")
+      + "><path class=\"gauge-track\" d=\"" + arc + "\" pathLength=\"100\" stroke-width=\"" + GAUGE.stroke
+      + "\"></path><path class=\"gauge-arc\" d=\"" + arc + "\" pathLength=\"100\" stroke-width=\"" + GAUGE.stroke
+      + "\" stroke-dasharray=\"" + round(shown * 100) + " 100\"></path><text class=\"gauge-figure\" x=\"" + middle
+      + "\" y=\"" + (base - 4) + "\" text-anchor=\"middle\">" + escapeText(percent(shown, 0)) + "</text></svg>";
+  }
+
   const api = { TYPES, renderChart, renderTable, renderFrame, renderUnitsTable, unitCell, attachChart, chartSummary,
-    niceTicks, fullScreenSize, attachFullScreen, readoutRows, hasAfterTax, withoutAfterTax, HEIRS_LABEL, BASE_SIZE };
+    niceTicks, fullScreenSize, attachFullScreen, readoutRows, hasAfterTax, withoutAfterTax, renderGauge, gaugeLabel,
+    HEIRS_LABEL, BASE_SIZE };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiCharts = api;
 })(typeof self !== "undefined" ? self : this);

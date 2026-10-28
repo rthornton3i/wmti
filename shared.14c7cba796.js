@@ -711,6 +711,14 @@
   // are the extra miles beyond the commute, a car owned today's purchase price is the price paid, and a figure takes
   // its `switchLabels` label while that switch is on (a car bought later shows its loan term).
   function sheetLabel(typeName, name, item, rules) {
+    // An expense's amount says only how often: per year for Major Spending and Charity rows, per month for the rest.
+    if (typeName === "ExpenseItem" && name === "amount" && item) {
+      return [rules.majorCategory, rules.charityCategory].includes(item.category) ? "Annually" : "Monthly";
+    }
+    // Its From and To ages are one slider: two knobs, or one for a Major Spending row paid in one year.
+    if (typeName === "ExpenseItem" && name === "year" && item) {
+      return item.category === rules.majorCategory ? "Age paid" : "Ages";
+    }
     if (typeName === "Car" && name === "otherMilesPerYear" && item && item.commutes) return rules.carExtraMilesLabel;
     if (typeName === "Car" && name === "purchasePrice" && item && !item.buysLater && rules.carPricePaidLabel) {
       return rules.carPricePaidLabel;
@@ -807,6 +815,36 @@
     if (from != null) return (item.category === rules.majorCategory ? "at age " : "from age ") + from;
     if (to != null) return "to age " + to;
     return "";
+  }
+
+  // The knobs of an expense row's ages slider on a track from `low` (your age today) to `high` (your age in the
+  // run's last year). A Major Spending row has one knob (`at`: its From age, else your age today with `set` false, as
+  // a row with no From age is never paid); any other row two (`from`, `to`: a blank From age sits at the start, a blank
+  // To age at the end). A stored age outside the track shows at its nearest end (`outside` true) and is not rewritten.
+  // `text` reads the ages shown: "Age 40 to 65", "Age 52", or "No age yet: not paid".
+  function expenseAgeKnobs(item, low, high, rules) {
+    const clamp = (age) => Math.min(high, Math.max(low, Number(age)));
+    const away = (age) => age != null && (Number(age) < low || Number(age) > high);
+    const outside = away(item.year) || away(item.toAge);
+    if (item.category === rules.majorCategory) {
+      const set = item.year != null;
+      const at = set ? clamp(item.year) : low;
+      const until = set && item.toAge != null ? clamp(item.toAge) : at;
+      const text = !set ? "No age yet: not paid" : until > at ? "Age " + at + " to " + until : "Age " + at;
+      return { major: true, at, set, outside, text };
+    }
+    const from = item.year == null ? low : clamp(item.year);
+    const to = Math.max(from, item.toAge == null ? high : clamp(item.toAge));
+    return { major: false, from, to, set: true, outside, text: to > from ? "Age " + from + " to " + to : "Age " + from };
+  }
+
+  // What a knob of the ages slider moved to `age` stores ({field: value}): a Major Spending row's one knob its From
+  // age, paid once (a blank To age); the From knob at the start of the track a blank From age (the start of the run),
+  // the To knob at the end a blank To age (the end), else the age.
+  function expenseAgeStored(knob, age, low, high) {
+    if (knob === "at") return { year: age, toAge: null };
+    if (knob === "from") return { year: age <= low ? null : age };
+    return { toAge: age >= high ? null : age };
   }
 
   // Config A and Config B from the stored choice (a list; older pages kept up to four names): a name no longer on
@@ -1946,8 +1984,28 @@
     return "Inputs " + inputs + "%, Outputs " + (100 - inputs) + "%";
   }
 
+  // ---- The effort and style picker's energy bar (s420) ----
+  // The level (0 = the lowest) a drag released at `fraction` of the bar's height (0 bottom, 1 top) chooses: the one
+  // whose equal share of the bar holds it, so a third each for `count` 3. Out-of-range fractions clamp.
+  function pickerLevelAt(fraction, count) {
+    if (!(count > 0)) return 0;
+    const level = Math.floor((isFinite(fraction) ? fraction : 0) * count);
+    return Math.min(count - 1, Math.max(0, level));
+  }
+
+  // The level after `key` on the bar at level `index` of `count`: Arrow Up or Right one up, Arrow Down or Left one
+  // down, Home the lowest, End the highest, never past either end; null for any other key.
+  function pickerKeyLevel(index, key, count) {
+    const top = Math.max(0, count - 1);
+    if (key === "ArrowUp" || key === "ArrowRight") return Math.min(top, index + 1);
+    if (key === "ArrowDown" || key === "ArrowLeft") return Math.max(0, index - 1);
+    if (key === "Home") return 0;
+    if (key === "End") return top;
+    return null;
+  }
+
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
@@ -1956,7 +2014,8 @@
     effortRank, tierShown,
     defaultedInputCount, firstUnlocked, yearsToAge100, planYears, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
-    docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText };
+    docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText,
+    pickerLevelAt, pickerKeyLevel };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);
