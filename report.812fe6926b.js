@@ -1226,11 +1226,86 @@
     return { bodyPages, pages };
   }
 
+  // ---- the ledger (CSV) ----
+  // A CSV text cell: blank for none; quoted when it holds a comma, quote or line break (quotes doubled); prefixed with
+  // ' when it starts with =, +, -, @, a tab or a carriage return, so a spreadsheet never reads it as a formula.
+  function csvText(value) {
+    if (value == null) return "";
+    let text = String(value);
+    if (text === "") return "";
+    if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
+    return /[",\r\n]/.test(text) ? "\"" + text.replace(/"/g, "\"\"") + "\"" : text;
+  }
+
+  // A CSV number cell of `column`: as it is for ages, years and counts (PLAIN_COLUMN), to 4 decimals for the inflation
+  // index, else whole dollars (-0 printed 0).
+  function csvNumber(column, value) {
+    if (!Number.isFinite(value)) return "";
+    if (PLAIN_COLUMN.test(column)) return String(value);
+    if (/Inflation/.test(column)) return value.toFixed(4);
+    const whole = Math.round(value);
+    return String(whole === 0 ? 0 : whole);
+  }
+
+  // The year-by-year ledger of a Monte Carlo's `tables` (the middle half average the Final report prints) as CSV text:
+  // a Year column (`firstYear` plus the years since your first age), the summary columns, the account columns (its
+  // age columns left out), then the taxes-by-year and deductions-by-year columns, each frame only when it has the
+  // summary's row count. A name already used gets " (accounts)", " (taxes)" or " (deductions)". UTF-8 with a
+  // byte-order mark (for Excel), rows ending "\n". Null when there is no summary.
+  function ledgerCsv(tables, { firstYear } = {}) {
+    const summary = tables && tables.summary;
+    if (!summary || !Array.isArray(summary.columns) || !Array.isArray(summary.data)) return null;
+    const rowCount = summary.data.length;
+    const ageColumn = summary.columns.indexOf("Age (you)");
+    const firstAge = ageColumn >= 0 && rowCount ? summary.data[0][ageColumn] : null;
+    const used = new Set(["Year"]);
+    const parts = [];  // [frame, positions, names]
+    const add = (frame, suffix, keep) => {
+      if (!frame || !Array.isArray(frame.columns) || !Array.isArray(frame.data) || frame.data.length !== rowCount) return;
+      const positions = [];
+      const names = [];
+      frame.columns.forEach((name, position) => {
+        if (!keep(name)) return;
+        const shown = used.has(name) ? name + suffix : name;
+        used.add(shown);
+        positions.push(position);
+        names.push(shown);
+      });
+      parts.push([frame, positions, names]);
+    };
+    add(summary, "", () => true);
+    add(tables.accounts, " (accounts)", (name) => !/^Age \(/.test(name));
+    add(tables.taxesByYear, " (taxes)", () => true);
+    add(tables.deductions, " (deductions)", () => true);
+    const header = ["Year"].concat(...parts.map(([, , names]) => names));
+    const lines = [header.map(csvText).join(",")];
+    for (let row = 0; row < rowCount; row += 1) {
+      const age = ageColumn >= 0 ? summary.data[row][ageColumn] : null;
+      const offset = Number.isFinite(age) && Number.isFinite(firstAge) ? age - firstAge : row;
+      const cells = [Number.isFinite(firstYear) ? String(firstYear + offset) : ""];
+      for (const [frame, positions] of parts) {
+        for (const position of positions) {
+          const value = frame.data[row][position];
+          const column = frame.columns[position];
+          cells.push(typeof value === "number" ? csvNumber(column, value) : csvText(value));
+        }
+      }
+      lines.push(cells.join(","));
+    }
+    return "﻿" + lines.map((line) => line + "\n").join("");
+  }
+
+  // "<scenario>-ledger-<todays|inflation-adjusted>-<date>.csv", the name cleaned as the report's (reportFilename).
+  function ledgerFilename(name, date, dollars) {
+    const safe = reportFilename(name, date).replace(/-report-[^-]+-[^-]+-[^-]+\.pdf$/, "");
+    return safe + "-ledger-" + (dollars === "future" ? "inflation-adjusted" : "todays") + "-" + isoDate(date) + ".csv";
+  }
+
   const api = { MAX_SAVED, PLOTS, NOTICE, IMAGE_SIZE, capSelection, reportFilename, householdLine, headlineFigures,
     keyResults, compareSpec, differenceTables, differenceLines, inputTables, recordTable, yearlyTables, fitColumns, splitTable, buildReport, standaloneSvg,
     legendItems, plain, drawReport, JUMP_SHARE, JUMP_FLOOR, DROP_SHARE, DROP_FLOOR, EMPTY_BALANCE, jumpAt, dropAt,
     emptiesAt, stopsAfter, startsAt, bandsSummary, histogramSummary, balancesSummary, cashFlowSummary, taxesSummary,
-    expensesSummary, comparisonSummary, plotSummary };
+    expensesSummary, comparisonSummary, plotSummary, ledgerCsv, ledgerFilename };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiReport = api;
 })(typeof self !== "undefined" ? self : this);

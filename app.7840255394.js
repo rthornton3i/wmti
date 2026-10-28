@@ -106,6 +106,7 @@
   const OPTIMIZE_CHECKPOINT_KEY = STORAGE_PREFIX + "optimizeCheckpoint.v1";
   const TABS_PIN_KEY = STORAGE_PREFIX + "tabsPin.v1";  // whether Inputs' tabs stay pinned under the top bar: "on" or "off"
   const HEIRS_MARK_KEY = STORAGE_PREFIX + "heirsMark.v1";  // whether the balance charts mark What beneficiaries keep: "on" or "off"
+  const EXTRAS_KEY = STORAGE_PREFIX + "extras.v1";  // whether Summary shows the source notes and estimates: "on" or "off"
   const LAW_KEY = STORAGE_PREFIX + "lawState.v1";  // kept by the removed law viewer; listed so Clear all data still removes it
   const SPLIT_KEY = STORAGE_PREFIX + "split.v1";  // the wide layout's Inputs share of the Inputs | Outputs room, "0" to "1"
   const SETUP_FOLD_KEY = STORAGE_PREFIX + "setupFold.v1";  // whether the wide layout's Setup column is folded to a rail: "folded" or "open"
@@ -113,7 +114,7 @@
   const LAW_STATE_PATHS = ["homeState", "strategies.relocation.state"];  // state selects with a "See this state's rules" link
   const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
     OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY, SPLIT_KEY, SETUP_FOLD_KEY, HEIRS_MARK_KEY, ADVANCED_KEY,
-    PICKER_KEY, GAME_KEY];
+    PICKER_KEY, GAME_KEY, EXTRAS_KEY];
   // Keys kept before the rename (fpt.*) move to these once, before anything reads them (the stable app only). The
   // beta instead starts, once, from a copy of what the stable app keeps; it never writes a stable key.
   try {
@@ -164,12 +165,14 @@
     info: null, schema: null, defaults: null, inputs: null, base: null, scenarioName: EXAMPLE_NAME, seed: 1,
     experience: null, defaultExperience: null,  // the open scenario's experience block, and a block-less scenario's
     walkTree: null, result: null, error: null, lastRunMs: null, bootMs: null, pyodideVersion: null,
+    resultInputsText: null,  // the inputs text the single run's result ran on
     notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, planOpen: false,
     heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
     tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
     autoSaveOff: [], exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
-    mc: { runs: 25, job: null, cache: [], message: null, skipKey: null, preview: null },  // preview: Low's partial result
+    // preview: Low's partial result; seq: the number stamped on each Monte Carlo when it starts (the run diff's order)
+    mc: { runs: 25, job: null, cache: [], message: null, skipKey: null, preview: null, seq: 0 },
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null, diffs: null, diffsPending: null, mergeUndo: [], merging: 0 },
     optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
@@ -214,7 +217,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.2aaa39f35d.js");
+      worker = new Worker("worker.e8829f45b5.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -530,6 +533,7 @@
     singleBusy = false;
     if (reply.value.ok) {
       state.result = reply.value;
+      state.resultInputsText = inputsText;
       state.error = null;
       state.lastRunMs = reply.ms;
       setStatus("ok", "Up to date");
@@ -1618,8 +1622,9 @@
   }
 
   // A value tile: its label (with an "i" beside it when the headline has a note), the value, the range or change
-  // lines, and the note hidden until the "i" is tapped (one click handler in wire()).
-  function tileHtml(headline, first, stale) {
+  // lines, and the note hidden until the "i" is tapped (one click handler in wire()). `source` is "mc" for a Monte
+  // Carlo tile, "single" for the single run's, for its Why? button (56-accountant.js).
+  function tileHtml(headline, first, stale, source) {
     const helpId = headline.help ? newHelpId() : null;
     const label = "<span class=\"tile-label\">" + escapeText(headline.label) + "</span>";
     const subtitle = headline.subtitle ? "<span class=\"tile-subtitle\">" + escapeText(headline.subtitle) + "</span>" : "";
@@ -1631,7 +1636,7 @@
         + " to " + escapeText(fullMoney(headline.range[1])) + "</span>" : "")
       + (headline.change ? "<span class=\"tile-change\">" + escapeText(headline.change) + " from "
         + escapeText(state.scenarioName) + "</span>" : "")
-      + (helpId ? helpTextHtml(helpId, headline.help, "tile-help") : "") + "</div>";
+      + (helpId ? helpTextHtml(helpId, headline.help, "tile-help") : "") + accountantWhyButton(headline, source) + "</div>";
   }
 
   // Whether the open scenario shows at Low effort, where Summary opens with the gauge and the fan chart (and the
@@ -1705,11 +1710,14 @@
     const low = lowShown() ? lowResultCards(entry, stale) : null;
     const lowHolder = low ? "<div class=\"low-results\" id=\"lowResults\"></div>" : "";
     const nextSteps = "<div id=\"nextSteps\">" + renderNextSteps() + "</div>";  // Coach and Gamer (49-coach.js)
+    const accountantCards = "<div id=\"accountantCards\"></div>";  // the Accountant extras (56-accountant.js)
+    const accountantLedger = "<div id=\"accountantLedger\"></div>";
     if (!entry) {
-      body.innerHTML = html + lowHolder + nextSteps
+      body.innerHTML = html + lowHolder + accountantCards + nextSteps
         + "<div class=\"card empty-state\">No Monte Carlo yet. It starts on its own.</div>";
       placeLowResults(body, low);
       wireNextSteps(body);
+      wireAccountant(body);
       return;
     }
     const result = entry.value;
@@ -1718,13 +1726,15 @@
       + "</span><span>" + escapeText(dollarsText(result.dollars)) + "</span></div>"
       + "<p class=\"note dollars-note\" id=\"dollarsNote\">"  // what the dollars are, before any figure
       + escapeText(dollarsNote(ranInputs(entry, stale), result.dollars)) + "</p>" + lowHolder + "<div class=\"tiles\">"
-      + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale)).join("")
-      + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false)).join("") : "")
+      + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale, "mc")).join("")
+      + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false, "single")).join("")
+        : "")
       + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "");
-    html += nextSteps + renderInsights(result, entry, stale) + REPORT_POINTER_HTML;
+    html += accountantCards + nextSteps + renderInsights(result, entry, stale) + REPORT_POINTER_HTML + accountantLedger;
     body.innerHTML = html;
     placeLowResults(body, low);
     wireNextSteps(body);
+    wireAccountant(body);
   }
 
   // The inputs a Monte Carlo cache entry ran on: the current ones unless it is stale.
@@ -2140,8 +2150,9 @@
     experiencePicker.choice = returning ? { ...offered.existingDefault }
       : first ? { ...offered.newUserDefault } : { ...shownExperience(), riskComfort: riskComfortShown() };
     const pick = (change) => Object.assign(experiencePicker.choice, change);
+    if (!first) experiencePicker.choice.extras = accountantExtrasOn();
     $("experienceChoices").replaceChildren(...experienceGroups("xpPick", experiencePicker.choice, pick),
-      ...(first ? [] : [riskComfortGroup(experiencePicker.choice)]));
+      ...(first ? [] : [riskComfortGroup(experiencePicker.choice), extrasGroup(experiencePicker.choice)]));
     if (first) $("experienceDetail").hidden = true;
     else renderDetailList();  // the detail added to the scenario, each with its Hide it
     const button = (label, className, id, onClick) => {
@@ -2222,6 +2233,10 @@
     $("experienceChoices").replaceChildren();
     $("experienceActions").replaceChildren();
     if (choice) setExperience(choice);
+    if (choice && typeof choice.extras === "boolean" && choice.extras !== accountantExtrasOn()) {
+      setAccountantExtras(choice.extras);  // the source notes switch (56-accountant.js)
+      renderResults();
+    }
     const resolve = experiencePicker.resolve;
     experiencePicker.resolve = null;
     experiencePicker.mode = null;
@@ -3070,7 +3085,8 @@
   // is kept with the inputs, sweep, person, score preset and seed it ran on (coachSweepKey); Apply writes its
   // changes through applyOptimum as one Undo step. Nothing here changes an input until Apply is tapped. Risk comfort
   // (the Effort and style dialog) only picks the sweep's score preset.
-  const { coachGapsShown, coachDismissKey, coachDismissed, coachSweepKey, riskPresetOf } = window.WmtiShared;
+  const { coachGapsShown, coachDismissKey, coachDismissed, coachSweepKey, riskPresetOf, coachChangeText } =
+    window.WmtiShared;
   const MAX_NEXT_STEPS = 3;  // wmti.dashboard.coach.MAX_NEXT_STEPS
   const COACH_STOPPED = {  // why a running check ended without a result, by what stopped it
     user: "Cancelled. Nothing changed.",
@@ -3255,8 +3271,8 @@
     const rows = entry && entry.value.rows;
     if (!rows || !rows.length) return "";
     return "<details class=\"nextstep-rows" + (coachStale(entry, gap) ? " stale-results" : "") + "\"><summary>What was "
-      + "tried</summary><ul>" + rows.map((row) => "<li>" + escapeText(row.text) + (row.change ? ": "
-        + escapeText(row.change) : "") + "</li>").join("") + "</ul></details>";
+      + "tried</summary><ul>" + rows.map((row) => "<li>" + escapeText(row.text) + (coachChangeText(row.change)
+        ? ": " + escapeText(coachChangeText(row.change)) + " typical" : "") + "</li>").join("") + "</ul></details>";
   }
 
   // The quiet line under the gaps: the risk comfort the checks use, with Change (opens the Effort and style dialog).
@@ -3596,7 +3612,9 @@
         renderResults();
       }
     }, partial);
-    mc.job = { id: job.id, done: 0, total: mc.runs, ms: 0, key, silent: false };
+    // The scenario and order are stamped when the run starts, so a scenario switched mid-run keeps the right name.
+    mc.job = { id: job.id, done: 0, total: mc.runs, ms: 0, key, silent: false, startScenario: state.scenarioName,
+      seq: ++mc.seq };
     mc.preview = null;
     mc.message = null;
     renderPinned();
@@ -3609,7 +3627,7 @@
     } catch (error) {
       failure = String(error.message || error);
     }
-    const { done, silent } = mc.job;
+    const { done, silent, startScenario, seq } = mc.job;
     mc.job = null;
     mc.preview = null;  // the full result (or nothing, after a cancel or an error) replaces it
     if (failure || (!reply && !silent) || (reply && !reply.value.ok)) mc.skipKey = key;  // not again on its own
@@ -3619,7 +3637,7 @@
       + "the cancelled runs" + (mc.cache.length ? "; the last finished result stays." : ".") };
     else if (!reply.value.ok) mc.message = { error: true, text: reply.value.error };
     else {
-      mc.cache = rememberResult(mc.cache, { key, value: reply.value, ms: reply.ms });
+      mc.cache = rememberResult(mc.cache, { key, value: reply.value, ms: reply.ms, scenario: startScenario, seq });
       state.perRunMs = reply.ms / reply.value.runs;
     }
     renderPinned();
@@ -4703,6 +4721,496 @@
     return parts;
   }
 
+  // ---- Accountant extras on Summary: Why this number?, the Estimates card, What changed since the last run and the
+  // ledger CSV ----
+  // They read inputs and results only: nothing here writes an input, runs a simulation or changes a figure. Every
+  // style shows them (styles stack); one device switch (EXTRAS_KEY, in the Effort and style dialog) hides the notes,
+  // and none of them shows with the gamify features off (gamifyOn). wmti.dashboard.provenance gives the run facts, key
+  // inputs, law rows and estimates of an inputs text ("provenance", kept per inputs text); the run diff compares the
+  // shown Monte Carlo with the other kept one of the same scenario ("compareDifferences"); the ledger is the Monte
+  // Carlo's year-by-year tables (report.js ledgerCsv). Law text from the files is set with textContent only.
+  const { runChangePlan, runChangeRows, differenceLines, extrasOn } = window.WmtiShared;
+  const { ledgerCsv, ledgerFilename } = report;
+  const MAX_ESTIMATE_ROWS = 5;  // estimates the card lists; more are counted
+  const MAX_CHANGE_LINES = 8;  // settings lines the run diff lists; more are counted
+  const LEDGER_HELP = "The year-by-year tables of the Final report (the middle half average of the runs, the same "
+    + "numbers): the yearly summary, the accounts, the taxes and the deductions, one row per year, in whole dollars. "
+    + "UTF-8 with a byte-order mark, so Excel opens it as it is.";
+  const EXTRAS_HELP = "Why? buttons on the Summary figures, the Estimates card and What changed since the last run. They "
+    + "describe the settings and results; they never change them.";
+  state.accountant = { why: { key: null, value: null, pending: null }, changes: { key: null, value: null, pending: null },
+    open: null, csv: null, changesOpen: false };
+  const accountantTurn = { why: 0, changes: 0 };
+  window.wmtiAccountant = { state: () => state.accountant, openWhy, downloadLedger,  // for the tests
+    cache: () => state.mc.cache.map(({ key, scenario, seq, value }) => ({ key, scenario, seq, tables: value.tables })) };
+
+  // Whether the source notes and estimates show: never with the gamify features off; else the device switch, on
+  // unless saved "off" (storage blocked: on).
+  function accountantExtrasOn() {
+    if (!gamifyOn()) return false;
+    try { return extrasOn(localStorage.getItem(EXTRAS_KEY)); } catch (error) { return true; }
+  }
+
+  function setAccountantExtras(on) {
+    if (!gamifyOn()) return;
+    try { localStorage.setItem(EXTRAS_KEY, on ? "on" : "off"); } catch (error) { /* storage blocked: on for this visit */ }
+  }
+
+  // The Effort and style dialog's switch (settings mode): `choice.extras` follows the box; applied on Save only.
+  function extrasGroup(choice) {
+    const fieldset = document.createElement("fieldset");
+    fieldset.className = "experience-group extras-group";
+    fieldset.id = "xpPick-extras";
+    const legend = document.createElement("legend");
+    legend.textContent = "Source notes";
+    const row = document.createElement("label");
+    row.className = "experience-option";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.id = "xpPick-extrasOn";
+    input.checked = choice.extras !== false;
+    input.addEventListener("change", () => { choice.extras = input.checked; });
+    const label = document.createElement("span");
+    label.className = "experience-label";
+    label.textContent = "Show source notes and estimates";
+    const blurb = document.createElement("span");
+    blurb.className = "experience-blurb";
+    blurb.textContent = EXTRAS_HELP;
+    row.append(input, label, blurb);
+    fieldset.append(legend, row);
+    return fieldset;
+  }
+
+  // The inputs text a tile's figure ran on: the shown Monte Carlo's (ranInputs) or the single run's.
+  function whyInputsText(source) {
+    if (source === "single") return state.resultInputsText;
+    const { entry, stale } = latestMonteCarlo();
+    return JSON.stringify(entry ? ranInputs(entry, stale) : state.inputs);
+  }
+
+  // A tile's Why? button: "" when the notes are off, or for the single run's tile while it runs.
+  function accountantWhyButton(headline, source) {
+    if (!accountantExtrasOn() || !source || (source === "single" && (singleBusy || !state.resultInputsText))) return "";
+    return "<button type=\"button\" class=\"button button-quiet tile-why\" data-why=\"" + escapeText(headline.label)
+      + "\" data-source=\"" + source + "\" aria-label=\"Why this number? " + escapeText(headline.label)
+      + "\">Why?</button>";
+  }
+
+  // Ask for the provenance of `inputsText` (one request in flight, a newer one replaces it); the cards and an open
+  // pop-up for it are filled in place when it arrives.
+  async function loadProvenance(inputsText) {
+    const why = state.accountant.why;
+    if (!gamifyOn() || !inputsText || why.key === inputsText || why.pending === inputsText) return;
+    why.pending = inputsText;
+    const turn = ++accountantTurn.why;
+    const reply = await ask("provenance", [inputsText], "why");
+    if (turn !== accountantTurn.why) return;
+    why.pending = null;
+    if (!reply) return;
+    why.key = inputsText;
+    why.value = reply;
+    refreshAccountant();
+    if (state.accountant.open && state.accountant.open.inputsText === inputsText) fillWhy();
+  }
+
+  function provenanceOf(inputsText) {
+    const why = state.accountant.why;
+    return why.key === inputsText ? why.value : null;
+  }
+
+  // Ask for the settings that differ between the two runs of `plan` (runChangePlan), kept per pair.
+  async function loadRunChanges(plan) {
+    const changes = state.accountant.changes;
+    const key = JSON.stringify([plan.previousInputsText, plan.currentInputsText]);
+    if (changes.key === key || changes.pending === key) return;
+    changes.pending = key;
+    const turn = ++accountantTurn.changes;
+    const reply = await ask("compareDifferences", [plan.previousInputsText, plan.currentInputsText, "Last run",
+      "This run"], "changes");
+    if (turn !== accountantTurn.changes) return;
+    changes.pending = null;
+    if (!reply) return;
+    changes.key = key;
+    changes.value = reply;  // its `problems` (merge buttons) are not used here
+    refreshAccountant();
+  }
+
+  // The Estimates card of the figures' inputs: the estimates the plan rests on (up to MAX_ESTIMATE_ROWS, each with
+  // Why?); "" when there are none or the provenance has not arrived.
+  function estimatesCardHtml(inputsText, stale) {
+    const found = provenanceOf(inputsText);
+    if (!found) { loadProvenance(inputsText); return ""; }
+    if (!found.ok || !Array.isArray(found.estimates) || !found.estimates.length) return "";
+    const shown = found.estimates.slice(0, MAX_ESTIMATE_ROWS);
+    const more = found.estimates.length - shown.length;
+    return "<div class=\"card accountant-card" + (stale ? " stale-results" : "") + "\" id=\"estimatesCard\">"
+      + "<div class=\"card-head\"><h2>Estimates</h2></div><p class=\"note\">These parts of the plan rest on figures "
+      + "that are not confirmed.</p><ul class=\"estimate-list\">" + shown.map((item) => "<li class=\"estimate-row\" "
+        + "data-row=\"" + escapeText(item.id) + "\"><span class=\"estimate-label\">" + escapeText(item.label)
+        + "</span><span class=\"estimate-pill\">estimate</span><button type=\"button\" class=\"button button-quiet "
+        + "estimate-why\" data-row=\"" + escapeText(item.id) + "\" aria-label=\"Why? " + escapeText(item.label)
+        + "\">Why?</button></li>").join("") + "</ul>"
+      + (more > 0 ? "<p class=\"note\">" + more + " more in the Why? pop-up.</p>" : "") + "</div>";
+  }
+
+  function headlineValueText(unit, value) {
+    return unit === "percent" ? percent(value, 1) : fullMoney(value);
+  }
+
+  function changeText(row) {
+    if (row.change == null) return "no change";
+    const sign = row.change > 0 ? "+" : "−";
+    return row.unit === "percent" ? sign + Math.abs(row.change).toFixed(1) + " points"
+      : sign + fullMoney(Math.abs(row.change));
+  }
+
+  // What changed since the last run: the shown Monte Carlo against the other kept one of the same scenario, in the
+  // direction other to shown; "" when there is none, at Low, or with the notes off.
+  function runChangesCardHtml(entry, stale) {
+    const kept = state.mc.cache.find((item) => item !== entry);
+    const plan = runChangePlan(entry, kept);
+    if (!plan) return "";
+    const lead = plan.direction === "earlier" ? "Compared with the run before" : "Compared with the run you came back from";
+    const runsLine = (value) => value.runs + " runs, seed " + value.seed;
+    const rows = runChangeRows(kept.value.headlines, entry.value.headlines);
+    const nothing = plan.sameInputs && !plan.seedChanged && !plan.runsChanged && rows.every((row) => row.change == null);
+    let settings = "";
+    if (!plan.sameInputs) {
+      loadRunChanges(plan);
+      const key = JSON.stringify([plan.previousInputsText, plan.currentInputsText]);
+      const reply = state.accountant.changes.key === key ? state.accountant.changes.value : null;
+      if (!reply) settings = "<p class=\"note\">Loading the settings that differ…</p>";
+      else if (!reply.ok) settings = "<p class=\"note\">" + escapeText(reply.error || "The settings could not be compared.")
+        + "</p>";
+      else {
+        const found = differenceLines(reply.differences, MAX_CHANGE_LINES);
+        settings = "<h3 class=\"why-title\">Settings that differ</h3>" + (found.lines.length ? "<ul class=\"change-lines\">"
+          + found.lines.map((line) => "<li>" + escapeText(line) + "</li>").join("") + "</ul>"
+          : "<p class=\"note\">No setting differs.</p>")
+          + (found.more ? "<p class=\"note\">" + found.more + " more</p>" : "");
+      }
+    }
+    const notes = [];
+    if (plan.sameInputs && (plan.seedChanged || plan.runsChanged)) {
+      notes.push("Only the seed or the number of runs changed, so the change is sampling noise.");
+    } else if (plan.seedChanged || plan.runsChanged) {
+      notes.push("The seed or the number of runs changed too, so part of the change is sampling noise.");
+    }
+    if (plan.dollarsChanged) notes.push("One run is in today's dollars and the other inflation adjusted.");
+    const body = nothing ? "<p class=\"note\">Nothing changed since the last run.</p>"
+      : "<table class=\"change-table\"><thead><tr><th scope=\"col\">Figure</th><th scope=\"col\">Before</th>"
+        + "<th scope=\"col\">After</th><th scope=\"col\">Change</th></tr></thead><tbody>" + rows.map((row) => "<tr><th "
+        + "scope=\"row\">" + escapeText(row.label) + "</th><td>" + escapeText(headlineValueText(row.unit, row.before))
+        + "</td><td>" + escapeText(headlineValueText(row.unit, row.after)) + "</td><td>" + escapeText(changeText(row))
+        + "</td></tr>").join("") + "</tbody></table>" + settings;
+    return "<details class=\"card accountant-card" + (stale ? " stale-results" : "") + "\" id=\"runChanges\""
+      + (state.accountant.changesOpen ? " open" : "") + "><summary><h2>What changed since the last run</h2></summary>"
+      + "<p class=\"note\" id=\"runChangesLead\">" + escapeText(lead + ": " + runsLine(kept.value) + " then "
+        + runsLine(entry.value) + ".") + "</p>" + body
+      + notes.map((text) => "<p class=\"note change-note\">" + escapeText(text) + "</p>").join("") + "</details>";
+  }
+
+  // The Download ledger (CSV) card: hidden at Low and with nothing to download, disabled while results are dimmed;
+  // the status line says what the last download did and Copy CSV text opens the text to copy.
+  function ledgerCardHtml(entry, stale) {
+    const tables = entry && entry.value.tables;
+    const ready = Boolean(tables && tables.summary && tables.summary.data && tables.summary.data.length);
+    const csv = state.accountant.csv;
+    const helpId = newHelpId();
+    return "<div class=\"card ledger-card\" id=\"ledgerCard\"><div class=\"ledger-row\"><button type=\"button\" "
+      + "class=\"button button-quiet\" id=\"ledgerDownload\"" + (ready && !stale ? "" : " disabled")
+      + ">Download ledger (CSV)</button>" + helpButtonHtml("Download ledger (CSV)", helpId) + "</div>"
+      + helpTextHtml(helpId, LEDGER_HELP)
+      + (stale ? "<p class=\"note\">Available once the results match the settings.</p>" : "")
+      + "<p class=\"note\" id=\"ledgerStatus\" role=\"status\">" + escapeText(csv && csv.status ? csv.status : "")
+      + "</p>" + (csv ? "<button type=\"button\" class=\"button button-quiet\" id=\"ledgerCopy\">Copy CSV text</button>"
+        : "") + "</div>";
+  }
+
+  // Draw the extras' holders in place (never the whole Summary).
+  function refreshAccountant() {
+    const holder = $("accountantCards");
+    const ledger = $("accountantLedger");
+    if (!holder && !ledger) return;
+    const off = !gamifyOn() || !state.info || !state.inputs || needsSetup(state.inputs);
+    const { entry, stale } = latestMonteCarlo();
+    const low = !off && shownExperience().effort === "low";
+    if (holder) {
+      let html = "";
+      if (!off && accountantExtrasOn()) {
+        html += estimatesCardHtml(JSON.stringify(entry ? ranInputs(entry, stale) : state.inputs), stale);
+        if (entry && !low) html += runChangesCardHtml(entry, stale);
+      }
+      holder.innerHTML = html;
+    }
+    if (ledger) ledger.innerHTML = !off && entry && !low ? ledgerCardHtml(entry, stale) : "";
+  }
+
+  // Fill the holders renderResults drew and wire their buttons and the tiles' Why? buttons (each render makes new
+  // elements, so each gets one listener).
+  function wireAccountant(body) {
+    refreshAccountant();
+    if (!gamifyOn()) return;
+    const tiles = body.querySelector(".tiles");
+    if (tiles) {
+      tiles.addEventListener("click", (event) => {
+        const button = event.target.closest(".tile-why");
+        if (button) openWhy(button.dataset.why, button.dataset.source, null);
+      });
+    }
+    const holder = body.querySelector("#accountantCards");
+    if (holder) {
+      holder.addEventListener("click", (event) => {
+        const button = event.target.closest(".estimate-why");
+        if (!button) return;
+        const { entry } = latestMonteCarlo();
+        const first = entry ? entry.value.headlines[0] : null;
+        openWhy(first ? first.label : "Median final worth", "mc", button.dataset.row);
+      });
+      holder.addEventListener("toggle", (event) => {
+        if (event.target.id === "runChanges") state.accountant.changesOpen = event.target.open;
+      }, true);
+    }
+    const ledger = body.querySelector("#accountantLedger");
+    if (ledger) {
+      ledger.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button || button.disabled) return;
+        if (button.id === "ledgerDownload") downloadLedger();
+        else if (button.id === "ledgerCopy") ledgerCopyDialog();
+      });
+    }
+  }
+
+  // The headline `label` on screen: the Monte Carlo's, the single run's, or the household's worth today.
+  function shownHeadline(label, source) {
+    const { entry } = latestMonteCarlo();
+    const lists = source === "single" ? [state.result && state.result.headlines]
+      : [entry && entry.value.headlines, state.result && state.result.headlines];
+    for (const list of lists) {
+      const found = (list || []).find((item) => item.label === label);
+      if (found) return found;
+    }
+    const today = state.result && state.result.netWorthToday;
+    return today && today.label === label ? today : { label, value: null, unit: "money" };
+  }
+
+  // Open "Why this number?" for the figure `label` (`source` "mc" or "single"), scrolled to row `focusRow` when given.
+  function openWhy(label, source, focusRow) {
+    if (!accountantExtrasOn()) return;
+    const inputsText = whyInputsText(source);
+    const { entry } = latestMonteCarlo();
+    const run = source === "single" ? { runs: 1, seed: state.seed, dollars: null }
+      : entry ? { runs: entry.value.runs, seed: entry.value.seed, dollars: entry.value.dollars } : null;
+    const container = document.createElement("div");
+    container.className = "why-body";
+    container.id = "whyBody";
+    container.tabIndex = -1;
+    container.addEventListener("click", (event) => {
+      const button = event.target.closest(".why-show");
+      if (!button) return;
+      closeDialog(false);
+      openInputsField(button.dataset.path);
+    });
+    state.accountant.open = { label, source, inputsText, focusRow, run, headline: shownHeadline(label, source), container };
+    fillWhy();
+    openDialog({ title: "Why this number?", body: [container], focus: container,
+      actions: [["Close", "button", () => true, "whyClose"]] });
+    dialog.onClose = () => { state.accountant.open = null; };
+    scrollWhyRow();
+    loadProvenance(inputsText);
+  }
+
+  function element(tag, className, text) {
+    const item = document.createElement(tag);
+    if (className) item.className = className;
+    if (text != null) item.textContent = text;
+    return item;
+  }
+
+  function whySection(title, ...children) {
+    const section = element("section", "why-section");
+    section.append(element("h3", "why-title", title), ...children);
+    return section;
+  }
+
+  // One law or estimate row: its label, the year and "as of" date, the confidence, and where to check it (a link only
+  // for a lone https:// address).
+  function whyLawRow(row) {
+    const item = element("li", "why-law" + (row.estimate ? " why-estimate" : ""));
+    item.dataset.row = row.id;
+    const head = element("div", "why-law-head");
+    head.append(element("span", "why-law-label", row.label + (row.jurisdiction && row.jurisdiction !== "federal"
+      ? " (" + row.jurisdiction + ")" : row.jurisdiction === "federal" ? " (federal)" : "")));
+    if (row.estimate) head.append(element("span", "estimate-pill", "estimate"));
+    item.append(head);
+    const facts = [];
+    if (row.year != null) facts.push("Tax year " + row.year);
+    if (row.asOf) facts.push("as of " + row.asOf);
+    if (row.confidence) facts.push(row.confidence);
+    if (row.text) facts.push(row.text);
+    if (facts.length) item.append(element("p", "why-law-facts", facts.join(", ")));
+    if (row.checkAt) {
+      const check = element("p", "why-law-check", "Check: ");
+      if (/^https:\/\/\S+$/.test(row.checkAt)) {
+        const link = element("a", null, row.checkAt);
+        link.href = row.checkAt;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        check.append(link);
+      } else {
+        check.append(document.createTextNode(row.checkAt));
+      }
+      item.append(check);
+    }
+    if (row.path) {
+      const show = element("button", "button button-quiet why-show", "Show me");
+      show.type = "button";
+      show.dataset.path = row.path;
+      item.append(show);
+    }
+    return item;
+  }
+
+  // Build the open pop-up's body: the figure, how it is made, the run, the inputs behind it and the law used.
+  function fillWhy() {
+    const open = state.accountant.open;
+    if (!open) return;
+    const { container, headline, run } = open;
+    const found = provenanceOf(open.inputsText);
+    const parts = [];
+    const figure = element("p", "why-figure");
+    figure.append(element("strong", null, headline.label), document.createTextNode(" "
+      + (headline.value == null ? "" : headlineValueText(headline.unit, headline.value))));
+    parts.push(figure);
+    if (headline.help) parts.push(element("p", "note", headline.help));
+    if (!found) {
+      parts.push(element("p", "note why-loading", "Loading sources..."));
+      container.replaceChildren(...parts);
+      return;
+    }
+    if (!found.ok) {
+      if (run) parts.push(whySection("The run", element("p", null, run.runs + (run.runs === 1 ? " run" : " runs")
+        + ", seed " + run.seed)));
+      parts.push(element("p", "banner banner-error", found.error || "The sources could not be read."));
+      container.replaceChildren(...parts);
+      return;
+    }
+    const how = found.how && found.how[headline.label];
+    if (how) parts.push(whySection("How it is made", element("p", null, how)));
+    const facts = found.run;
+    const runLines = [];
+    if (run) {
+      runLines.push((run.runs === 1 ? "One run" : run.runs + " runs") + ", seed " + run.seed + ", "
+        + dollarsText(run.dollars || (facts.dollars === "future" ? "future" : "today's")));
+    }
+    runLines.push("Ages " + facts.startAge + " to " + facts.endAge + " (" + facts.years + " years)");
+    runLines.push("Tax law of " + facts.lawYear + ", filing status " + facts.filingStatus);
+    runLines.push("Home state " + facts.homeState + (facts.finalState ? ", moving to " + facts.finalState : ""));
+    parts.push(whySection("The run", ...runLines.map((line) => element("p", "why-line", line))));
+    const inputs = element("ul", "why-inputs");
+    for (const row of found.inputs || []) {
+      const item = element("li", "why-input");
+      item.dataset.row = row.id;
+      item.append(element("span", "why-input-label", row.label), element("span", "why-input-value", row.value));
+      if (row.path) {
+        const show = element("button", "button button-quiet why-show", "Show me");
+        show.type = "button";
+        show.dataset.path = row.path;
+        item.append(show);
+      }
+      inputs.append(item);
+    }
+    parts.push(whySection("Inputs behind it", inputs));
+    const estimateIds = new Set((found.estimates || []).map((item) => item.id));
+    const lawById = new Map((found.law || []).map((row) => [row.id, row]));
+    const estimates = element("ul", "why-law-list");
+    for (const item of found.estimates || []) {
+      const row = lawById.get(item.id);
+      estimates.append(whyLawRow(row ? { ...row, path: null } : { ...item, estimate: true }));
+    }
+    const rest = (found.law || []).filter((row) => !estimateIds.has(row.id));
+    const all = element("details", "why-all");
+    all.append(element("summary", null, "Show all (" + rest.length + ")"));
+    const restList = element("ul", "why-law-list");
+    restList.append(...rest.map(whyLawRow));
+    all.append(restList);
+    if (open.focusRow && rest.some((row) => row.id === open.focusRow)) all.open = true;
+    parts.push(whySection("Law used", ...(estimates.children.length ? [estimates] : [element("p", "note",
+      "No law figure this plan reads is marked unconfirmed.")]), all));
+    container.replaceChildren(...parts);
+    scrollWhyRow();
+  }
+
+  function scrollWhyRow() {
+    const open = state.accountant.open;
+    if (!open || !open.focusRow) return;
+    const row = [...open.container.querySelectorAll("[data-row]")].find((item) => item.dataset.row === open.focusRow);
+    if (!row) return;
+    row.classList.add("why-focus");
+    if (typeof row.scrollIntoView === "function") row.scrollIntoView({ block: "center" });
+  }
+
+  // Save the ledger of the shown, current Monte Carlo: the host's downloads when offered (a declined save is
+  // cancelled), else a browser download; where neither works the text opens to copy. Copy CSV text stays offered.
+  async function downloadLedger() {
+    if (!gamifyOn()) return;
+    const { entry, stale } = latestMonteCarlo();
+    if (!entry || stale) return;
+    const text = ledgerCsv(entry.value.tables, { firstYear: state.info.lawTaxYear });
+    if (!text) return;
+    const filename = ledgerFilename(state.scenarioName, new Date(), entry.value.dollars);
+    const csv = { key: entry.key, filename, text, status: null };
+    state.accountant.csv = csv;
+    const downloads = await downloadsReady;
+    if (downloads) {
+      try {
+        await downloads.save({ filename, data: text });
+        csv.status = "Saved " + filename + ".";
+      } catch (error) {
+        if (error && error.code === "declined") csv.status = "Download cancelled.";
+      }
+    }
+    let blocked = false;
+    if (!csv.status) {
+      if (downloadFile(filename, new Blob([text], { type: "text/csv;charset=utf-8" }))) {
+        csv.status = "Downloaded " + filename + ".";
+      } else {
+        csv.status = "This browser cannot save files from this page. Copy the CSV text instead.";
+        blocked = true;
+      }
+    }
+    refreshAccountant();
+    if (blocked) ledgerCopyDialog();
+  }
+
+  // The copy-text fallback for the ledger: its text read-only, Copy and Close.
+  function ledgerCopyDialog() {
+    const csv = state.accountant.csv;
+    if (!csv) return;
+    const text = document.createElement("textarea");
+    text.className = "input mono";
+    text.id = "ledgerText";
+    text.rows = 6;
+    text.readOnly = true;
+    text.setAttribute("aria-label", "Ledger CSV text");
+    text.value = csv.text;
+    openDialog({ title: "Ledger " + csv.filename, text: "Copy the text and save it as " + csv.filename + ".",
+      body: [text], focus: text,
+      actions: [["Copy", "button", async () => {
+        try {
+          await navigator.clipboard.writeText(text.value);
+          csv.status = "Copied. Paste it into a file named " + csv.filename + ".";
+          refreshAccountant();
+          return true;
+        } catch (error) {
+          text.focus();
+          text.select();
+          dialogError("Copy is blocked here; the text is selected so you can copy it yourself.");
+          return false;
+        }
+      }, "ledgerCopyText"], ["Close", "button button-quiet", () => true, "ledgerClose"]] });
+  }
   // ---- Optimize: search the strategy settings for the best score on the same draws, then apply on a tap ----
   // The search runs in the worker as a batched job ("optimize"); Stop posts a finish (the best so far is kept), Cancel
   // drops it. At its run budget the search pauses and the progress asks whether to continue with another budget of
@@ -10985,6 +11493,8 @@
     });
     $("reportCancel").focus();
     let outcome;
+    const scenario = state.scenarioName;  // stamped at the start, for the run diff (56-accountant.js)
+    const seq = ++state.mc.seq;
     try {
       const key = mcKey();
       let current = cachedResult(state.mc.cache, key);
@@ -10992,7 +11502,7 @@
         if (state.mc.job) state.mc.job.silent = true;  // one batched job at a time: the report's run replaces it
         clearTimeout(mcTimer);
         const reply = await reportMonteCarlo(state.inputs, state.scenarioName);
-        current = { key, value: reply.value, ms: reply.ms };
+        current = { key, value: reply.value, ms: reply.ms, scenario, seq };
         state.mc.cache = rememberResult(state.mc.cache, current);
         state.mc.message = null;
         renderPinned();

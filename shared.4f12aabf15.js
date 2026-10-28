@@ -2031,6 +2031,14 @@
 
   // The score preset for risk comfort `value` (appInfo().experience.riskComforts `list`); unset or unknown values
   // use DEFAULT_RISK_PRESET.
+  // A check row's change in the typical outcome (dollars) as the card writes money: signed, whole dollars ("+$70,486",
+  // "-$1,200", "+$0"); "" for no number.
+  function coachChangeText(change) {
+    if (typeof change !== "number" || !Number.isFinite(change)) return "";
+    const whole = Math.round(change);
+    return (whole < 0 ? "-" : "+") + fullMoney(Math.abs(whole));
+  }
+
   function riskPresetOf(list, value) {
     const found = (Array.isArray(list) ? list : []).find((item) => item && item.id === value);
     return found && found.preset ? found.preset : DEFAULT_RISK_PRESET;
@@ -2265,6 +2273,63 @@
     return null;
   }
 
+  // ---- Accountant extras: the run diff and the source notes switch ----
+  // How the shown Monte Carlo compares with the other kept one (cache entries {key, scenario, seq, value}, key the
+  // JSON text of [inputs, runs, seed]): null when either is missing, a key does not parse, or the two belong to other
+  // scenarios (a missing scenario counts as other). `direction` is "earlier" when the kept run started before the
+  // shown one, else "later" (Undo shows the older cached result).
+  function runChangePlan(shown, kept) {
+    if (!shown || !kept || !shown.scenario || !kept.scenario || shown.scenario !== kept.scenario) return null;
+    let current;
+    let previous;
+    try {
+      current = JSON.parse(shown.key);
+      previous = JSON.parse(kept.key);
+    } catch (error) {
+      return null;
+    }
+    if (!Array.isArray(current) || !Array.isArray(previous) || current.length < 3 || previous.length < 3) return null;
+    const currentInputsText = JSON.stringify(current[0]);
+    const previousInputsText = JSON.stringify(previous[0]);
+    const dollarsOf = (entry) => (entry.value ? entry.value.dollars : undefined);
+    return { previousInputsText, currentInputsText, direction: Number(kept.seq) < Number(shown.seq) ? "earlier" : "later",
+      sameInputs: previousInputsText === currentInputsText, seedChanged: previous[2] !== current[2],
+      runsChanged: previous[1] !== current[1], dollarsChanged: dollarsOf(kept) !== dollarsOf(shown) };
+  }
+
+  // The headline movement from `previousHeadlines` to `currentHeadlines`, matched by label (a label missing on either
+  // side, or without a number, is skipped): {label, unit, before, after, change}; `change` is the signed amount, or
+  // percentage points for a percent, and null below half a dollar or 0.05 points.
+  function runChangeRows(previousHeadlines, currentHeadlines) {
+    const before = new Map((Array.isArray(previousHeadlines) ? previousHeadlines : []).filter((item) => item)
+      .map((item) => [item.label, item]));
+    const rows = [];
+    for (const item of Array.isArray(currentHeadlines) ? currentHeadlines : []) {
+      const old = item && before.get(item.label);
+      if (!old || typeof item.value !== "number" || typeof old.value !== "number") continue;
+      const percentUnit = item.unit === "percent";
+      const change = percentUnit ? (item.value - old.value) * 100 : item.value - old.value;
+      rows.push({ label: item.label, unit: item.unit, before: old.value, after: item.value,
+        change: Math.abs(change) < (percentUnit ? 0.05 : 0.5) ? null : change });
+    }
+    return rows;
+  }
+
+  // compareDifferences items as one line each, "Section › label: before → after", at most `max` (8 by default);
+  // `more` counts the rest. The detail rows (`lines`) are left out.
+  function differenceLines(differences, max = 8) {
+    const items = Array.isArray(differences) ? differences.filter((item) => item) : [];
+    const text = (value) => (value == null || value === "" ? "none" : String(value));
+    const lines = items.slice(0, max).map((item) => (item.section ? item.section + " › " : "") + item.label + ": "
+      + text(item.a) + " → " + text(item.b));
+    return { lines, more: Math.max(0, items.length - max) };
+  }
+
+  // Whether the source notes and estimates show: on unless the stored text is "off".
+  function extrasOn(stored) {
+    return stored !== "off";
+  }
+
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
@@ -2277,7 +2342,8 @@
     surfacePath, walkIndexedPath, overrideList, defaultedInputCount, firstUnlocked, yearsToAge100, planYears, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText,
-    pickerLevelAt, pickerKeyLevel, coachDismissKey, coachDismissed, coachGapsShown, coachSweepKey, riskPresetOf };
+    pickerLevelAt, pickerKeyLevel, coachDismissKey, coachDismissed, coachGapsShown, coachSweepKey, riskPresetOf, coachChangeText,
+    runChangePlan, runChangeRows, differenceLines, extrasOn };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);
