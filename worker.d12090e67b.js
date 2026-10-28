@@ -14,6 +14,7 @@
 // background; the paused time is not counted) until {fn: "resume", target}. A Monte Carlo sent with `partialRuns`
 // posts one partial result, its progress's `partial` (the result of the runs done so far, from the same seed and
 // runs), once that many or more are done and some are still to come.
+// A Coach sweep ("leverSweep") is a short batched search with no finish, pause or run budget; a cancel drops it.
 "use strict";
 
 // The host refuses .whl and .zip files, so they are published as *_whl.wasm / *_zip.wasm with unchanged bytes.
@@ -25,8 +26,9 @@ self.fetch = (input, init) => {
 };
 
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
-const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize" };
-const MODEL_FILE = "wmti.7d78702f91.wasm";  // the build gives it a content-hashed name
+const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize",
+  leverSweep: "startLeverSweep" };
+const MODEL_FILE = "wmti.c4b2a9437f.wasm";  // the build gives it a content-hashed name
 const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;

@@ -1960,6 +1960,44 @@
     return Object.prototype.hasOwnProperty.call(holder, key);
   }
 
+  // ---- Coach: the Next steps card (f100) ----
+  const COACH_DISMISS_PREFIX = "coach.dismissed.";  // a dismissed gap's key in `experience.progress`
+  const DEFAULT_RISK_PRESET = "balanced";  // the score preset while risk comfort is unset or unknown
+
+  // The `experience.progress` key that marks gap `gapId` dismissed (Not now).
+  function coachDismissKey(gapId) {
+    return COACH_DISMISS_PREFIX + String(gapId);
+  }
+
+  // The gap ids dismissed in `progress` (the experience block's free table), in its stored order.
+  function coachDismissed(progress) {
+    if (!progress || typeof progress !== "object" || Array.isArray(progress)) return [];
+    return Object.keys(progress).filter((key) => key.startsWith(COACH_DISMISS_PREFIX) && progress[key])
+      .map((key) => key.slice(COACH_DISMISS_PREFIX.length));
+  }
+
+  // The gaps (coachGaps' list, in its order) the card draws: at Low only those with a `lowGuide`, then those not in
+  // `dismissed`, cut to `max`. `hidden` is the dismissed ones the effort would show, for "Show N hidden".
+  function coachGapsShown(gaps, { effort, dismissed, max } = {}) {
+    const offered = (Array.isArray(gaps) ? gaps : []).filter((gap) => gap && (effort !== "low" || gap.lowGuide));
+    const away = new Set(Array.isArray(dismissed) ? dismissed : []);
+    const kept = offered.filter((gap) => !away.has(gap.id));
+    return { shown: max >= 0 ? kept.slice(0, max) : kept, hidden: offered.filter((gap) => away.has(gap.id)) };
+  }
+
+  // The key a sweep result is kept under: the inputs text it ran on, the sweep, the person, the score preset and the
+  // seed; any of them changing makes the result stale.
+  function coachSweepKey(inputsText, sweepId, who, preset, seed) {
+    return JSON.stringify([inputsText, sweepId, who == null ? null : who, preset, seed]);
+  }
+
+  // The score preset for risk comfort `value` (appInfo().experience.riskComforts `list`); unset or unknown values
+  // use DEFAULT_RISK_PRESET.
+  function riskPresetOf(list, value) {
+    const found = (Array.isArray(list) ? list : []).find((item) => item && item.id === value);
+    return found && found.preset ? found.preset : DEFAULT_RISK_PRESET;
+  }
+
   // How many inputs are left at the example household's values because the effort does not show them: the panel
   // entries (each schema panel's `fields`, tiered in its `tiers`, keyed in its `keys`) above `effort`, and not shown by
   // `overrides` (the scenario's `tierOverrides`, see detailShown), whose value in `inputs` equals the one in
@@ -2200,7 +2238,7 @@
     surfacePath, walkIndexedPath, overrideList, defaultedInputCount, firstUnlocked, yearsToAge100, planYears, undoRecord, undoStep, mergeUndoPush, mergeUndoPop,
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText,
-    pickerLevelAt, pickerKeyLevel };
+    pickerLevelAt, pickerKeyLevel, coachDismissKey, coachDismissed, coachGapsShown, coachSweepKey, riskPresetOf };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

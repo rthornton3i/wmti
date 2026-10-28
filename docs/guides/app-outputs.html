@@ -1,0 +1,522 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The app: Outputs &mdash; Walk Me Through It  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=3c77dc12" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7f41d439"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Strategies" href="strategies.html" />
+    <link rel="prev" title="The app: scenarios and guided flows" href="app-flows.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../user_index.html" class="icon icon-home">
+            Walk Me Through It
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Start here</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the toolkit</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using the app</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="app.html">The app</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-inputs.html">The app: Setup and Inputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-flows.html">The app: scenarios and guided flows</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The app: Outputs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#outputs">Outputs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#summary">Summary</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#next-steps-coach-and-gamer">Next steps (Coach and Gamer)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#plots">Plots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#monte-carlo">Monte Carlo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compare">Compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimize">Optimize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#final-report-pdf">Final report (PDF)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#insights">Insights</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="strategies.html">Strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-gallery.html">Sample results</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How the model works</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="model-rules.html">Model rules by group</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States: taxes, living costs and moving</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tax law and legal</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tax-law.html">Tax law in the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../law/index.html">Tax law by jurisdiction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Legal</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../user_index.html">Walk Me Through It</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../user_index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The app: Outputs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-app-outputs">
+<h1>The app: Outputs<a class="headerlink" href="#the-app-outputs" title="Link to this heading"></a></h1>
+<p>Purpose: read your results and run Monte Carlo, Compare, Optimize and the final report; continued from <a class="reference internal" href="app.html"><span class="doc">The app</span></a>.</p>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading"></a></h2>
+<p>The Outputs tab has four views: <strong>Summary</strong>, <strong>Plots</strong>, <strong>Compare</strong> and <strong>Optimize</strong>. Every figure and chart comes from the last Monte Carlo. The yearly values are the middle half average: the runs between the 25th and 75th percentile of final worth. Tables are not in the app. The <a class="reference internal" href="#app-final-report"><span class="std std-ref">Final report</span></a> holds them.</p>
+<div class="screen-grid docutils container">
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="../_images/outputs-summary.png"><img alt="The Summary view: tiles for median final worth, home and cars, what beneficiaries keep and the chance of running out." src="../_images/outputs-summary.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Summary: the headline tiles, then Insights.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id2">
+<a class="reference internal image-reference" href="../_images/plots.png"><img alt="A Plots chart with its row of chart chips and the Chart and Table switch." src="../_images/plots.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Plots: one chart at a time, with a Chart or Table switch.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</div>
+<section id="summary">
+<h3>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>What it shows</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pinned strip</p></td>
+<td><p>Current net worth (today’s dollars), the median final worth of the last Monte Carlo, average net earnings after withdrawals (negative means a shortfall) and average annual expense. A figure reads “Running…” while it is recalculated.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Median final worth</p></td>
+<td><p>Accounts only, with the middle half range under it.</p></td>
+</tr>
+<tr class="row-even"><td><p>Home and cars</p></td>
+<td><p>Homes and cars less loans at the end.</p></td>
+</tr>
+<tr class="row-odd"><td><p>What beneficiaries keep</p></td>
+<td><p>Homes, cars and loans counted, then the beneficiaries’ income tax, estate tax, inheritance tax and selling costs taken out. Its “i” says why it can exceed the accounts-only figure. The rule is on <a class="reference internal" href="model-rules.html#tab-beneficiaries"><span class="std std-ref">Beneficiaries</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Chance of running out</p></td>
+<td><p>The share of runs where the accounts run dry.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Dollars line</p></td>
+<td><p>Says whether amounts are today’s dollars or inflation adjusted. See <a class="reference internal" href="model-rules.html#inflation"><span class="std std-ref">Inflation and dollars</span></a>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Below the tiles are the Insights card (see <a class="reference internal" href="#app-insights"><span class="std std-ref">Insights</span></a>) and an <em>Open the Final report</em> button.</p>
+<section id="next-steps-coach-and-gamer">
+<span id="app-next-steps"></span><h4>Next steps (Coach and Gamer)<a class="headerlink" href="#next-steps-coach-and-gamer" title="Link to this heading"></a></h4>
+<p>In the Coach and Gamer styles, a <strong>Next steps</strong> card follows the tiles. It lists up to three gaps found in your inputs, such as an unpaid employer match, a child without a 529, or no HSA, Roth conversion or backdoor Roth. It shows before any Monte Carlo. At Low only the match gap shows.</p>
+<ul class="simple">
+<li><p><strong>Show me where</strong> opens the input. At Low a button opens the retirement plan setup.</p></li>
+<li><p><strong>Check what it is worth</strong> runs a short test of a few values on the same random draws, with progress and Cancel.</p></li>
+<li><p><strong>Apply</strong> writes the best value as one Undo step. A result goes dim, with Apply off, once the settings change.</p></li>
+<li><p><strong>Not now</strong> hides a gap; <em>Show N hidden</em> brings it back.</p></li>
+</ul>
+<p>Nothing changes until you tap Apply. Your risk comfort (see <a class="reference internal" href="app-flows.html#app-experience"><span class="std std-ref">Effort and style</span></a>) picks how a check scores better. While the card shows a person’s match gap, Insights leaves out that person’s unused-match line.</p>
+</section>
+</section>
+<section id="plots">
+<h3>Plots<a class="headerlink" href="#plots" title="Link to this heading"></a></h3>
+<figure class="align-default" id="id3">
+<a class="reference internal image-reference" href="../_images/wealth-bands.png"><img alt="Total balance by age: a median line with a shaded band around it." src="../_images/wealth-bands.png" style="width: 420px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Total balance: the median line and the spread of outcomes around it.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 38.0%" />
+<col style="width: 38.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Chart</p></th>
+<th class="head"><p>What it shows</p></th>
+<th class="head"><p>How to read it</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Total balance</p></td>
+<td><p>The balance band by year and a histogram of final values.</p></td>
+<td><p>The line is the median. The band is the spread. The histogram leaves out the lowest and highest 1% of runs.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Balances</p></td>
+<td><p>Each account’s balance, stacked.</p></td>
+<td><p>The top of the stack is the middle half average total.</p></td>
+</tr>
+<tr class="row-even"><td><p>Cash flow</p></td>
+<td><p>Spending only. Money in (Paycheck, Social Security, Sale proceeds) above zero. Money out (expenses, taxes) below it.</p></td>
+<td><p>The <em>Left over</em> line is money in minus money out. Below zero, the accounts pay for the year.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Deposits and withdrawals</p></td>
+<td><p>Deposits above zero, withdrawals below it.</p></td>
+<td><p>Withdrawals, retirement deposits and the surplus are here. The RMD table is in the Final report.</p></td>
+</tr>
+<tr class="row-even"><td><p>Taxes</p></td>
+<td><p>Taxes stacked by kind, with the local tax as its own slice.</p></td>
+<td><p>A hatched bar on top (<em>Sales tax (in expenses)</em>) is sales tax already inside spending. It is never added to a total.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Expenses</p></td>
+<td><p>Spending by category.</p></td>
+<td><p>See the category rows in the table view.</p></td>
+</tr>
+</tbody>
+</table>
+<figure class="align-default" id="id4">
+<a class="reference internal image-reference" href="../_images/income-spending.png"><img alt="Yearly deposits and withdrawals drawn above and below zero." src="../_images/income-spending.png" style="width: 420px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Money in and out by year.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>Every chart by year shares these controls:</p>
+<ul class="simple">
+<li><p><strong>Axis:</strong> your age sits over the calendar year. Tap a chart to read every series at that point.</p></li>
+<li><p><strong>Chart or Table:</strong> the switch shows the same numbers as a table. The “i” by the title says what the chart shows.</p></li>
+<li><p><strong>Key:</strong> names are short, grouped and foldable. Hover or tap for the full name. On a phone a long key folds to a <em>Key</em> row. Tap a key item to dim the other series; tap again or press Esc to clear.</p></li>
+<li><p><strong>Full screen:</strong> the button at the card’s top right draws the chart wider in landscape. Close, Esc or Back returns.</p></li>
+<li><p><strong>Show what beneficiaries keep:</strong> a box under Total balance, Balances and the Compare balance chart. It marks the Summary figure just past the last year, with a dashed step and a dot. It is on by default and the device remembers your choice.</p></li>
+</ul>
+</section>
+<section id="monte-carlo">
+<h3>Monte Carlo<a class="headerlink" href="#monte-carlo" title="Link to this heading"></a></h3>
+<p>The Monte Carlo runs on its own after start-up and after any change to the settings, the Runs or the Seed. It waits for the single run and a short pause. A change while it runs cancels it and starts a new one.</p>
+<ul class="simple">
+<li><p><strong>Run:</strong> the run bar above Summary and Plots reruns it by hand (“Run again” when the result is current).</p></li>
+<li><p><strong>Runs and Seed:</strong> set both on Setup. Pick 25 (default), 50 or 100 runs.</p></li>
+<li><p><strong>Progress:</strong> the bar shows runs done and the time left, estimated from your device. Cancel stops it at once and keeps the last finished result.</p></li>
+<li><p><strong>Stale result:</strong> after a change, the old result stays on screen, dimmed, under a note.</p></li>
+<li><p><strong>Does not run:</strong> while the settings need a fix or a comparison is running.</p></li>
+</ul>
+<p>For the method, see the glossary and the <span>deep-dive</span>.</p>
+</section>
+<section id="compare">
+<h3>Compare<a class="headerlink" href="#compare" title="Link to this heading"></a></h3>
+<p>Compare always runs exactly two configs. Config A and Config B each list the current settings, the example household and your saved scenarios. They are never the same. To compare a strategy or a claim age, save a scenario for each choice.</p>
+<figure class="align-default" id="id5">
+<a class="reference internal image-reference" href="../_images/compare-view.png"><img alt="Compare with Config A and Config B selected and the Settings that differ card." src="../_images/compare-view.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Compare: pick A and B, then open Settings that differ.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id6">
+<a class="reference internal image-reference" href="../_images/compare.png"><img alt="Two median balance lines with shaded bands, one per scenario." src="../_images/compare.png" style="width: 420px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The comparison chart: one median line and band per scenario.</span><a class="headerlink" href="#id6" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>How to run it:</p>
+<ol class="arabic simple">
+<li><p>Pick Config A and Config B.</p></li>
+<li><p>Press Run. Each config runs the Runs set on Setup, on the same random draws.</p></li>
+<li><p>Read the results.</p></li>
+</ol>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Result</p></th>
+<th class="head"><p>How to read it</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Comparison table</p></td>
+<td><p>One row per scenario. It scrolls sideways with the scenario column in view. The “i” beside the heading says why the after-tax column can be higher. How Compare judges is in <a class="reference internal" href="model-rules.html#tab-compare"><span class="std std-ref">How Compare judges</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Total balance</p></td>
+<td><p>Median line with 10th to 90th percentile shading per scenario. A dashed step ends each line at what its beneficiaries keep.</p></td>
+</tr>
+<tr class="row-even"><td><p>Final account value</p></td>
+<td><p>One box per scenario.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Settings that differ</strong> needs no run. This closed card, with a count in its title, lists every setting that differs, grouped by settings panel. Each row shows the setting, A’s value and B’s value. A block off on both sides lists nothing.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Button</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Merge A with B</p></td>
+<td><p>A takes B’s value. Applies at once.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Merge B with A</p></td>
+<td><p>B takes A’s value. Applies at once.</p></td>
+</tr>
+<tr class="row-even"><td><p>Undo last merge (n)</p></td>
+<td><p>Steps back through the last 20 merges. A config edited since is left alone.</p></td>
+</tr>
+<tr class="row-odd"><td><p>A → B (“Make B match A”)</p></td>
+<td><p>Copies every difference to B. A second tap confirms.</p></td>
+</tr>
+<tr class="row-even"><td><p>A ← B (“Make A match B”)</p></td>
+<td><p>Copies every difference to A. A second tap confirms.</p></td>
+</tr>
+</tbody>
+</table>
+<p>After a merge, results show as changed until you press Run. The example household is never changed; its buttons are off with the reason. Buttons are also off while a comparison runs.</p>
+</section>
+<section id="optimize">
+<span id="optimize-view"></span><h3>Optimize<a class="headerlink" href="#optimize" title="Link to this heading"></a></h3>
+<p>Optimize searches your strategy settings for the best score. For what is searched and why, see <a class="reference internal" href="strategies.html#finding-best-settings"><span class="std std-ref">Finding the best settings</span></a>; for the score, see <a class="reference internal" href="model-rules.html#tab-optimize"><span class="std std-ref">How Optimize scores</span></a>. On Inputs, the Strategies chip opens it with <em>Find the best settings in the optimizer</em>.</p>
+<figure class="align-default" id="id7">
+<a class="reference internal image-reference" href="../_images/optimizer-before-after.png"><img alt="Score before and after the optimizer's changes." src="../_images/optimizer-before-after.png" style="width: 420px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The search keeps a change only if the score improves.</span><a class="headerlink" href="#id7" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id8">
+<a class="reference internal image-reference" href="../_images/optimize-result.png"><img alt="The Optimize result: a list of settings that change, each with its gain, and the Apply button." src="../_images/optimize-result.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Result: each change, its gain, then Apply.</span><a class="headerlink" href="#id8" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>To run it:</p>
+<ol class="arabic simple">
+<li><p>Tick the options to search. Untick one to keep its current setting. An option that cannot apply shows <em>Not available</em> and its reason.</p></li>
+<li><p>Choose a Risk preference (Growth-leaning, Balanced or Cautious).</p></li>
+<li><p>Choose an Effort. Each label shows a time estimate for your device. Details are in <a class="reference internal" href="strategies.html#optimizer-estimates"><span class="std std-ref">the estimates</span></a>.</p></li>
+<li><p>Press <em>Find best settings</em>.</p></li>
+</ol>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Relocation state</p></td>
+<td><p>Tick up to 5 states. A line under the list estimates the extra runs and time. Staying put is always compared.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Filing status (couples)</p></td>
+<td><p>On by default. Tries joint and separate returns for federal and state. Greyed out without a partner.</p></td>
+</tr>
+<tr class="row-even"><td><p>Other options</p></td>
+<td><p>Each has an “i” saying what it tries, including 401k deposits and new accounts.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Beneficiaries’ payouts are never searched. Apply does not change them.</p>
+<p>While it runs:</p>
+<ul class="simple">
+<li><p><strong>Progress:</strong> a bar shows runs done against runs expected, the step, the settings tried and the time left.</p></li>
+<li><p><strong>Stop, show best so far:</strong> ends the search and keeps the best result.</p></li>
+<li><p><strong>Cancel:</strong> ends the search and keeps nothing.</p></li>
+<li><p><strong>Run budget:</strong> at the budget the search pauses. Choose <em>Continue</em> or <em>Stop and keep best so far</em>.</p></li>
+<li><p><strong>Keep the app open:</strong> a browser freezes the search when the phone sleeps. The page holds the screen awake. Leaving the app pauses the search (<em>Paused while the app was in the background</em>). Coming back resumes it (<em>Resumed</em>).</p></li>
+<li><p><strong>Closed mid-search:</strong> Optimize offers <em>Resume the search</em> or <em>Discard</em>. A saved search from another version of the app is refused: start a new one.</p></li>
+</ul>
+<p>The result card has these parts:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Part</p></th>
+<th class="head"><p>What it shows</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Settings that change</p></td>
+<td><p>One card per change: the setting, its value now and the recommended value, and its gain (such as <em>+$15,247 score</em>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Total improvement</p></td>
+<td><p>The sum measured over M runs. Each gain was measured when the search took that change, so gains need not add up.</p></td>
+</tr>
+<tr class="row-even"><td><p>Other settings kept</p></td>
+<td><p>One line, <em>N other settings kept as they are</em>. Tap to list them.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Score breakdown</p></td>
+<td><p>Whether the best held up on fresh draws, the skipped strategies and notes.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Apply these settings</strong> writes the changes as one Undo step and shows <em>Applied N settings</em>, with an Undo button. A Relocation result also moves the state of each home and rent starting at or after the move. Apply is off, with the reason, once the settings change after the search or when nothing changes.</p>
+</section>
+<section id="final-report-pdf">
+<span id="app-final-report"></span><h3>Final report (PDF)<a class="headerlink" href="#final-report-pdf" title="Link to this heading"></a></h3>
+<figure class="align-default" id="id9">
+<a class="reference internal image-reference" href="../_images/report-picker.png"><img alt="The Final report picker listing saved scenarios to tick." src="../_images/report-picker.png" style="width: 260px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The picker: tick up to four scenarios to compare.</span><a class="headerlink" href="#id9" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p><strong>Final report (PDF)</strong> in the menu builds a US Letter PDF of your plan.</p>
+<ol class="arabic simple">
+<li><p>Tick up to four saved scenarios to compare with the current settings, or none.</p></li>
+<li><p>Press <strong>Create report</strong>. The current settings run their Monte Carlo first if it is missing or stale. Each ticked scenario then runs once with the same runs and seed. Cancel is in the dialog.</p></li>
+<li><p>The PDF downloads as <em>scenario</em>-report-<em>date</em>.pdf.</p></li>
+</ol>
+<p>The body is at most four pages:</p>
+<ul class="simple">
+<li><p>the headline figures and four key results (chance of success, median, 10th and 90th percentile final worth);</p></li>
+<li><p>the Insights;</p></li>
+<li><p>the charts (total balance, final values, balances, cash flow, taxes, expenses), each with a caption and a two to four sentence summary;</p></li>
+<li><p>with scenarios ticked, a Comparison chart and one line per scenario saying how many settings differ and in which panels.</p></li>
+</ul>
+<p>The summaries are built by fixed rules from the run’s own data, never by hand. They report jumps and drops in taxes and spending, a balance reaching zero, pay stopping, Social Security or withdrawals starting, the peak and the spread of final values. A cause is named only when the yearly table shows it in the same year. Otherwise the summary says what happened without a cause.</p>
+<p>The addendum holds the tables in small type, with the header row repeated on each page:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Heading</p></th>
+<th class="head"><p>Tables</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Your settings</p></td>
+<td><p>Single settings by group, and every list of items (expenses, accounts, loans, homes, cars, children).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Year by year results</p></td>
+<td><p>Cash flow by type, Accounts, Deductions, with the middle half average of the runs. Each row is led by your age.</p></td>
+</tr>
+<tr class="row-even"><td><p>End of the plan</p></td>
+<td><p>Range of outcomes and What beneficiaries receive.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Comparison</p></td>
+<td><p>With scenarios ticked: Settings that differ (one table per panel), then Results.</p></td>
+</tr>
+</tbody>
+</table>
+<p>A table too wide for the page splits into blocks that repeat the row label column. Every page footer shows the scenario name, the page number and “Estimates for education only; not financial, tax or legal advice.” The report works offline.</p>
+</section>
+<section id="insights">
+<span id="app-insights"></span><h3>Insights<a class="headerlink" href="#insights" title="Link to this heading"></a></h3>
+<p>The <strong>Insights</strong> card on Summary and the Insights section of the report list up to five warnings and up to five opportunities. Fixed rules draw them from the last Monte Carlo and the inputs it ran on. A kind with no items is left out. Dollar figures are rounded to two significant figures. The card ends with “Estimates from this plan’s own numbers; not financial advice.”</p>
+<p><strong>Warnings</strong>, ranked by severity, each with its age:</p>
+<ul class="simple">
+<li><p>the median balance falls 3 or more years in a row;</p></li>
+<li><p>in a year without pay, the accounts hold less than 2 years of spending;</p></li>
+<li><p>in a year without pay, withdrawals exceed 5% of the accounts’ balance;</p></li>
+<li><p>the chance of running out is above 10%;</p></li>
+<li><p>total taxes rise by at least 50% and $5,000 in one year;</p></li>
+<li><p>an account is drained while one earlier in the withdrawal order still holds money;</p></li>
+<li><p>spending and taxes exceed income plus withdrawals, so some goes unpaid.</p></li>
+</ul>
+<p><strong>Opportunities</strong>, ranked by dollar size, use simple arithmetic at the plan’s expected real return. They run no new simulation:</p>
+<ul class="simple">
+<li><p>cutting the largest expense category by 10%;</p></li>
+<li><p>what each $1,000 a year saved before retirement grows to;</p></li>
+<li><p>an employer match not fully used;</p></li>
+<li><p>cash above a 6-month reserve that earns less than the Investments account;</p></li>
+<li><p>the three largest expense categories and their share of spending.</p></li>
+</ul>
+<p>The wording is factual, never advice.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app-flows.html" class="btn btn-neutral float-left" title="The app: scenarios and guided flows" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="strategies.html" class="btn btn-neutral float-right" title="Strategies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, [BRAND NAME].</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

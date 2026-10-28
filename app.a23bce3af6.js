@@ -154,6 +154,9 @@
       armed: null, diffs: null, diffsPending: null, mergeUndo: [], merging: 0 },
     optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
       options: { effort: null, preset: null, dimensions: {}, states: [] } },
+    // The Next steps card (49-coach.js): the gaps and the inputs text they are for, the running check, each gap's kept
+    // check and last message, and the scenario they belong to.
+    coach: { gaps: null, gapsKey: null, pendingKey: null, job: null, entries: {}, messages: {}, scenarioName: null },
   };
   const $ = (id) => document.getElementById(id);
   const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -188,7 +191,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.ea30448c4b.js");
+      worker = new Worker("worker.d12090e67b.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -485,6 +488,7 @@
     renderPinned();  // the figures read "Running…" until the run is back
     mcKeyChanged();
     optimizeInputsChanged();
+    coachInputsChanged();
     runTimer = setTimeout(runNow, RUN_DELAY_MS);
   }
 
@@ -1660,9 +1664,12 @@
     const { entry, stale } = latestMonteCarlo();
     const low = lowShown() ? lowResultCards(entry, stale) : null;
     const lowHolder = low ? "<div class=\"low-results\" id=\"lowResults\"></div>" : "";
+    const nextSteps = "<div id=\"nextSteps\">" + renderNextSteps() + "</div>";  // Coach and Gamer (49-coach.js)
     if (!entry) {
-      body.innerHTML = html + lowHolder + "<div class=\"card empty-state\">No Monte Carlo yet. It starts on its own.</div>";
+      body.innerHTML = html + lowHolder + nextSteps
+        + "<div class=\"card empty-state\">No Monte Carlo yet. It starts on its own.</div>";
       placeLowResults(body, low);
+      wireNextSteps(body);
       return;
     }
     const result = entry.value;
@@ -1674,9 +1681,10 @@
       + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale)).join("")
       + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false)).join("") : "")
       + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "");
-    html += renderInsights(result, entry, stale) + REPORT_POINTER_HTML;
+    html += nextSteps + renderInsights(result, entry, stale) + REPORT_POINTER_HTML;
     body.innerHTML = html;
     placeLowResults(body, low);
+    wireNextSteps(body);
   }
 
   // The inputs a Monte Carlo cache entry ran on: the current ones unless it is stale.
@@ -1686,9 +1694,12 @@
   }
 
   // The Insights card (insights.js) of a Monte Carlo cache entry, on the inputs it ran on: a list per kind that has
-  // items and the note; "" when neither has any.
+  // items and the note; "" when neither has any. A person's unused-match line is left out while the Next steps card
+  // shows that person's match gap (the report keeps it).
   function renderInsights(result, entry, stale) {
     const found = insightRules.insights(ranInputs(entry, stale), result);
+    const coached = new Set(coachMatchRoles().map((role) => "unusedMatch-" + role));
+    found.opportunities = found.opportunities.filter((item) => !coached.has(item.id));
     const groups = [["Warnings", found.warnings, "insights-warnings"], ["Opportunities", found.opportunities,
       "insights-opportunities"]].filter(([, items]) => items.length);
     if (!groups.length) return "";
@@ -2002,22 +2013,67 @@
     refreshDetailNotice();
   }
 
-  // Change the open scenario's effort or style (`patch`: {effort} and/or {style}, each an id appInfo offers; others
-  // are ignored) and save the block.
+  // Change the open scenario's effort, style or risk comfort (`patch`: {effort}, {style} and/or {riskComfort}, each an
+  // id appInfo offers, riskComfort also null for unset; others are ignored) and save the block. Risk comfort is
+  // written only when it differs from the one shown, so an unknown word kept in a file is never rewritten by itself.
   function setExperience(patch) {
     const offered = state.info.experience;
     const change = {};
     if (offered.efforts.some((item) => item.id === patch.effort)) change.effort = patch.effort;
     if (offered.styles.some((item) => item.id === patch.style)) change.style = patch.style;
-    if (!Object.keys(change).length) return;
-    const previous = shownExperience().effort;
-    saveExperience(change);
-    if (change.effort && effortRank(change.effort) > effortRank(previous)) walkEffortRaised(previous);
-    applyExperience();
-    if (change.effort && change.effort !== previous) {
-      lowRaiseNote(previous, change.effort);  // a raise from Low: the spending number still covers housing
-      renderEffortViews();
+    if (Object.prototype.hasOwnProperty.call(patch, "riskComfort") && patch.riskComfort !== riskComfortShown()
+      && (patch.riskComfort === null || (offered.riskComforts || []).some((item) => item.id === patch.riskComfort))) {
+      change.riskComfort = patch.riskComfort;
     }
+    if (!Object.keys(change).length) return;
+    const previous = shownExperience();
+    saveExperience(change);
+    if (change.effort && effortRank(change.effort) > effortRank(previous.effort)) walkEffortRaised(previous.effort);
+    applyExperience();
+    if (change.effort && change.effort !== previous.effort) {
+      lowRaiseNote(previous.effort, change.effort);  // a raise from Low: the spending number still covers housing
+      renderEffortViews();
+    } else if (change.style && change.style !== previous.style) {
+      renderResults();  // the Next steps card shows only at Coach and Gamer
+    }
+    coachExperienceChanged();
+  }
+
+  // The Effort and style dialog's risk comfort group (settings mode only): one radio per answer appInfo offers, then
+  // Not set; `choice.riskComfort` follows the pick.
+  function riskComfortGroup(choice) {
+    const fieldset = document.createElement("fieldset");
+    fieldset.className = "experience-group risk-group";
+    fieldset.id = "xpPick-risk";
+    const legend = document.createElement("legend");
+    legend.textContent = "Risk comfort";
+    const lede = document.createElement("p");
+    lede.className = "field-help";
+    lede.textContent = (state.info.experience.riskQuestion || "How much ups and downs do you accept?") + " Coach uses "
+      + "it to say which check result is better; it never changes your inputs or results.";
+    fieldset.append(legend, lede);
+    const items = (state.info.experience.riskComforts || []).concat([{ id: "", label: "Not set",
+      blurb: "Balanced is used." }]);
+    for (const item of items) {
+      const row = document.createElement("label");
+      row.className = "experience-option";
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "xpPick-risk";
+      input.id = "xpPick-risk-" + (item.id || "none");
+      input.value = item.id;
+      input.checked = (choice.riskComfort || "") === item.id;
+      input.addEventListener("change", () => { if (input.checked) choice.riskComfort = item.id || null; });
+      const label = document.createElement("span");
+      label.className = "experience-label";
+      label.textContent = item.label;
+      const blurb = document.createElement("span");
+      blurb.className = "experience-blurb";
+      blurb.textContent = item.blurb;
+      row.append(input, label, blurb);
+      fieldset.append(row);
+    }
+    return fieldset;
   }
 
   // Open the picker: "settings" (from the menu: the current choice, Save keeps it and Cancel discards it),
@@ -2033,9 +2089,10 @@
     experiencePicker.mode = first ? mode : "settings";
     const offered = state.info.experience;
     experiencePicker.choice = returning ? { ...offered.existingDefault }
-      : first ? { ...offered.newUserDefault } : shownExperience();
+      : first ? { ...offered.newUserDefault } : { ...shownExperience(), riskComfort: riskComfortShown() };
     const pick = (change) => Object.assign(experiencePicker.choice, change);
-    $("experienceChoices").replaceChildren(...experienceGroups("xpPick", experiencePicker.choice, pick));
+    $("experienceChoices").replaceChildren(...experienceGroups("xpPick", experiencePicker.choice, pick),
+      ...(first ? [] : [riskComfortGroup(experiencePicker.choice)]));
     if (first) $("experienceDetail").hidden = true;
     else renderDetailList();  // the detail added to the scenario, each with its Hide it
     const button = (label, className, id, onClick) => {
@@ -2869,12 +2926,13 @@
   }
 
   // Surface a lever and open its first input on Inputs: its chip, the list item's sheet when `itemPath` names one
-  // (such as `children.0`), the field scrolled into view, flashed and focused. False (and nothing changes) at Low and
-  // for an unknown lever.
-  function jumpToField(leverId, itemPath) {
+  // (such as `children.0`), the field scrolled into view, flashed and focused. `path`, when given, is the input path
+  // to open instead of the lever's first (a partner's match entry). False (and nothing changes) at Low and for an
+  // unknown lever.
+  function jumpToField(leverId, itemPath, path) {
     const targets = surfaceTarget(leverId);
     if (!targets || !surfaceField(leverId)) return false;
-    openInputsField(surfacePath(targets[0], itemPath), targets[0].panel);
+    openInputsField(typeof path === "string" && path ? path : surfacePath(targets[0], itemPath), targets[0].panel);
     return true;
   }
 
@@ -2954,6 +3012,375 @@
     const next = $("experienceDetail").querySelector(".detail-hide") || $("experience").querySelector(".pk-barwrap");
     if (next) next.focus();
   }
+  // ---- Coach: the Next steps card on Summary (Coach and Gamer styles) ----
+  // wmti.dashboard.coach finds a short ranked list of gaps from the inputs alone (coachGaps: no run, so the card shows
+  // before any Monte Carlo); the card draws up to MAX_NEXT_STEPS not dismissed. Each gap has Show me where
+  // (jumpToField), Not now (kept in `experience.progress`), and, when it has a sweep, Check what it is worth: a short
+  // batched job ("leverSweep", wmti.dashboard.leversweep) on the same random draws with progress and Cancel. Its result
+  // is kept with the inputs, sweep, person, score preset and seed it ran on (coachSweepKey); Apply writes its
+  // changes through applyOptimum as one Undo step. Nothing here changes an input until Apply is tapped. Risk comfort
+  // (the Effort and style dialog) only picks the sweep's score preset.
+  const { coachGapsShown, coachDismissKey, coachDismissed, coachSweepKey, riskPresetOf } = window.WmtiShared;
+  const MAX_NEXT_STEPS = 3;  // wmti.dashboard.coach.MAX_NEXT_STEPS
+  const COACH_STOPPED = {  // why a running check ended without a result, by what stopped it
+    user: "Cancelled. Nothing changed.",
+    background: "Stopped while the app was in the background. Check it again.",
+    dropped: "Another run replaced this check. Check it again.",
+  };
+  const coachTurn = { gaps: 0 };
+  window.wmtiCoach = { state: () => state.coach, runLeverSweep, applyLeverSweep };  // for the tests
+
+  // Whether Summary shows the Next steps card: Coach or Gamer style, on a plan that has its ages.
+  function coachOn() {
+    if (!state.info || !state.experience || !state.inputs || needsSetup(state.inputs)) return false;
+    const style = shownExperience().style;
+    return style === "coach" || style === "gamer";
+  }
+
+  // The open scenario's risk comfort: an id appInfo offers, else null (unset; an unknown word is never rewritten).
+  function riskComfortShown() {
+    const offered = (state.info && state.info.experience && state.info.experience.riskComforts) || [];
+    const value = state.experience && state.experience.riskComfort;
+    return offered.some((item) => item.id === value) ? value : null;
+  }
+
+  // The score preset a sweep uses: risk comfort's, else balanced.
+  function coachPreset() {
+    return riskPresetOf(state.info && state.info.experience && state.info.experience.riskComforts, riskComfortShown());
+  }
+
+  // Ask for the gaps of the current inputs (one request in flight, a newer one replaces it); the card is redrawn when
+  // they arrive.
+  async function loadCoachGaps() {
+    const coach = state.coach;
+    if (!coachOn()) return;
+    const inputsText = JSON.stringify(state.inputs);
+    if (coach.gapsKey === inputsText || coach.pendingKey === inputsText) return;
+    coach.pendingKey = inputsText;
+    const turn = ++coachTurn.gaps;
+    if (!state.optimize.info) loadOptimizeInfo();  // the not-advice note the card carries
+    const reply = await ask("coachGaps", [inputsText], "coach");
+    if (turn !== coachTurn.gaps) return;
+    coach.pendingKey = null;
+    if (!reply) return;
+    coach.gaps = reply.ok && Array.isArray(reply.gaps) ? reply.gaps : [];
+    coach.gapsKey = inputsText;
+    renderResults();  // the card, and the Insights line it stands in for
+  }
+
+  // The gaps the card draws now ({shown, hidden}, coachGapsShown), with any applied gap that the rules no longer list
+  // kept in place so its Undo stays in reach.
+  function coachShown() {
+    const coach = state.coach;
+    const experience = state.experience || {};
+    const found = coachGapsShown(coach.gaps || [], { effort: shownExperience().effort,
+      dismissed: coachDismissed(experience.progress), max: MAX_NEXT_STEPS });
+    const listed = new Set(found.shown.map((gap) => gap.id));
+    for (const [id, entry] of Object.entries(coach.entries)) {
+      if (entry && entry.gap && !listed.has(id) && coachApplied(entry)) found.shown.push(entry.gap);
+    }
+    return found;
+  }
+
+  // The roles whose match gap the card shows (the Insights card leaves out their unused-match line).
+  function coachMatchRoles() {
+    if (!coachOn()) return [];
+    return coachShown().shown.filter((gap) => gap.rule === "match" || /^match_/.test(gap.id))
+      .map((gap) => (gap.sweep && gap.sweep.who) || gap.id.replace(/^match_/, ""));
+  }
+
+  function coachGap(gapId) {
+    const listed = (state.coach.gaps || []).find((gap) => gap.id === gapId);
+    const entry = state.coach.entries[gapId];
+    return listed || (entry && entry.gap) || null;
+  }
+
+  // The key a gap's sweep would run under now.
+  function coachKeyNow(gap) {
+    return coachSweepKey(JSON.stringify(state.inputs), gap.sweep.id, gap.sweep.who, coachPreset(), state.seed);
+  }
+
+  function coachApplied(entry) {
+    return entry.appliedText != null && entry.appliedText === JSON.stringify(state.inputs);
+  }
+
+  function coachStale(entry, gap) {
+    return !coachApplied(entry) && (!gap || !gap.sweep || entry.key !== coachKeyNow(gap));
+  }
+
+  // Why Check what it is worth cannot run now, or null: one batched job runs at a time.
+  function coachBusyReason(gapId) {
+    if (state.coach.job) return state.coach.job.gapId === gapId ? null : "Another check is running.";
+    if (state.error) return "Fix the settings first.";
+    if (state.mc.job) return "Waiting for the Monte Carlo to finish.";
+    if (state.compare.job) return "Waiting for the comparison to finish.";
+    if (state.optimize.job) return "Waiting for the strategy search to finish.";
+    if (reportRun.busy) return "Waiting for the report to finish.";
+    return null;
+  }
+
+  // The Next steps card's HTML ("" when it is not drawn); renderResults puts it in #nextSteps and wireNextSteps wires it.
+  function renderNextSteps() {
+    if (!coachOn()) return "";
+    loadCoachGaps();
+    const { shown, hidden } = coachShown();
+    if (!shown.length && !hidden.length) return "";
+    const notAdvice = state.optimize.info && state.optimize.info.notAdvice;
+    return "<div class=\"card nextsteps-card\" id=\"nextStepsCard\"><div class=\"card-head\"><h2>Next steps</h2></div>"
+      + (shown.length ? "<ul class=\"nextsteps-list\">" + shown.map(nextStepHtml).join("") + "</ul>"
+        : "<p class=\"field-help\">Every next step is hidden.</p>")
+      + (hidden.length ? "<button type=\"button\" class=\"button button-quiet nextsteps-hidden\" id=\"nextStepsHidden\">"
+        + "Show " + hidden.length + " hidden</button>" : "")
+      + riskComfortLinkHtml()
+      + (notAdvice ? "<p class=\"field-help nextsteps-note\">" + escapeText(notAdvice) + "</p>" : "") + "</div>";
+  }
+
+  // One gap's row: its title and text, its buttons, then the running check or its result.
+  function nextStepHtml(gap) {
+    const id = escapeText(gap.id);
+    const low = lowOn();
+    const busy = coachBusyReason(gap.id);
+    const running = state.coach.job && state.coach.job.gapId === gap.id;
+    const buttons = [];
+    if (low && gap.lowGuide) {
+      buttons.push("<button type=\"button\" class=\"button nextstep-guide\" data-gap=\"" + id + "\">Open the "
+        + "retirement setup</button>");
+    } else if (!low && gap.jump) {
+      buttons.push("<button type=\"button\" class=\"button nextstep-jump\" data-gap=\"" + id + "\">Show me where</button>");
+    }
+    if (gap.sweep && !running) {
+      buttons.push("<button type=\"button\" class=\"button button-quiet nextstep-check\" data-gap=\"" + id + "\""
+        + (busy ? " disabled" : "") + ">Check what it is worth</button>");
+    }
+    buttons.push("<button type=\"button\" class=\"button button-quiet nextstep-dismiss\" data-gap=\"" + id + "\">Not now"
+      + "</button>");
+    return "<li class=\"nextstep\" data-gap=\"" + id + "\"><h3>" + escapeText(gap.title) + "</h3><p>"
+      + escapeText(gap.text) + "</p>"
+      + (!gap.sweep && gap.sweepNote ? "<p class=\"field-help\">" + escapeText(gap.sweepNote) + "</p>" : "")
+      + "<div class=\"nextstep-actions\">" + buttons.join("") + "</div>"
+      + (gap.sweep && busy && !running ? "<p class=\"field-help nextstep-busy\">" + escapeText(busy) + "</p>" : "")
+      + (running ? progressHtml("coach", state.coach.job) : "")
+      + "<div class=\"nextstep-result\" role=\"status\" id=\"coachResult-" + id + "\">" + nextStepResultHtml(gap)
+      + "</div></li>";
+  }
+
+  // A gap's kept check: its summary and what was tried, with Apply (or Applied and Undo); dimmed with Apply off once
+  // the settings, the risk comfort or the seed changed. A message when the last check ended without one.
+  function nextStepResultHtml(gap) {
+    const coach = state.coach;
+    const entry = coach.entries[gap.id];
+    const message = coach.messages[gap.id];
+    if (!entry) return message ? "<p class=\"field-help\">" + escapeText(message) + "</p>" : "";
+    const id = escapeText(gap.id);
+    const value = entry.value;
+    const stale = coachStale(entry, gap);
+    let html = "<div class=\"nextstep-check-result" + (stale ? " stale-results" : "") + "\">"
+      + (stale ? "<p class=\"banner banner-warn\" role=\"note\">Settings changed since you checked.</p>" : "")
+      + "<p>" + escapeText(value.summary) + "</p>"
+      + (value.rows && value.rows.length ? "<details class=\"nextstep-rows\"><summary>What was tried</summary><ul>"
+        + value.rows.map((row) => "<li>" + escapeText(row.text) + (row.change ? ": " + escapeText(row.change) : "")
+          + "</li>").join("") + "</ul></details>" : "");
+    if (coachApplied(entry)) {
+      html += "<div class=\"nextstep-actions\"><span class=\"muted\">Applied.</span><button type=\"button\" "
+        + "class=\"button button-quiet nextstep-undo\" data-gap=\"" + id + "\">Undo</button></div>";
+    } else if (value.changed && value.applicable) {
+      html += "<div class=\"nextstep-actions\"><button type=\"button\" class=\"button nextstep-apply\" data-gap=\"" + id
+        + "\"" + (stale ? " disabled" : "") + ">Apply</button></div>";
+    }
+    if (entry.error) html += "<p class=\"banner banner-error\" role=\"alert\">" + escapeText(entry.error) + "</p>";
+    return html + "</div>";
+  }
+
+  // The quiet line under the gaps: the risk comfort the checks use, with Change (opens the Effort and style dialog).
+  function riskComfortLinkHtml() {
+    const value = riskComfortShown();
+    const item = value && state.info.experience.riskComforts.find((choice) => choice.id === value);
+    return "<p class=\"risk-row\"><span>" + escapeText(item ? "Risk comfort: " + item.label + "." : "Tell Coach how much "
+      + "ups and downs you accept.") + "</span><button type=\"button\" class=\"button button-quiet risk-change\" "
+      + "id=\"riskComfortChange\">" + (item ? "Change" : "Set it") + "</button></p>";
+  }
+
+  // Wire the card drawn in Summary's `body`.
+  function wireNextSteps(body) {
+    const card = body.querySelector("#nextStepsCard");
+    if (!card) return;
+    card.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button || button.disabled) return;
+      const gapId = button.dataset.gap;
+      const gap = gapId ? coachGap(gapId) : null;
+      if (button.classList.contains("nextstep-jump") && gap) {
+        jumpToField(gap.jump.lever, gap.jump.itemPath || undefined, gap.jump.path || undefined);
+      } else if (button.classList.contains("nextstep-guide") && gap) {
+        openGuidedPlan(gap.lowGuide);
+      } else if (button.classList.contains("nextstep-check")) {
+        runLeverSweep(gapId);
+      } else if (button.classList.contains("nextstep-dismiss")) {
+        dismissGap(gapId);
+      } else if (button.classList.contains("nextstep-apply")) {
+        applyLeverSweep(gapId);
+      } else if (button.classList.contains("nextstep-undo")) {
+        undoLast();
+        refreshNextSteps(gapId);
+      } else if (button.id === "nextStepsHidden") {
+        showDismissed();
+      } else if (button.id === "riskComfortChange") {
+        openExperiencePicker("settings");
+      } else if (button.id === "coachCancel" && state.coach.job) {
+        state.coach.job.stopped = "user";
+        engine.cancel(state.coach.job.id);
+      }
+    });
+    if (state.coach.job) showProgress("coach", state.coach.job);
+  }
+
+  // Redraw the card in place (Summary keeps everything else) and put the focus on gap `focusGap`'s first button.
+  function refreshNextSteps(focusGap) {
+    const holder = $("nextSteps");
+    if (!holder) return;
+    holder.innerHTML = renderNextSteps();
+    wireNextSteps(holder);
+    if (!focusGap) return;
+    const row = holder.querySelector(".nextstep[data-gap=\"" + focusGap + "\"]");
+    const target = row && (row.querySelector("#coachCancel, .nextstep-apply:not([disabled]), .nextstep-undo")
+      || row.querySelector("button:not([disabled])"));
+    if (target) target.focus();
+  }
+
+  // The Check buttons follow the other batched jobs (each one's end schedules the automatic Monte Carlo).
+  // The focused button keeps the focus.
+  function refreshCoachChecks() {
+    const card = $("nextStepsCard");
+    if (!card || state.coach.job) return;
+    const active = card.contains(document.activeElement) ? document.activeElement : null;
+    const kind = active && [...active.classList].find((name) => name.startsWith("nextstep-") || name === "risk-change");
+    const gapId = active && active.dataset.gap;
+    refreshNextSteps();
+    if (!kind) return;
+    const again = $("nextSteps").querySelector("." + kind + (gapId ? "[data-gap=\"" + gapId + "\"]" : ""));
+    if (again) again.focus();
+  }
+
+  // Not now: hide gap `gapId` (kept in the experience block: no run, no undo step, no unsaved mark).
+  function dismissGap(gapId) {
+    if (!state.experience || !gapId) return;
+    const progress = Object.assign({}, state.experience.progress || {}, { [coachDismissKey(gapId)]: true });
+    saveExperience({ progress });
+    renderResults();
+    const next = $("nextStepsCard") && $("nextStepsCard").querySelector("button:not([disabled])");
+    if (next) next.focus();
+  }
+
+  // Show N hidden: bring every dismissed gap back.
+  function showDismissed() {
+    if (!state.experience) return;
+    const dismissed = new Set(coachDismissed(state.experience.progress).map(coachDismissKey));
+    const progress = Object.fromEntries(Object.entries(state.experience.progress || {})
+      .filter(([key]) => !dismissed.has(key)));
+    saveExperience({ progress });
+    renderResults();
+    const first = $("nextStepsCard") && $("nextStepsCard").querySelector(".nextstep button");
+    if (first) first.focus();
+  }
+
+  // Check what it is worth: run gap `gapId`'s sweep (one batched job; the automatic Monte Carlo waits for it).
+  async function runLeverSweep(gapId) {
+    const coach = state.coach;
+    const gap = coachGap(gapId);
+    if (!gap || !gap.sweep || coach.job || coachBusyReason(gapId)) return;
+    const inputsText = JSON.stringify(state.inputs);
+    const preset = coachPreset();
+    const seed = state.seed;
+    const key = coachSweepKey(inputsText, gap.sweep.id, gap.sweep.who, preset, seed);
+    clearTimeout(mcTimer);
+    mcTimer = null;
+    const job = engine.job("leverSweep", [inputsText, gap.sweep.id, JSON.stringify({ preset, who: gap.sweep.who }),
+      seed], null, (message) => {
+      if (!coach.job || coach.job.id !== job.id) return;
+      Object.assign(coach.job, { done: message.done, total: message.total, ms: message.ms });
+      showProgress("coach", coach.job);
+    });
+    coach.job = { id: job.id, gapId, key, inputsText, done: 0, total: 0, ms: 0, stopped: null };
+    coach.scenarioName = state.scenarioName;  // the scenario its result belongs to
+    delete coach.entries[gapId];
+    coach.messages[gapId] = null;
+    refreshNextSteps(gapId);
+    let reply = null;
+    let failure = null;
+    try {
+      reply = await job.promise;
+    } catch (error) {
+      failure = String(error.message || error);
+    }
+    const { stopped } = coach.job;
+    coach.job = null;
+    if (failure) coach.messages[gapId] = failure;
+    else if (!reply) coach.messages[gapId] = stopped === "inputs" || stopped === "hidden" ? null
+      : COACH_STOPPED[stopped || "dropped"];
+    else if (!reply.value.ok) coach.messages[gapId] = reply.value.error;
+    else coach.entries[gapId] = { key, inputsText, value: reply.value, gap, appliedText: null, error: null };
+    refreshNextSteps(gapId);
+    scheduleMc();  // an automatic Monte Carlo waits for the check
+  }
+
+  // Apply a kept check's changes (applyOptimum's guard decides), as one Undo step.
+  async function applyLeverSweep(gapId) {
+    const entry = state.coach.entries[gapId];
+    const gap = coachGap(gapId);
+    if (!entry || coachStale(entry, gap) || coachApplied(entry) || !entry.value.applicable) return;
+    const inputsText = JSON.stringify(state.inputs);
+    const reply = await ask("applyOptimum", [inputsText, JSON.stringify(entry.value.changes)]);
+    if (!reply || inputsText !== JSON.stringify(state.inputs)) return;
+    if (!reply.ok) {
+      entry.error = reply.error;
+      refreshNextSteps(gapId);
+      return;
+    }
+    entry.error = null;
+    if (settleTimer) settle();  // an edit still settling is a step of its own
+    state.inputs = reply.inputs;
+    renderSettings();
+    inputsChanged();
+    entry.appliedText = JSON.stringify(state.inputs);  // after inputsChanged, which may tidy the inputs (reset flags)
+    refreshNextSteps(gapId);
+  }
+
+  // The settings changed: a running check is dropped without a message; kept results go stale (their key); another
+  // scenario clears them. The gaps are asked again.
+  function coachInputsChanged() {
+    const coach = state.coach;
+    if (coach.job && coach.job.inputsText !== JSON.stringify(state.inputs)) {
+      coach.job.stopped = "inputs";
+      engine.cancel(coach.job.id);
+    }
+    if (coach.scenarioName != null && coach.scenarioName !== state.scenarioName) {
+      coach.entries = {};
+      coach.messages = {};
+    }
+    coach.scenarioName = state.scenarioName;
+    loadCoachGaps();
+  }
+
+  // The style, effort or risk comfort changed (setExperience): a running check whose row is no longer drawn is
+  // cancelled, the gaps are asked for when the card shows, and the automatic Monte Carlo is scheduled again.
+  function coachExperienceChanged() {
+    const job = state.coach.job;
+    if (job && !(coachOn() && coachShown().shown.some((gap) => gap.id === job.gapId))) {
+      job.stopped = "hidden";
+      engine.cancel(job.id);
+    }
+    if (coachOn()) loadCoachGaps();
+    refreshNextSteps();
+    scheduleMc();
+  }
+
+  // Leaving the app stops a running check (it is short; nothing restarts by itself).
+  function coachVisibilityChanged() {
+    const job = state.coach.job;
+    if (!job || document.visibilityState !== "hidden") return;
+    job.stopped = "background";
+    engine.cancel(job.id);
+  }
   // ---- Monte Carlo: runs on its own after every change (and on Run), in batches, with progress and cancel;
   // results kept per inputs ----
   let mcTimer = null;
@@ -2980,6 +3407,7 @@
   function scheduleMc() {
     clearTimeout(mcTimer);
     mcTimer = setTimeout(autoMc, MC_DELAY_MS);
+    refreshCoachChecks();  // a batched job ended: the Next steps checks may run again
   }
 
   // Run the Monte Carlo on its own when the current settings, runs and seed have no result yet. It waits for a
@@ -2990,7 +3418,7 @@
     mcTimer = null;
     const mc = state.mc;
     if (window.WMTI_NO_AUTO_MC || walk.open || !state.info || singleBusy || state.error || mc.job
-      || state.compare.job || state.optimize.job || reportRun.busy || needsSetup(state.inputs)) return;
+      || state.compare.job || state.optimize.job || state.coach.job || reportRun.busy || needsSetup(state.inputs)) return;
     const key = mcKey();
     if (cachedResult(mc.cache, key) || key === mc.skipKey) return;
     runMonteCarlo(true);
@@ -3080,6 +3508,7 @@
     $("mcRun").addEventListener("click", () => runMonteCarlo(false));
     $("mcCancel").addEventListener("click", () => { if (mc.job) engine.cancel(mc.job.id); });
     showProgress("mc", mc.job);
+    refreshCoachChecks();  // a Monte Carlo started or ended: the Next steps checks follow
   }
 
   // Run the Monte Carlo: `auto` when it started on its own (Cancel then leaves the focus where it was).
@@ -11941,6 +12370,7 @@
     wireInstall();
     wireWalk();
     wireExperience();
+    document.addEventListener("visibilitychange", coachVisibilityChanged);
     markScheme();
     wireWide();
     wireTabsPin();
