@@ -12,6 +12,7 @@
 
   const shared = typeof module !== "undefined" && module.exports ? require("./shared.js") : root.WmtiShared;
   const insightRules = typeof module !== "undefined" && module.exports ? require("./insights.js") : root.WmtiInsights;
+  const charts = typeof module !== "undefined" && module.exports ? require("./charts.js") : root.WmtiCharts;
   const { fullMoney, percent, formatValue, getPath, hiddenReason, unfilledSuggestion, dollarsNote } = shared;
 
   const MAX_SAVED = 4;  // saved scenarios the report can compare with the current settings
@@ -888,19 +889,22 @@
   }
 
   // The legend items of a chart spec: [{name, color, key}] with key "line", "band", "box" or "hatch" (a records series).
+  // As on the page, only a series the image draws gets an item (`charts.seriesDrawn`), never one zero every year.
   function legendItems(spec) {
     if (spec.type === "bands") {
       const series = spec.series[0];
+      if (!charts.seriesDrawn(spec, series)) return [];
       const [low, high] = spec.percentiles || [10, 90];
       return [{ name: "Median", color: series.color, key: "line" }, { name: low + "th to " + high + "th percentile",
-        color: series.color, key: "band" }].concat(series.afterTax != null ? [{ name: AFTER_TAX_LABEL + " "
-        + fullMoney(series.afterTax), color: series.color, key: "box" }] : []);
+        color: series.color, key: "band" }].concat(charts.afterTaxDrawn(spec, series.afterTax) ? [{ name: AFTER_TAX_LABEL
+        + " " + fullMoney(series.afterTax), color: series.color, key: "box" }] : []);
     }
     if (spec.type === "histogram") return [];
-    return spec.series.map((series) => ({ name: series.name, color: series.color,
+    return spec.series.filter((series) => charts.seriesDrawn(spec, series)).map((series) => ({ name: series.name,
+      color: series.color,
       key: series.mark === "line" || spec.type === "compareBands" ? "line" : series.hatched ? "hatch" : "box" }))
-      .concat(spec.afterTax != null ? [{ name: AFTER_TAX_LABEL + " " + fullMoney(spec.afterTax), color: LIGHT.ink,
-        key: "box" }] : []);
+      .concat(charts.afterTaxDrawn(spec, spec.afterTax) ? [{ name: AFTER_TAX_LABEL + " " + fullMoney(spec.afterTax),
+        color: LIGHT.ink, key: "box" }] : []);
   }
 
   // ---- drawing ----

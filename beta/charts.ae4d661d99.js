@@ -450,36 +450,55 @@
     },
   };
 
+  // Whether a series draws a mark the legend may key: a stacked series (bar, area or line) or a plain line with a value
+  // other than zero or blank in some year (a records bar needs one above zero: it only stacks upward), a compared
+  // scenario with a median in some year, a fan with years, a box or a histogram always. The chart legend and the
+  // report's legend both key only these.
+  function seriesDrawn(spec, series) {
+    if (spec.type === "boxes" || spec.type === "histogram") return true;
+    if (spec.type === "compareBands") return (series.values || []).some((value) => value != null);
+    if (spec.type === "bands") return (series.values || []).length > 0;
+    if (!counted(series) && series.mark === "bar") return (series.values || []).some((value) => number(value) > 0);
+    return drawsSomething(series);
+  }
+
+  // Whether the "What beneficiaries keep" dot is drawn: the spec (or its series) has the value and the chart has years.
+  function afterTaxDrawn(spec, value) {
+    return value != null && (spec.x && spec.x.values || []).length > 0;
+  }
+
   function legendItems(spec) {
     if (spec.type === "bands") {
       const series = spec.series[0];
+      if (!seriesDrawn(spec, series)) return [];
       const [low, high] = spec.percentiles || [10, 90];
       const inner = series.innerLow && series.innerHigh ? (spec.innerPercentiles || [25, 75]) : null;
       return [{ name: "Median", series, key: "line" }, { name: low + "th to " + high + "th percentile", series,
         key: "band" }].concat(inner ? [{ name: inner[0] + "th to " + inner[1] + "th percentile", series,
-        key: "band-inner" }] : [], series.afterTax != null ? [{ name: HEIRS_LABEL + " " + tickMoney(series.afterTax), series,
-        key: "dot" }] : []);
+        key: "band-inner" }] : [], afterTaxDrawn(spec, series.afterTax) ? [{ name: HEIRS_LABEL + " "
+        + tickMoney(series.afterTax), series, key: "dot" }] : []);
     }
     if (spec.type === "compareBands") {
-      return spec.series.map((series) => ({ name: series.name + (series.afterTax != null ? " (beneficiaries keep "
-        + tickMoney(series.afterTax) + ")" : ""), series, key: "line" }));
+      return spec.series.filter((series) => seriesDrawn(spec, series)).map((series) => ({ name: series.name
+        + (series.afterTax != null ? " (beneficiaries keep " + tickMoney(series.afterTax) + ")" : ""), series,
+        key: "line" }));
     }
     // Series with a group (deposits, withdrawals) get a heading item before the first series of each group; a group
     // left with nothing to draw loses its heading. An ungrouped series after a group (the cash flow's Left over line)
     // is marked `apart`, so the legend sets it on a row of its own instead of under the last group. The legend shows a
-    // series' `short` name when it has one; a stacked series that is zero every year is left out (the table, the
-    // readout and the screen-reader summary still list it).
+    // series' `short` name when it has one; a series that draws nothing (`seriesDrawn`: zero or blank every year) is
+    // left out (the table, the readout and the screen-reader summary still list it).
     const items = [];
     let group = null;
     spec.series.forEach((series, index) => {
-      if (STACKED_TYPES.includes(spec.type) && !drawsSomething(series)) return;
+      if (!seriesDrawn(spec, series)) return;
       if (series.group && series.group !== group) items.push({ name: series.group, heading: true });
       const apart = !series.group && group != null;
       group = series.group || null;
       items.push({ name: series.name, label: series.short || series.name, series, index, apart,
         key: series.mark === "line" ? "line" : series.hatched ? "hatch" : "box" });
     });
-    if (spec.afterTax != null) items.push({ name: HEIRS_LABEL + " " + tickMoney(spec.afterTax), key: "dot", keyColor: HEIRS_COLOR });
+    if (afterTaxDrawn(spec, spec.afterTax)) items.push({ name: HEIRS_LABEL + " " + tickMoney(spec.afterTax), key: "dot", keyColor: HEIRS_COLOR });
     return items;
   }
 
@@ -1074,7 +1093,7 @@
 
   const api = { TYPES, renderChart, renderTable, renderFrame, renderUnitsTable, unitCell, attachChart, chartSummary,
     niceTicks, fullScreenSize, attachFullScreen, readoutRows, hasAfterTax, withoutAfterTax, renderGauge, gaugeLabel,
-    HEIRS_LABEL, BASE_SIZE };
+    seriesDrawn, afterTaxDrawn, HEIRS_LABEL, BASE_SIZE };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiCharts = api;
 })(typeof self !== "undefined" ? self : this);
