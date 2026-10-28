@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-JyQYEZ0/zon9eMQMVWHJ/b5OFZXSzAWrpE/FD49puS8=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-cNeIwEIFRs+Icyv2KZGrV6/On8CSLeezuNcmXeu3QyI=' 'sha256-uiWK4mFdE0RiHgKvZlXVN1ceGzIUmHPInw/jazcr/dk=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -318,8 +318,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .chips-wrap[data-place^="outputs/"] .chip:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
 .chips-wrap[data-place^="outputs/"] .chips-track { display: none; }
 
-.card { background: var(--surface); border: 0; border-radius: 20px; padding: 16px;
-  display: grid; gap: 12px; min-width: 0; box-shadow: 0 0 0 1px var(--panel-edge); }
+.card { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 20px; padding: 16px;
+  display: grid; gap: 12px; min-width: 0; box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow); }
 .stub { padding: 24px 4px; display: grid; gap: 8px; color: var(--ink-2); }
 .banner { padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 14px; }
 /* Information boxes: notes, plain banners and explanations, in the info color with an "i" icon, so they never
@@ -348,7 +348,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 /* Results */
 .result-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.tile { background: var(--surface); border: 0; border-radius: 18px; padding: 12px 14px; box-shadow: 0 0 0 1px var(--panel-edge);
+.tile { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 18px; padding: 12px 14px;
+  box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow);
   display: grid; gap: 4px; align-content: start; min-width: 0; }
 .tile-first { grid-column: 1 / -1; background: var(--hero); color: var(--hero-ink); border-radius: 20px; padding: 16px; }
 .tile-first .tile-label, .tile-first .tile-change, .tile-first .tile-help { color: var(--hero-sub); }
@@ -488,7 +489,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 
 /* Settings */
 .settings { display: grid; gap: var(--section-gap); }
-.group { background: var(--surface); border: 0; border-radius: 20px; padding: 4px 16px 14px; box-shadow: 0 0 0 1px var(--panel-edge);
+.group { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 20px; padding: 4px 16px 14px;
+  box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow);
   margin: 0; min-width: 0; display: grid; }
 .group > legend { font-weight: 650; font-size: 17px; padding: 12px 0 4px; float: left; width: 100%; }
 /* A pane: the icon tile and the title, and the pane's on/off toggle (its switch field) at the right of the title. */
@@ -826,7 +828,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 @media (min-width: 720px) { .diff-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* Setup's open scenario card: accent-edged, the name large, the saved state with the Auto-save switch, then one flat
    strip of equal-width icon buttons (one outer border, thin dividers). */
-.open-card { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); gap: 8px; }
+.open-card { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent), var(--fx-glow); gap: 8px; }
 /* When another scenario opens, the card's edge glows and fades over a second (app.js highlightOpenCard, the Undo
    flash's class); held still for that second when the device asks for reduced motion. */
 .open-card.undo-flash { animation: open-card-flash 1s ease-out; }
@@ -851,7 +853,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .strip-button { flex: 1 1 0; min-width: 0; min-height: 56px; display: grid; justify-items: center; align-content: center;
   gap: 2px; padding: 8px 2px; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent;
   color: var(--ink); font-size: 12px; cursor: pointer; }
-/* Five buttons share 320 px: smaller labels on a narrow phone, so "Duplicate" fits its fifth. */
+/* Three buttons share 320 px: smaller labels on a narrow phone, so "Duplicate" fits its third. */
 @media (max-width: 380px) { .strip-button { font-size: 10.5px; letter-spacing: -0.01em; } }
 .strip-button:first-child, .strip-button[hidden] + .strip-button { border-left: 0; }
 .strip-button svg, .scenario-open svg, .scenario-delete svg, .scenario-more svg, .big-button svg { width: 22px; height: 22px; flex: none;
@@ -859,8 +861,18 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .strip-button svg { color: var(--accent); }
 .strip-danger svg { color: var(--bad); }
 .strip-button:focus-visible { outline-offset: -3px; }
-/* Other scenarios: one row each (tap to open, "..." for its menu), then New and Import side by side. */
-.other-scenarios { display: grid; gap: 8px; }
+/* Scenario files (F106): Save, Import and Export, the other scenarios (one row each: tap to open, "..." for its
+   menu) and New, on a surface of its own with a top rule and a folder icon, so it reads apart from the open card. */
+.files-card { margin-top: var(--section-gap); background: var(--surface-2); border-top: 3px solid var(--chip-on);
+  overflow: visible; gap: 10px; }
+.files-head { display: flex; align-items: center; gap: 8px; }
+.files-head h2 { margin: 0; }
+.files-icon { width: 22px; height: 22px; flex: none; fill: none; stroke: var(--accent); stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; }
+.files-card .section-label { margin: 4px 0 0; padding-inline: 0; }
+.files-card .scenario-list { display: grid; padding: 0; box-shadow: none; background: transparent;
+  border-top: 1px solid var(--line); }
+.files-card .big-button { width: 100%; }
 .section-label { font-size: 13px; font-weight: 650; color: var(--ink-2); padding-inline: 4px; }
 .scenario-list { padding-block: 4px; gap: 0; }
 .scenario-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 0;
@@ -874,7 +886,6 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .scenario-delete, .scenario-more { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 10px;
   background: transparent; cursor: pointer; }
 .scenario-more[aria-expanded="true"] { background: var(--surface-2); }
-.two-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .big-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 650;
   background: var(--surface); }
 /* The row menu and the scenario dialog */
@@ -910,7 +921,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   padding: 10px 16px 16px; border-top: 1px solid var(--line); }
 .dialog-actions .button { padding-inline: 8px; justify-self: stretch; }
 .dialog-wide { width: 100%; }
-/* Effort and style: two radio groups (Setup's card and the picker), each choice with its one-line blurb */
+/* Effort and style: two radio groups (the picker in the pop-up), each choice with its one-line blurb */
 .experience-choices { display: grid; gap: 12px; }
 .experience-group { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 0; }
 .experience-group > legend { font-weight: 650; font-size: 15px; padding: 0 0 4px; }
@@ -921,7 +932,79 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .experience-label { font-weight: 600; overflow-wrap: anywhere; }
 .experience-blurb { grid-column: 2; font-size: 13px; color: var(--ink-2); }
 .experience-notice { padding-block: 0; }
-/* Picker: the effort and style picker (s420, app.js experienceGroups) on Setup's card and in the pop-up. Effort is a
+/* Effort and style cues (F106): faint glows, sheens and tints that grow with the effort (data-effort on <html>: Low a
+   calm blue, Medium warm, High hot) and the style (data-style: Accountant none, Coach a clean green, Gamer a pink and
+   violet glow), set by applyExperience (45-experience.js). They sit over every colour scheme without changing its
+   tokens, the charts (--s0..--s9), any size or any text colour: only box-shadow layers, background-image gradients, a
+   box-shadow transition and one slow breathing glow on the hero tile. --fx-e and --fx-s are the two intensities (0 to
+   1); each --fx-cap-* is the largest share (percent) a hue may take of what it tints, read by fxcontrast.test.mjs to
+   prove AA contrast in every scheme, so tune the look only by changing these numbers. No attribute means no cue. */
+:root {
+  --fx-e: 0; --fx-s: 0;
+  --fx-e-hue: transparent; --fx-s-a: transparent; --fx-s-b: transparent;
+  --fx-cap-band-e: 6; --fx-cap-band-s: 5;
+  --fx-cap-card-e: 5; --fx-cap-card-s: 4;
+  --fx-cap-hero-e: 2; --fx-cap-hero-s: 2;
+  --fx-cap-glow-e: 20; --fx-cap-glow-s: 22;
+  --fx-cap-rim-s: 40; --fx-cap-hi-s: 30;
+  /* Round a card, tile, group or pinned figure: an effort halo, a style halo and a 1 px style rim along the top. */
+  --fx-glow: 0 0 calc(4px + var(--fx-e) * 8px) 0
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
+    0 0 calc(4px + var(--fx-s) * 8px) 0
+      color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-rim-s) * 1%), transparent);
+  /* Round a filled button and the selected chip: a smaller halo of each and a 1 px light rim along the top. */
+  --fx-glow-sm: 0 0 calc(2px + var(--fx-e) * 6px) 0
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
+    0 0 calc(2px + var(--fx-s) * 6px) 0
+      color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff calc(var(--fx-s) * var(--fx-cap-hi-s) * 1%), transparent);
+  /* The breathing glow's peak on the hero tile (fx-breathe). */
+  --fx-glow-peak: 0 0 14px 1px
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-glow-e) * 1%), transparent),
+    0 0 14px 1px color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-glow-s) * 1%), transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-rim-s) * 1%), transparent);
+  /* The header band: an effort sheen from the top and a style glow in the far corner. */
+  --fx-band-sheen: linear-gradient(180deg,
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-band-e) * 1%), transparent), transparent),
+    radial-gradient(70% 140% at 100% 0%,
+      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-band-s) * 1%), transparent), transparent 70%);
+  /* Cards: a faint diagonal effort sheen from the top left and a style one from the bottom right. */
+  --fx-card-sheen: linear-gradient(135deg,
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-card-e) * 1%), transparent), transparent 60%),
+    linear-gradient(315deg,
+      color-mix(in srgb, var(--fx-s-b) calc(var(--fx-s) * var(--fx-cap-card-s) * 1%), transparent), transparent 60%);
+  /* The hero tile: its fill shifts toward the effort hue on the right, with a style tint from the bottom left. */
+  --fx-hero-sheen: linear-gradient(120deg, transparent 30%,
+      color-mix(in srgb, var(--fx-e-hue) calc(var(--fx-e) * var(--fx-cap-hero-e) * 1%), transparent)),
+    radial-gradient(80% 120% at 0% 100%,
+      color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-hero-s) * 1%), transparent), transparent 70%);
+}
+:root[data-effort="low"] { --fx-e: 0.2; --fx-e-hue: #46b6d8; }
+:root[data-effort="medium"] { --fx-e: 0.55; --fx-e-hue: #f2c94c; }
+:root[data-effort="high"] { --fx-e: 1; --fx-e-hue: #eb5757; }
+:root[data-style="accountant"] { --fx-s: 0; --fx-s-a: transparent; --fx-s-b: transparent; }
+:root[data-style="coach"] { --fx-s: 0.5; --fx-s-a: #2cc492; --fx-s-b: #2cc492; }
+:root[data-style="gamer"] { --fx-s: 1; --fx-s-a: #ff5fb0; --fx-s-b: #7f5cff; }
+/* Where they show (the cards, tiles, groups, pinned figures and open card take --fx-glow in their own rules above;
+   the filled buttons of the pages and the band's selected chip a smaller one; dialogs and the menu none). */
+.topbar { background-image: var(--fx-band-sheen); }
+.tile-first { background-image: var(--fx-hero-sheen); }
+:is(.panel, .band) .button:not(.button-quiet):not(.button-danger), .band .chip[aria-selected="true"] {
+  box-shadow: var(--fx-glow-sm); }
+.card, .tile, .group, .pin, .button, .chip { transition: box-shadow 0.35s ease; }
+:root[data-effort="high"] .tile-first, :root[data-style="gamer"] .tile-first { animation: fx-breathe 6s ease-in-out infinite; }
+@keyframes fx-breathe { 50% { box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow-peak); } }
+/* Still when the device asks for reduced motion (the look stays); none at all in forced colours, high contrast or print. */
+@media (prefers-reduced-motion: reduce) {
+  .topbar, .card, .tile, .group, .pin, .button, .chip { transition: none !important; }
+  .tile-first { animation: none !important; }
+}
+@media (forced-colors: active), (prefers-contrast: more), print {
+  :root, :root[data-effort], :root[data-style] { --fx-e: 0 !important; --fx-s: 0 !important; }
+  .tile-first { animation: none !important; }
+}
+/* Picker: the effort and style picker (s420, app.js experienceGroups) in the pop-up, its only place. Effort is a
    vertical energy bar (role=slider) with a stop per level; style a 3D tile per style. Each choice's radio lies unseen
    over its stop or tile. The bar's fill and knob sit at --pk-f (set by paintExperience, live while dragging), so
    nothing is measured at rest. Surfaces follow the scheme tokens; only the bar's metal and energy and the three style
@@ -1042,7 +1125,8 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 }
 /* End of the picker block */
 /* Add detail row (46-detail.js paneDetailRow): at Medium, at the end of a pane, a list sheet or Advanced settings,
-   one sentence on the inputs it shows and its Add detail / Hide detail button; the Effort card's Hide it line. */
+   one sentence on the inputs it shows and its Add detail / Hide detail button; the Hide it line under "Using defaults
+   for N inputs" (refreshDetailNotice). */
 .detail-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 12px;
   border: 1px dashed var(--line); border-radius: 12px; background: var(--surface-2); min-width: 0; }
 .detail-row .detail-text { flex: 1 1 220px; margin: 0; min-width: 0; }
@@ -1446,10 +1530,9 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
   background: var(--bg); border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
   padding: 16px var(--gutter) 24px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .wide .tabbar { display: none; }
-/* Setup's narrow column: the open scenario's five buttons in rows of three, so every label fits. */
-.wide #panel-setup .action-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.wide #panel-setup .strip-button:nth-child(n+4) { border-top: 1px solid var(--line); }
-.wide #panel-setup .strip-button:nth-child(4) { border-left: 0; }
+/* Setup's narrow column: the open scenario's three buttons in one row of equal thirds. (The Scenario files strip
+   keeps its flex row, so Import and Export share it evenly while Auto-save hides Save.) */
+.wide #panel-setup #savedCard .action-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .wide .menu { right: 12px; }
 /* Back to Social Security floats over the middle of the Inputs column. */
 .wide .earnings-return { --wide-room: calc(100% - 2 * var(--wide-pad) - var(--wide-gap) - var(--wide-divider));
@@ -1539,7 +1622,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
   box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent), 0 6px 10px -8px rgb(0 0 0 / 0.35); }
 .pinned { padding-top: 8px; }
 .pin { display: grid; align-content: start; gap: 2px; padding: 7px 10px; border-radius: 14px; background: var(--surface);
-  color: var(--ink); box-shadow: 0 0 0 1px var(--panel-edge); }
+  background-image: var(--fx-card-sheen); color: var(--ink); box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow); }
 .pin .pin-label { color: var(--ink-2); }
 @media (max-width: 480px) { .pin { padding: 7px 6px; } }
 /* A 320 px phone: the widest values (such as -$115.93k) need a little more room than the tiles leave. */
@@ -1616,7 +1699,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
     <section class="panel" id="panel-setup" data-tab="setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
       <div class="card open-card" id="savedCard">
         <div class="title-help"><p class="eyebrow open-label">Open scenario</p><button type="button" class="help-button" aria-expanded="false" aria-controls="help-saved" aria-label="About scenarios"><span>i</span></button></div>
-        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Save keeps a named copy on this device (or turn on Auto-save), Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, Clear empties every setting (Undo, top left, brings them back) and Export saves it as a file that Import opens again. Other scenarios lists the copies kept here: tap one to open it, the bin to delete it, or use its ... menu. Your current settings are also kept as you edit.</p>
+        <p class="field-help" id="help-saved" hidden>The scenario you are working on. Rename changes its name, Duplicate saves a copy of the current settings as another scenario (name_1, name_2 and so on) and opens it, and Clear empties every setting (Undo, top left, brings them back). The Scenario files panel below saves it, imports and exports scenario files, and lists the other scenarios kept here. Your current settings are also kept as you edit.</p>
         <p class="open-name" id="loadedName"></p>
         <p class="example-tag" id="exampleTag" hidden><span>Tough example</span><button type="button" class="help-button" aria-expanded="false" aria-controls="help-example" aria-label="About the tough example"><span>i</span></button></p>
         <p class="field-help" id="help-example" hidden>This example household runs out of money in many of the Monte Carlo runs, so its first results look like a plan in trouble. That is on purpose: it shows what a struggling plan looks like. Its figures are fictional. Change them, or start a new scenario, to try your own.</p>
@@ -1625,41 +1708,37 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
           <label class="mini-switch"><span>Auto-save</span><button type="button" class="mini-toggle" id="autoSave" role="switch" aria-checked="false" aria-label="Auto-save"></button></label>
         </div>
         <div class="action-strip" role="group" aria-label="Open scenario">
-          <button type="button" class="strip-button" id="saveButton">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span>Save</span></button>
           <button type="button" class="strip-button" id="renameButton">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg><span>Rename</span></button>
           <button type="button" class="strip-button" id="duplicateButton">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v12H8z"/><path d="M16 8V4H4v12h4"/></svg><span>Duplicate</span></button>
           <button type="button" class="strip-button strip-danger" id="clearButton">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11M3 11h9M3 16h6"/><path d="M14 13l7 7M21 13l-7 7"/></svg><span>Clear</span></button>
-          <button type="button" class="strip-button" id="exportButton">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Export</span></button>
         </div>
         <p class="banner" id="fileMessage" role="status" hidden></p>
       </div>
-      <div class="other-scenarios">
-        <h2 class="section-label" id="otherTitle">Other scenarios</h2>
-        <div class="card scenario-list" id="savedList" role="list" aria-labelledby="otherTitle"></div>
-        <p class="banner" id="savedMessage" role="status" hidden></p>
-        <div class="two-buttons">
-          <button type="button" class="button button-quiet big-button" id="newButton">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
-          <button type="button" class="button button-quiet big-button" id="importButton">
+      <!-- Scenario files (F106): save, import, export, the other saved scenarios (a row opens one) and New. -->
+      <section class="card files-card" id="filesCard" aria-labelledby="filesTitle">
+        <div class="files-head"><svg class="files-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"/></svg><h2 id="filesTitle">Scenario files</h2></div>
+        <div class="action-strip" role="group" aria-label="Scenario files">
+          <button type="button" class="strip-button" id="saveButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span>Save</span></button>
+          <button type="button" class="strip-button" id="importButton">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M12 18v-7M9 14l3-3 3 3"/></svg><span>Import</span></button>
+          <button type="button" class="strip-button" id="exportButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Export</span></button>
         </div>
         <input id="importFile" type="file" hidden>
-      </div>
-      <!-- Effort and style (app.js renderExperienceCard): how much the app asks and how it talks; never the results. -->
-      <div class="card experience-card" id="experienceCard">
-        <div class="title-help"><h2>Effort and style</h2><button type="button" class="help-button" aria-expanded="false" aria-controls="help-experience" aria-label="About effort and style"><span>i</span></button></div>
-        <p class="field-help" id="help-experience" hidden>Effort sets how much the app asks you: Low asks the basics, High every input. Style sets how it talks to you. Neither changes your results, and both are saved with the scenario.</p>
-        <div class="experience-choices pk" id="experienceCardChoices"></div>
-        <p class="note experience-notice">You can switch effort and style any time on Setup or in the menu. Your answers are kept.</p>
-        <p class="note" id="defaultsNotice" role="status" hidden></p>
-        <p class="note detail-notice" id="detailNotice" hidden></p>
-        <p class="note low-raise-note" id="lowRaiseNote" role="status" hidden></p>
-      </div>
+        <h3 class="section-label" id="otherTitle">Other scenarios</h3>
+        <div class="scenario-list" id="savedList" role="list" aria-labelledby="otherTitle"></div>
+        <p class="banner" id="savedMessage" role="status" hidden></p>
+        <button type="button" class="button button-quiet big-button" id="newButton">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
+      </section>
+      <!-- Using defaults, the detail added and the raise note (45-experience.js, 46-detail.js, 47-low.js); effort and style themselves are picked in the menu. -->
+      <p class="note" id="defaultsNotice" role="status" hidden></p>
+      <p class="note detail-notice" id="detailNotice" hidden></p>
+      <p class="note low-raise-note" id="lowRaiseNote" role="status" hidden></p>
       <div class="settings" id="householdCard">
         <div class="banner banner-error" id="household-error" role="alert" hidden></div>
         <form id="household-body" class="settings" novalidate></form>
@@ -1814,7 +1893,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
     <div class="dialog-scroll">
       <div class="experience-choices pk" id="experienceChoices"></div>
       <div class="detail-added" id="experienceDetail" hidden></div>
-      <p class="note experience-notice">You can switch effort and style any time on Setup or in the menu. Your answers are kept.</p>
+      <p class="note experience-notice">You can switch effort and style any time in the menu. Your answers are kept.</p>
     </div>
     <div class="dialog-actions" id="experienceActions"></div>
   </div>
@@ -1934,14 +2013,14 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "d0f6ed9e83fc", pyodide: "0.29.5", docs: "./docs/" };</script>
+<script>window.WMTI_BUILD = { id: "a35954e7a946", pyodide: "0.29.5", docs: "./docs/" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.4edda29805.js"></script>
 <script src="charts.c22ca6d6cc.js"></script>
 <script src="insights.25d1a94d61.js"></script>
 <script src="report.2b162219ac.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.ae1af2ad6a.js"></script>
+<script src="app.3ea45d4154.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

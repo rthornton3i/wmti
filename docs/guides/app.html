@@ -239,9 +239,10 @@ export or import message. The choice is kept on this device
 <tbody>
 <tr class="row-even"><td><p>Setup</p></td>
 <td><p>The open scenario card at the top: its name in large type (the only place Setup shows it), whether it
-is saved, the Auto-save switch and one strip of Save, Rename, Duplicate, Clear and Export (the settings as a
-scenario file); then Other scenarios (the scenarios saved on this
-device, each with a “…” menu) and the New and Import buttons (see Scenarios on Setup below). Then
+is saved, the Auto-save switch and one strip of Rename, Duplicate and Clear; then the <strong>Scenario files</strong>
+panel: a strip of Save, Import and Export (the settings as a scenario file), Other scenarios (the scenarios
+saved on this device, each with a “…” menu; a tap opens one) and the New button (see Scenarios on Setup
+below). Then
 Household:
 the “Include a partner” switch, Your age
 and Partner age (the current ages; Partner age only with a partner),
@@ -886,11 +887,16 @@ already a saved scenario with other settings opens as “<em>name*_1” (the nex
 number) instead of writing over it (``importedName`` in
 ``frontend/src/shared.js``); only the settings count, so a file that differs
 only in effort, style or walkthrough progress (or has none, from before the
-pickers) replaces the saved copy. Under the status line one flat strip of equal-width
-icon buttons holds **Save*</em> (keep the settings on this device under the open
-scenario’s name; at most 50 scenarios), <strong>Rename</strong>, <strong>Duplicate</strong>, <strong>Clear</strong>
-and <strong>Export</strong>; on a phone narrower than 380 px the labels shrink so the five
-buttons still fit one row at 320 px. Duplicate saves a copy of the open
+pickers) replaces the saved copy. Under the status line one flat strip of three
+equal-width icon buttons holds **Rename*</em>, <strong>Duplicate</strong> and <strong>Clear</strong>; on a
+phone narrower than 380 px the labels shrink so they fit one row at 320 px.</p>
+<p>Below the card, the <strong>Scenario files</strong> panel (a folder icon and its own
+surface, with a coloured rule along its top, so it reads apart from the open
+card and the other cards) holds what moves scenarios in and out: a strip of
+<strong>Save</strong> (keep the settings on this device under the open scenario’s name; at
+most 50 scenarios; hidden while Auto-save is on, so Import and Export share the
+strip), <strong>Import</strong> and <strong>Export</strong>, then Other scenarios (a tap on a row opens
+that scenario) and <strong>New</strong>. Duplicate saves a copy of the open
 scenario’s current settings, unsaved edits included, as “<em>name*_Copy1” (the lowest
 number not taken: “*name*_Copy2” and so on; a name that already ends in “_Copy” and a
 number is counted from the part before it, so duplicating “Plan_Copy1” gives “Plan_Copy2”
@@ -902,12 +908,12 @@ Compare, so it can serve as a baseline there.
 Clear empties every setting of the open scenario, as for New, after two
 questions (“Clear *name</em>?”, then “Last check: all values will be removed. Clear
 it?”); Undo brings the settings back. The draft of the current settings is still
-kept as you edit, whatever Auto-save says. Export (on the card, or in a row’s
-“…” menu) saves <em>name</em>.json: through the host’s downloads where the page runs
+kept as you edit, whatever Auto-save says. Export (in the Scenario files panel,
+or in a row’s “…” menu) saves <em>name</em>.json: through the host’s downloads where the page runs
 as a claude.ai artifact, else as an ordinary browser download (the installed app
 and the GitHub Pages site); only where no download can start does the file’s
-text open in a dialog with Copy text. A message under the card, scrolled into
-view, always says what happened (“Saved”, “Downloaded”, “Export cancelled”).</p>
+text open in a dialog with Copy text. A message under the open card, scrolled
+into view, always says what happened (“Saved”, “Downloaded”, “Export cancelled”).</p>
 <p><strong>Other scenarios</strong> lists the scenarios saved on this device except the open
 one, and the example household (“Example household”, the shipped figures) while
 it is not open. A tap opens one; when the open scenario has unsaved changes and
@@ -1178,6 +1184,30 @@ the three light schemes, Palm and sand’s band subtitle, the hero tile of
 Sunset and Palm, and the accent used for text and buttons (the toggle colors
 are too light for text). The comment at the top of <code class="docutils literal notranslate"><span class="pre">styles.css</span></code> lists each
 change.</p>
+<p>Over every scheme the app wears faint cues of the chosen effort and style
+(F106): <code class="docutils literal notranslate"><span class="pre">data-effort</span></code> (<code class="docutils literal notranslate"><span class="pre">low</span></code>, <code class="docutils literal notranslate"><span class="pre">medium</span></code>, <code class="docutils literal notranslate"><span class="pre">high</span></code>) and <code class="docutils literal notranslate"><span class="pre">data-style</span></code>
+(<code class="docutils literal notranslate"><span class="pre">accountant</span></code>, <code class="docutils literal notranslate"><span class="pre">coach</span></code>, <code class="docutils literal notranslate"><span class="pre">gamer</span></code>) on <code class="docutils literal notranslate"><span class="pre">&lt;html&gt;</span></code>, set by <code class="docutils literal notranslate"><span class="pre">applyExperience</span></code>
+in <code class="docutils literal notranslate"><span class="pre">frontend/src/app/45-experience.js</span></code>, and without either attribute there is
+no cue. Low adds a calm blue, Medium a warm gold and High a hot red; Accountant
+adds nothing, Coach a clean green and Gamer a pink and violet glow, and every
+cue grows from Low to High and from Accountant to Gamer. They show as a sheen
+down the header band with a glow in its far corner, a faint diagonal sheen, a
+soft halo and a thin top rim on the cards, tiles and headline figures, a
+slight shift of the hero tile, and a small halo on the filled buttons and the
+selected chip; dialogs, the menu, the picker, fields, charts and tables keep
+their look. They never change a figure, a saved file, a chart colour, a text
+colour or any size or position (only shadows and background gradients), and
+the scheme’s own tokens stay as they are. Changes ease in over a third of a
+second, and at High or with Gamer the hero tile breathes a slow glow; a device
+that asks for reduced motion keeps the still look, and forced colors, more
+contrast and print turn the cues off. They live in the “Effort and style cues”
+block of <code class="docutils literal notranslate"><span class="pre">frontend/src/styles.css</span></code>: two intensities (<code class="docutils literal notranslate"><span class="pre">--fx-e</span></code>, <code class="docutils literal notranslate"><span class="pre">--fx-s</span></code>),
+a hue for each choice and a cap (<code class="docutils literal notranslate"><span class="pre">--fx-cap-*</span></code>) for how much of each hue may
+tint a surface. <code class="docutils literal notranslate"><span class="pre">frontend/tests/unit/fxcontrast.test.mjs</span></code> tints every
+scheme’s surfaces by every hue at its cap and checks each text pair still meets
+AA (4.5:1) and the focus outline 3:1, so the look is tuned only by those
+numbers; <code class="docutils literal notranslate"><span class="pre">frontend/tests/browser/fx.test.mjs</span></code> checks that no pair moves
+anything.</p>
 </section>
 <section id="terms-and-agreement">
 <h3>Terms and agreement<a class="headerlink" href="#terms-and-agreement" title="Link to this heading"></a></h3>
@@ -1219,25 +1249,32 @@ shows every input. Coach and
 Gamer talk like Accountant; the choice is kept so later releases can use it. The choices and their descriptions come
 from <code class="docutils literal notranslate"><span class="pre">appInfo().experience</span></code> (<code class="docutils literal notranslate"><span class="pre">EFFORT_CHOICES</span></code> and <code class="docutils literal notranslate"><span class="pre">STYLE_CHOICES</span></code> in
 <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.web</span></code>).</p>
-<p>The <strong>Effort and style</strong> card on Setup, below the Scenarios card, shows the
-picker: effort as a vertical energy bar with a stop per level (High at the top,
-Low at the bottom; drag the bar, tap it or a level’s name, or use the arrow
-keys, Home and End when it has focus; the bar glows and buzzes more the higher
-the effort, and keeps still when the device asks for reduced motion), and style
-as three large buttons, the chosen one ringed with a <strong>Chosen</strong> badge. Each
-level, each style and both groups have an (i) button whose description opens
-below the picker. Under the picker is the note “You can switch effort
-and style any time on Setup or in the menu. Your answers are kept.” The menu’s
-<strong>Effort and style…</strong> opens the same choice as a pop-up: <strong>Save</strong> keeps it,
-<strong>Cancel</strong> (or Escape, or a tap outside) discards it. Below High the card reads
-“Using defaults for <em>N</em> inputs”: the Inputs entries the effort would not show
+<p>Effort and style are chosen only in a pop-up: the menu’s <strong>Effort and
+style…</strong> (or <strong>Change effort</strong> on the Low page) opens it with <strong>Save</strong>, which
+keeps the choice, and <strong>Cancel</strong> (or Escape, or a tap outside), which discards
+it; at first start it follows the Terms with a single <strong>Continue</strong>, then the
+walkthrough and the tour come. Setup has no Effort and style card. The pop-up
+shows the picker: effort as a vertical energy bar with a stop per level (High
+at the top, Low at the bottom; drag the bar, tap it or a level’s name, or use
+the arrow keys, Home and End when it has focus; the bar glows and buzzes more
+the higher the effort, and keeps still when the device asks for reduced
+motion), and style as three large buttons, the chosen one ringed with a
+<strong>Chosen</strong> badge. Each level, each style and both groups have an (i) button
+whose description opens below the picker. Under the picker is the note “You
+can switch effort and style any time in the menu. Your answers are kept.” The
+page carries the open scenario’s choice as <code class="docutils literal notranslate"><span class="pre">data-effort</span></code> and <code class="docutils literal notranslate"><span class="pre">data-style</span></code>
+on its root element (<code class="docutils literal notranslate"><span class="pre">applyExperience</span></code> in
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/45-experience.js</span></code>); it is display only.</p>
+<p>Setup keeps three notes below the Scenario files panel, above Household. Below High
+it reads “Using defaults for <em>N</em> inputs”: the Inputs entries the effort would not show
 whose value still equals the example household’s (<code class="docutils literal notranslate"><span class="pre">defaultedInputCount</span></code> in
 <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>; each field’s tier comes from
 <code class="docutils literal notranslate"><span class="pre">wmti.dashboard.tiers</span></code> through <code class="docutils literal notranslate"><span class="pre">settingsSchema</span></code>). The line follows every
 edit and effort change and is hidden at High and when <em>N</em> is 0; an input that
 Add detail shows is not counted. Below High, while the scenario has added
 detail, a line under it reads “Detail added on <em>N</em> pages and inputs” with a
-<strong>Hide it</strong> button that removes all of it.</p>
+<strong>Hide it</strong> button that removes all of it. The third is the note after a raise
+from Low (see <a class="reference internal" href="#app-low-effort"><span class="std std-ref">Low effort</span></a>).</p>
 <section id="medium-effort-and-add-detail">
 <span id="app-add-detail"></span><h4>Medium effort and Add detail<a class="headerlink" href="#medium-effort-and-add-detail" title="Link to this heading"></a></h4>
 <p>At Medium each Inputs pane, each list sheet (an account, a child, an expense
@@ -1278,7 +1315,7 @@ keeps apart from the settings the model runs on (<code class="docutils literal n
 <code class="docutils literal notranslate"><span class="pre">splitExperience</span></code> and <code class="docutils literal notranslate"><span class="pre">joinExperience</span></code> in <code class="docutils literal notranslate"><span class="pre">frontend/src/shared.js</span></code>) and
 joins back only where a scenario is saved on this device or exported
 (<code class="docutils literal notranslate"><span class="pre">saveExperience</span></code> and <code class="docutils literal notranslate"><span class="pre">putScenario</span></code> in
-<code class="docutils literal notranslate"><span class="pre">frontend/src/app/60-scenarios.js</span></code>; the card and the pop-up are
+<code class="docutils literal notranslate"><span class="pre">frontend/src/app/60-scenarios.js</span></code>; the pop-up is
 <code class="docutils literal notranslate"><span class="pre">frontend/src/app/45-experience.js</span></code>). Each scenario keeps its own effort and
 style. Opening a saved scenario or importing a file whose effort or style differ
 from the current ones asks each time, in a pop-up titled <em>Effort and style</em>:
@@ -1351,7 +1388,7 @@ with <strong>Remove them</strong> (one Undo step) and “or raise effort to Medi
 edit them”.</p></td>
 </tr>
 <tr class="row-even"><td><p>A Low user with none of them raises the effort to Medium or High</p></td>
-<td><p>Nothing changes. Setup’s effort card says “Your monthly spending counts
+<td><p>Nothing changes. Setup says “Your monthly spending counts
 housing, cars and loans because none are entered. Lower it by what you
 add.” until the next effort change, and the walkthrough’s homes,
 mortgage, cars and loans screens say the same.</p></td>

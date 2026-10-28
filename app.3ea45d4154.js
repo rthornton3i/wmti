@@ -1425,7 +1425,7 @@
     renderSaved();
     renderAbout();
     renderLoaded();
-    renderExperienceCard();
+    applyExperience();
   }
 
   // ---- Setup: the open scenario card, the seed and runs, and the Inflation card (the inflation adjusted switch and
@@ -1706,12 +1706,12 @@
   const REPORT_POINTER_HTML = "<div class=\"card report-pointer\"><p>Detailed tables are in the Final report (PDF) in "
     + "the menu.</p><button type=\"button\" class=\"button button-quiet open-report\">Open the Final report</button></div>";
 
-  // ---- Effort and style: Setup's card, the picker and "Using defaults for N inputs" ----
+  // ---- Effort and style: the picker and "Using defaults for N inputs" ----
   // Effort (how much the app asks) and style (how it talks) are the open scenario's experience block
   // (state.experience); the choices and their blurbs come from appInfo().experience. Changing either saves the block
-  // (saveExperience): no run, no undo step and no unsaved mark. The same picker (an energy bar for effort, a tile per
-  // style, each choice's description behind its (i)) is drawn on Setup's card and in
-  // the picker, which opens from the menu (Save and Cancel) and once at start-up until it has been kept (Continue: a
+  // (saveExperience): no run, no undo step and no unsaved mark. The picker (an energy bar for effort, a tile per
+  // style, each choice's description behind its (i)) is the only place to choose them; it opens from the menu (or
+  // the Low page's Change effort; Save and Cancel) and once at start-up until it has been kept (Continue: a
   // new user's first launch, or a returning user's first visit since the picker came, wmti.picker.v1). Opening or
   // importing a scenario with another effort or style asks which to keep (askExperience).
   const experiencePicker = { mode: null, resolve: null, choice: null, returnFocus: null };
@@ -1978,12 +1978,13 @@
     return { effort, style };
   }
 
-  function renderExperienceCard() {
-    const holder = $("experienceCardChoices");
-    if (!holder || !state.info || !state.experience) return;
-    // Built once; later changes repaint in place so focus and the bar's motion survive (paintExperience).
-    if (holder.querySelector(".pk-grid")) paintExperience(holder, shownExperience());
-    else holder.replaceChildren(...experienceGroups("xpCard", shownExperience(), setExperience));
+  // Mark the page with the open scenario's effort and style (data-effort and data-style on <html>, always ids the
+  // app offers) and refresh "Using defaults for N inputs". Display only: never the inputs or the results.
+  function applyExperience() {
+    if (!state.info || !state.experience) return;
+    const { effort, style } = shownExperience();
+    document.documentElement.dataset.effort = effort;
+    document.documentElement.dataset.style = style;
     refreshDefaultsNotice();
   }
 
@@ -2012,7 +2013,7 @@
     const previous = shownExperience().effort;
     saveExperience(change);
     if (change.effort && effortRank(change.effort) > effortRank(previous)) walkEffortRaised(previous);
-    renderExperienceCard();
+    applyExperience();
     if (change.effort && change.effort !== previous) {
       lowRaiseNote(previous, change.effort);  // a raise from Low: the spending number still covers housing
       renderEffortViews();
@@ -2281,7 +2282,7 @@
     if (button) button.focus({ preventScroll: true });
   }
 
-  // Remove every override (the Effort card's Hide it).
+  // Remove every override (the Hide it under "Using defaults for N inputs").
   function clearAddedDetail() {
     saveExperience({ tierOverrides: {} });
     redrawDetail();
@@ -2365,7 +2366,7 @@
     inputsChanged();
   }
 
-  // The note under Setup's effort card after a raise from Low while the plan has no home, car or loan: the spending
+  // The note on Setup (#lowRaiseNote) after a raise from Low while the plan has no home, car or loan: the spending
   // number still covers them. It goes on the next effort change and is never stored.
   const LOW_RAISE_NOTE = "Your monthly spending counts housing, cars and loans because none are entered. Lower it by "
     + "what you add.";
@@ -4179,7 +4180,7 @@
     else if (isObject(next.walk) && next.walk.status === "active") next.walk.status = "paused";
     state.experience = next;
     loadWalk();  // the walkthrough's progress is the scenario's own
-    renderExperienceCard();
+    applyExperience();
     lowRaiseNote(null, null);  // the note after a raise from Low goes with the scenario
     renderEffortViews();
   }
@@ -4517,14 +4518,16 @@
   }
 
   // The settings a listed scenario stands for, as saved (its experience block included): its saved copy (upgraded
-  // first when it is from an older version), or the example household, as {inputs, legacy}: `legacy` when the copy
-  // was upgraded from a version before the experience block (its block is a default, not a choice). Null, with the
-  // message shown, when it cannot be read.
+  // first when it is from an older version, and filled in the way Import fills a file when a current one lacks some
+  // fields, so the draft it opens survives a reload), or the example household, as {inputs, legacy}: `legacy` when
+  // the copy was upgraded from a version before the experience block (its block is a default, not a choice). Null,
+  // with the message shown, when it cannot be read.
   async function listedInputs(name) {
     let inputs = savedCopy(name);
     if (!inputs) return null;
     let legacy = false;
-    if (!isObject(inputs) || inputs.schemaVersion !== state.info.inputsSchemaVersion) {
+    if (!isObject(inputs) || inputs.schemaVersion !== state.info.inputsSchemaVersion
+      || !sameShape(state.defaults, splitExperience(inputs).inputs)) {
       const reply = await ask("importScenario", [JSON.stringify(inputs)]);
       if (!reply || !reply.ok) { savedMessage(reply ? reply.error : name + " could not be read; try again.", true); return null; }
       legacy = reply.fromVersion < EXPERIENCE_VERSION;
@@ -10796,8 +10799,8 @@
     }
     const actions = [];
     if (row.control === "handoff" && lowOn()) {  // at Low only two accounts of a kind hand off: no Inputs page to open
-      element.append(walkParagraph("You have more than one account of a kind. Change them at Medium effort (Setup > "
-        + "Effort and style).", "walk-lede"));
+      element.append(walkParagraph("You have more than one account of a kind. Change them at Medium effort (menu > "
+        + "Effort and style...).", "walk-lede"));
       actions.push(walkButton("Continue", "button walk-primary", null, true));
       return { element, actions };
     }
@@ -11260,8 +11263,8 @@
       text: "These figures sum up your plan: what you are worth today, a typical final worth, and what you earn or "
         + "take out and spend in an average year. They update after every change." },
     { title: "Your scenarios", page: "setup", target: "#savedCard",
-      text: "Setup shows the scenario you are working on: save, rename, duplicate, clear or export it. Below it you "
-        + "can open another scenario, start a new one or import a file." },
+      text: "Setup shows the scenario you are working on: rename, duplicate or clear it. The Scenario files panel "
+        + "below it saves, imports and exports scenarios and opens another one." },
     { title: "Your household", page: "setup", when: () => !lowOn(), target: "#householdCard legend",
       text: "Household holds your partner, your ages, how you file taxes and your home state." },
     { title: "Advanced settings", page: "setup", target: "#advancedSettings", opens: "#advancedSettings",
