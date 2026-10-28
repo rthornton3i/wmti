@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-UdNEKzeOxksU1NPoW4vAsp1QXaKwWYjiZf0+f9JAUdM=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-+ncMRLTL6urXiE7zTzUTxtAk1n8OiykPSqTBQgiCZs4=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -97,8 +97,10 @@ if (window.top !== window.self) {
   --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --gutter: 16px;
+  /* The spacing scale: every gap, card padding, heading-to-body space and button row uses one of these steps. */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
   /* Space between the cards and sections of a panel (Setup, every Inputs chip, every Outputs view). */
-  --section-gap: 22px;
+  --section-gap: var(--space-5);
   --radius: 12px;
   --tabbar: 64px;
   color-scheme: light;
@@ -326,8 +328,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .chips-wrap[data-place^="outputs/"] .chip:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
 .chips-wrap[data-place^="outputs/"] .chips-track { display: none; }
 
-.card { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 20px; padding: 16px;
-  display: grid; gap: 12px; min-width: 0; box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow); }
+.card { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 20px; padding: var(--space-4);
+  display: grid; gap: var(--space-3); min-width: 0; box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow); }
 .stub { padding: 24px 4px; display: grid; gap: 8px; color: var(--ink-2); }
 .banner { padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 14px; }
 /* Information boxes: notes, plain banners and explanations, in the info color with an "i" icon, so they never
@@ -343,19 +345,22 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .banner-warn { background: var(--warn-soft); color: var(--ink); border-left: 4px solid var(--warn); }
 .warnings { display: grid; gap: 8px; }
 .warnings:not(:empty) { padding-block: 8px; }
+/* An empty warnings box takes no grid row (it would double the gap round it); in a view the grid gap spaces it. */
+.warnings:empty { display: none; }
+.subpanel > .warnings { padding-block: 0; }
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .disclosure { padding-block: 0; gap: 0; }
 .disclosure > summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; font-weight: 650; }
 .disclosure[open] { padding-bottom: 16px; }
 .disclosure[open] > summary { margin-bottom: 8px; }
-.notes { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; color: var(--ink-2); }
-.insights-title { font-size: 14px; margin: 10px 0 6px; }  /* Warnings and Opportunities in the Summary Insights card */
-.view-intro { display: grid; gap: 10px; }
+.notes { margin: 0; padding-left: 18px; display: grid; gap: var(--space-1); font-size: 13.5px; color: var(--ink-2); }
+.insights-title { font-size: 14px; margin: var(--space-1) 0 calc(var(--space-2) - var(--space-3)); }  /* Warnings and Opportunities in the Summary Insights card */
+.view-intro { display: grid; gap: var(--space-3); }
 .empty-state { color: var(--ink-2); background: var(--surface-2); border: 1px dashed var(--line); }
 
 /* Results */
-.result-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
-.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.result-meta { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-size: 13px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .tile { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 18px; padding: 12px 14px;
   box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow);
   display: grid; gap: 4px; align-content: start; min-width: 0; }
@@ -370,12 +375,12 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .report-pointer p { margin: 0; color: var(--ink-2); }
 /* The Next steps card (Coach and Gamer, 49-coach.js): one row per gap (its text, the check's "Checked:" box, one row
    of compact buttons, What was tried), then risk comfort. */
-.nextsteps-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.nextstep { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: var(--surface-2);
+.nextsteps-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.nextstep { display: grid; gap: var(--space-2); padding: var(--space-3); border-radius: 14px; background: var(--surface-2);
   border: 1px solid var(--line); min-width: 0; }
 .nextstep h3 { margin: 0; font-size: 15px; }
 .nextstep p { margin: 0; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
-.nextstep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.nextstep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .nextstep-actions .button { min-height: 44px; padding-inline: 12px; }
 .nextstep-result:empty { display: none; }
 /* The check's result: a box of its own (accent edge on the left, accent-soft fill) right under the gap's text. */
@@ -569,6 +574,13 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .title-help { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .note-help { margin-top: 8px; }  /* a short line kept on screen, its longer note behind the "i" (noteHelp) */
 .mc-notice-row { justify-content: flex-end; }  /* the Outputs legal notice sits behind this info button */
+/* Over the run bar, the info button shares the bar's first row (its grid cell), at the bar's right edge, so it takes no
+   row of its own; with the bar hidden (Compare, Optimize) it keeps its own row. */
+#panel-outputs > #mc-bar:not([hidden]), #mc-bar:not([hidden]) + .mc-notice-row { grid-row: 1; grid-column: 1; }
+#mc-bar:not([hidden]) + .mc-notice-row { align-self: start; justify-self: end; z-index: 1;
+  padding: var(--space-4) var(--space-1) 0 0; }
+#mc-bar:not([hidden]) + .mc-notice-row .help-button { margin: 0; }
+.mc-bar .run-row { padding-inline-end: var(--space-6); }
 .group > legend.legend-help { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .field-help { font-size: 13px; color: var(--muted); }
 .field-error { font-size: 13px; color: var(--bad); font-weight: 500; }
@@ -724,7 +736,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .list-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-bottom: 8px; }
 .list-bar .button:disabled { opacity: 0.45; cursor: default; }
 .list-bar-count { font-size: 12.5px; color: var(--muted); }
-.row-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.row-buttons { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .button { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent);
   color: var(--accent-ink); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .button-quiet { background: transparent; color: var(--accent); }
@@ -830,7 +842,12 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 /* Summary's body stacks its meta line, tiles and cards with the same gap as the subpanel. */
 #results-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
 #results-body > * { min-width: 0; }
-.run-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+/* The Next steps and Accountant holders add no box: their cards take the body's own gap, and an empty one no row. */
+#nextSteps, #accountantCards, #accountantLedger { display: contents; }
+/* Notes in a card or the Summary stack: the grid gap spaces them; the meta line and its dollars note read as one. */
+.card > .note, #results-body > .note { padding-block: 0; }
+#results-body > .result-meta + .dollars-note { margin-top: calc(var(--space-2) - var(--section-gap)); }
+.run-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
 .run-progress { display: grid; gap: 8px; }
 .run-progress .progress span { transition: width 0.2s linear; }
 .progress-text { font-size: 13.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; flex: 1; min-width: 0; }
@@ -838,7 +855,7 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
   padding: 2px 10px; }
 .stale-results .tile-value, .stale-results .chart-plot, .stale-results .table-scroll { opacity: 0.5; }
 .pin.stale-results .pin-value { opacity: 0.5; }
-.mc-bar { display: grid; gap: 10px; }
+.mc-bar { display: grid; gap: var(--space-3); }
 .mc-bar[hidden] { display: none; }
 /* Compare: the Config A and B selects, the make-match buttons and one panel per setting that differs */
 .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -1374,14 +1391,14 @@ label.gm-card:has(input:checked) { border-color: var(--gm-mint); box-shadow: ins
   background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -8px 30px rgb(0 0 0 / 0.25);
   padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
   max-width: 640px; margin-inline: auto; }
-.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px var(--gutter);
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--gutter);
   min-height: 60px; border-bottom: 1px solid var(--line); }
 .sheet-head h2 { overflow-wrap: anywhere; }
-.sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 4px var(--gutter) 16px; display: grid; gap: 0;
+.sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: var(--space-1) var(--gutter) var(--space-4); display: grid; gap: 0;
   align-content: start; }
-.sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; }
-.sheet-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px var(--gutter);
-  padding-bottom: max(10px, calc(10px + env(safe-area-inset-bottom, 0px) - var(--keyboard, 0px)));
+.sheet-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); padding-top: var(--space-4); }
+.sheet-foot { display: flex; justify-content: flex-end; gap: var(--space-2); padding: var(--space-3) var(--gutter);
+  padding-bottom: max(var(--space-3), calc(var(--space-3) + env(safe-area-inset-bottom, 0px) - var(--keyboard, 0px)));
   border-top: 1px solid var(--line); background: var(--surface); }
 .sheet-foot-actions, .sheet-foot .timeline-nav { display: flex; flex: 1; justify-content: flex-end; gap: 8px;
   padding-top: 0; flex-wrap: nowrap; }
@@ -1766,9 +1783,10 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 :root.split-dragging, :root.split-dragging * { cursor: col-resize !important; user-select: none; }
 .wide.split-only-outputs #panel-inputs, .wide.split-only-outputs .chips-wrap[data-place="inputs"],
 .wide.split-only-inputs :is(#panel-outputs, #panel-awards), .wide.split-only-inputs .chips-wrap[data-place^="outputs"] { display: none; }
-/* The snap icon at the divider's top; hover, keyboard focus or a tap pops out its three buttons under it. */
-.wide .split-snap { display: flex; flex-direction: column; align-items: center; grid-column: 4; grid-row: 3 / 5;
-  justify-self: center; align-self: start; position: relative; z-index: 30; margin-top: 10px; }
+/* The snap icon above the divider, in the chips row's band (wider than the divider, it would otherwise overlap and
+   look cut off at the Outputs panel's left edge); hover, keyboard focus or a tap pops out its three buttons under it. */
+.wide .split-snap { display: flex; flex-direction: column; align-items: center; grid-column: 4; grid-row: 2;
+  justify-self: center; align-self: start; position: relative; z-index: 30; margin-top: var(--space-2); }
 .split-snap-open, .split-snap-button { display: inline-grid; place-items: center; border: 0; border-radius: 999px;
   background: var(--band-button); color: var(--band-button-ink); cursor: pointer; padding: 0; }
 .split-snap-open { width: 26px; height: 26px; }
@@ -1800,9 +1818,10 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 /* Setup's Advanced settings at the bottom: a closed card (open or shut kept per device) holding the Run settings. */
 .advanced-head { display: grid; gap: 2px; min-width: 0; }
 .advanced-hint { font-size: 13.5px; font-weight: 400; color: var(--ink-2); }
-.run-card { display: grid; gap: 12px; min-width: 0; }
+.run-card { display: grid; gap: var(--space-3); min-width: 0; }
+.run-card > div > .field:first-child { margin-top: 0; }
 .run-card > h2 { margin: 0; }
-.run-card + .run-card { margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
+.run-card + .run-card { margin-top: var(--space-4); padding-top: var(--space-4); border-top: 2px solid var(--line); }
 
 /* The headline figures: each one a block like the Summary tiles (the surface, its edge, label over value, a rounded
    box), and a line under the top bar that sets them apart from the rest of the app (phone and wide layouts). */
@@ -1820,17 +1839,25 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 
 /* f102 Accountant extras: the tiles' Why? button, the Estimates and run diff cards, the Why pop-up and the ledger card.
    Long labels wrap; every button is at least 44 px. */
-.tile-why { justify-self: start; min-height: 44px; min-width: 44px; margin-top: 4px; padding: 0 12px; font-size: 14px; }
-.accountant-card { display: grid; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.tile-why { justify-self: start; min-height: 44px; min-width: 44px;
+  margin: calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-3)) calc(-1 * var(--space-2)); font-size: 14px; }
+/* Why? reads as a compact link sized to its row (no outline box); its 44 px target overlaps the padding round it. */
+.tile-why, .estimate-why { padding: 0 var(--space-2); border-color: transparent; background: transparent;
+  text-decoration: underline; text-underline-offset: 3px; }
+.tile-first .tile-why { color: var(--hero-ink); }
+.accountant-card { display: grid; gap: var(--space-3); min-width: 0; overflow-wrap: anywhere; }
+details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no gap under the summary */
 .accountant-card > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }
 .accountant-card > summary h2 { margin: 0; font-size: inherit; }
-.estimate-list, .change-lines, .why-inputs, .why-law-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.estimate-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.estimate-list, .change-lines, .why-inputs, .why-law-list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); }
+.estimate-list { gap: 0; }
+.estimate-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-2); min-width: 0; min-height: 44px; }
 .estimate-label { flex: 1 1 12ch; min-width: 0; overflow-wrap: anywhere; }
 .estimate-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
   background: var(--warn-soft); color: var(--warn); box-shadow: inset 0 0 0 1px var(--warn); }
-.estimate-why, .why-show { min-height: 44px; min-width: 44px; padding: 0 12px; }
-.change-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.estimate-why, .why-show { min-height: 44px; min-width: 44px; padding: 0 var(--space-3); }
+.estimate-why { padding: 0 var(--space-2); }
+.change-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 14px; }  /* fits a 320 px card */
 .change-table th, .change-table td { padding: 4px 6px 4px 0; text-align: left; vertical-align: top; overflow-wrap: break-word; }
 .change-table td { font-family: var(--font-data); font-size: 13px; }
 .change-table thead th { color: var(--ink-2); font-weight: 600; border-bottom: 1px solid var(--line); }
@@ -1849,7 +1876,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .why-law .why-show { justify-self: start; }
 .why-all > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
 .why-focus { background: var(--accent-soft); border-radius: 8px; }
-.ledger-card { display: grid; gap: 6px; min-width: 0; }
+.ledger-card { display: grid; gap: var(--space-2); min-width: 0; }
 .ledger-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .ledger-row .button, .ledger-card > .button { min-height: 44px; }
 #ledgerStatus:empty { display: none; }
@@ -2258,7 +2285,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "f88ee564078e", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "636b3a7da5c0", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.4f12aabf15.js"></script>
 <script src="charts.ae4d661d99.js"></script>
