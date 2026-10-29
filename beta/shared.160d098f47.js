@@ -1327,7 +1327,9 @@
   // a calculated stretch of its bar, from the replacement to the year before the next one or the bar's end; one at or
   // past the bar's end is left out. A home's bar carries its segment's `primary` (the primary residence lane), `state`
   // and `isCalculated` (the Relocation strategy's home or rent, drawn gray over its lane; timelineView's `calculated`).
-  // Returns [{lane, segments, bars: [{mode, name, text, position, left, width, primary, state, isCalculated,
+  // Each bar also carries its segment's `itemList` and `itemIndex` (the item it draws, for its edit sheet) and its
+  // `startYear` and `endYear` (null: open). Returns [{lane, segments, bars: [{mode, name, text, position, left, width,
+  // primary, state, isCalculated, itemList, itemIndex, startYear, endYear,
   // calculated: [{age, year, rule, label, method, left, width}]}]}], left and width in percent, `segments` the lane's
   // segments in order.
   function timelineBars(segments, low, high) {
@@ -1349,7 +1351,9 @@
       });
       row.bars.push({ mode: segment.mode, name: segment.name, text: segment.text, position: segment.position,
         left: ((segment.startAge - low) / span) * 100, width: ((end - segment.startAge + 1) / span) * 100, calculated,
-        primary: Boolean(segment.primary), state: segment.state || null, isCalculated: Boolean(segment.calculated) });
+        primary: Boolean(segment.primary), state: segment.state || null, isCalculated: Boolean(segment.calculated),
+        itemList: segment.itemList ?? null, itemIndex: segment.itemIndex ?? null,
+        startYear: segment.startYear ?? null, endYear: segment.endYear ?? null });
     }
     return lanes.sort((first, second) => first.lane - second.lane);
   }
@@ -1704,6 +1708,17 @@
 
   function updateCheckText(outcome) {
     return Object.prototype.hasOwnProperty.call(UPDATE_TEXTS, outcome) ? UPDATE_TEXTS[outcome] : "";
+  }
+
+  // How long (ms) a passing information banner (an "Opened ...", "Deleted ..." line) stays before it fades: 10 s, plus
+  // 1 s for each 15 words (or part) beyond the first 20, never more than 20 s.
+  const BANNER_FADE_MIN_MS = 10000;
+  const BANNER_FADE_MAX_MS = 20000;
+
+  function bannerFadeMs(text) {
+    const words = (String(text == null ? "" : text).match(/\S+/g) || []).length;
+    const extra = Math.ceil(Math.max(0, words - 20) / 15) * 1000;
+    return Math.min(BANNER_FADE_MAX_MS, BANNER_FADE_MIN_MS + extra);
   }
 
   // A brand-new scenario's settings: nothing filled in, not the example household, yet valid so the model runs and the
@@ -2385,7 +2400,7 @@
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
-    walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
+    walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
     storagePrefix, channelCachePrefixes, copyStableStorage, isBetaChannel,
     blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName,
     splitExperience, joinExperience, defaultExperience, storedExperience, carriedExperience, experienceDiffers, experienceChoice, experienceWords,

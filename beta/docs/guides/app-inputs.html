@@ -151,19 +151,14 @@
 <td><p>A strip of Save, Import and Export (the settings as a scenario file). <em>Other scenarios</em> lists those saved on this device; a tap opens one, and each has a “…” menu. <em>New</em> starts another.</p></td>
 </tr>
 <tr class="row-even"><td><p>Household</p></td>
-<td><p><em>Include a partner</em>, <em>Your age</em>, <em>Partner age</em> (only with a partner), filing status and home state. Filing separately splits joint accounts 50/50. <em>Start over</em> resets the household.</p></td>
+<td><p><em>Include a partner</em>, <em>Your age</em>, <em>Partner age</em> (only with a partner), filing status and home state. Filing separately splits joint accounts 50/50.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Advanced settings</p></td>
 <td><p>“Inflation, years to simulate, Monte Carlo runs and seed, for people who know what they change.” Shut until opened; the app remembers on this device whether it was open.</p></td>
 </tr>
-<tr class="row-even"><td><p>Example household</p></td>
-<td><p>Loads fictional figures to explore.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Clear all data on this device</p></td>
-<td><p>A second tap deletes everything the app stored here, including the offline copy and saved documentation pages, then reloads as on a first visit.</p></td>
-</tr>
 </tbody>
 </table>
+<p>Two start-over items sit at the end of the menu (top right), each acting on a second tap: <strong>Load example household</strong> replaces the open scenario with fictional figures to explore, and <strong>Clear all data on this device</strong> deletes everything the app stored here, including the offline copy and saved documentation pages, then reloads as on a first visit.</p>
 <p>About opens from the menu. It shows the build, version, <strong>Check for updates</strong> (in the GitHub Pages build), engine versions and run times. It also says the planner is not financial advice, models US federal tax and the income taxes of the 50 states and DC for the stated tax year only, and that the example figures are fictional.</p>
 <section id="advanced-settings">
 <h3>Advanced settings<a class="headerlink" href="#advanced-settings" title="Link to this heading"></a></h3>
@@ -262,8 +257,9 @@
 <ul class="simple">
 <li><p><strong>Homes</strong> has one card per home: its name, “primary residence” or “second home”, “mortgage” while it counts, “buys at 60” and “sells at 70”, and its value today (or its price when bought later).</p></li>
 <li><p><strong>Rent</strong> has one card per rent period: its name, first and last years (“today” and “open” for renting now and to the end) and monthly rent.</p></li>
-<li><p><strong>Timeline</strong> draws one bar row per <a class="reference internal" href="overview.html#term-Lane"><span class="xref std std-term">lane</span></a>, with the cards of that row’s stretches in order below it. Owned is filled, rent is hatched. The primary residence is a slightly deeper color. A legend names Primary residence, Second home and Rent, and each card also names its role.</p></li>
-<li><p>Each card has <em>Edit timeline</em> and <em>Delete</em> (a second tap confirms). The pane has no Add button of its own.</p></li>
+<li><p><strong>Timeline</strong> is a picture: one bar row per <a class="reference internal" href="overview.html#term-Lane"><span class="xref std std-term">lane</span></a>, with no cards and no Edit or Delete buttons. Owned is filled, rent is hatched. The primary residence is a slightly deeper color. A legend names Primary residence, Second home and Rent.</p></li>
+<li><p>Tap a bar (or focus it and press Enter) for a small box under its row: the name, its role (primary residence, second home, rent or car) and years, a one-line summary, and <em>Open &lt;name&gt;</em>, which opens the same sheet as tapping the item in its list. The X, Escape or a tap outside closes it. A gap (“No home”) is not a button.</p></li>
+<li><p>The pane has no Add button of its own. Add, edit and delete from the lists below it.</p></li>
 </ul>
 <p><em>Add home</em> opens the one Add screen, “What are you adding?”:</p>
 <table class="docutils align-default">
@@ -289,13 +285,13 @@
 </tbody>
 </table>
 <p>The mortgage figures show only while its switch is ticked. The Add and Edit timeline screens also ask the state (<em>Home’s state</em>, <em>State</em>). A primary residence or rent period starting later in another state moves you there, and the note under the block names the year (“Living in FL from 2036”). See <a class="reference internal" href="model-rules.html#moving-states"><span class="std std-ref">Moving states</span></a>.</p>
-<p><em>Edit timeline</em> is titled “Edit timeline: &lt;name&gt;” and changes the years and price only. Its <em>Plan to sell it</em> tick shows the sale year. <em>Open full home details</em> (<em>Open full rent details</em>) closes it with nothing applied and opens the full sheet. The sheet has a matching <em>Edit on timeline</em> button.</p>
+<p><em>Edit timeline</em> is titled “Edit timeline: &lt;name&gt;” and changes the years and price only. Its <em>Plan to sell it</em> tick shows the sale year. <em>Open full home details</em> (<em>Open full rent details</em>) closes it with nothing applied and opens the full sheet. It opens from the item’s sheet: its <em>Edit on timeline</em> button.</p>
 <p>Every timeline screen is final: <em>Save</em> applies and closes, <em>Cancel</em> applies nothing. A refused step keeps what you typed and shows its sentence.</p>
 <p>Timeline rules:</p>
 <ul class="simple">
 <li><p>Back to back stretches share a year. Adding a home or rent period between two others refits both, and a note names the refit.</p></li>
 <li><p>With no purchase or sale, exactly one home is primary. A home cannot be primary while a rent period overlaps it; the sheet names the rent period.</p></li>
-<li><p>While Relocation adds a home or rent period (<em>Home follows me</em>), it shows as a gray, dashed, read-only card “calculated by Relocation”. See <a class="reference internal" href="strategies.html#relocation"><span class="std std-ref">Relocation: moving to another state</span></a>.</p></li>
+<li><p>While Relocation adds a home or rent period (<em>Home follows me</em>), it shows as a gray bar. Its box says it is calculated by Relocation and has no <em>Open</em>. See <a class="reference internal" href="strategies.html#relocation"><span class="std std-ref">Relocation: moving to another state</span></a>.</p></li>
 <li><p>A warnings box flags a Mortgage loan with no home, and Expenses rows that repeat what Home charges.</p></li>
 </ul>
 <p>A home’s sheet has the groups Basics, Mortgage, Property tax and insurance, and Other loans on this home. <em>Add loan on this home</em> adds a Second mortgage, Home equity loan, Home equity line or Mortgage. It has the Loans figures plus <em>Used on this home</em> (off: its interest is not deducted). A home bought later hides its value today and mortgage balance, and labels the months <em>Mortgage term (months)</em>.</p>
@@ -336,7 +332,7 @@
 <p>More car behavior:</p>
 <ul class="simple">
 <li><p>A blank figure that falls back on another shows that figure in a muted color until you change it.</p></li>
-<li><p>Replacements by rule show on the timeline as gray, dashed cards (“Sedan replacement, 2031 by miles”). A leased car has none.</p></li>
+<li><p>Replacements by rule show on the timeline as gray stretches of the car’s bar. Tapping one names it (“Sedan replacement”, from 2031 by miles), says it is calculated from the replacement rule and has no <em>Open</em>. A leased car has none.</p></li>
 <li><p>A warnings box names Expenses rows that repeat a car cost.</p></li>
 </ul>
 </section>
@@ -376,16 +372,16 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Retirement plan</p></td>
-<td><p>The plan’s switch; each person’s employer match under its own sub-heading (“Your employer match”, “Partner employer match”) with one “Employer match (% of pay)” box (0% to 100%); each person’s deposit under “Your deposit” and “Partner deposit”: a “Deposit (% of pay)” box with a slider, bound both ways, and at High (or Add detail) a “Roth part of the deposit” box with a slider, each grey at its default with a reset; under the total a line with the Traditional and Roth shares, their first-year dollars after the limits and the 401k limit; a deposit slider per account (see below).</p></td>
+<td><p>The plan’s switch, then one group per person, “Your plan” and “Partner’s plan” (with a partner): the deposit as a “Deposit (% of pay)” box with a slider, bound both ways, and at High (or Add detail) a “Roth part of the deposit” box with a slider, each grey at its default with a reset; then that person’s employer match, its switch and one “Employer match (% of pay)” box (0% to 100%). The deposit is % of pay only; no dollar amounts show. Its slider runs from 0% to the share of pay that reaches the person’s 401k limit this year (with any catch-up for their age), rounded up to the 1% step; a total typed above it is held there with the note “IRS limit”, and a saved total above it stays stored but shows the limit with the note. Without pay the slider is off and a note says so. The notes on the deposits follow; the dollar slider per account shows only while amounts are set per account (see below).</p></td>
 </tr>
 <tr class="row-odd"><td><p>Medical plan</p></td>
 <td><p>The health premium for the household, the pre-tax switch and the plan’s cost sharing, with a <em>Per person</em> / <em>Combined</em> toggle right after the out-of-pocket maximum. An “HSA” sub-section shows while the plan is on.</p></td>
 </tr>
 <tr class="row-even"><td><p>HSA</p></td>
-<td><p>Its switch, then <em>HSA contribution each year</em> (“What the year’s costs need” or “The most allowed”), <em>HSA cap per year</em> (blank: the legal limit), <em>Contributed through payroll</em>, <em>Employer HSA contribution per year</em>, <em>HSA balance</em>, the mean return and standard deviation, and <em>HSA owner</em>.</p></td>
+<td><p>Its switch, then <em>HSA contribution each year</em> (“What the year’s costs need” or “The most allowed”), <em>HSA cap per year</em> (shown on “The most allowed” only: a slider from $0 to the legal limit for the coverage, family while the partner or a child is on the plan, and each person’s catch-up from 55; at the top by default, and a saved cap above it shows at the limit with an “IRS limit” note), <em>Contributed through payroll</em>, <em>Employer HSA contribution per year</em>, <em>HSA balance</em>, the mean return and standard deviation, and <em>HSA owner</em>.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Dependent care FSA</p></td>
-<td><p>Its switch and figures. A warning shows when the FSA sets nothing aside.</p></td>
+<td><p>Its switch, then <em>FSA cap per year</em>, a slider from $0 to the federal limit for the household’s returns (at the top by default; a saved cap above it shows at the limit with an “IRS limit” note). A warning shows when the FSA sets nothing aside.</p></td>
 </tr>
 <tr class="row-even"><td><p>Beneficiaries</p></td>
 <td><p>No switch. See below.</p></td>
@@ -487,7 +483,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Social Security</p></td>
-<td><p>Under a “You” and a “Partner” sub-heading (Partner only with a partner): the benefit basis, benefit table and claim age.</p></td>
+<td><p>Under a “You” and a “Partner” sub-heading (Partner only with a partner): the benefit basis, benefit table and claim age. The benefit by claim age (the benefit table or the estimate from earnings) sits closed under “Claim estimates”; one opened stays open on this device.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Medicare</p></td>
 <td><p>Medicare age and type, Part B, Part D premium (plan-specific, entered), coinsurance and out-of-pocket maximum.</p></td>
@@ -620,10 +616,10 @@
 </section>
 <section id="deposit-per-account">
 <h3>Deposit per account<a class="headerlink" href="#deposit-per-account" title="Link to this heading"></a></h3>
-<p>The Retirement plan pane of Benefits ends with a slider per Traditional 401k, Roth 401k, Traditional IRA and Roth IRA account, by owner, from 0 to the most its limits leave, in steps of $100.</p>
+<p>While amounts are set per account (saved with the scenario), the Retirement plan pane of Benefits ends with a slider per Traditional 401k, Roth 401k, Traditional IRA and Roth IRA account, by owner, from 0 to the most its limits leave, in steps of $100. On the household plan these dollar sliders do not show; the deposits are entered as % of pay.</p>
 <ul class="simple">
-<li><p>Until an amount is set, the sliders show what each person’s deposit (% of pay) puts into each account, also as a share of the owner’s pay. A person with no 401k or IRA of their own deposits into the other’s, and the pane says so.</p></li>
-<li><p>The first move sets the amount for every account and names the amounts it wrote. Raising one slider lowers the most the others sharing its limit can take. With amounts set, each person’s deposit boxes are greyed out (“Set per account below”).</p></li>
+<li><p>On the household plan the pane shows only its notes: a person with no 401k or IRA of their own deposits into the other’s, and the pane says so.</p></li>
+<li><p>A move sets the amount for every account. Raising one slider lowers the most the others sharing its limit can take. With amounts set, each person’s deposit boxes are greyed out (“Set per account below”).</p></li>
 <li><p>“Go back to the household plan” clears every amount.</p></li>
 <li><p>An account with no room says why. When the settings are not valid, the page asks you to fix them first.</p></li>
 </ul>

@@ -10,7 +10,7 @@
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
-    exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
+    exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
     storagePrefix, channelCachePrefixes, copyStableStorage, isBetaChannel,
     blankInputs, needsSetup, splitExperience, joinExperience, defaultExperience, storedExperience, carriedExperience,
     experienceDiffers, experienceChoice, experienceWords, defaultedInputCount, firstUnlocked, effortRank,
@@ -180,6 +180,7 @@
     tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
     autoSaveOff: [], exampleHidden: false, collapsed: [],  // collapsed: the folded panels (25-collapse.js)
+    openFolds: [],  // the closed-by-default disclosures opened on this device (the claim estimates, 80-settings.js)
     savedJustNow: false, undo: { stack: [], current: null },
     // preview: Low's partial result; seq: the number stamped on each Monte Carlo when it starts (the run diff's order)
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null, preview: null, seq: 0 },
@@ -196,6 +197,72 @@
   const $ = (id) => document.getElementById(id);
   const gamifyOn = () => GAMIFY;
   const clone = (value) => JSON.parse(JSON.stringify(value));
+
+  // ---- Passing information banners ----
+  // A banner shown in answer to a change ("Opened ...", "Deleted ...") stays bannerFadeMs (10 to 20 s, by its length),
+  // then fades out (0.4 s; at once under reduced motion) and is hidden. The wait starts again while it is hovered or
+  // has the focus, and when a new message is shown. It keeps role=status, so it is read out when shown. Tests set
+  // window.WMTI_BANNER_FADE_MS before the page loads to change the wait. Warnings and errors never go through here.
+  const BANNER_FADE_OUT_MS = 400;
+  const bannerFades = new WeakMap();
+
+  function stopBannerFade(element) {
+    const fade = bannerFades.get(element);
+    if (!fade) return;
+    clearTimeout(fade.timer);
+    clearTimeout(fade.out);
+    fade.timer = null;
+    fade.out = null;
+    fade.active = false;
+    element.classList.remove("banner-fading");
+  }
+
+  function armBannerFade(element) {
+    const fade = bannerFades.get(element);
+    clearTimeout(fade.timer);
+    if (!fade.active || fade.held) return;
+    const wait = typeof window.WMTI_BANNER_FADE_MS === "number" ? window.WMTI_BANNER_FADE_MS
+      : bannerFadeMs(element.textContent);
+    fade.timer = setTimeout(() => {
+      fade.timer = null;
+      if (reducedMotion()) { element.hidden = true; fade.active = false; return; }
+      element.classList.add("banner-fading");
+      fade.out = setTimeout(() => {
+        fade.out = null;
+        fade.active = false;
+        element.hidden = true;
+        element.classList.remove("banner-fading");
+      }, BANNER_FADE_OUT_MS);
+    }, wait);
+  }
+
+  // Show `element` (its text already set) and let it fade after its time.
+  function showFadingBanner(element) {
+    if (!element) return;
+    if (!bannerFades.has(element)) {
+      const fade = { timer: null, out: null, active: false, hover: false, focus: false,
+        get held() { return this.hover || this.focus; } };
+      bannerFades.set(element, fade);
+      const hold = (key, value) => {
+        fade[key] = value;
+        if (!fade.active) return;
+        if (fade.held) {
+          clearTimeout(fade.timer);
+          clearTimeout(fade.out);
+          fade.out = null;
+          element.classList.remove("banner-fading");
+        } else armBannerFade(element);
+      };
+      element.addEventListener("pointerenter", () => hold("hover", true));
+      element.addEventListener("pointerleave", () => hold("hover", false));
+      element.addEventListener("focusin", () => hold("focus", true));
+      element.addEventListener("focusout", () => hold("focus", false));
+    }
+    stopBannerFade(element);
+    element.hidden = false;
+    bannerFades.get(element).active = true;
+    armBannerFade(element);
+  }
 
   // ---- Storage (per viewer, may be unavailable) ----
   function load(key) {
@@ -215,7 +282,7 @@
     const compare = state.compare;
     store(PREFS_KEY, { tab: state.tab, view: state.view, chips: state.chips, plotView: state.plotView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
-      exampleHidden: state.exampleHidden, collapsed: state.collapsed,
+      exampleHidden: state.exampleHidden, collapsed: state.collapsed, openFolds: state.openFolds,
       compare: { seed: compare.seed, pair: compare.pair } });
   }
 
@@ -228,7 +295,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.d19374897c.js");
+      worker = new Worker("worker.da2d42cc26.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -357,6 +424,7 @@
       if (prefs.plotView === "table") state.plotView = "table";
       if (Array.isArray(prefs.surplusLocks)) state.surplusLocks = prefs.surplusLocks.filter((name) => typeof name === "string");
       if (Array.isArray(prefs.collapsed)) state.collapsed = prefs.collapsed.filter((key) => typeof key === "string");
+      if (Array.isArray(prefs.openFolds)) state.openFolds = prefs.openFolds.filter((key) => typeof key === "string");
       restoreRunPrefs(prefs);
       // Auto-save is on unless turned off for a scenario; the older one-switch preference (`autoSave`) is not read, since
       // it could not tell a switch turned off from the old default.
@@ -1061,33 +1129,60 @@
     return 1 + (back + 1) * (k - 1) ** 3 + back * (k - 1) ** 2;
   }
 
-  function glideBubble(row, to) {
+  // Glide to `chip`, measured afresh every frame, so a chip whose width settles mid-glide (its bolder label, a font
+  // arriving) is still where the glide ends.
+  function glideBubble(row, chip) {
     const bubble = row.chipBubble;
     cancelAnimationFrame(bubble.frame);
     const from = bubble.geom;
-    if (!from || reducedMotion()) { drawBubble(row, to); return; }
+    if (!from || reducedMotion()) { bubble.frame = 0; drawBubble(row, chipGeom(chip)); return; }
     const begun = performance.now();
     const step = (now) => {
       const k = Math.min(1, (now - begun) / BUBBLE_MS);
       const ease = springEase(k);
+      const to = chipGeom(chip);
       const mix = (key) => from[key] + (to[key] - from[key]) * ease;
       drawBubble(row, { left: mix("left"), right: mix("right"), top: to.top, height: to.height,
         pinch: Math.max(0, from.pinch * (1 - Math.min(1, k * 1.6))) });
-      if (k < 1) bubble.frame = requestAnimationFrame(step);
+      bubble.frame = k < 1 ? requestAnimationFrame(step) : 0;
     };
     bubble.frame = requestAnimationFrame(step);
+  }
+
+  // Keep the bubble on its chip when the row or a chip changes size after it was placed: a web font arriving after
+  // start-up (the selected chip's bolder face is fetched only once a chip is selected), the row shown again after it
+  // was hidden, or the band's width settling as the page opens (the row's scroll bar is redrawn with it). A glide or a
+  // swipe's stretch under way is left alone.
+  function watchBubble(row) {
+    if (!window.ResizeObserver) return;
+    if (!row.bubbleWatch) {
+      row.bubbleWatch = new ResizeObserver(() => {
+        trackChips(row);
+        const bubble = row.chipBubble;
+        if (!bubble || bubble.frame || (bubble.geom && bubble.geom.pinch > 0)) return;
+        placeBubble(row, false);
+      });
+    }
+    const chips = [...row.querySelectorAll(".chip")];
+    if (row.bubbleChips && row.bubbleChips.length === chips.length
+      && row.bubbleChips.every((chip, index) => chip === chips[index])) return;
+    row.bubbleWatch.disconnect();
+    row.bubbleWatch.observe(row);
+    for (const chip of chips) row.bubbleWatch.observe(chip);
+    row.bubbleChips = chips;
   }
 
   // Put the bubble over the row's selected chip, gliding there when `animate`; nothing while the row is hidden.
   function placeBubble(row, animate) {
     const bubble = row && row.chipBubble;
     const chip = row && row.querySelector(".chip[aria-selected=true]");
+    if (bubble) watchBubble(row);
     if (!bubble || !chip || !row.offsetParent) return;
     bubble.setAttribute("width", "0");
     bubble.setAttribute("width", String(row.scrollWidth));
     bubble.setAttribute("height", String(row.clientHeight));
-    if (animate) glideBubble(row, chipGeom(chip));
-    else { cancelAnimationFrame(bubble.frame); drawBubble(row, chipGeom(chip)); }
+    if (animate) glideBubble(row, chip);
+    else { cancelAnimationFrame(bubble.frame); bubble.frame = 0; drawBubble(row, chipGeom(chip)); }
   }
 
   // Stretch the bubble from the selected chip toward `target` by `progress` (0 to 1) of a swipe.
@@ -1096,6 +1191,7 @@
     const chip = row.querySelector(".chip[aria-selected=true]");
     if (!bubble || !chip || !row.offsetParent || reducedMotion()) return;
     cancelAnimationFrame(bubble.frame);
+    bubble.frame = 0;
     const from = chipGeom(chip);
     if (!target) { drawBubble(row, from); return; }
     const to = chipGeom(target);
@@ -1121,7 +1217,8 @@
   // chevron button at the right of its header (aria-expanded, aria-controls). The button or a click on the header (not
   // on its "i" or another control) folds the panel to its header and opens it again; no height animation. Folded, a
   // panel whose first field is an on/off switch (a pane's toggle, Roth conversion, Inflation) shows a copy of that
-  // switch in the header that works the real one. Which panels are folded is kept per device in the prefs
+  // switch in the header that works the real one; turned on there, the panel opens (turned off, it stays folded) and its
+  // header keeps its place on screen. Which panels are folded is kept per device in the prefs
   // (`state.collapsed`, keys `tab:id-or-heading`); default open. The panels are drawn and redrawn by many parts, so a
   // MutationObserver on the three tabs adds the header controls to each new panel. Anything that shows a field opens
   // its panel first (`revealField` and `revealPanels`: a jump to a field, Undo, flashField, the tour); a field marked invalid opens its panel. The
@@ -1151,13 +1248,20 @@
     return tab + ":" + (own || (title ? title.textContent.trim() : ""));
   }
 
-  // The panel's on/off switch shown in its folded header: its pane toggle, else its first field when that is a switch.
+  // The switches, besides an object's `enabled` gate, that turn a whole panel's feature on or off: Inflation's
+  // inflation-adjusted dollars and the Early withdrawals strategy. Another first-field switch (Income's I'm retired,
+  // Household's partner) is a setting inside the panel and stays out of its header.
+  const COLLAPSE_FEATURE_SWITCHES = ["f-useInflation", "f-strategies-penaltyFreeFirst"];
+
+  // The panel's on/off switch shown in its folded header: its pane toggle, else its first field when that is the
+  // switch of the panel's whole feature (an `enabled` gate or COLLAPSE_FEATURE_SWITCHES).
   function collapseSwitch(panel) {
     const own = panel.querySelector(":scope > .pane-switch input[role=switch]");
     if (own) return own;
     const first = Array.from(panel.querySelectorAll(".field")).find((field) => !field.closest(".subsection")
       && field.closest(COLLAPSE_PANELS) === panel);
-    return first ? first.querySelector(":scope > .switch-row input[role=switch]") : null;
+    const input = first ? first.querySelector(":scope > .switch-row input[role=switch]") : null;
+    return input && (input.id.endsWith("-enabled") || COLLAPSE_FEATURE_SWITCHES.includes(input.id)) ? input : null;
   }
 
   // Add the header controls to every panel drawn since the last pass and show each one open or folded.
@@ -1235,11 +1339,20 @@
         event.target.checked = source ? source.checked : event.target.checked;
         if (!source) return;
         const key = panel.dataset.collapseKey;
+        const top = head.getBoundingClientRect().top;  // the header stays where it is on screen
+        const turnedOn = !source.checked;
+        if (turnedOn) foldPanel(panel, false);  // turned on, the panel opens to show what the switch brings
         source.click();  // its own change handler saves and redraws
         enhancePanels();
-        const again = Array.from(document.querySelectorAll(".collapse-switch input"))
-          .find((input) => input.closest(COLLAPSE_PANELS).dataset.collapseKey === key);
-        if (again) again.focus();
+        const now = Array.from(document.querySelectorAll("[data-collapse-key]"))
+          .find((item) => item.dataset.collapseKey === key && item.querySelector(".collapse-head"));
+        if (!now) return;
+        const moved = now.querySelector(".collapse-head").getBoundingClientRect().top - top;
+        const tab = now.closest(".panel").dataset.tab;
+        if (Math.abs(moved) >= 1) leaveScrollTo(tab, leaveScroll(tab) + moved);
+        const again = now.classList.contains("is-collapsed") ? now.querySelector(".collapse-switch input")
+          : collapseSwitch(now);
+        if (again) again.focus({ preventScroll: true });
       });
       tools.prepend(copy);
     }
@@ -6852,9 +6965,9 @@
 
   function savedMessage(text, isError) {
     const message = $("savedMessage");
-    message.hidden = false;
     message.className = isError ? "banner banner-error" : "banner";
     message.textContent = text;
+    if (isError) { stopBannerFade(message); message.hidden = false; } else showFadingBanner(message);  // errors stay
   }
 
   // Keep the open scenario's settings as its saved copy (Save, and Auto-save after each settled edit). Returns the
@@ -7390,7 +7503,7 @@
 
   function deleteDialog(name) {
     const text = hasOwn(state.scenarios, name) ? "This removes " + name + " from this device. It cannot be undone."
-      : "This removes " + name + " from this list. Load example household (Start over) brings it back.";
+      : "This removes " + name + " from this list. Load example household (in the menu) brings it back.";
     openDialog({ title: "Delete " + name + "?", text,
       actions: [CANCEL, ["Delete", "button button-danger-solid", () => { deleteScenario(name); return true; },
         "deleteConfirm"]] });
@@ -7664,7 +7777,8 @@
   // The read-only card at the top of the Expenses chip: the costs other tabs already charge (from the settings notes),
   // so they are not entered again as expense rows, in one table under their one group (Bills - Other;
   // `alreadyCountedGroups`) and the note on the taxes under it; it reads "Reading the run" until the notes arrive.
-  const COUNTED_COLUMNS = [["item", "Item"], ["where", "Where it is set"], ["monthly", "Monthly"], ["yearly", "Yearly"]];
+  // The amounts come first and the tab it is set on last, so the table fits a phone without scrolling sideways.
+  const COUNTED_COLUMNS = [["item", "Item"], ["monthly", "Monthly"], ["yearly", "Yearly"], ["where", "Set on"]];
 
   function alreadyCountedCard() {
     const card = document.createElement("div");
@@ -7685,12 +7799,12 @@
       + "\">" + escapeText(label) + "</th>").join("");
     const groups = counted.groups.map((group) => {
       const title = titleHelp("h3", group.category, group.help, "sub-heading");
-      const rows = group.rows.map((row) => "<tr><th scope=\"row\">" + escapeText(row.item) + "</th><td class=\"text\">"
-        + escapeText(row.where) + "</td><td>" + fullMoney(row.monthly) + "</td><td>" + fullMoney(row.yearly)
-        + "</td></tr>").join("");
+      const rows = group.rows.map((row) => "<tr><th scope=\"row\">" + escapeText(row.item) + "</th><td>"
+        + fullMoney(row.monthly) + "</td><td>" + fullMoney(row.yearly) + "</td><td class=\"text source\" title=\""
+        + escapeText(row.where) + "\">" + escapeText(row.where) + "</td></tr>").join("");
       return "<div class=\"counted-group\" data-category=\"" + escapeText(group.category) + "\">" + title.head + title.text
         + "<div class=\"table-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"" + escapeText(group.category)
-        + "\"><table class=\"data-table wrap-first\"><thead><tr>" + head + "</tr></thead><tbody>" + rows
+        + "\"><table class=\"data-table wrap-first counted-table\"><thead><tr>" + head + "</tr></thead><tbody>" + rows
         + "</tbody></table></div></div>";
     }).join("");
     card.innerHTML = about.head + about.text + groups + "<p class=\"note\">" + escapeText(counted.note) + "</p>";
@@ -7735,6 +7849,9 @@
     renderRunCard();
     renderBand();
     renderEarningsReturn();
+    // Fold the redrawn panels now, not on the observer's later pass: a control focused after this redraw (a switch
+    // just turned) is then measured in the folded page, so the browser does not scroll to it (25-collapse.js).
+    enhancePanels();
   }
 
   // A pane whose every entry Medium hides (Strategies): its title, a note on where its inputs are, and for
@@ -8145,8 +8262,9 @@
     return element;
   }
 
-  // ---- Benefits, Retirement plan: its switch, each person's employer match and deposit (% of pay, panel fields drawn
-  // first, see depositShareField), then a deposit slider per account ----
+  // ---- Benefits, Retirement plan: its switch, each person's deposit (% of pay, see depositShareField) and employer
+  // match (panel fields drawn first), then the deposit notes; the dollar slider per account shows only while deposits
+  // are set per account ----
   function depositSection() {
     const part = document.createElement("div");
     part.className = "surplus deposits";
@@ -8181,8 +8299,10 @@
   function renderDeposits() {
     const holder = $("depositBody");
     const deposits = state.deposits;
-    fillDepositReadouts();  // each person's deposit readout follows the same answer
+    syncDepositCaps();  // each person's deposit cap follows the same answer
     if (!holder || !deposits) return;
+    const title = holder.parentElement.querySelector(".title-help");
+    if (title) title.hidden = !(deposits.ok && deposits.perAccount);  // the dollar sliders' title, with them
     if (!deposits.ok || !deposits.accounts.length) {
       holder.dataset.key = "";
       holder.innerHTML = deposits.ok ? "<p class=\"banner\">" + escapeText(deposits.empty) + "</p>"
@@ -8223,7 +8343,10 @@
     return text;
   }
 
+  // On the household plan only the notes show (the deposits are entered as % of pay); with amounts per account, the
+  // dollar slider per account with its caption, the notes and the way back to the plan.
   function depositRows(deposits) {
+    if (!deposits.perAccount) return depositNotes(deposits);
     const caption = document.createElement("p");
     caption.className = "field-help info-box";  // the deposit-per-account explanation, behind the title's "i"
     caption.id = "deposit-caption";
@@ -8264,21 +8387,23 @@
         parts.push(row);
       }
     });
-    for (const text of [...(deposits.perAccount ? state.depositMoveNotes : []), ...deposits.notes]) {
+    parts.push(...depositNotes(deposits));
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "button button-quiet";
+    back.textContent = "Go back to the household plan";
+    back.addEventListener("click", useHouseholdPlan);
+    parts.push(back);
+    return parts;
+  }
+
+  function depositNotes(deposits) {
+    return [...(deposits.perAccount ? state.depositMoveNotes : []), ...deposits.notes].map((text) => {
       const note = document.createElement("p");
       note.className = "info-box";
       note.textContent = text;
-      parts.push(note);
-    }
-    if (deposits.perAccount) {
-      const back = document.createElement("button");
-      back.type = "button";
-      back.className = "button button-quiet";
-      back.textContent = "Go back to the household plan";
-      back.addEventListener("click", useHouseholdPlan);
-      parts.push(back);
-    }
-    return parts;
+      return note;
+    });
   }
 
   // Send a deposit slider move to wmti (moveDeposit). One move is in flight at a time; while it runs only the
@@ -8442,14 +8567,45 @@
     }
     for (const person of benefits.people) {
       const box = $("benefit-" + person.role);
-      if (box) box.innerHTML = benefitHtml(person);
+      if (box) {
+        box.innerHTML = benefitHtml(person);
+        wireClaimFold(box);
+      }
       updateClaimSelect(person);
     }
   }
 
+  // The claim estimates (the benefit table or the estimate from earnings) sit closed under a "Claim estimates"
+  // disclosure; one opened stays open on this device (`state.openFolds`, kept in the prefs), per person.
+  const CLAIM_FOLD_LABEL = "Claim estimates";
+
+  function claimFoldKey(role) {
+    return "inputs:claim-estimates:" + role;
+  }
+
+  function claimFold(role, inner) {
+    const open = state.openFolds.includes(claimFoldKey(role)) ? " open" : "";
+    return "<details class=\"field-collapse claim-fold\" data-role=\"" + escapeText(role) + "\"" + open + "><summary>"
+      + CLAIM_FOLD_LABEL + "</summary>" + inner + "</details>";
+  }
+
+  function wireClaimFold(box) {
+    const details = box.querySelector(":scope > .claim-fold");
+    if (!details) return;
+    details.addEventListener("toggle", () => {
+      const key = claimFoldKey(details.dataset.role);
+      const opened = state.openFolds.includes(key);
+      if (details.open === opened) return;
+      state.openFolds = state.openFolds.filter((item) => item !== key);
+      if (details.open) state.openFolds.push(key);
+      savePrefs();
+    });
+  }
+
   // The benefit used at the claim age, then: on Manual entry (or an
   // earnings basis the estimate cannot cover) the read-only benefit table (age, entered, used, basis); on Earnings
-  // history only the estimate with its caption and warnings.
+  // history only the estimate with its caption and warnings. The table (and the estimate's caption) is folded under
+  // "Claim estimates" (claimFold).
   function benefitHtml(person) {
     let html = person.used ? "<p class=\"field-help benefit-used\">" + escapeText(person.used) + "</p>" : "";
     if (person.basisError) html += "<p class=\"banner banner-error\" role=\"alert\">" + escapeText(person.basisError) + "</p>";
@@ -8458,17 +8614,18 @@
         + "Benefit used is what the model pays; the ages from " + state.info.claimAgeRange[0] + " to "
         + state.info.claimAgeRange[1] + " you did not enter are estimated. Enter amounts in "
         + "“Social Security benefit by claim age” above.", "field-label");
-      return html + help.head + help.text + charts.renderUnitsTable({ columns: ["Claim age", "Benefit you enter",
-        "Benefit used", "Basis"], data: person.table.data }, ["text", "money", "money", "text"], { title: "Benefit table" });
+      return html + claimFold(person.role, help.head + help.text + charts.renderUnitsTable({ columns: ["Claim age",
+        "Benefit you enter", "Benefit used", "Basis"], data: person.table.data }, ["text", "money", "money", "text"],
+      { title: "Benefit table" }));
     }
     const estimate = person.estimate;
     if (!estimate) return html;
     const about = titleHelp("p", "Estimate from earnings", estimate.note, "field-label");  // EARNINGS_NOTE as a tooltip
     html += about.head + about.text;
     if (estimate.error) return html + "<p class=\"banner banner-warn\" role=\"note\">" + escapeText(estimate.error) + "</p>";
-    return html + "<p class=\"field-help\">" + escapeText(estimate.caption) + "</p>"
+    return html + claimFold(person.role, "<p class=\"field-help\">" + escapeText(estimate.caption) + "</p>"
       + charts.renderUnitsTable({ columns: ["Claim age", "Estimated benefit"], data: estimate.rows }, ["text", "money"],
-        { title: "Estimate from earnings" })
+        { title: "Estimate from earnings" }))
       + estimate.warnings.map((warning) => "<p class=\"banner banner-warn\" role=\"note\">" + escapeText(warning)
         + "</p>").join("");
   }
@@ -9184,7 +9341,83 @@
     if (/^(you|partner)\.socialSecurityAge$/.test(path)) return claimAgeField(field, path);
     if (path === "premiums.medicareAge") return medicareAgeField(field, path);
     if (path === PLAN_SHARE_PATH) return planShareToggle(field, path, value);
+    if (LIMIT_SLIDER_PATHS.includes(path)) return limitSliderField(field, path);
     return null;
+  }
+
+  // ---- Benefits: the HSA cap and the dependent care FSA cap, each a slider from $0 to the most the law allows the
+  // household this year, with the amount beside it. Blank (the default) is the legal limit: the slider sits at the
+  // top, its amount grey, and the reset puts it back. A saved cap above today's limit shows at the limit with an "IRS
+  // limit" note and stays saved as it is until the slider moves. The limit (state.info.benefitLimits, wmti
+  // benefitLimitsInfo) is worked out from the household today when the pane is drawn: the HSA's family limit while the
+  // partner is under the Medicare age or a child under the coverage age is on the plan (the medical plan's family
+  // tier, childrenOnPlan), else self-only, plus the catch-up for each person under the Medicare age at the catch-up
+  // age or older; the FSA's limit per return for the filing status, summed over the household's returns. ----
+  const LIMIT_SLIDER_PATHS = ["hsa.cap", "dependentCareFsa.cap"];
+  const LIMIT_SLIDER_STEP = 50;
+
+  function benefitLimitToday(path) {
+    const limits = state.info.benefitLimits;
+    const inputs = state.inputs;
+    const you = Number(inputs.you.currentAge);
+    if (path === "dependentCareFsa.cap") {
+      const fsa = limits.dependentCareFsa;
+      if (inputs.partner == null) return fsa.SINGLE;
+      return ["SEPARATE", "MFS"].includes(String(inputs.filingStatus).toUpperCase()) ? 2 * fsa.MFS : fsa.JOINT;
+    }
+    const stored = getPath(inputs, "premiums.medicareAge");
+    const medicareAge = stored == null ? panelField(state.schema, "premiums.medicareAge").default : Number(stored);
+    const ages = inputs.partner == null ? [you] : [you, Number(inputs.partner.currentAge)];
+    const eligible = ages.filter((age) => age < medicareAge);
+    if (!eligible.length) return 0;
+    const children = (inputs.children || []).filter((child) => child.dependentUntilAge > 0
+      && you - child.yourAgeAtBirth >= 0 && you - child.yourAgeAtBirth < limits.coverageAge).length;
+    const family = children > 0 || (ages.length > 1 && ages[1] < medicareAge);
+    const hsa = limits.hsa;
+    return (family ? hsa.family : hsa.single) + eligible.filter((age) => age >= hsa.catchUpAge).length * hsa.catchUp;
+  }
+
+  function limitSliderField(field, path) {
+    const id = fieldId(path);
+    const wrap = fieldShell(field.label, field.help, id);
+    wrap.classList.add("limit-slider");
+    const limit = benefitLimitToday(path);
+    const row = document.createElement("div");
+    row.className = "range-row";
+    row.innerHTML = "<input type=\"range\" class=\"range\"><output class=\"range-value\"></output>";
+    const slider = row.querySelector("input");
+    slider.id = id;
+    slider.min = "0";
+    slider.max = String(limit);
+    slider.step = String(LIMIT_SLIDER_STEP);
+    slider.setAttribute("aria-label", field.label);
+    const output = row.querySelector("output");
+    output.htmlFor = id;
+    const note = document.createElement("p");
+    note.className = "field-help limit-note";
+    note.id = id + "-note";
+    slider.setAttribute("aria-describedby", note.id);
+    const show = () => {
+      const saved = getPath(state.inputs, path);
+      const value = saved == null ? limit : Math.min(Number(saved), limit);
+      slider.value = String(value);
+      output.textContent = fullMoney(value);
+      output.classList.toggle("is-default", saved == null);
+      note.hidden = saved != null && Number(saved) <= limit;
+      note.textContent = saved == null ? "IRS limit" : "IRS limit (your saved " + fullMoney(Number(saved)) + " is above it)";
+      syncReset(output);
+    };
+    slider.addEventListener("input", () => {
+      setValue(path, Number(slider.value));
+      show();
+    });
+    wrap.append(row, note);
+    addResetButton(output, field.label, () => "IRS limit", () => {
+      setValue(path, null);
+      show();
+    }, () => getPath(state.inputs, path) == null);
+    show();
+    return wrap;
   }
 
   // How the medical plan's deductible and out-of-pocket maximum are shared, right after the out-of-pocket maximum: a
@@ -9543,8 +9776,9 @@
   // ---- A person's retirement deposit (Benefits > Retirement plan): the total share of pay and the Roth part of it
   // (the schema's derived fields), each a number box and a slider bound to the one value: typing moves the slider and
   // dragging fills the box. A move goes to wmti (moveDepositShare), which stores the Traditional and Roth shares; a new
-  // total keeps the Roth part and a new Roth part keeps the total. Under the total, a readout of what the person
-  // deposits after the limits (depositSliders `people`). With deposits set per account the controls are disabled.
+  // total keeps the Roth part and a new Roth part keeps the total. The total's slider runs from 0 to the share of the
+  // person's pay that reaches their 401k limit (depositCap); the box is held there too. No dollar amounts are shown.
+  // With deposits set per account the controls are disabled.
   const DEPOSIT_SHARE_PATH = /^(you|partner)\.retirementDeposit\.(percent|rothSplit)$/;
   const depositShareMove = { busy: false, pending: null };
 
@@ -9557,6 +9791,25 @@
     return traditional + roth > 0 ? roth / (traditional + roth) : 0;
   }
 
+  // The most a person's deposit total can be: the share of their pay that reaches their 401k limit this year
+  // (depositSliders `people` cappedAt: the elective deferral with any catch-up for their age, over their pay), rounded
+  // up to the field's step and at most its maximum; null until that answer arrives, "noPay" without pay.
+  function depositCap(role, field) {
+    const people = (state.deposits && state.deposits.ok && state.deposits.people) || [];
+    const person = people.find((item) => item.role === role);
+    if (!person) return null;
+    if (person.cappedAt == null) return "noPay";
+    const steps = Math.ceil(person.cappedAt / field.step - 1e-9);
+    return Math.min(field.maximum, Number((steps * field.step).toFixed(8)));
+  }
+
+  // The value a total or Roth part box shows: a stored total above the cap shows the cap (the stored shares stay).
+  function depositShownValue(role, name, field) {
+    const value = depositShareValue(role, name);
+    const cap = name === "percent" ? depositCap(role, field) : null;
+    return typeof cap === "number" ? Math.min(value, cap) : value;
+  }
+
   function depositsPerAccount() {
     const kinds = state.info.sheetRules.depositKinds;
     return (state.inputs.accounts || []).some((account) => kinds.includes(account.kind) && account.deposit != null);
@@ -9567,17 +9820,26 @@
     const id = fieldId(path);
     const wrap = fieldShell(field.label, field.help, id);
     wrap.classList.add("deposit-share");
-    const box = numberInput(id, field, depositShareValue(role, name), (next) => {
+    const box = numberInput(id, field, depositShownValue(role, name, field), (next) => {
       const error = walkBoundsError(field, next, null);
       const problem = wrap.querySelector(".field-error");
       input.setAttribute("aria-invalid", String(Boolean(error)));
       problem.hidden = !error;
       problem.textContent = error || "";
       if (error) return;
+      const cap = name === "percent" ? depositCap(role, field) : null;
+      // A total typed above the cap is held to it, with the note, until a total within it is entered.
+      wrap.dataset.clamped = String(typeof cap === "number" && next > cap);
+      if (typeof cap === "number") next = Math.min(next, cap);
       slider.value = String(next);
+      if (name === "percent") syncDepositCap(role);
       moveDepositShare(role, name, next);
     });
     const input = box.querySelector("input");
+    // Once the typing is done, a held total shows the value kept.
+    input.addEventListener("change", () => {
+      input.value = shown(depositShownValue(role, name, field), scaleOf(field));
+    });
     const slider = document.createElement("input");
     slider.type = "range";
     slider.className = "range";
@@ -9585,27 +9847,30 @@
     slider.min = String(field.minimum);
     slider.max = String(field.maximum);
     slider.step = String(field.step);
-    slider.value = String(depositShareValue(role, name));
+    slider.value = String(depositShownValue(role, name, field));
     slider.setAttribute("aria-label", field.label);
     slider.addEventListener("input", () => {
       const next = Number(slider.value);
       input.value = shown(next, scaleOf(field));
+      wrap.dataset.clamped = "false";
       moveDepositShare(role, name, next);
     });
     wrap.append(box, slider);
     const atDefault = () => Math.abs(depositShareValue(role, name) - field.default) <= 1e-9;
     input.classList.toggle("is-default", atDefault());
     addResetButton(input, field.label, () => resetValueText(field.default, field, input), () => {
-      input.value = shown(field.default, scaleOf(field));
-      slider.value = String(field.default);
-      moveDepositShare(role, name, field.default);
+      const cap = name === "percent" ? depositCap(role, field) : null;
+      const next = typeof cap === "number" ? Math.min(field.default, cap) : field.default;
+      wrap.dataset.clamped = "false";
+      input.value = shown(next, scaleOf(field));
+      slider.value = String(next);
+      moveDepositShare(role, name, next);
     }, atDefault);
     if (name === "percent") {
-      const readout = document.createElement("p");
-      readout.className = "field-help deposit-readout";
-      readout.dataset.role = role;
-      wrap.append(readout);
-      fillDepositReadout(readout);
+      const note = document.createElement("p");
+      note.className = "field-help deposit-cap-note";
+      note.hidden = true;
+      wrap.append(note);
     }
     if (depositsPerAccount()) {
       input.disabled = true;
@@ -9627,22 +9892,36 @@
     return wrap;
   }
 
-  // "Traditional x% = $a · Roth y% = $b a year (limit $L)": what the person deposits in the first year after the
-  // limits, from the last depositSliders answer; empty until it arrives.
-  function fillDepositReadout(readout) {
-    const people = (state.deposits && state.deposits.ok && state.deposits.people) || [];
-    const person = people.find((item) => item.role === readout.dataset.role);
-    if (!person) {
-      readout.textContent = "";
-      return;
+  // Bring a person's total to the last depositSliders answer: the slider's top at the cap, the box and slider held
+  // there, and the note under them: "IRS limit" when a stored or typed total is above the cap, or why the slider is
+  // off without pay. Called again whenever the answer moves (pay or age changed).
+  function syncDepositCap(role) {
+    const path = role + ".retirementDeposit.percent";
+    const field = drawnFields.get(path);
+    const input = $(fieldId(path));
+    const slider = $(fieldId(path) + "-slider");
+    const wrap = input && input.closest(".deposit-share");
+    const note = wrap && wrap.querySelector(".deposit-cap-note");
+    if (!field || !slider || !note) return;
+    const cap = depositCap(role, field);
+    const perAccount = depositsPerAccount();
+    slider.max = String(typeof cap === "number" ? cap : field.maximum);
+    slider.disabled = perAccount || cap === "noPay";
+    const value = depositShownValue(role, "percent", field);
+    if (document.activeElement !== slider) slider.value = String(value);
+    if (document.activeElement !== input) input.value = shown(value, scaleOf(field));
+    let text = "";
+    if (cap === "noPay") text = "No pay this year: enter a salary on Income to set the deposit.";
+    else if (typeof cap === "number"
+      && (wrap.dataset.clamped === "true" || depositShareValue(role, "percent") > cap + 1e-9)) {
+      text = "IRS limit: at most " + percent(cap, 0) + " of pay.";
     }
-    readout.textContent = "Traditional " + percent(person.traditionalShare, 1) + " = " + fullMoney(person.traditional)
-      + " · Roth " + percent(person.rothShare, 1) + " = " + fullMoney(person.roth) + " a year (limit "
-      + fullMoney(person.limit) + ")";
+    note.textContent = text;
+    note.hidden = perAccount || !text;
   }
 
-  function fillDepositReadouts() {
-    for (const readout of document.querySelectorAll(".deposit-readout")) fillDepositReadout(readout);
+  function syncDepositCaps() {
+    for (const role of ["you", "partner"]) syncDepositCap(role);
   }
 
   // Send a total or Roth-part move to wmti (moveDepositShare); one move is in flight at a time and only the newest
@@ -9684,13 +9963,14 @@
       const match = DEPOSIT_SHARE_PATH.exec(path);
       const input = match && $(fieldId(path));
       if (!input) continue;
-      const value = depositShareValue(match[1], match[2]);
+      const value = depositShownValue(match[1], match[2], field);
       if (document.activeElement !== input) input.value = shown(value, scaleOf(field));
       const slider = $(fieldId(path) + "-slider");
       if (slider && document.activeElement !== slider) slider.value = String(value);
-      input.classList.toggle("is-default", Math.abs(value - field.default) <= 1e-9);
+      input.classList.toggle("is-default", Math.abs(depositShareValue(match[1], match[2]) - field.default) <= 1e-9);
       syncReset(input);
     }
+    syncDepositCaps();
   }
 
   // Whether a person ("you", "partner") has the earnings history the earnings basis reads: entered years, or a last
@@ -11675,12 +11955,15 @@
   }
 
   // ---- Ownership timeline: the Home and Cars panes' Timeline block and its workflow in the bottom sheet ----
+  // The block is a picture: its bars have no Edit or Delete; tapping one opens a popover naming the item, with Open to
+  // its edit sheet. The workflow (Add, and Edit timeline from an item's sheet) is reached from the item list.
   // The segments and every edit come from wmti.assets.timeline through the worker (timelineView, timelineApply), so the
   // phone refits and fills exactly as wmti does. Each add or edit is one screen in the words of
   // schema.timeline.flow, with one Save (applies the edit and closes) and one Cancel (closes, applies nothing); its
   // notes, naming every neighbour it changed, show under the block. While an edit is on its way the buttons are disabled.
   const timelineNotes = {};  // by kind: the notes of the last edit, shown once under the block
   const timelineSegmentsShown = {};  // by kind: the segments last drawn, for the Add screen's "Replaces" choice
+  let timelinePopover = null;  // the open bar popover: {bar, element, close}
   let timelineFlow = null;   // the open workflow: {kind, step, position, lane, year, history, notes, error, busy, addChoice}
 
   function timelineWords(kind) {
@@ -11762,8 +12045,8 @@
     const parts = [];
     for (const note of timelineNotes[kind] || []) parts.push(timelineNote(note));
     delete timelineNotes[kind];
-    // One group per lane: its bar row, then the cards of its items in order (a car's calculated replacements under
-    // it), so each row's items sit right below it.
+    // One group per lane: its bar row only. The timeline is a picture: tapping a bar opens a small popover under its
+    // row naming the item, with Open to its edit sheet (timelinePopover); the item list stays the way to edit.
     let calculatedShown = false;
     const usedKeys = new Set();  // the Home legend lists only the kinds a bar draws
     for (const row of timelineBars(reply.segments, reply.currentAge, reply.lastAge)) {
@@ -11772,9 +12055,9 @@
       group.dataset.lane = String(row.lane);
       const lane = document.createElement("div");
       lane.className = "timeline-lane";
-      lane.setAttribute("aria-hidden", "true");
       for (const bar of row.bars) {
-        const span = document.createElement("span");
+        // A gap (no home, no car) is empty time, not an item: a plain stretch, not a button.
+        const span = document.createElement(bar.mode === "gap" ? "span" : "button");
         span.className = "timeline-bar" + (bar.isCalculated ? " timeline-calculated" : "");
         span.dataset.mode = bar.mode;
         if (kind === "Home" && bar.mode !== "gap") {
@@ -11788,31 +12071,28 @@
         span.style.left = bar.left + "%";
         span.style.width = bar.width + "%";
         span.title = bar.text;
+        if (bar.mode === "gap") span.setAttribute("aria-hidden", "true");
+        else {  // the pointer sits over the part not covered by its calculated replacements
+          const shown = bar.calculated.length ? bar.calculated[0].left - bar.left : bar.width;
+          timelineBarButton(span, bar.text, bar.left + shown / 2, () => timelinePopoverParts(kind, bar, words));
+        }
         lane.append(span);
         for (const mark of bar.calculated) {  // grayed: worked out from the replacement rule, not entered
-          const part = document.createElement("span");
+          const part = document.createElement("button");
           part.className = "timeline-bar timeline-calculated";
           part.dataset.mode = mark.method === "lease" ? "lease" : "own";
           part.style.left = mark.left + "%";
           part.style.width = mark.width + "%";
           part.title = mark.year + " " + mark.label + ": " + words.calculated;
+          const name = words.replacementName.replace("{name}", bar.name);
+          timelineBarButton(part, name + ", " + mark.year + " " + mark.label, mark.left + mark.width / 2,
+            () => ({ name, role: "Car", years: "From " + mark.year + " (" + mark.label + ")", summary: words.calculated,
+              open: null }));
           lane.append(part);
-        }
-      }
-      const list = document.createElement("ul");
-      list.className = "timeline-cards";
-      for (const segment of row.segments) {
-        if (segment.calculated) {
-          list.append(timelineInsertedCard(segment, words));
-          continue;
-        }
-        list.append(timelineCard(kind, segment, words));
-        for (const mark of segment.replacements || []) {
-          list.append(timelineCalculatedCard(segment, mark, words));
           calculatedShown = true;
         }
       }
-      group.append(lane, list);
+      group.append(lane);
       parts.push(group);
     }
     if (kind === "Home" && (usedKeys.size || calculatedShown)) parts.push(timelineHomeLegend(words, usedKeys, calculatedShown));
@@ -11848,77 +12128,112 @@
     return legend;
   }
 
-  // The Relocation strategy's home or rent on the Home timeline: grayed, read only, its text naming it calculated.
-  function timelineInsertedCard(segment, words) {
-    const card = document.createElement("li");
-    card.className = "timeline-replacement is-calculated";
-    card.dataset.calculated = "true";
-    card.title = words.calculated;
-    const text = document.createElement("span");
-    text.className = "timeline-text";
-    text.textContent = segment.text;
-    const note = document.createElement("span");
-    note.className = "field-help";
-    note.textContent = words.calculated;
-    card.append(text, note);
-    return card;
+  // What a bar's popover says: its name, role, years, a one-line summary and, for an entered item, Open to its sheet
+  // (`open` is the item's list and index); the Relocation strategy's home or rent is calculated, with no Open.
+  function timelinePopoverParts(kind, bar, words) {
+    const role = kind === "Car" ? (bar.mode === "lease" ? "Car, leased" : "Car")
+      : bar.mode === "rent" ? words.legend.rent : bar.primary ? words.legend.primary : words.legend.second;
+    const years = (bar.startYear == null ? "" : bar.startYear + "-") + (bar.endYear == null ? "open" : bar.endYear);
+    const prefix = bar.name + ", ";  // the label starts with the name: the rest is the summary
+    const summary = bar.isCalculated ? words.calculated
+      : bar.text.startsWith(prefix) ? bar.text.slice(prefix.length) : bar.text;
+    const open = !bar.isCalculated && bar.itemList != null && bar.itemIndex != null
+      ? { list: bar.itemList, index: bar.itemIndex } : null;
+    return { name: bar.name, role, years, summary, open };
   }
 
-  // A calculated replacement under its car on the timeline: grayed, read only, named and dated with its rule.
-  function timelineCalculatedCard(segment, mark, words) {
-    const card = document.createElement("li");
-    card.className = "timeline-replacement is-calculated";
-    card.title = words.calculated;
-    const text = document.createElement("span");
-    text.className = "timeline-text";
-    text.textContent = words.replacementName.replace("{name}", segment.name) + ", " + mark.year + " " + mark.label;
-    const note = document.createElement("span");
-    note.className = "field-help";
-    note.textContent = words.calculated;
-    card.append(text, note);
-    return card;
-  }
-
-  // One segment's card on the timeline: its label, then Edit timeline and Delete (a gap: the hint on changing it).
-  function timelineCard(kind, segment, words) {
-    const card = document.createElement("li");
-    card.className = "timeline-card";
-    card.dataset.mode = segment.mode;
-    const text = document.createElement("span");
-    text.className = "timeline-text";
-    text.textContent = segment.text;
-    card.append(text);
-    if (segment.position == null) {
-      const hint = document.createElement("span");
-      hint.className = "field-help";
-      hint.textContent = words.gapEdit;
-      card.append(hint);
-      return card;
-    }
-    // Edit timeline and Delete only: a sale is planned, or a car kept, on the Edit timeline screen; the item's other
-    // figures are on its sheet (the screen links to it).
-    const edit = timelineButton(words.start.edit, "edit");
-    edit.innerHTML = iconSvg("pencil", "button-icon") + "<span></span>";
-    edit.querySelector("span").textContent = words.start.edit;
-    edit.setAttribute("aria-label", words.editTitle.replace("{name}", segment.name));
-    edit.addEventListener("click", () => openTimeline(kind, "edit", { position: segment.position, lane: segment.lane }));
-    const remove = timelineButton(words.start.delete, "delete", "button-danger");
-    remove.addEventListener("click", async () => {
-      if (remove.dataset.armed !== "true") {
-        remove.dataset.armed = "true";
-        remove.textContent = "Tap again to delete";
-        return;
-      }
-      remove.disabled = true;
-      const result = await applyTimeline(kind, { op: "delete", position: segment.position });
-      timelineNotes[kind] = result.ok ? result.notes : [result.error];
-      renderSettings();
+  // Make a timeline bar a button: its accessible name, and a tap (or Enter, Space) toggles its popover under the row,
+  // its pointer at `center` (percent of the row) over the bar. `parts()` gives what the popover says.
+  function timelineBarButton(button, label, center, parts) {
+    button.type = "button";
+    button.setAttribute("aria-label", label);
+    button.setAttribute("aria-expanded", "false");
+    button.addEventListener("click", () => {
+      const shown = timelinePopover && timelinePopover.bar === button;
+      closeTimelinePopover(false);
+      if (!shown) openTimelinePopover(button, center, parts());
     });
-    const actions = document.createElement("span");
-    actions.className = "timeline-actions";
-    actions.append(edit, remove);
-    card.append(actions);
-    return card;
+  }
+
+  // Close the open popover (X, Escape, a tap outside, Open or a second tap on its bar); `refocus` puts the focus back
+  // on its bar.
+  function closeTimelinePopover(refocus) {
+    if (timelinePopover) timelinePopover.close(refocus);
+  }
+
+  function openTimelinePopover(bar, center, parts) {
+    const group = bar.closest(".timeline-group");
+    const pop = document.createElement("div");
+    pop.className = "timeline-popover";
+    pop.id = "timeline-popover-" + newHelpId();
+    pop.setAttribute("role", "dialog");
+    pop.setAttribute("aria-label", parts.name);
+    pop.style.setProperty("--caret", Math.min(Math.max(center, 4), 96) + "%");  // stays inside the box at the ends
+    const head = document.createElement("div");
+    head.className = "timeline-popover-head";
+    const name = document.createElement("strong");
+    name.className = "timeline-popover-name";
+    name.textContent = parts.name;
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "timeline-popover-close";
+    close.dataset.action = "close";
+    close.setAttribute("aria-label", "Close");
+    close.innerHTML = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/></svg>";
+    head.append(name, close);
+    const role = document.createElement("p");
+    role.className = "timeline-popover-role";
+    role.textContent = parts.role + " · " + parts.years;
+    const summary = document.createElement("p");
+    summary.className = "field-help timeline-popover-summary";
+    summary.textContent = parts.summary;
+    pop.append(head, role, summary);
+    let openButton = null;
+    if (parts.open) {
+      openButton = timelineButton("Open " + parts.name, "open", "button-primary timeline-popover-open");
+      openButton.addEventListener("click", () => {
+        closeTimelinePopover(false);
+        openTimelineItem(parts.open.list, parts.open.index);
+      });
+      pop.append(openButton);
+    }
+    const outside = (event) => {
+      if (!pop.contains(event.target) && event.target !== bar) closeTimelinePopover(false);
+    };
+    const escape = (event) => {
+      if (event.key !== "Escape") return;
+      event.stopPropagation();
+      closeTimelinePopover(true);
+    };
+    const entry = {
+      bar, element: pop,
+      close(refocus) {
+        if (timelinePopover !== entry) return;
+        timelinePopover = null;
+        document.removeEventListener("click", outside, true);
+        document.removeEventListener("keydown", escape, true);
+        pop.remove();
+        bar.setAttribute("aria-expanded", "false");
+        bar.removeAttribute("aria-controls");
+        if (refocus && document.contains(bar)) bar.focus();
+      },
+    };
+    timelinePopover = entry;
+    close.addEventListener("click", () => closeTimelinePopover(true));
+    document.addEventListener("click", outside, true);
+    document.addEventListener("keydown", escape, true);
+    group.append(pop);
+    bar.setAttribute("aria-expanded", "true");
+    bar.setAttribute("aria-controls", pop.id);
+    (openButton || close).focus({ preventScroll: true });
+    pop.scrollIntoView({ block: "nearest" });
+  }
+
+  // Open the sheet of item `index` of list `list` (homes, rents or cars), as tapping it in its list does.
+  function openTimelineItem(list, index) {
+    const item = document.querySelector("#settings-body .items[data-list='" + list + "'] button.item[data-position='"
+      + index + "']");
+    if (item) item.click();
   }
 
   // Apply one timeline edit through the worker: on success the inputs take the result (and every pane redraws), on
@@ -12448,9 +12763,7 @@
       const list = kind === "Car" ? "cars" : isRent ? "rents" : "homes";
       const index = isRent ? position - homes : position;
       closeSheet(true);
-      const item = document.querySelector("#settings-body .items[data-list='" + list + "'] button.item[data-position='"
-        + index + "']");
-      if (item) item.click();
+      openTimelineItem(list, index);
     });
     return link;
   }
@@ -12657,9 +12970,9 @@
   function showFileMessage(text, isError) {
     const message = $("fileMessage");
     revealSetup();
-    message.hidden = false;
     message.className = isError ? "banner banner-error" : "banner";
     message.textContent = text;
+    if (isError) { stopBannerFade(message); message.hidden = false; } else showFadingBanner(message);  // errors stay
     if (typeof message.scrollIntoView === "function") message.scrollIntoView({ block: "nearest" });
   }
 
@@ -12818,11 +13131,18 @@
   // Clear all data on this device: a first tap arms the button, a second removes every key this app keeps, the
   // installed app's offline copy and saved documentation pages (its caches) and its service worker, then reloads, so
   // the page starts as on a first visit (the Terms step included).
+  // Both start-over actions are menu items: a first tap changes the item's label (menuLabel) and the menu stays open
+  // for the second.
+  const menuLabel = (button) => button.querySelector("span") || button;
+
   async function clearAllData(button) {
     if (button.dataset.armed !== "true") {
       button.dataset.armed = "true";
-      button.textContent = "Tap again to delete everything";
-      setTimeout(() => { button.dataset.armed = "false"; button.textContent = "Clear all data on this device"; }, 4000);
+      menuLabel(button).textContent = "Tap again to delete everything";
+      setTimeout(() => {
+        button.dataset.armed = "false";
+        menuLabel(button).textContent = "Clear all data on this device";
+      }, 4000);
       return;
     }
     button.dataset.armed = "false";
@@ -12848,7 +13168,7 @@
       }
     } catch (error) { /* no offline copy here */ }
     $("clearMessage").textContent = "Everything this app kept on this device is deleted. Reloading.";
-    $("clearMessage").hidden = false;
+    showFadingBanner($("clearMessage"));
     if (!window.WMTI_NO_RELOAD_ON_CLEAR) location.reload();
   }
 
@@ -12865,12 +13185,16 @@
   function resetToExample(button) {
     if (button.dataset.armed !== "true") {
       button.dataset.armed = "true";
-      button.textContent = "Tap again to replace your settings";
-      setTimeout(() => { button.dataset.armed = "false"; button.textContent = "Load example household"; }, 4000);
+      menuLabel(button).textContent = "Tap again to replace your settings";
+      setTimeout(() => {
+        button.dataset.armed = "false";
+        menuLabel(button).textContent = "Load example household";
+      }, 4000);
       return;
     }
     button.dataset.armed = "false";
-    button.textContent = "Load example household";
+    menuLabel(button).textContent = "Load example household";
+    closeMenu();
     forgetBlankWalk();
     state.inputs = clone(state.defaults);
     takeHeirsAsLoaded();
@@ -15084,6 +15408,9 @@
     const placeBubbles = () => { placeBubble($("chips-settings"), false); placeBubble($("views-outputs"), false); };
     window.addEventListener("resize", placeBubbles);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBubbles);
+    // A face fetched later (the selected chip's bolder label) moves the chips too; so may a page shown again.
+    if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", placeBubbles);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) placeBubbles(); });
     $("saveButton").addEventListener("click", saveButtonPressed);
     $("autoSave").addEventListener("click", toggleAutoSave);
     // Setup's Advanced settings (the Run card): shut until opened; open or shut is kept on this device.
