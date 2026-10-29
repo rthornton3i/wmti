@@ -266,14 +266,15 @@
   "aca_premium_credit": {
     "indexed": true,
     "cliff_multiple": 4.0,
+    "dependent_coverage_age": 26,
     "poverty_guideline": {
       "guideline_year": 2025,
       "first_person": 15650.0,
       "each_additional": 5500.0
     },
     "confidence": "confirmed secondary",
-    "check_at": "https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines, IRS Rev. Proc. 2025-25 and 26 USC 36B",
-    "note": "Marketplace (ACA) premium tax credit, 2026 coverage: the enhanced credits expired after 2025, so the credit ends completely above 400% of the federal poverty level (cliff_multiple, from CRS R48290 as quoted in the 2026-10-19 tax policy audit). Coverage year Y uses the poverty guideline published in Y-1 (the 2025 contiguous-states guideline here). The guideline figures were read back from the audit's cliff figures (62,600 for one person, 84,600 for two) and the HHS page itself was not opened. The 2026 applicable percentages (2.10% to 9.96% of income) are deliberately not stored: the model does not charge the credit, it only warns where the cliff is."
+    "check_at": "https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines, IRS Rev. Proc. 2025-25 and 26 USC 36B; dependent coverage: https://www.healthcare.gov/young-adults/children-under-26/ and 42 USC 300gg-14",
+    "note": "Marketplace (ACA) premium tax credit, 2026 coverage: the enhanced credits expired after 2025, so the credit ends completely above 400% of the federal poverty level (cliff_multiple, from CRS R48290 as quoted in the 2026-10-19 tax policy audit). Coverage year Y uses the poverty guideline published in Y-1 (the 2025 contiguous-states guideline here). The guideline figures were read back from the audit's cliff figures (62,600 for one person, 84,600 for two) and the HHS page itself was not opened. The 2026 applicable percentages (2.10% to 9.96% of income) are deliberately not stored: the model does not charge the credit, it only warns where the cliff is. dependent_coverage_age: a plan that covers children must keep a child on it until the 26th birthday (ACA dependent coverage, 42 USC 300gg-14); the model keeps each child on the household medical plan from birth until 26, whatever the child's spending years."
   },
   "social_security_benefit_formula": {
     "indexed": false,

@@ -63,6 +63,10 @@
   const RADIO_SEGMENTED = { ExpenseItem: ["deduction", "taxable"] };
   // Of those, the choices whose picked button clears them to blank when tapped again (no blank button of their own).
   const RADIO_CLEARABLE = { ExpenseItem: ["deduction"] };
+  // The medical plan's sharing switch (wmti VisitInputs.perHousehold), drawn as a Per person / Combined toggle right
+  // after the out-of-pocket maximum; the walkthrough words its buttons the same (FieldRef yes and no).
+  const PLAN_SHARE_PATH = "visits.perHousehold";
+  const PLAN_SHARE_CHOICES = [[false, "Per person"], [true, "Combined"]];
   const LONG_SELECT_CHOICES = 12;  // a select with more choices than this (the states) is a combobox (stateCombobox)
   const RUN_DELAY_MS = 400;
   const SETTLE_MS = 400;  // a pause in editing this long makes one undo step (and, with Auto-save on, one save)
@@ -224,7 +228,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.7fc224d9cd.js");
+      worker = new Worker("worker.d19374897c.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -9179,7 +9183,35 @@
     if (path === "strategies.rothConversion.startAge") return rothAgesField(field, path);
     if (/^(you|partner)\.socialSecurityAge$/.test(path)) return claimAgeField(field, path);
     if (path === "premiums.medicareAge") return medicareAgeField(field, path);
+    if (path === PLAN_SHARE_PATH) return planShareToggle(field, path, value);
     return null;
+  }
+
+  // How the medical plan's deductible and out-of-pocket maximum are shared, right after the out-of-pocket maximum: a
+  // Per person / Combined toggle over the stored switch (combined is True).
+  function planShareToggle(field, path, value) {
+    const wrap = fieldShell(field.label, field.help, null);
+    wrap.classList.add("plan-share");
+    const group = document.createElement("div");
+    group.className = "segmented";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", field.label);
+    group.id = fieldId(path);
+    for (const [choice, text] of PLAN_SHARE_CHOICES) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.choice = String(choice);
+      button.textContent = text;
+      button.setAttribute("aria-pressed", String(choice === Boolean(value)));
+      button.addEventListener("click", () => {
+        if (choice === Boolean(getPath(state.inputs, path))) return;
+        setValue(path, choice);
+        for (const item of group.children) item.setAttribute("aria-pressed", String(item === button));
+      });
+      group.append(button);
+    }
+    wrap.append(group);
+    return wrap;
   }
 
   // The Social Security claim age as a one-knob age slider over the claim ages (appInfo claimAgeRange: 62 to 70, whole
