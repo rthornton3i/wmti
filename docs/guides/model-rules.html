@@ -215,6 +215,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <li><p>A <em>Last salary</em> history is computed from the last salary and the raise inputs, so changing a raise refills it. Only years you type over it are stored.</p></li>
 <li><p>Earlier pay is backtracked from age 22, a fixed assumption, not an SSA rule.</p></li>
 <li><p>A retired person’s pay stops at today’s age, whatever <em>Salary stops at age</em> holds. This covers the paycheck, commute, employer match, dependent care FSA and the Social Security estimate.</p></li>
+<li><p><em>Leave the 401k employer at age</em> (High effort) sets the rule of 55’s separation age; blank uses the age pay stops.</p></li>
 </ul>
 </section>
 <section id="children">
@@ -721,7 +722,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <ul class="simple">
 <li><p>Each account’s RMD uses its owner’s age and birth year (no owner means yours). The joint-life table for a spouse 10 or more years younger is not modeled: the Uniform Lifetime Table is always used.</p></li>
 <li><p>A person’s QCD counts toward that person’s Traditional IRA RMDs together, never the other person’s. A 401k’s RMD is its own (see <a class="reference internal" href="strategies.html#rmd-strategy"><span class="std std-ref">Required minimum distributions</span></a>).</p></li>
-<li><p>The tax on Traditional withdrawals is federal, state and capital gains tax with the year’s taxed Traditional withdrawals less the same tax without them. It includes knock-ons such as more taxable Social Security, but not conversion tax or IRMAA. The Final report’s yearly table shows it as <em>Tax on Traditional Withdrawals</em>.</p></li>
+<li><p>The tax on Traditional withdrawals is federal, state and capital gains tax with the year’s taxed Traditional withdrawals less the same tax without them. It includes knock-ons such as more taxable Social Security, but not conversion tax, the tax on Roth earnings, penalties or IRMAA. The Final report’s yearly table shows it as <em>Tax on Traditional Withdrawals</em>.</p></li>
 <li><p>Amounts are in the run’s dollars.</p></li>
 </ul>
 </section>
@@ -734,7 +735,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <p><span class="caption-text">Taxes by kind and year. The hatched bar is sales tax already inside spending.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>The kinds are SS Tax, Medicare Tax, Federal, State and Capital Gains (LT), from the law data for your home state and filing status. A setting such as the claim age shows up here year by year.</p>
+<p>The kinds are SS Tax, Medicare Tax, Federal, State, Capital Gains (LT) and Penalties, from the law data for your home state and filing status. The Penalties bar shows only in a plan that pays one. A setting such as the claim age shows up here year by year.</p>
 <p><strong>State rules</strong></p>
 <ul class="simple">
 <li><p>Each state treats Social Security as exempt (none taxed), federal (the part the federal return taxes) or threshold (none at or below a federal AGI limit, above it the federally taxed part up to a share of benefits), with an optional deduction. A rule that fits none is approximated and flagged unconfirmed.</p></li>
@@ -742,6 +743,18 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <li><p>The local tax base is all income or wages only (never interest, gains or retirement income). Wage-based local tax is charged even in a year with no state taxable income.</p></li>
 <li><p><em>Local Tax</em> is the local part of the <em>State</em> column. The Taxes plot and the Final report’s table show it as its own kind, so Total is unchanged. It counts in itemized state and local taxes.</p></li>
 <li><p><em>State Deduction</em>, <em>State Exemptions</em> and <em>State Credits</em> are informational and never added to a tax or total.</p></li>
+</ul>
+<p id="early-withdrawals"><strong>Early withdrawals</strong></p>
+<ul class="simple">
+<li><p><strong>What is charged</strong>: the 10% additional tax on the taxable part of a Traditional withdrawal before 59.5 (not on a Roth conversion or a QCD), with the rule of 55 for a 401k: no penalty from the age pay stops when that is 55 or later. RMD years are always free.</p></li>
+<li><p><strong>Roth IRA</strong>: one pool per owner, taken out contributions first, then conversions oldest first, then earnings. A conversion taken out within five years and before 59.5 pays the 10% on its once-taxed amount. Earnings taken out before the Roth is qualified (59.5 and five years from its first funding) are ordinary income, and penalized before 59.5.</p></li>
+<li><p><strong>Roth 401k</strong>: a payout is split between basis and earnings by the basis over the balance; the earnings part is taxed and, before 59.5 and outside the rule of 55, penalized. A conversion into it adds basis only.</p></li>
+<li><p><strong>HSA and 529</strong>: drawn for other spending only as a last resort, after every other account (529s first, then the HSA). The HSA money is ordinary income plus 20% before 65; a 529 taxes the earnings share plus 10%.</p></li>
+<li><p><strong>State</strong>: a state with its own rate (California, 2.5%) adds it to the penalized Traditional and Roth amount in a year lived there; never to HSA or 529 money.</p></li>
+<li><p><strong>Order</strong>: penalties are charged inside your withdrawal order; <em>Use penalty-free money first</em> on the Strategies tab draws cash, Investments, free Roth money and exempt accounts first.</p></li>
+<li><p><strong>Starting balances</strong>: a Roth or 529 balance held at the start counts as basis, and a Roth held at the start as funded long ago, unless its <em>Roth basis</em> is set.</p></li>
+<li><p><strong>Ages</strong> are whole years, so age 59 pays all year (half a year too long). The summary shows <em>Penalties</em> (a tax), <em>Penalized Withdrawals</em> and <em>Roth Earnings Taxed</em> (both informational).</p></li>
+<li><p><strong>Not modelled</strong>: SEPP, disability, medical, first-home and the other exceptions; a five-year clock per Roth 401k plan; state rules beyond California. The rates are in the law data (<a class="reference internal" href="../law/federal.html"><span class="doc">Federal</span></a>).</p></li>
 </ul>
 <p><strong>Why law figures jump</strong></p>
 <ul class="simple">

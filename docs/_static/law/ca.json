@@ -19,6 +19,13 @@
     ],
     "note": "California does not recognise HSAs, so HSA deposits are added back to the income it taxes; 401(k) deferrals and deductible Traditional IRA deposits follow the federal treatment (confirmed primary: https://www.ftb.ca.gov/forms/2025/2025-540-ca-instructions.html, validation run 2, 2026-10-22)."
   },
+  "early_withdrawal": {
+    "indexed": false,
+    "retirement_rate": 0.025,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.ftb.ca.gov/forms/2025/2025-3805p-instructions.html (Cal. Rev. & Tax. Code 17085)",
+    "note": "California adds retirement_rate of an early distribution from a qualified plan or IRA to its tax, on the amount the federal additional tax applies to (Form 3805P). Rate recalled, not checked against the page. The model applies it to the penalized Traditional and Roth amount in a year lived in California, after the federal exceptions. Not modelled: whether California follows each federal exception, and its treatment of HSA and 529 money."
+  },
   "income_brackets": {
     "indexed": true,
     "adjustment": "indexed",

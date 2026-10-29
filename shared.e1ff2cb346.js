@@ -130,8 +130,10 @@
   // not name follow in schema order, so a new input is never dropped from its sheet.
   const SHEET_LAYOUTS = {
     Account: {
-      order: ["name", "kind", "owner", "startingValue", "meanReturn", "returnStdDev", "costBasis", "iraBasis"],
-      groups: { meanReturn: "returns", returnStdDev: "returns", costBasis: "returns", iraBasis: "returns" },
+      order: ["name", "kind", "owner", "startingValue", "meanReturn", "returnStdDev", "costBasis", "iraBasis",
+        "rothBasis"],
+      groups: { meanReturn: "returns", returnStdDev: "returns", costBasis: "returns", iraBasis: "returns",
+        rothBasis: "returns" },
     },
     // Drawn in titled sections by each field's schema group: Basics, Value, How it is paid, Replacement, Commute,
     // Running costs. A car owned today opens its Value with the price paid, the year bought and the two depreciation
@@ -200,6 +202,9 @@
       if (name === "autoCreated") return "set by the Roth conversion switch";
       if (name === "costBasis" && item.kind !== rules.costBasisKind) return rules.costBasisKind + " accounts only";
       if (name === "iraBasis" && item.kind !== rules.iraBasisKind) return rules.iraBasisKind + " accounts only";
+      if (name === "rothBasis" && !(rules.rothBasisKinds || []).includes(item.kind)) {
+        return (rules.rothBasisKinds || []).join(" and ") + " accounts only";
+      }
     }
     if (typeName === "Heir") {
       if (name === "share") return "set under Split among beneficiaries, below the list";
@@ -772,6 +777,7 @@
     if (typeName === "Account" && field === "kind") {
       if (item.kind !== rules.costBasisKind && item.costBasis != null) cleared.costBasis = null;
       if (item.kind !== rules.iraBasisKind && item.iraBasis != null) cleared.iraBasis = null;
+      if (!(rules.rothBasisKinds || []).includes(item.kind) && item.rothBasis != null) cleared.rothBasis = null;
       if (!rules.depositKinds.includes(item.kind) && item.deposit != null) cleared.deposit = null;
     }
     // A car's How it is paid sets its Loan and Lease switches: Finance turns the Loan switch on, Lease the Lease
@@ -845,6 +851,18 @@
     if (knob === "at") return { year: age, toAge: null };
     if (knob === "from") return { year: age <= low ? null : age };
     return { toAge: age >= high ? null : age };
+  }
+
+  // The knobs of the Roth conversion's ages slider on a track from `low` to `high`: `from` its start age, `to` its end
+  // age (never before `from`). The ages are never blank. A stored age outside the track shows at its nearest end
+  // (`outside` true) and is not rewritten. `text` reads "Age 60 to 74", or "Age 60" for one year.
+  function rothAgeKnobs(plan, low, high) {
+    const clamp = (age) => Math.min(high, Math.max(low, Number(age)));
+    const away = (age) => Number(age) < low || Number(age) > high;
+    const from = clamp(plan.startAge);
+    const to = Math.max(from, clamp(plan.endAge));
+    return { from, to, outside: away(plan.startAge) || away(plan.endAge),
+      text: to > from ? "Age " + from + " to " + to : "Age " + from };
   }
 
   // Config A and Config B from the stored choice (a list; older pages kept up to four names): a name no longer on
@@ -2331,7 +2349,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,

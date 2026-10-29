@@ -357,7 +357,7 @@
 <p>An account’s sheet shows the name, kind, owner and starting value, then “Returns and basis”:</p>
 <ul class="simple">
 <li><p>The returns disclosure holds the mean return, the standard deviation and a “Use the usual returns” button.</p></li>
-<li><p>Cost basis shows only for Investments, and IRA basis only for a Traditional IRA.</p></li>
+<li><p>Cost basis shows only for Investments, IRA basis only for a Traditional IRA, and Roth basis only for a Roth IRA or Roth 401k (blank: the whole starting value is contributions).</p></li>
 <li><p>Changing the kind clears a basis or deposit the new kind cannot hold. It replaces each return that is blank or still the old kind’s usual value.</p></li>
 </ul>
 </section>
@@ -532,7 +532,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Roth conversion</p></td>
-<td><p>Its rule, start and end ages, then <em>Convert up to</em>. The Social Security limit cannot be ticked while filing separately. Switching it on adds or removes the <em>Rollover account</em>, a Roth IRA for an owner of Traditional money with no Roth account. Editing that account makes it your own.</p></td>
+<td><p>Its rule, then <em>Ages</em>: the expense rows’ slider, with <em>From age</em> and <em>To age</em> knobs (an end knob stores its age, never a blank), then <em>Convert up to</em>. The Social Security limit cannot be ticked while filing separately. Switching it on adds or removes the <em>Rollover account</em>, a Roth IRA for an owner of Traditional money with no Roth account. Editing that account makes it your own.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Roth backdoor</p></td>
 <td><p>Its switch and settings.</p></td>
@@ -541,7 +541,10 @@
 <td><p>Its switch and settings. The after-tax IRA basis is on each Traditional IRA’s account sheet.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Relocation</p></td>
-<td><p>Last. <em>Move to another state</em>, then <em>State you move to</em>, <em>Move at your age</em> and <em>Home follows me</em>.</p></td>
+<td><p><em>Move to another state</em>, then <em>State you move to</em>, <em>Move at your age</em> and <em>Home follows me</em>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Early withdrawals</p></td>
+<td><p>Last. <em>Use penalty-free money first</em> (off by default; see <a class="reference internal" href="model-rules.html#early-withdrawals"><span class="std std-ref">Early withdrawals</span></a>).</p></td>
 </tr>
 </tbody>
 </table>

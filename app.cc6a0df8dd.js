@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -37,7 +37,7 @@
     { id: "balances", label: "Balances", intro: "Each account's balance at the end of each year, stacked; the "
       + "middle half average of the runs." },
     { id: "cashFlow", label: "Cash flow", intro: "Money in above zero: pay, Social Security and sale proceeds. Money out "
-      + "below it (negative): expenses and taxes. Line: what is left over; above zero the year adds to the accounts, below "
+      + "below it (negative): expenses and taxes (early-withdrawal penalties included). Line: what is left over; above zero the year adds to the accounts, below "
       + "zero the accounts pay for it. Moves into and out of the accounts are on Deposits and withdrawals. The middle half "
       + "average of the runs." },
     { id: "flows", label: "Deposits and withdrawals", intro: "The middle half average of the runs. Deposits into the accounts "
@@ -217,7 +217,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.e8829f45b5.js");
+      worker = new Worker("worker.455be25243.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1729,7 +1729,8 @@
       + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale, "mc")).join("")
       + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false, "single")).join("")
         : "")
-      + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "");
+      + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "")
+      + (tables.penaltyNote ? "<p class=\"note penalty-note\">" + escapeText(tables.penaltyNote) + "</p>" : "");
     html += accountantCards + nextSteps + renderInsights(result, entry, stale) + REPORT_POINTER_HTML + accountantLedger;
     body.innerHTML = html;
     placeLowResults(body, low);
@@ -8371,7 +8372,7 @@
     inputsChanged();
   }
 
-  // Fields with their own control: the Social Security basis.
+  // Fields with their own control: the Social Security basis, an expense row's and the Roth conversion's ages.
   function specialField(field, path, value) {
     if (/^(you|partner)\.socialSecurityBasis$/.test(path)) return basisToggle(field, path, value);
     if (/^(you|partner)\.employerMatch\.percent$/.test(path)) return matchPercentField(field, path);
@@ -8380,20 +8381,58 @@
     if (at && at.type === "Car" && at.name === "payMethod") return segmentedField(field, path, carPaidBy(at.item));
     if (at && (RADIO_SEGMENTED[at.type] || []).includes(at.name)) return radioSegmentedField(field, path);
     if (at && at.type === "ExpenseItem" && at.name === "year") return expenseAgesField(field, path, at.item);
+    if (path === "strategies.rothConversion.startAge") return rothAgesField(field, path);
     return null;
   }
 
-  // An expense row's From and To ages as one slider from your age today to your age in the run's last year
-  // (expenseAgeKnobs): two knobs for a monthly row, one for a Major Spending row paid in one year. Each knob is a
-  // role=slider stop (arrows, Page Up / Page Down by 5, Home, End); a drag on the track moves the nearer knob. A
-  // knob moved stores its age (expenseAgeStored: a knob at an end stores a blank); a stored age outside the track
-  // shows at its end and is kept until a knob moves.
+  // An expense row's From and To ages on the ages slider (ageRangeField) from your age today to your age in the run's
+  // last year (expenseAgeKnobs): two knobs for a monthly row, one for a Major Spending row paid in one year. A knob
+  // moved stores its age (expenseAgeStored: a knob at an end stores a blank).
   function expenseAgesField(field, path, item) {
     const rules = state.info.sheetRules;
     const low = Number(state.inputs.you.currentAge);
     const high = Math.max(low, low + planYears(state.inputs) - 1);
     const toPath = path.replace(/\.year$/, ".toAge");
     const shown = expenseAgeKnobs(item, low, high, rules);
+    return ageRangeField(field, {
+      low, high, outside: shown.outside, set: shown.set,
+      values: shown.major ? { at: shown.at } : { from: shown.from, to: shown.to },
+      ids: { at: fieldId(path), from: fieldId(path), to: fieldId(toPath) },
+      text: () => expenseAgeKnobs(getPath(state.inputs, path.replace(/\.year$/, "")), low, high, rules).text,
+      store: (name, age) => {
+        const stored = expenseAgeStored(name, age, low, high);
+        if ("toAge" in stored && name === "at") setPath(state.inputs, toPath, stored.toAge);
+        if ("year" in stored) setValue(path, stored.year);
+        else setValue(toPath, stored.toAge);
+      },
+    });
+  }
+
+  // The Roth conversion's From and To ages (startAge, endAge) as the two knobs of the ages slider (ageRangeField)
+  // from your age today to your age in the run's last year (rothAgeKnobs). The ages are never blank: a knob moved
+  // stores its age, at an end too.
+  function rothAgesField(field, path) {
+    const low = Number(state.inputs.you.currentAge);
+    const high = Math.max(low, low + planYears(state.inputs) - 1);
+    const endPath = path.replace(/\.startAge$/, ".endAge");
+    const plan = () => getPath(state.inputs, path.replace(/\.startAge$/, ""));
+    const shown = rothAgeKnobs(plan(), low, high);
+    const label = { label: "Ages", help: "Your ages in the first and last years of conversions, both included" };
+    return ageRangeField({ ...field, ...label }, {
+      low, high, outside: shown.outside, set: true,
+      values: { from: shown.from, to: shown.to },
+      ids: { from: fieldId(path), to: fieldId(endPath) },
+      text: () => rothAgeKnobs(plan(), low, high).text,
+      store: (name, age) => setValue(name === "from" ? path : endPath, age),
+    });
+  }
+
+  // An ages slider from `low` to `high`: two knobs (`values` {from, to}) or one (`values` {at}; `set` false shows it
+  // as no age yet). Each knob is a role=slider stop (arrows, Page Up / Page Down by 5, Home, End) with the id in
+  // `ids`; a drag on the track moves the nearer knob. A knob moved calls `store(name, age)`; `text()` reads the ages
+  // beside the label. A stored age outside the track (`outside`) shows at its end and is kept until a knob moves.
+  function ageRangeField(field, { low, high, values, ids, set, outside, text: textOf, store }) {
+    const single = "at" in values;
     const wrap = fieldShell(field.label, field.help, null);
     wrap.classList.add("age-range-field");
     const text = document.createElement("span");
@@ -8408,13 +8447,12 @@
     fill.className = "age-range-fill";
     rail.append(fill);
     track.append(rail);
-    const values = shown.major ? { at: shown.at } : { from: shown.from, to: shown.to };
     const names = { at: "Age paid", from: "From age", to: "To age" };
     const knobs = {};
     for (const name of Object.keys(values)) {
       const knob = document.createElement("div");
       knob.className = "age-range-knob";
-      knob.id = fieldId(name === "to" ? toPath : path);
+      knob.id = ids[name];
       knob.tabIndex = 0;
       knob.dataset.knob = name;
       knob.setAttribute("role", "slider");
@@ -8432,8 +8470,7 @@
       knobs[name] = knob;
       rail.append(knob);
     }
-    let set = shown.set;
-    // The ages a knob may take: a monthly row's From knob never passes its To knob, nor the To knob its From knob.
+    // The ages a knob may take: the From knob never passes the To knob, nor the To knob the From knob.
     const bounds = (name) => (name === "from" ? [low, values.to] : name === "to" ? [values.from, high] : [low, high]);
     const place = (age) => (high > low ? ((age - low) / (high - low)) * 100 : 0);
     const draw = () => {
@@ -8446,9 +8483,9 @@
         knob.setAttribute("aria-valuemax", String(range[1]));
         knob.classList.toggle("is-default", name === "at" && !set);
       }
-      fill.style.left = (shown.major ? place(values.at) : place(values.from)) + "%";
-      fill.style.width = (shown.major ? 0 : place(values.to) - place(values.from)) + "%";
-      text.textContent = expenseAgeKnobs(getPath(state.inputs, path.replace(/\.year$/, "")), low, high, rules).text;
+      fill.style.left = (single ? place(values.at) : place(values.from)) + "%";
+      fill.style.width = (single ? 0 : place(values.to) - place(values.from)) + "%";
+      text.textContent = textOf();
     };
     // Move a knob to `age` (kept within its bounds) and store it; nothing is stored when the knob does not move.
     const move = (name, age) => {
@@ -8457,10 +8494,7 @@
       if (next === values[name] && (name !== "at" || set)) return;
       values[name] = next;
       set = true;
-      const stored = expenseAgeStored(name, next, low, high);
-      if ("toAge" in stored && name === "at") setPath(state.inputs, toPath, stored.toAge);
-      if ("year" in stored) setValue(path, stored.year);
-      else setValue(toPath, stored.toAge);
+      store(name, next);
       draw();
     };
     const ageAt = (clientX) => {
@@ -8474,7 +8508,7 @@
       event.preventDefault();
       const age = ageAt(event.clientX);
       let name = "at";
-      if (!shown.major) {
+      if (!single) {
         if (values.from === values.to) name = age < values.from ? "from" : age > values.to ? "to" : null;
         else name = Math.abs(age - values.from) <= Math.abs(age - values.to) ? "from" : "to";
       }
@@ -8511,7 +8545,7 @@
     ends.children[0].textContent = String(low);
     ends.children[1].textContent = String(high);
     wrap.append(ends);
-    if (shown.outside) {
+    if (outside) {
       const note = document.createElement("p");
       note.className = "field-help age-range-note";
       note.textContent = "A saved age falls outside this run (ages " + low + " to " + high + "); the slider shows "
@@ -9456,7 +9490,10 @@
     const gate = children.find((child) => child.name === "enabled" && child.kind === "toggle");
     // At Medium a child above the effort (and not shown by Add detail) is left out, so a group or the earnings history
     // with no member shown is not drawn; a switch left out still keeps the fields it opens closed while it is off.
-    const shown = children.filter((child) => child !== gate && detailShownFor(field.type, child));
+    // The Roth conversion's To age is the second knob of its From age's slider (rothAgesField).
+    const shown = children.filter((child) => child !== gate && detailShownFor(field.type, child))
+      .filter((child, _, list) => !(field.type === "RothConversionPlan" && child.name === "endAge"
+        && list.some((other) => other.name === "startAge")));
     if (gate) {
       if (!detailShownFor(field.type, gate)) {
         return value && value.enabled ? pickedFields(field.type, shown, path, headings, group) : [];

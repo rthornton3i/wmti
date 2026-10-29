@@ -236,9 +236,32 @@
     "indexed": false,
     "penalty_free_age": 59.5,
     "penalty_rate": 0.1,
+    "separation_age": 55,
     "confidence": "unconfirmed",
-    "check_at": "https://www.irs.gov/taxtopics/tc558 (IRC 72(t))",
-    "note": "The additional tax on early distributions from qualified plans and IRAs (IRC 72(t)): 10% of a distribution taken before age 59 1/2, with exceptions; moved from the code on 2026-10-22, not checked against the page. The model does not charge it; the Strategies tab warns when Roth conversions start before penalty_free_age, since money taken out to pay their tax could owe it."
+    "check_at": "https://www.irs.gov/taxtopics/tc558 (IRC 72(t)(1), 72(t)(2)(A)(i) and (v))",
+    "note": "The additional tax on early distributions from qualified plans and IRAs (IRC 72(t)): penalty_rate of the taxable part of a distribution taken before age penalty_free_age (59 1/2). The rule of 55 (72(t)(2)(A)(v)): no additional tax on a 401k distribution after separation from service in or after the year the person reaches separation_age. Recalled, not checked against the page. The model charges it on Traditional withdrawals (not on the Roth conversion or a QCD) and on the Roth amounts the Roth rules penalize; ages are whole years, so age 59 pays all year. Not modelled: SEPP (72(t)(2)(A)(iv)), disability, death, medical, first-home, education, birth or adoption and the other exceptions; the age-50 public safety rule."
+  },
+  "roth_distributions": {
+    "indexed": false,
+    "five_year_years": 5,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.irs.gov/publications/p590b (IRC 408A(d), 72(t)(6); Treas. Reg. 1.408A-6; IRC 72(e)(8) and Treas. Reg. 1.402A-1 for a Roth 401k)",
+    "note": "A Roth distribution is qualified (no tax) from age 59 1/2 once five_year_years have passed since the first Roth funding year. A Roth IRA (all of one owner's Roth IRAs as one pool) pays out contributions first, then conversions oldest first, then earnings (408A(d)(4)); a conversion taken out within five_year_years of its year and before 59 1/2 pays the additional tax on its once-taxed amount (72(t)(6)); earnings taken out unqualified are ordinary income and, before 59 1/2, penalized. A Roth 401k payout is split pro-rata between basis and earnings (72(e)(8)). The model reads five tax years as whole years (free when the year minus the funding year is at least five). Recalled, not checked against the page. Not modelled: a ten percent layer for conversions into a Roth 401k, a clock per Roth 401k plan versus per IRA owner, contribution-year layers, rollovers between Roth kinds."
+  },
+  "hsa_nonmedical": {
+    "indexed": false,
+    "penalty_rate": 0.2,
+    "penalty_free_age": 65,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.irs.gov/publications/p969 (IRC 223(f)(2) and (f)(4))",
+    "note": "An HSA distribution not used for qualified medical costs is ordinary income, plus penalty_rate of it before age penalty_free_age (the additional tax ends at 65, death or disability). Recalled, not checked against the page. The model draws the HSA for other spending only as a last resort, after every other account. Not modelled: state treatment (CA and NJ tax HSA money differently)."
+  },
+  "nonqualified_529": {
+    "indexed": false,
+    "penalty_rate": 0.1,
+    "confidence": "unconfirmed",
+    "check_at": "https://www.irs.gov/publications/p970 (IRC 529(c)(3) and (c)(6))",
+    "note": "The earnings part of a 529 distribution not used for qualified education is ordinary income, plus penalty_rate of that part (the share of earnings is one less the account's basis over its balance). Recalled, not checked against the page. The model draws a 529 for other spending only as a last resort, after every account but the HSA. Not modelled: the scholarship, death, disability and Roth-rollover exceptions; state recapture."
   },
   "aca_premium_credit": {
     "indexed": true,

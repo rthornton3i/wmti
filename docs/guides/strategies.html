@@ -250,8 +250,9 @@ A config loaded with the conversion on and no Roth account gets one at load.</p>
 <p><strong>Early-retiree ladder.</strong> The years between the last paycheck and Social Security or
 the first RMD often have the lowest taxable income of a lifetime. Set the window to
 those years and a ceiling such as the top of the 12% or 22% bracket to fill the low
-brackets each year. The model has no 10% penalty and no Roth five-year rule before
-59.5, so the ladder’s waiting period is not modeled. Conversions before the Medicare
+brackets each year. Converted money taken out within five years and before 59.5 pays
+the 10% penalty (see <a class="reference internal" href="model-rules.html#early-withdrawals"><span class="std std-ref">Early withdrawals</span></a>); <em>Use penalty-free money first</em> draws
+other money first where it exists. Conversions before the Medicare
 age raise the income an ACA premium credit is tested on, which the model does not
 price. From 2026 the credit ends above 400% of the federal poverty level (about 62,600
 for one person, 84,600 for two); married couples filing separately get none. The tab
@@ -679,7 +680,8 @@ out kept every winner while a Quick search of the pinned profiles ran 30 fewer r
 <li><p>No one dies in the model, so the survivor’s single brackets and surcharge thresholds,
 the main reason a married couple converts, never apply; a conversion’s value is
 understated (the tab warns).</p></li>
-<li><p>No 10% early-withdrawal penalty and no Roth five-year rules.</p></li>
+<li><p>Early-withdrawal penalties follow the account order unless <em>Use penalty-free money
+first</em> is on; SEPP and the other exceptions are not modelled.</p></li>
 <li><p>The after-tax IRA basis (Form 8606) is one household figure, so the taxed part of
 Traditional income is spread over the returns by what each owner’s accounts paid
 out. The household plan’s Roth deposit and the backdoor deposit go to the first Roth
