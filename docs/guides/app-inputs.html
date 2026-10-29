@@ -437,9 +437,47 @@
 </tbody>
 </table>
 <p>Put only costs no other tab enters here. A tax-deductible cost other than Charity, or a cost only in the child years, needs no row. A loan’s payment row may stay if <em>Payment in Expenses</em> is ticked on the loan.</p>
-<ul class="simple">
+<ul>
 <li><p><strong>Lists.</strong> “Monthly expenses” has Bills, Planned Spending and Other Spending. “Major expenses” has Major Spending and Charity, amounts per year. Each sheet offers only its categories.</p></li>
-<li><p><strong>Suggested rows.</strong> A new scenario and the example household start the monthly list with suggested categories (Groceries, Dining out, Wi-Fi &amp; cable and so on). Each amount is blank and shows $0 in gray. Fill in the ones you spend on and remove the rest. A row left at 0 counts for nothing and is left out of the report’s Expenses table. A saved scenario keeps its own rows. Each suggested row also has a price type that sets how its cost changes after a move (see <a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>).</p></li>
+<li><p><strong>Add picker.</strong> A new scenario starts with no expense rows. Each list’s <em>Add expense</em> drop-down offers the common expenses of its categories not added yet (from <code class="docutils literal notranslate"><span class="pre">.config/expenseCategories.json</span></code>), then <em>Other (your own)</em>. A picked preset is added with its name, category, sales tax status and flags set and its amount blank ($0 in gray), and its sheet opens. A row left at 0 counts for nothing and is left out of the report’s Expenses table. The example household keeps its suggested rows, and a saved scenario keeps its own. Each preset also has a price type that sets how its cost changes after a move (see <a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 34.0%" />
+<col style="width: 66.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Preset</p></th>
+<th class="head"><p>Set on the added row</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Groceries, Clothing</p></td>
+<td><p>Taxable left blank: the state’s own grocery or clothing rule applies</p></td>
+</tr>
+<tr class="row-odd"><td><p>Dining out, Wi-Fi &amp; cable, Cell plans, Subscriptions, Hobbies, Travel, Household supplies, Furniture &amp; appliances, Gifts, Gym, Entertainment, Electronics</p></td>
+<td><p>Taxable Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Personal care, Home repairs, Pets, Lawn &amp; cleaning, Car repairs, Transit &amp; rideshare, Life insurance, Family support</p></td>
+<td><p>Taxable No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Out-of-pocket medical, Prescriptions</p></td>
+<td><p>Taxable No; deduction Medical and dental</p></td>
+</tr>
+<tr class="row-even"><td><p>Education</p></td>
+<td><p>Taxable No; Education expense (529) set</p></td>
+</tr>
+<tr class="row-odd"><td><p>Childcare</p></td>
+<td><p>Taxable No; a child cost (not scaled by children) and Dependent care, both set</p></td>
+</tr>
+<tr class="row-even"><td><p>Charitable giving (Major expenses list)</p></td>
+<td><p>Category Charity: per year, always deductible as Charity</p></td>
+</tr>
+<tr class="row-odd"><td><p>Other (your own)</p></td>
+<td><p>Taxable Yes, no price type (follows the goods and services blend after a move)</p></td>
+</tr>
+</tbody>
+</table>
+</li>
 <li><p><strong>Already counted from other tabs.</strong> The panel opens with a read-only card of costs other tabs already charge, under “Bills - Other”, and the taxes note.</p></li>
 <li><p><strong>Total expenses.</strong> The panel ends with a per-month card: each monthly category, Major Spending and Charity at your age today (per year divided by 12), one “Bills - Other” row and one “Total expenses” row. It reads n/a until the notes arrive.</p></li>
 </ul>

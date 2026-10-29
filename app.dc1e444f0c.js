@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -295,7 +295,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.da2d42cc26.js");
+      worker = new Worker("worker.98f751985e.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -340,6 +340,18 @@
     return { start, call, job, cancel, finish, answerCap, pause, resume, ready };
   })();
   window.wmtiEngine = engine;  // for the tests and for debugging
+
+  // Each edit's place in line: inputsChanged and every request whose reply replaces the inputs (inputsTicket) take the
+  // next number. A reply is written only while its request is still the newest edit; an older one (a switch-off's
+  // block reset answered after the next edit) would undo that edit, so its write is dropped.
+  let inputsRevision = 0;
+
+  // Take the next edit number for a request that will replace the inputs; the returned check says whether its reply
+  // may still be written (no edit, and no other such request, came after it).
+  function inputsTicket() {
+    const mine = ++inputsRevision;
+    return () => mine === inputsRevision;
+  }
 
   // Call wmti.dashboard.web and return its answer; a worker error comes back as {ok: false, error} so every caller
   // can show it, and a dropped request as null.
@@ -573,6 +585,7 @@
   }
 
   function inputsChanged() {
+    inputsRevision += 1;  // a reply still on its way for an earlier edit no longer writes the inputs (inputsTicket)
     normalizeFilingTableChoices();
     syncHeirs();  // a beneficiary per child while Add children as beneficiaries is on; shares at 100%
     if (state.schema) syncResetFlags(state.schema, state.inputs);
@@ -2880,8 +2893,9 @@
   // Remove them: drop every home, rent period, car and loan and zero the utility bills (lowCoverClear), as one undo
   // step. Returns the reply (its `facts` are the new inputs'), or null when it was refused.
   async function removeCovered() {
+    const current = inputsTicket();
     const reply = await ask("lowCoverClear", [JSON.stringify(state.inputs)]);
-    if (!reply || !reply.ok) return null;
+    if (!reply || !reply.ok || !current()) return null;  // !current(): an edit came after; this answer would undo it
     state.inputs = reply.inputs;
     low.facts = reply.facts;
     renderSettings();
@@ -2893,8 +2907,9 @@
   // property tax is not counted on top of the example's spending (walkthroughApply skip at Low).
   async function lowSkipClear() {
     if (!lowOn()) return;
+    const current = inputsTicket();
     const reply = await ask("walkthroughApply", [JSON.stringify(state.inputs), "spending", "null", "skip", "low"]);
-    if (!reply || !reply.ok || !reply.changed || !reply.changed.length) return;
+    if (!reply || !reply.ok || !reply.changed || !reply.changed.length || !current()) return;
     state.inputs = reply.inputs;
     renderSettings();
     inputsChanged();
@@ -3030,9 +3045,10 @@
     const run = async () => {
       if (gen !== low.gen || !lowOn()) return null;
       lowError(cardId, null);
+      const current = inputsTicket();
       const reply = await ask("walkthroughApply", [JSON.stringify(state.inputs), questionId, JSON.stringify(values),
         "answer", "low"]);
-      if (gen !== low.gen || !lowOn()) return null;
+      if (gen !== low.gen || !lowOn() || !current()) return null;  // !current(): an edit came after; it wins
       if (!reply || !reply.ok) {
         lowError(cardId, reply ? reply.error : "The answer was not saved; try again.");
         return null;
@@ -9166,7 +9182,12 @@
   function partnerField() {
     const control = state.schema.controls.hasPartner;
     return switchField(control.label, control.help, "f-hasPartner", state.inputs.partner != null, async (checked) => {
+      const current = inputsTicket();
       const reply = await ask("setPartner", [JSON.stringify(state.inputs), checked]);
+      if (!current()) {  // an edit came after: this answer would undo it; redraw the switch from the inputs
+        renderSettings();
+        return;
+      }
       if (!reply || !reply.inputs) {
         state.error = reply ? reply.error : "The partner switch did not answer; try again.";
         setStatus("error", "Check settings");
@@ -9305,13 +9326,19 @@
   // The Roth conversion switch adds or removes the rollover account (wmti syncRolloverAccounts); the page is redrawn
   // at once so the account list shows it.
   async function syncRollover() {
-    takeEngineInputs(await ask("syncRollover", [JSON.stringify(state.inputs)]));
+    const current = inputsTicket();
+    const reply = await ask("syncRollover", [JSON.stringify(state.inputs)]);
+    if (current()) takeEngineInputs(reply);  // an edit came after: this answer would undo it
   }
 
   // A block switched off (the Roth conversion, a QCD, the retirement plan...): the engine applies the switch to the
   // inputs before it, putting the block's other fields back to their defaults and syncing the rollover account.
+  // An edit made while the reset is on its way wins: the reset's answer is then dropped (inputsTicket), the switch
+  // staying off as setValue left it.
   async function switchOff(previous, path, value) {
-    takeEngineInputs(await ask("applySettings", [JSON.stringify(previous), JSON.stringify([{ path, value }])]));
+    const current = inputsTicket();
+    const reply = await ask("applySettings", [JSON.stringify(previous), JSON.stringify([{ path, value }])]);
+    if (current()) takeEngineInputs(reply);
   }
 
   function takeEngineInputs(reply) {
@@ -11478,7 +11505,8 @@
     const homeOwner = homeOfLoans(path);  // a home's own loans (second mortgage, home equity)
     add.textContent = "Add " + (homeOwner ? "loan on this home" : typeWords(field.type));
     add.disabled = field.maximum != null && value.length >= field.maximum;
-    add.addEventListener("click", () => {
+    // `preset`: for an expense row, the Add picker's choice (a preset row, or null for a row of your own).
+    const addItem = (preset) => {
       if (field.type === "Heir") {  // an equal part for the new beneficiary; the others keep their split of the rest
         beginSheetSession(path);  // Cancel on its sheet removes it again
         setPath(state.inputs, path, addHeir(getPath(state.inputs, path), heirFieldsSchema()));
@@ -11493,7 +11521,9 @@
         return;
       }
       const items = getPath(state.inputs, path);
-      const item = Object.assign(newItem(field.type), filterStartValues(filter));
+      let item = Object.assign(newItem(field.type), filterStartValues(filter));
+      // An expense row starts as its preset (category, sales tax status and flags) or, of your own, taxable.
+      if (field.type === "ExpenseItem") item = expensePresetItem(item, preset);
       const usual = field.type === "Account" && state.info.usualReturns[item.kind];
       if (usual) [item.meanReturn, item.returnStdDev] = usual;  // a new account starts with its kind's usual returns
       if (field.type === "Account") {  // a new account starts with its kind's owner (Joint for cash, You for a 401k)
@@ -11514,9 +11544,44 @@
       items.push(item);
       inputsChanged();
       openSheet(field, path, items.length - 1, false, filter);
-    });
-    wrap.append(list, ...(shown.length ? [bar] : []), add);
+    };
+    add.addEventListener("click", () => addItem(null));
+    const adder = field.type === "ExpenseItem" ? expensePicker(value, filter, add.disabled, addItem) : add;
+    wrap.append(list, ...(shown.length ? [bar] : []), adder);
     return wrap;
+  }
+
+  // The Expenses Add picker: the common expenses of this list's categories not in the list yet (settings schema
+  // `suggestedExpenses`), each added with its sales tax status and flags set, and Other for a row of your own (in
+  // the list's first category); nothing is listed until picked.
+  function expensePicker(items, filter, disabled, addItem) {
+    const presets = expensePresetChoices(state.schema.suggestedExpenses, items, filter);
+    const select = document.createElement("select");
+    select.className = "input add-picker";
+    select.setAttribute("aria-label", "Add expense");
+    select.disabled = disabled;
+    const prompt = document.createElement("option");
+    prompt.value = "";
+    prompt.textContent = "Add expense…";
+    const common = document.createElement("optgroup");
+    common.label = "Common expenses";
+    presets.forEach((preset, index) => {
+      const option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = preset.name;
+      common.append(option);
+    });
+    const other = document.createElement("option");
+    other.value = "other";
+    other.textContent = "Other (your own)";
+    select.append(prompt, ...(presets.length ? [common] : []), other);
+    select.addEventListener("change", () => {
+      const choice = select.value;
+      select.value = "";
+      if (choice === "") return;
+      addItem(choice === "other" ? null : clone(presets[Number(choice)]));
+    });
+    return select;
   }
 
   // The home whose own loans a list path holds ("homes.<n>.loans"), or null for any other list.
@@ -11803,6 +11868,12 @@
       if (remove.dataset.armed !== "true") {
         remove.dataset.armed = "true";
         remove.textContent = "Tap again to remove";
+        return;
+      }
+      if (timelineItemAt(field.type, position)) {  // a home, rent period or car: its neighbours refit to fill its time
+        remove.disabled = true;
+        clearSelections(path);
+        timelineDeleteItem(field.type, position);
         return;
       }
       items.splice(position, 1);
@@ -12237,9 +12308,12 @@
   }
 
   // Apply one timeline edit through the worker: on success the inputs take the result (and every pane redraws), on
-  // refusal nothing changes. Returns {ok, error, notes, position}.
+  // refusal, or when another edit came while it was on its way (inputsTicket), nothing changes.
+  // Returns {ok, error, notes, position}.
   async function applyTimeline(kind, op) {
+    const current = inputsTicket();
     const reply = await ask("timelineApply", [JSON.stringify(state.inputs), kind, JSON.stringify(op)]);
+    if (!current()) return { ok: false, error: "Your plan changed while this step was on its way; try again.", notes: [] };
     if (!reply || !reply.ok) return { ok: false, error: reply ? reply.error : "The step was not applied; try again.", notes: [] };
     state.inputs = reply.inputs;
     inputsChanged();
@@ -12771,15 +12845,32 @@
   // An item sheet's "Edit on timeline" for a home, rent period or car: closes the sheet and opens the item's Edit
   // timeline screen.
   function sheetTimelineLink(type, position) {
-    const kind = { Home: "Home", RentPeriod: "Home", Car: "Car" }[type];
-    if (!kind) return null;
-    const link = timelineButton(timelineWords(kind).onTimeline, "timeline", "button-quiet sheet-timeline");
+    const item = timelineItemAt(type, position);
+    if (!item) return null;
+    const link = timelineButton(timelineWords(item.kind).onTimeline, "timeline", "button-quiet sheet-timeline");
     link.addEventListener("click", () => {
-      const at = type === "RentPeriod" ? (state.inputs.homes || []).length + position : position;
       closeSheet(true);
-      openTimeline(kind, "edit", { position: at });
+      openTimeline(item.kind, "edit", { position: item.at });
     });
     return link;
+  }
+
+  // A sheet's item as the timeline knows it: its kind (Home or Car) and its timeline position (rent periods follow the
+  // homes); null for an item type the timeline does not hold.
+  function timelineItemAt(type, position) {
+    const kind = { Home: "Home", RentPeriod: "Home", Car: "Car" }[type];
+    if (!kind) return null;
+    return { kind, at: type === "RentPeriod" ? (state.inputs.homes || []).length + position : position };
+  }
+
+  // Delete a home, rent period or car from its sheet as the timeline's Delete did: through the worker, so its
+  // neighbours refit to fill its time (wmti.assets.timeline rule 3); the notes naming them (or the refusal) show under
+  // the block once the sheet closes.
+  async function timelineDeleteItem(type, position) {
+    const { kind, at } = timelineItemAt(type, position);
+    const result = await applyTimeline(kind, { op: "delete", position: at });
+    timelineNotes[kind] = result.ok ? result.notes : [result.error];
+    closeSheet();
   }
 
   // Apply the screen's edit; on refusal show its sentence on the same screen. Returns the result, or null.
@@ -14356,10 +14447,11 @@
     walk.busy = true;
     try {
       if (applyMode !== "skip" || lowSpending) {
+        const current = inputsTicket();
         const reply = await ask("walkthroughApply", [JSON.stringify(state.inputs), id, JSON.stringify(values),
           applyMode, walkEffort()]);
-        if (!reply || !reply.ok) {
-          walkError(reply ? reply.error : "The answer was not saved; try again.");
+        if (!reply || !reply.ok || !current()) {  // !current(): an edit came after; this answer would undo it
+          walkError(reply && !reply.ok ? reply.error : "The answer was not saved; try again.");
           const field = $("walkStage").querySelector(".walk-screen:last-child input, .walk-screen:last-child select");
           if (field) field.focus();
           return false;

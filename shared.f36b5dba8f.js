@@ -356,6 +356,22 @@
     return Boolean(item && item.priceType != null && !(Number(item.amount) > 0));
   }
 
+  // The Expenses Add picker's presets (settings schema `suggestedExpenses`, from .config/expenseCategories.json) that
+  // the shown list holds (`filter`, such as its categories) and that are not in the list yet, by name without case
+  // or outer spaces, in the file's order.
+  function expensePresetChoices(presets, items, filter) {
+    const taken = new Set((items || []).map((item) => String(item.name || "").trim().toLowerCase()));
+    return (presets || []).filter((preset) => itemMatches(preset, filter)
+      && !taken.has(String(preset.name).trim().toLowerCase()));
+  }
+
+  // A new expense row from the Add picker: `blank` (a new item's defaults) with the preset's name, category, price
+  // type, sales tax status and flags, amount left blank; with no preset, a row of your own, set to pay sales tax.
+  function expensePresetItem(blank, preset) {
+    if (!preset) return { ...blank, priceType: null, taxable: true };
+    return { ...blank, ...preset, amount: 0 };
+  }
+
   // What a sheet field shows while it is blank: {value, blank} with the source's value and the stored blank value, or
   // null when the field has no source or holds a value of its own (an edit sticks; clearing it shows the source again).
   function sheetDefault(typeName, name, item, rules) {
@@ -1755,8 +1771,8 @@
     inputs.accounts = [{ ...blankObject(schema, "Account"), name: BLANK_ACCOUNT_NAME }];
     inputs.you.socialSecurityByAge = { [BLANK_CLAIM_AGE]: 0 };
     inputs.you.socialSecurityAge = Number(BLANK_CLAIM_AGE);
-    // The suggested category rows (settings schema `suggestedExpenses`, from .config/expenseCategories.json), blank.
-    inputs.expenses = (schema.suggestedExpenses || []).map((row) => ({ ...blankObject(schema, "ExpenseItem"), ...row }));
+    // No expense rows: the Expenses Add picker offers the presets (settings schema `suggestedExpenses`).
+    inputs.expenses = [];
     inputs.strategies.heirs = [heirDefaults(schema.types.Heir, 0, 1)];
     inputs.years = null;  // until you are 100 (yearsToAge100), following your age
     // The child inflation factor keeps its shipped default (20% per child): a blank 0 would make children cost nothing.
@@ -2397,7 +2413,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
