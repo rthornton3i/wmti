@@ -231,7 +231,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Child inflation factor</p></td>
-<td><p>Shown only while there is a child.</p></td>
+<td><p>Shown only while there is a child. Defaults to 20% per child, also in a new scenario; gray while at 20%.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Child card</p></td>
 <td><p>Age today (or “not born yet”) and the age its child years end. <em>Add child</em> starts a child born this year, in child years up to age 21.</p></td>
@@ -352,7 +352,7 @@
 </section>
 <section id="accounts">
 <h3>Accounts<a class="headerlink" href="#accounts" title="Link to this heading"></a></h3>
-<p>Accounts adds “Where surplus cash goes” (see below). Only the owners the household has are offered.</p>
+<p>Accounts adds “Where surplus cash goes” (see below). Only the owners the household has are offered. A new account starts Joint for cash and Investments and You for a 401k or IRA; changing its kind moves an owner still at the old default.</p>
 <p>While the HSA counts (it and the medical plan on) or the dependent care FSA is on, a read-only “Benefit accounts” block shows them, with an “Edit on Benefits” button. They take no part in the withdrawal order or the surplus sliders.</p>
 <p>An account’s sheet shows the name, kind, owner and starting value, then “Returns and basis”:</p>
 <ul class="simple">
@@ -502,8 +502,9 @@
 </table>
 <p>Details:</p>
 <ul class="simple">
-<li><p><strong>Benefit basis.</strong> A toggle of <em>Earnings history</em> and <em>Manual entry</em>. Without an earnings history, <em>Earnings history</em> is disabled and a hint says to enter past earnings on Income. Choosing it opens that history, with a floating <em>Back to Social Security</em> button and a labelled X.</p></li>
-<li><p><strong>Claim age.</strong> Offers every age of the benefit table (entered and estimated), with the benefit used at that age. Switching keeps the entered amounts.</p></li>
+<li><p><strong>Benefit basis.</strong> A toggle of <em>Earnings history</em> and <em>Manual entry</em> (<em>Earnings history</em> at High effort only). With the earnings history filled in, choosing it just switches. Without it, a hint says to enter past earnings on Income, and choosing it asks “Enter earnings history?”: <em>No</em> keeps <em>Manual entry</em>; <em>Yes</em> opens that history on Income, with a large <em>Back to Social Security</em> button in the top bar and a labelled X. The basis stays <em>Manual entry</em> until the history is entered; <em>Back</em> then switches it to <em>Earnings history</em>.</p></li>
+<li><p><strong>Claim age.</strong> A one-knob age slider from 62 to 70 (whole years; arrows, Page Up and Page Down, Home and End move it), with the benefit used at that age; the walkthrough asks it the same way. Switching keeps the entered amounts.</p></li>
+<li><p><strong>Medicare age.</strong> A one-knob age slider from 65 to your age in the run’s last year; a saved age outside that range shows at the nearest end and is kept until the knob moves.</p></li>
 <li><p><strong>Part B.</strong> While on, a read-only line shows the standard premium per person per month, its year and the yearly deductible. The model adds IRMAA on higher incomes. A warning says when the IRMAA tier of the first two years is estimated.</p></li>
 <li><p><strong>Out-of-pocket maximum.</strong> Hidden on Original Medicare.</p></li>
 <li><p><strong>Spending start age.</strong> Blank starts at your Social Security claim age, or the age you stop working with no benefit entered. The blank box reads “Starts at your Social Security age, 67”.</p></li>

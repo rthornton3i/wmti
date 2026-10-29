@@ -5,10 +5,10 @@
   "use strict";
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
-    sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
-    matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, WALK_TAGS,
+    matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,
     storagePrefix, channelCachePrefixes, copyStableStorage, isBetaChannel,
@@ -57,7 +57,8 @@
   const DEFAULT_RUN_MS = 250;  // a phone's time per run until this device has measured one
   const SAVED_LIMIT = 50;
   const NO_EARNINGS_HINT = "Enter past earnings on the Income tab to use this.";  // wmti.dashboard.settings.NO_EARNINGS_HINT
-  const NULL_LABELS = { owner: "Usual owner", account529: "None (the 529s together)" };  // what a blank select choice means for these fields
+  const MEDICARE_SLIDER_LOW = 65;  // the Medicare age slider's first age: Medicare eligibility (the model's default)
+  const NULL_LABELS = { account529: "None (the 529s together)" };  // what a blank select choice means for these fields
   // Sheet choices shown as one inset row of radio buttons, every option at once (radioSegmentedField), by item type.
   const RADIO_SEGMENTED = { ExpenseItem: ["deduction", "taxable"] };
   // Of those, the choices whose picked button clears them to blank when tapped again (no blank button of their own).
@@ -98,7 +99,7 @@
   const LEGAL_SUMMARY_CLOSING = "Please read the full Terms below.";
   const TABS = ["setup", "inputs", "outputs", "awards"];  // the bottom bar, left to right (Awards: Gamer only)
   const VIEWS = ["summary", "plots", "compare", "optimize"];  // the switch inside Outputs
-  const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders", optimize: "pig", awards: "star" };  // its chips' icons
+  const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders", optimize: "pig", awards: "sprout" };  // its chips' icons
   // The color scheme, kept per viewer as plain text; index.html applies it before the first paint.
   const THEME_KEY = STORAGE_PREFIX + "theme.v1";
   // Every key this app keeps in localStorage; Clear all data on this device removes them all.
@@ -133,7 +134,7 @@
     "outputs/plots": ["Outputs", "Plots", "Middle half average of the runs"],
     "outputs/compare": ["Outputs", "Compare", "Two configs on the same random draws"],
     "outputs/optimize": ["Outputs", "Optimize", "The best strategy settings on the same random draws"],
-    awards: ["Awards", "Awards", "Your level, quests and awards, saved with this scenario"],
+    awards: ["Garden", "Garden", "Your garden, level, quests and awards, saved with this scenario"],
   };
   // Inline SVG icons (24 px grid, stroked): chips and pane titles.
   const ICONS = {
@@ -142,6 +143,8 @@
       + "<circle cx=\"10\" cy=\"12\" r=\"2\"/><circle cx=\"18\" cy=\"18\" r=\"2\"/>",
     chart: "<path d=\"M4 20V10M10 20V4M16 20v-7M22 20H2\"/>",
     home: "<path d=\"M3 11l9-7 9 7v9h-6v-6H9v6H3z\"/>",
+    key: "<circle cx=\"7.5\" cy=\"16.5\" r=\"4.5\"/><path d=\"M10.7 13.3L20 4M16 8l3 3M13.5 10.5l2.5 2.5\"/>",  // Rent
+    bolt: "<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\"/>",  // the Utilities pane
     briefcase: "<rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M8 7V5h8v2\"/>",
     baby: "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M6 21c0-4 3-6 6-6s6 2 6 6\"/>",
     heart: "<path d=\"M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z\"/>",
@@ -151,11 +154,13 @@
     receipt: "<path d=\"M6 3h12v18l-3-2-3 2-3-2-3 2z\"/><path d=\"M9 8h6M9 12h6\"/>",
     bands: "<path d=\"M3 17l5-5 4 3 8-8\"/><path d=\"M3 21h18\"/>",
     pencil: "<path d=\"M4 20h4L19 9l-4-4L4 16z\"/><path d=\"M13 7l4 4\"/>",  // the timeline's Edit timeline button
-    star: "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>",  // the Awards chip
+    star: "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>",
+    sprout: "<path d=\"M12 21v-9M12 12c0-4-3-7-8-7 0 5 3 7 8 7zM12 14c0-4 3-6 8-6 0 4-3 6-8 6z\"/>",  // the Garden chip
   };
-  // The icon of a chip or pane: the first word here found in its label, else in its id; sliders when none is.
+  // The icon of a chip or pane: the first word here found in its label, else in its id; sliders when none is. The
+  // Home panel's three panes share the id "home", so Rent and Utilities are matched by label to icons of their own.
   const ICON_WORDS = [["household", "user"], ["income", "briefcase"], ["benefit", "briefcase"], ["savings", "briefcase"],
-    ["children", "baby"], ["dependent", "baby"], ["home", "home"], ["loan", "receipt"], ["expense", "receipt"],
+    ["children", "baby"], ["dependent", "baby"], ["rent", "key"], ["utilities", "bolt"], ["home", "home"],["loan", "receipt"], ["expense", "receipt"],
     ["tax", "receipt"], ["deduction", "receipt"], ["retirement plan", "pig"], ["total", "bands"], ["account", "pig"],
     ["balance", "pig"],
     ["medical", "heart"], ["hsa", "heart"], ["health", "heart"], ["medicare", "heart"], ["social security", "sun"],
@@ -170,7 +175,8 @@
     heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
     tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
-    autoSaveOff: [], exampleHidden: false, savedJustNow: false, undo: { stack: [], current: null },
+    autoSaveOff: [], exampleHidden: false, collapsed: [],  // collapsed: the folded panels (25-collapse.js)
+    savedJustNow: false, undo: { stack: [], current: null },
     // preview: Low's partial result; seq: the number stamped on each Monte Carlo when it starts (the run diff's order)
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null, preview: null, seq: 0 },
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
@@ -205,7 +211,8 @@
     const compare = state.compare;
     store(PREFS_KEY, { tab: state.tab, view: state.view, chips: state.chips, plotView: state.plotView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
-      exampleHidden: state.exampleHidden, compare: { seed: compare.seed, pair: compare.pair } });
+      exampleHidden: state.exampleHidden, collapsed: state.collapsed,
+      compare: { seed: compare.seed, pair: compare.pair } });
   }
 
   // ---- Engine (the worker) ----
@@ -217,7 +224,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.455be25243.js");
+      worker = new Worker("worker.cbf4eb9469.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -345,6 +352,7 @@
       if (route && route.chip) state.chips.settings = route.chip;
       if (prefs.plotView === "table") state.plotView = "table";
       if (Array.isArray(prefs.surplusLocks)) state.surplusLocks = prefs.surplusLocks.filter((name) => typeof name === "string");
+      if (Array.isArray(prefs.collapsed)) state.collapsed = prefs.collapsed.filter((key) => typeof key === "string");
       restoreRunPrefs(prefs);
       // Auto-save is on unless turned off for a scenario; the older one-switch preference (`autoSave`) is not read, since
       // it could not tell a switch turned off from the old default.
@@ -1100,6 +1108,177 @@
     if (!chip || !row.offsetParent) return;
     const left = Math.max(0, chip.offsetLeft + chip.offsetWidth / 2 - row.clientWidth / 2);
     row.scrollTo({ left, behavior: smooth && !reducedMotion() ? "smooth" : "auto" });
+  }
+
+  // ---- Collapsible panels: a chevron in each card's or pane's header on Setup, Inputs and Outputs ----
+  // Every card (`.card`, not a <details> one, which already opens and shuts), Inputs pane (`fieldset.pane`, not a
+  // sub-section), Setup's Scenario files and the Advanced settings' Inflation and Run cards with a heading gets a
+  // chevron button at the right of its header (aria-expanded, aria-controls). The button or a click on the header (not
+  // on its "i" or another control) folds the panel to its header and opens it again; no height animation. Folded, a
+  // panel whose first field is an on/off switch (a pane's toggle, Roth conversion, Inflation) shows a copy of that
+  // switch in the header that works the real one. Which panels are folded is kept per device in the prefs
+  // (`state.collapsed`, keys `tab:id-or-heading`); default open. The panels are drawn and redrawn by many parts, so a
+  // MutationObserver on the three tabs adds the header controls to each new panel. Anything that shows a field opens
+  // its panel first (`revealField` and `revealPanels`: a jump to a field, Undo, flashField, the tour); a field marked invalid opens its panel. The
+  // header's "i" text still opens while folded.
+  // Sheets, dialogs and the walkthrough sit outside the three tabs and never fold.
+  const COLLAPSE_TABS = ["panel-setup", "panel-inputs", "panel-outputs"];
+  const COLLAPSE_PANELS = ".card:not(details):not(.mc-bar), fieldset.pane:not(.subsection), .files-card, .run-card";
+  const COLLAPSE_HEADS = [":scope > legend", ":scope > .card-head", ":scope > .title-help:not(.note-help)",
+    ":scope > .files-head", ":scope > h2", ":scope > figure.chart > figcaption"];
+  const COLLAPSE_TITLE = "h2, h3, .legend-title, .chart-title";
+  let collapseCount = 0;
+
+  // The header of a panel that can fold (one holding a title), else null.
+  function collapseHead(panel) {
+    if (panel.closest("details:not(.card):not(.advanced)")) return null;  // inside a collapsible of its own
+    for (const selector of COLLAPSE_HEADS) {
+      const head = panel.querySelector(selector);
+      if (head && (head.matches("h2") || head.querySelector(COLLAPSE_TITLE))) return head;
+    }
+    return null;
+  }
+
+  function collapseKey(panel, head) {
+    const tab = panel.closest(".panel").dataset.tab;
+    const title = head.matches("h2") ? head : head.querySelector(COLLAPSE_TITLE);
+    const own = panel.dataset.collapseAuto ? "" : panel.id;  // an id given here changes with each drawing
+    return tab + ":" + (own || (title ? title.textContent.trim() : ""));
+  }
+
+  // The panel's on/off switch shown in its folded header: its pane toggle, else its first field when that is a switch.
+  function collapseSwitch(panel) {
+    const own = panel.querySelector(":scope > .pane-switch input[role=switch]");
+    if (own) return own;
+    const first = Array.from(panel.querySelectorAll(".field")).find((field) => !field.closest(".subsection")
+      && field.closest(COLLAPSE_PANELS) === panel);
+    return first ? first.querySelector(":scope > .switch-row input[role=switch]") : null;
+  }
+
+  // Add the header controls to every panel drawn since the last pass and show each one open or folded.
+  function enhancePanels() {
+    for (const tabId of COLLAPSE_TABS) {
+      for (const panel of $(tabId).querySelectorAll(COLLAPSE_PANELS)) {
+        const head = collapseHead(panel);
+        if (!head) continue;
+        let tools = head.querySelector(":scope > .collapse-tools");
+        if (!tools) {
+          if (!panel.id) {
+            panel.id = "collapsible-" + (++collapseCount);
+            panel.dataset.collapseAuto = "1";
+          }
+          head.classList.add("collapse-head");
+          for (let up = head.parentElement; up !== panel; up = up.parentElement) up.classList.add("collapse-path");
+          tools = document.createElement("span");
+          tools.className = "collapse-tools";
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "collapse-button";
+          button.setAttribute("aria-controls", panel.id);
+          button.innerHTML = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 9l6 6 6-6\"/></svg>";
+          button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            foldPanel(panel, !panel.classList.contains("is-collapsed"));
+          });
+          tools.append(button);
+          head.append(tools);
+          head.addEventListener("click", (event) => {
+            if (event.target.closest("button, input, select, textarea, a, label, .field-help")) return;
+            foldPanel(panel, !panel.classList.contains("is-collapsed"));
+          });
+        }
+        const help = head.querySelector(".help-button");  // the header's "i" text still opens while folded
+        const helpText = help && document.getElementById(help.getAttribute("aria-controls"));
+        if (helpText && panel.contains(helpText)) helpText.classList.add("collapse-keep");
+        panel.dataset.collapseKey = collapseKey(panel, head);
+        let folded = state.collapsed.includes(panel.dataset.collapseKey);
+        if (folded && panel.querySelector("[aria-invalid=true]")) {  // a field that needs a fix is shown
+          folded = false;
+          state.collapsed = state.collapsed.filter((key) => key !== panel.dataset.collapseKey);
+          savePrefs();
+        }
+        showFolded(panel, folded);
+      }
+    }
+  }
+
+  // Draw `panel` open or folded: its class, the chevron's state and name, and the header copy of its switch.
+  function showFolded(panel, folded) {
+    const head = panel.querySelector(".collapse-head");
+    const button = head.querySelector(":scope > .collapse-tools > .collapse-button");
+    panel.classList.toggle("is-collapsed", folded);
+    if (button.getAttribute("aria-expanded") !== String(!folded)) button.setAttribute("aria-expanded", String(!folded));
+    const title = head.matches("h2") ? head : head.querySelector(COLLAPSE_TITLE);
+    const label = (folded ? "Expand " : "Collapse ") + (title ? title.textContent.trim() : "panel");
+    if (button.getAttribute("aria-label") !== label) {
+      button.setAttribute("aria-label", label);
+      button.title = label;
+    }
+    const tools = button.parentElement;
+    let copy = tools.querySelector(".collapse-switch");
+    const real = folded ? collapseSwitch(panel) : null;
+    if (!real) {
+      if (copy) copy.remove();
+      return;
+    }
+    if (!copy) {
+      copy = document.createElement("span");
+      copy.className = "switch collapse-switch";
+      copy.innerHTML = "<input type=\"checkbox\" role=\"switch\"><span></span>";
+      copy.querySelector("input").addEventListener("change", (event) => {
+        const source = collapseSwitch(panel);
+        event.target.checked = source ? source.checked : event.target.checked;
+        if (!source) return;
+        const key = panel.dataset.collapseKey;
+        source.click();  // its own change handler saves and redraws
+        enhancePanels();
+        const again = Array.from(document.querySelectorAll(".collapse-switch input"))
+          .find((input) => input.closest(COLLAPSE_PANELS).dataset.collapseKey === key);
+        if (again) again.focus();
+      });
+      tools.prepend(copy);
+    }
+    const input = copy.querySelector("input");
+    input.checked = real.checked;
+    input.disabled = real.disabled;
+    if (input.getAttribute("aria-label") !== real.getAttribute("aria-label")) {
+      input.setAttribute("aria-label", real.getAttribute("aria-label") || "");
+    }
+  }
+
+  // Fold or open `panel` and keep the choice in the prefs.
+  function foldPanel(panel, folded) {
+    const key = panel.dataset.collapseKey;
+    state.collapsed = state.collapsed.filter((item) => item !== key);
+    if (folded) state.collapsed.push(key);
+    savePrefs();
+    showFolded(panel, folded);
+  }
+
+  // Open every folded panel around `element` before it is shown (a jump to a field, Undo, the tour).
+  function revealPanels(element) {
+    enhancePanels();  // a panel drawn just now is shown folded or open before it is opened
+    for (let panel = element && element.closest(".is-collapsed"); panel; panel = panel.parentElement.closest(".is-collapsed")) {
+      foldPanel(panel, false);
+    }
+  }
+
+  // Open the folded panels that hold input `path` (its field, else the field or list of a shorter part of it), before
+  // the place that shows it looks for it on screen.
+  function revealField(path) {
+    enhancePanels();
+    const parts = path.split(".");
+    for (let end = parts.length; end > 0; end -= 1) {
+      const element = document.getElementById(fieldId(parts.slice(0, end).join(".")));
+      if (element) { revealPanels(element); break; }
+    }
+    for (const list of drawnLists(parts[0])) revealPanels(list);
+  }
+
+  function wireCollapse() {
+    const observer = new MutationObserver(() => enhancePanels());
+    for (const tabId of COLLAPSE_TABS) observer.observe($(tabId), { childList: true, subtree: true });
+    enhancePanels();
   }
 
   // ---- Swipe: a sideways drag moves to the next or previous Inputs panel, Outputs sub-tab, or walkthrough question ----
@@ -2807,8 +2986,7 @@
       return items;
     },
     retirement() {
-      return lowPlanCard("retirement", "plan401k", "Does your household save in a 401k at work?",
-        low.facts && low.facts.retirementSummary);
+      return lowPlanCard("retirement", "plan401k", null, low.facts && low.facts.retirementSummary);
     },
     medical() {
       return lowPlanCard("medical", "medicalPlan", "Do you have a medical plan before Medicare?",
@@ -2835,7 +3013,7 @@
     if (!node) return [];
     const path = node.fields[0].path;
     const on = Boolean(walkRead(state.inputs, path));
-    return [lowYesNo("low-" + kind + "-plan", label, on, async (yes) => {
+    return [lowYesNo("low-" + kind + "-plan", label || walkText(node, "prompt"), on, async (yes) => {
       const reply = await lowApply(questionId, { [path]: yes }, kind);
       if (reply && yes) await openGuidedPlan(kind);
     }), on ? lowSummary(kind, summary) : null];
@@ -3015,6 +3193,7 @@
       renderSettings();
     }
     goTo(place.tab, state.view);
+    revealField(path);  // a folded panel opens first
     let found = drawnField(path, document);
     if (found && found.row) {
       found.element.click();  // opens the row's sheet
@@ -3659,8 +3838,10 @@
   const GAMER_TICK_MS = 300;  // the debounce of gamerTick
   const GAMER_TOAST_MS = 3500;  // how long the toast line shows
   const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views a visit marks seen
-  const gamer = { timer: null, toastTimer: null, migrated: false };
-  window.wmtiGamer = { state: () => state.game, tick: gamerTickNow };  // for the tests
+  // `pending`: a level-up card waiting for the Garden tab (memory only); `year`: the Garden's Plan year slider;
+  // `detail`: the bed or chip the Garden's detail area explains.
+  const gamer = { timer: null, toastTimer: null, migrated: false, pending: null, year: 0, detail: null };
+  window.wmtiGamer = { state: () => state.game, tick: gamerTickNow, tree: () => state.walkTree };  // for the tests
 
   // Whether the open scenario shows Gamer style; never with the gamify features off (gamifyOn), so no Awards view,
   // XP, quest map, Quick game or mini game shows then.
@@ -3728,11 +3909,16 @@
     gamer.timer = null;
     if (!gamerOn() || !state.inputs) return;
     migrateDeviceLedger();
+    const before = gamify.levelOf(gamify.xpOf(state.game.ledger)).level;
     const { ledger, grants } = gamify.evaluate(gamerFacts(), state.game.ledger,
       { effort: shownExperience().effort, today: gameToday() });
     if (!grants.length && JSON.stringify(ledger) === JSON.stringify(state.game.ledger)) return;
     saveLedger(ledger);
-    if (grants.length) gamerToast(gamify.grantsText(grants));
+    const card = gamify.levelUpCard(grants, gardenNameOf, before);
+    if (card) gamer.pending = card;  // shown by the Garden's next render with nothing else open
+    if (grants.length) {
+      gamerToast(gamify.grantsText(grants) + (card && !gardenCanReveal() ? " The garden has news." : ""));
+    }
     if (awardsShown()) renderAwards();
   }
 
@@ -3778,6 +3964,9 @@
     if (!on) {
       clearTimeout(gamer.toastTimer);
       $("gamerToast").hidden = true;
+      gamer.pending = null;
+      closeLevelUp();
+      $("awards-body").replaceChildren();  // no garden is kept while away
     }
     if (state.schema) {
       if (changed) { showPlace(); savePrefs(); } else renderAwards();
@@ -3792,18 +3981,23 @@
   const QUEST_ORDER = { open: 0, pending: 0, locked: 1, done: 2 };  // open quests first, done ones last
   const QUEST_STATE_TEXT = { open: "To do", pending: "Done, adding it now", done: "Done" };
 
-  // The Awards view: level and XP, the quests (each open one with Show me), the awards, and Reset progress.
+  // The Garden tab: the Glass Garden, level and XP with the Next step, the garden's detail area, the quests (each open
+  // one with Show me), the awards, the Greenhouse of mini games, and Reset progress.
   function awardsHtml() {
     const ledger = state.game.ledger;
     const facts = gamerFacts();
-    const xp = gamify.xpOf(ledger);
-    const level = gamify.levelOf(xp);
+    const model = gardenModel();
+    const xp = model.xp;
+    const level = model.level;
     const toNext = level.next == null ? "The top level." : (level.next - level.into) + " XP to level "
       + (level.level + 1) + ".";
-    let html = "<section class=\"gm-hero\" aria-labelledby=\"gmLevel\"><h3 id=\"gmLevel\">Level " + level.level + ": "
-      + escapeText(level.name) + "</h3><progress class=\"gm-bar\" max=\"" + (level.next || 1) + "\" value=\""
-      + (level.next == null ? 1 : level.into) + "\" aria-labelledby=\"gmLevel gmXp\"></progress><p id=\"gmXp\">" + xp
-      + " XP. " + toNext + "</p></section>";
+    let html = gardenHtml(model);
+    html += "<section class=\"gm-hero\" aria-labelledby=\"gmLevel\"><h3 id=\"gmLevel\" tabindex=\"-1\">Level "
+      + level.level + ": " + escapeText(level.name) + "</h3><progress class=\"gm-bar\" max=\"" + (level.next || 1)
+      + "\" value=\"" + (level.next == null ? 1 : level.into) + "\" aria-labelledby=\"gmLevel gmXp\"></progress><p "
+      + "id=\"gmXp\">" + xp + " XP. " + toNext + "</p><p class=\"gd-next\">" + escapeText(gardenNextStep(model))
+      + "</p></section>";
+    html += gardenDetailBox(model);
     const quests = gamify.questStatus(facts, ledger, shownExperience().effort)
       .map((quest, position) => ({ quest, position }))
       .sort((one, two) => QUEST_ORDER[one.quest.state] - QUEST_ORDER[two.quest.state] || one.position - two.position)
@@ -3833,12 +4027,20 @@
     return html;
   }
 
-  // The Mini games section: one card per game with its best stars and Play (Claim Age Showdown once per person).
+  // The Greenhouse: one card per mini game with its best stars and Play (Claim Age Showdown once per person); a tool's
+  // game says which tool and level open it, with no Play button, until then.
   function miniGamesHtml(ledger) {
     const partner = Boolean(state.inputs && state.inputs.partner);
-    return "<div class=\"card\"><div class=\"card-head\"><h2>Mini games</h2></div><div class=\"gm-list\" id=\"gmGames\">"
+    const level = gamify.levelOf(gamify.xpOf(ledger)).level;
+    return "<div class=\"card\"><div class=\"card-head\"><h2>Greenhouse: mini games</h2></div><div class=\"gm-list\" id=\"gmGames\">"
       + gameRules.GAMES.map((game) => {
       const entry = ledger.games[game.id];
+      const tool = gamify.toolOf(game.id);
+      if (tool && level < tool.level) {
+        return "<div class=\"gm-game-card\" data-game-card=\"" + game.id + "\" data-locked=\"true\"><strong>"
+          + escapeText(game.title) + "</strong><p>Opens with the " + escapeText(tool.title.toLowerCase()) + " (level "
+          + tool.level + ").</p></div>";
+      }
       const best = entry ? "Best: " + entry.stars + " of 3 stars." : "Not played yet.";
       const people = game.id === "claim" && partner ? [["you", "Play: you"], ["partner", "Play: partner"]]
         : [["you", "Play"]];
@@ -3855,6 +4057,7 @@
     if (!awardsShown()) return;
     migrateDeviceLedger();
     $("awards-body").innerHTML = awardsHtml();
+    maybeShowPending();
   }
 
   // Show me: the walkthrough, a result view, or an input on its page (Inputs when it is not drawn at this effort).
@@ -3871,6 +4074,7 @@
       text: "This clears this scenario's XP, quests and awards. Your plan does not change.",
       actions: [["Reset", "button button-danger", () => {
         saveLedger(gamify.resetLedger(gamerFacts(), state.game.ledger));
+        gamer.pending = null;
         renderAwards();
         gamerToast("Progress reset.");
       }, "gamerResetConfirm"], ["Cancel", "button button-quiet", () => true, "gamerResetCancel"]] });
@@ -3906,10 +4110,12 @@
       if (playButton) { openGame(playButton.dataset.game, { who: playButton.dataset.who, returnFocus: playButton }); return; }
       if (event.target.closest("#gamerReset")) confirmResetGame();
     });
+    wireGarden();
   }
   // ---- Gamer mini games (Gamer style only) ----
-  // Four short, original games (rules in games.js, WmtiGames) in one pop-up (#gameDialog), opened from the Awards
-  // view's Mini games and from the walkthrough's "Quick game" buttons. Three rounds, no clock; Close or Escape any
+  // Seven short, original games (rules in games.js, WmtiGames) in one pop-up (#gameDialog), opened from the Garden
+  // tab's Greenhouse and tools (the three tool games, 54-tool-games.js, once their level is reached) and from the
+  // walkthrough's "Quick game" buttons. Three rounds, no clock; Close or Escape any
   // time (an unfinished run grants nothing). Finishing records the play with gamerRecordPlay (51-gamer.js). The games
   // read fixed law data (state.info.law), the person's benefitTables rows (Claim Age Showdown) or generic numbers and
   // change nothing, except Claim Age Showdown's confirmed "Set my claim age" (one Undo step, never at Low).
@@ -3981,7 +4187,7 @@
 
   // Open game `id`; `who` picks the person for Claim Age Showdown, `returnFocus` gets the focus back on Close.
   async function openGame(id, { who = "you", returnFocus = null } = {}) {
-    if (!GAME_TITLES[id] || !gamerOn() || !state.inputs) return;
+    if (!GAME_TITLES[id] || !gamerOn() || !state.inputs || !toolGameOpen(id)) return;
     const turn = ++play.turn;
     Object.assign(play, { id, who: who === "partner" && state.inputs.partner ? "partner" : "you", round: 0,
       rounds: null, results: [], answer: undefined, checked: false, finished: false, stars: 0, data: null,
@@ -4018,6 +4224,12 @@
       play.rounds = gameRules.bracketRounds({ brackets: { key: play.data.brackets } }, "key", seed);
     } else if (id === "receipts") {
       play.rounds = gameRules.receiptRounds(seed);
+    } else if (id === "seesaw") {
+      play.rounds = gameRules.seesawRounds(seed);
+    } else if (id === "leaks") {
+      play.rounds = gameRules.leakRounds(seed);
+    } else if (id === "snowball") {
+      play.rounds = gameRules.snowballRounds(seed);
     } else {
       play.rounds = gameRules.decadeRounds(seed);
     }
@@ -4050,7 +4262,8 @@
     $("gameActions").replaceChildren(...buttons, gameButton("Close", "button button-quiet", closeGame, "gameClose"));
   }
 
-  const GAME_SCREENS = { bracket: bracketScreen, claim: claimScreen, receipts: receiptScreen, decade: decadeScreen };
+  const GAME_SCREENS = { bracket: bracketScreen, claim: claimScreen, receipts: receiptScreen, decade: decadeScreen,
+    seesaw: seesawScreen, leaks: leaksScreen, snowball: snowballScreen };
 
   function renderGameRound() {
     play.answer = undefined;
@@ -4076,7 +4289,8 @@
       return;
     }
     const graders = { bracket: gameRules.gradeBracket, claim: gameRules.gradeClaim, receipts: gameRules.gradeReceipts,
-      decade: gameRules.gradeDecade };
+      decade: gameRules.gradeDecade, seesaw: gameRules.gradeSeesaw, leaks: gameRules.gradeLeaks,
+      snowball: gameRules.gradeSnowball };
     const answer = play.answer === "never" ? null : play.answer;
     const right = graders[play.id](round, answer);
     play.checked = true;
@@ -4515,6 +4729,463 @@
       event.preventDefault();
       play.placeReceipt(gameRules.BINS[GAME_DIGITS[event.key]].id);
     });
+  }
+  // ---- Glass Garden (Gamer style only) ----
+  // The Garden tab's terrarium (rules in gamify.js): one bed per walkthrough topic and three tools (each opening a
+  // mini game, 54-tool-games.js), opened by level; a bed's soil is how
+  // much of the topic is filled in, the plants grow with the latest simulation's chance of success, and the Plan year
+  // slider turns the seasons. The garden is drawn from the plan, the walkthrough answers, the latest Monte Carlo and the
+  // ledger every time the tab renders, and stores nothing; playing never changes the plan. Also the level-up card
+  // (through openDialog) naming the steps that earned a level. Built only while the Garden tab is open (renderAwards).
+  const { tierShown } = window.WmtiShared;  // walkLabel comes from 00-core.js
+
+  // The chance of success of a Monte Carlo result (1 less the chance of running out), or null.
+  function gardenSuccess(entry) {
+    const headlines = entry && entry.value && Array.isArray(entry.value.headlines) ? entry.value.headlines : [];
+    const out = headlines.find((item) => item.label === "Chance of running out");
+    return out && Number.isFinite(out.value) ? 1 - out.value : null;
+  }
+
+  // The value at a walkthrough field path (list selectors such as `accounts[Savings]` resolved) of some data.
+  function gardenValueAt(data, path) {
+    if (data == null) return undefined;
+    const indexed = walkIndexedPath(data, path);
+    return indexed == null ? undefined : getPath(data, indexed);
+  }
+
+  // Everything the Garden draws, read from the state; nothing is written.
+  function gardenModel() {
+    const ledger = state.game.ledger;
+    const xp = gamify.xpOf(ledger);
+    const level = gamify.levelOf(xp);
+    const effort = shownExperience().effort;
+    const saved = state.experience && isObject(state.experience.walk) ? state.experience.walk : {};
+    const counts = state.walkTree ? gamify.bedCounts(state.walkTree, { answers: saved.answers, opened: saved.opened,
+      inputs: state.inputs, defaults: state.defaults, effort, tierShown, valueAt: gardenValueAt, same: sameValue }) : [];
+    const open = gamify.bedsOpen(level.level);
+    const { entry, stale } = latestMonteCarlo();
+    const share = gardenSuccess(entry);
+    const years = Math.max(1, planYears(state.inputs) || 1);
+    const yearMax = years - 1;
+    gamer.year = Math.min(Math.max(0, Number(gamer.year) || 0), yearMax);
+    const quests = gamify.questStatus(gamerFacts(), ledger, effort);
+    const nextQuest = quests.find((quest) => quest.state === "open") || null;
+    return { xp, level, effort, counts, open, soil: gamify.soilOf(counts, open), share, stale: Boolean(entry) && stale,
+      growth: gamify.growthStage(share), yearMax, startYear: Number(state.info.lawTaxYear) || new Date().getFullYear(),
+      nextQuest };
+  }
+
+  // The Next step line: the first open quest, else more walkthrough answers, else nothing at the top level.
+  function gardenNextStep(model) {
+    if (model.level.next == null) return "You are at the top level; every bed is open.";
+    if (model.nextQuest) return "Next step: " + model.nextQuest.title + " (" + model.nextQuest.xp + " XP). "
+      + model.nextQuest.how;
+    return "Next step: answer more questions in Walk me through it (" + gamify.XP.walkAnswer + " XP each).";
+  }
+
+  const gardenPercent = (share) => Math.round(Math.max(0, Math.min(1, share)) * 100) + " percent";
+  const gardenSeasonText = (model) => {
+    const season = gamify.seasonAt(gamer.year);
+    return (model.startYear + season.year) + ", " + season.name;
+  };
+
+  // One plant (decorative): a dashed ghost for an empty slot, else its growth stage, 0 a seedling to 4 in bloom.
+  function plantSvg(stage, ghost) {
+    const leaf = (x, y, turn, size) => "<ellipse class=\"gd-leaf\" cx=\"" + x + "\" cy=\"" + y + "\" rx=\""
+      + (size * 7) + "\" ry=\"" + (size * 3) + "\" transform=\"rotate(" + turn + " " + x + " " + y + ")\"/>";
+    let shape;
+    if (ghost) shape = "<path class=\"gd-ghost\" d=\"M20 62V36M20 31a5 5 0 1 1 0 .01\"/>";
+    else if (stage <= 0) shape = "<path class=\"gd-stem\" d=\"M20 62V54\"/>" + leaf(16, 55, -30, 0.6)
+      + leaf(24, 54, 30, 0.6);
+    else if (stage === 1) shape = "<path class=\"gd-stem\" d=\"M20 62V44\"/>" + leaf(15, 52, -30, 0.8)
+      + leaf(25, 47, 30, 0.8);
+    else {
+      shape = "<path class=\"gd-stem\" d=\"M20 62C18 50 22 38 20 22\"/>" + leaf(13, 54, -28, 1.1)
+        + leaf(27, 48, 28, 1.1) + leaf(14, 40, -34, 1) + leaf(26, 33, 34, 0.9);
+      if (stage === 3) shape += "<ellipse class=\"gd-bud\" cx=\"20\" cy=\"18\" rx=\"5\" ry=\"7\"/>";
+      if (stage >= 4) {
+        shape += [0, 72, 144, 216, 288].map((turn) => "<ellipse class=\"gd-petal\" cx=\"20\" cy=\"9\" rx=\"4.5\" "
+          + "ry=\"7\" transform=\"rotate(" + turn + " 20 16)\"/>").join("") + "<circle class=\"gd-core\" cx=\"20\" "
+          + "cy=\"16\" r=\"3.5\"/>";
+      }
+    }
+    return "<svg class=\"gd-plant\" viewBox=\"0 0 40 64\" aria-hidden=\"true\" focusable=\"false\"><g class=\"gd-sway\">"
+      + shape + "</g></svg>";
+  }
+
+  // A bed's state: locked below its level, rest (no question at this effort, or an optional topic not opened),
+  // complete when every question is filled, else open.
+  function bedState(bed, model) {
+    if (!model.open.includes(bed.id)) return "locked";
+    if (bed.rest) return "rest";
+    return bed.filled >= bed.total ? "complete" : "open";
+  }
+
+  // One bed: a real button whose name carries its state; the plants, soil and frosted cover are decoration.
+  function bedHtml(bed, model) {
+    const state = bedState(bed, model);
+    const share = bed.total ? bed.filled / bed.total : 0;
+    let name;
+    let label;
+    let plants = "";
+    if (state === "locked") {
+      name = bed.title + " bed, locked. Opens at level " + bed.level;
+      label = "<span class=\"gd-cover\"><strong>" + escapeText(bed.title) + "</strong><span>Level " + bed.level
+        + "</span></span>";
+    } else if (state === "rest") {
+      name = bed.title + " bed, optional. Walk me through it to open";
+      label = "<span class=\"gd-label\"><strong>" + escapeText(bed.title) + "</strong><span>Optional</span></span>";
+      plants = [0, 1, 2, 3].map(() => plantSvg(0, true)).join("");
+    } else {
+      const done = state === "complete" ? ", complete" : "";
+      name = bed.title + " bed, " + bed.filled + " of " + bed.total + " filled, soil " + gardenPercent(share) + done;
+      label = "<span class=\"gd-label\"><strong>" + escapeText(bed.title) + "</strong><span>"
+        + (state === "complete" ? "Complete" : bed.filled + " of " + bed.total) + "</span></span>";
+      const grown = bed.filled > 0 ? Math.max(1, Math.round(4 * share)) : 0;
+      plants = [0, 1, 2, 3].map((slot) => plantSvg(model.growth.stage, slot >= grown)).join("");
+    }
+    return "<button type=\"button\" class=\"gd-bed\" data-bed=\"" + escapeText(bed.id) + "\" data-state=\"" + state
+      + "\" style=\"--soil: " + share.toFixed(2) + "\" aria-label=\"" + escapeText(name) + "\"><span class=\"gd-plants\" "
+      + "aria-hidden=\"true\">" + plants + "</span><span class=\"gd-soil-wrap\" aria-hidden=\"true\"><span "
+      + "class=\"gd-soil\"></span></span>" + label + "</button>";
+  }
+
+  // The tools row: each tool a button; an open one starts its game, a locked one says its level.
+  function toolHtml(model) {
+    return "<div class=\"gd-tools\" role=\"group\" aria-label=\"Garden tools\">" + gamify.TOOLS.map((tool) => {
+      const open = model.level.level >= tool.level;
+      const game = GAME_TITLES[tool.game];
+      const name = open ? tool.title + ": play " + game : tool.title + ", locked. Opens at level " + tool.level;
+      return "<button type=\"button\" class=\"gd-tool\" data-tool=\"" + tool.id + "\" data-game=\"" + tool.game
+        + "\" data-state=\"" + (open ? "open" : "locked") + "\" aria-label=\"" + escapeText(name) + "\"><b>"
+        + escapeText(tool.title) + "</b><span>" + (open ? escapeText(game) : "Level " + tool.level) + "</span></button>";
+    }).join("") + "</div>";
+  }
+
+  // The three chips under the scene: soil, plants and season, each a button that explains itself below.
+  function gardenChips(model) {
+    const chip = (kind, small, big, name) => "<button type=\"button\" class=\"gd-chip\" data-detail=\"" + kind
+      + "\" aria-label=\"" + escapeText(name) + "\"><small>" + escapeText(small) + "</small><b" + (kind === "season"
+        ? " id=\"gdSeasonChip\"" : "") + ">" + escapeText(big) + "</b></button>";
+    const season = gardenSeasonText(model);
+    return "<div class=\"gd-chips\">" + chip("soil", "Soil", Math.round(model.soil * 100) + "%", "Soil "
+      + gardenPercent(model.soil) + ", how much of your plan you have filled in")
+      + chip("growth", "Plants", model.growth.name, "Plants " + model.growth.name + ", from the chance of success")
+      + chip("season", "Season", season, "Season " + season + ", from the Plan year") + "</div>";
+  }
+
+  // The line under the scene saying how healthy the plan looks, or how to find out.
+  function gardenStatusHtml(model) {
+    if (model.share == null) {
+      return "<p class=\"gd-status\">Your plants are seedlings. Run the simulation to see how healthy the plan is. "
+        + "<button type=\"button\" class=\"button button-quiet gd-run\">Go to Summary</button></p>";
+    }
+    return "<p class=\"gd-status\">Your plants are " + escapeText(model.growth.name) + ": the " + (model.stale
+      ? "earlier run" : "latest run") + " gives a " + gardenPercent(model.share) + " chance of success.</p>";
+  }
+
+  // The Garden: the terrarium with its beds, the chips, the status line and the Plan year slider.
+  function gardenHtml(model) {
+    const season = gamify.seasonAt(gamer.year).season;
+    const beds = model.counts.map((bed) => bedHtml(bed, model)).join("");
+    return "<section class=\"card gd-scene\" aria-labelledby=\"gdTitle\"><div class=\"card-head\"><h2 id=\"gdTitle\">"
+      + "Glass Garden</h2></div><div class=\"gd-stage\" id=\"gdStage\" data-season=\"" + season + "\" data-growth=\""
+      + model.growth.stage + "\"><svg class=\"gd-house\" viewBox=\"0 0 300 120\" preserveAspectRatio=\"none\" "
+      + "aria-hidden=\"true\" focusable=\"false\"><path class=\"gd-hills\" d=\"M0 80c50-24 100-16 150 0s100-8 150-16"
+      + "v56H0z\"/><path class=\"gd-frame\" d=\"M6 120V40Q150-20 294 40V120\"/><path class=\"gd-frame\" "
+      + "d=\"M80 120V14M150 120V6M220 120V14\"/></svg><div class=\"gd-beds\" role=\"group\" aria-label=\"Garden beds\">"
+      + beds + "</div></div>" + toolHtml(model) + gardenChips(model) + gardenStatusHtml(model) + "<div class=\"gd-year\"><label "
+      + "class=\"field-label\" for=\"gdYear\">Plan year</label><input type=\"range\" id=\"gdYear\" min=\"0\" max=\""
+      + model.yearMax + "\" step=\"0.25\" value=\"" + gamer.year + "\" aria-valuetext=\""
+      + escapeText(gardenSeasonText(model)) + "\"><output id=\"gdYearText\" for=\"gdYear\">"
+      + escapeText(gardenSeasonText(model)) + "</output></div></section>";
+  }
+
+  // The words of the detail area for a bed or a chip (`kind` bed, soil, growth or season).
+  function gardenDetailHtml(kind, id, model) {
+    const walkButton = "<button type=\"button\" class=\"button button-quiet gd-walk\">Walk me through it</button>";
+    if (kind === "bed") {
+      const bed = model.counts.find((item) => item.id === id);
+      if (!bed) return "";
+      const state = bedState(bed, model);
+      const head = "<h3>" + escapeText(bed.title) + "</h3>";
+      if (state === "locked") {
+        return head + "<p>Opens at level " + bed.level + ". You are at level " + model.level.level + ".</p><p>"
+          + escapeText(gardenNextStep(model)) + "</p>";
+      }
+      if (state === "rest") {
+        return head + "<p>Optional: Walk me through it to open. No questions of this topic are asked at this effort "
+          + "yet.</p>" + walkButton;
+      }
+      return head + "<p>" + bed.filled + " of " + bed.total + " questions filled in" + (state === "complete"
+        ? ". Complete." : ", soil " + gardenPercent(bed.filled / bed.total) + ".") + "</p><p class=\"field-help\">A "
+        + "question counts once you answer it in Walk me through it or change its input from the example.</p>"
+        + walkButton;
+    }
+    if (kind === "tool") {
+      const tool = gamify.TOOLS.find((item) => item.id === id);
+      if (!tool) return "";
+      return "<h3>" + escapeText(tool.title) + "</h3><p>Opens " + escapeText(GAME_TITLES[tool.game]) + " at level "
+        + tool.level + ". You are at level " + model.level.level + ".</p><p>" + escapeText(gardenNextStep(model))
+        + "</p>";
+    }
+    if (kind === "soil") {
+      const open = model.counts.filter((bed) => model.open.includes(bed.id) && !bed.rest);
+      const filled = open.reduce((sum, bed) => sum + bed.filled, 0);
+      const total = open.reduce((sum, bed) => sum + bed.total, 0);
+      return "<h3>Soil</h3><p>" + filled + " of " + total + " questions of your open beds are filled in: soil "
+        + gardenPercent(model.soil) + ". Richer soil means more plants in each bed.</p>";
+    }
+    if (kind === "growth") {
+      return "<h3>Plants</h3><p>" + (model.share == null ? "Seedlings: no simulation yet. Run it in Outputs, Summary."
+        : "Plants " + escapeText(model.growth.name) + " for a " + gardenPercent(model.share) + " chance of success.")
+        + " The plants follow your plan; playing never changes it.</p>";
+    }
+    if (kind === "season") {
+      return "<h3>Season</h3><p>Plan year " + escapeText(gardenSeasonText(model)) + ". Move the Plan year slider to "
+        + "turn the seasons; nothing is saved or run.</p>";
+    }
+    return "";
+  }
+
+  // Fill the detail area (a polite live region) for a bed or a chip; the focus stays where it is.
+  function showGardenDetail(kind, id) {
+    gamer.detail = { kind, id };
+    const detail = $("gardenDetail");
+    if (detail) detail.innerHTML = gardenDetailHtml(kind, id, gardenModel());
+  }
+
+  // The detail area's markup for the render (the last bed or chip chosen, else a hint).
+  function gardenDetailBox(model) {
+    const kept = gamer.detail ? gardenDetailHtml(gamer.detail.kind, gamer.detail.id, model) : "";
+    return "<div class=\"card gd-detail\" id=\"gardenDetail\" aria-live=\"polite\">" + (kept
+      || "<p class=\"field-help\">Choose a bed or a chip to see what it shows.</p>") + "</div>";
+  }
+
+  // The Plan year slider: the season on the stage and the label follow; nothing is saved, rendered again or run.
+  function gardenYear(input) {
+    gamer.year = Number(input.value) || 0;
+    const season = gamify.seasonAt(gamer.year);
+    const text = (Number(state.info.lawTaxYear) || new Date().getFullYear()) + season.year + ", " + season.name;
+    $("gdStage").dataset.season = String(season.season);
+    $("gdYearText").textContent = text;
+    $("gdSeasonChip").textContent = text;
+    input.setAttribute("aria-valuetext", text);
+  }
+
+  // A grant's line on the level-up card: the quest, the question answered or the game finished.
+  function gardenNameOf(grant) {
+    if (grant.kind === "answer") {
+      const found = state.walkTree ? walkIndex(state.walkTree)[grant.id] : null;
+      return "Answered: " + (found ? walkLabel(found.node) : grant.id);
+    }
+    if (grant.kind === "game") {
+      const title = GAME_TITLES[grant.id] || grant.id;
+      return grant.key.endsWith(".done") ? "Finished " + title : "3 stars in " + title;
+    }
+    return grant.title || grant.key;
+  }
+
+  // Whether the level-up card may show now: the Garden tab is open and no dialog, game or walkthrough is.
+  function gardenCanReveal() {
+    return awardsShown() && $("dialog").hidden && $("gameDialog").hidden && !walk.open;
+  }
+
+  // The level-up card: the level, what earned it (largest XP first) and what opened. Escape or the button closes it.
+  function showLevelUp(card) {
+    const box = document.createElement("div");
+    box.className = "gd-reveal";
+    box.innerHTML = "<p>What earned it:</p><ul>" + card.steps.map((step) => "<li>" + escapeText(step.text) + ": +"
+      + step.xp + " XP</li>").join("") + (card.more ? "<li>and " + card.more + " more</li>" : "") + "</ul>"
+      + (card.unlocks.length ? "<p>Now open: " + escapeText(card.unlocks.join(", ")) + ".</p>" : "")
+      + "<p class=\"field-help\">XP pays once. The garden follows your plan; playing never changes it.</p>";
+    const active = document.activeElement;
+    if ((!active || active === document.body) && $("gmLevel")) $("gmLevel").focus();
+    openDialog({ title: "Level " + card.level + ": " + card.name, body: [box],
+      actions: [["Back to the garden", "button", () => true, "gardenRevealClose"]] });
+  }
+
+  // Show a level-up card waiting for the Garden, once nothing else is open.
+  function maybeShowPending() {
+    if (!gamer.pending || !gardenCanReveal()) return;
+    const card = gamer.pending;
+    gamer.pending = null;
+    showLevelUp(card);
+  }
+
+  // Close an open level-up card (leaving Gamer).
+  function closeLevelUp() {
+    if (!$("dialog").hidden && $("gardenRevealClose")) closeDialog(false);
+  }
+
+  function wireGarden() {
+    $("awards-body").addEventListener("click", (event) => {
+      const bed = event.target.closest(".gd-bed");
+      if (bed) { showGardenDetail("bed", bed.dataset.bed); return; }
+      const tool = event.target.closest(".gd-tool");
+      if (tool && tool.dataset.state === "open") { openGame(tool.dataset.game, { returnFocus: tool }); return; }
+      if (tool) { showGardenDetail("tool", tool.dataset.tool); return; }
+      const chip = event.target.closest(".gd-chip");
+      if (chip) { showGardenDetail(chip.dataset.detail, null); return; }
+      if (event.target.closest(".gd-walk")) { openWalk(); return; }
+      if (event.target.closest(".gd-run")) selectView("summary");
+    });
+    $("awards-body").addEventListener("input", (event) => {
+      if (event.target.id === "gdYear") gardenYear(event.target);
+    });
+  }
+  // ---- The Garden's tool games (Gamer style only) ----
+  // Drift Seesaw (rebalancing), Plug the Leaks (fees) and Early Bird Snowball (starting early): the games the
+  // Garden's tools open (watering can, shears, seed pouch; gamify.js TOOLS). Rules in games.js; the screens here use
+  // the shared pop-up of 52-games.js (gameEl, gameChoices, gameBars), radio answers only, no clock, generic numbers and
+  // no user data. Each picture is decoration; its facts are in the text, the live readout or a table.
+
+  // Whether game `id` may open: any game that is not a tool's, or a tool's once the level reaches it.
+  function toolGameOpen(id) {
+    const tool = gamify.toolOf(id);
+    return !tool || gamify.levelOf(gamify.xpOf(state.game.ledger)).level >= tool.level;
+  }
+
+  // A polite live line under a game's picture.
+  function toolReadout(text) {
+    const line = gameEl("p", "gm-readout", text || "");
+    line.id = "gameReadout";
+    line.setAttribute("aria-live", "polite");
+    return line;
+  }
+
+  // A decorative picture from SVG markup (built from numbers only).
+  function toolPicture(className, markup) {
+    const holder = gameEl("div", className);
+    holder.setAttribute("aria-hidden", "true");
+    holder.innerHTML = markup;
+    return holder;
+  }
+
+  // ---- Drift Seesaw ----
+  const SEESAW_VIEW = { width: 300, height: 120, top: 0.8, bottom: 0.4 };
+
+  // The stock share line of `path` over the green band, and a beam tilted by the last month's drift.
+  function seesawSvg(path) {
+    const rules = gameRules.SEESAW;
+    const { width, height, top, bottom } = SEESAW_VIEW;
+    const y = (share) => (height * (top - Math.min(top, Math.max(bottom, share))) / (top - bottom)).toFixed(1);
+    const x = (index) => (20 + index * ((width - 30) / (path.length - 1))).toFixed(1);
+    const line = path.map((share, index) => (index ? "L" : "M") + x(index) + " " + y(share)).join("");
+    const tilt = Math.max(-20, Math.min(20, (path[path.length - 1] - rules.target) * 200)).toFixed(1);
+    return "<svg viewBox=\"0 0 " + width + " " + (height + 40) + "\"><rect class=\"gm-band\" x=\"0\" y=\""
+      + y(rules.high) + "\" width=\"" + width + "\" height=\"" + (y(rules.low) - y(rules.high)).toFixed(1) + "\"/>"
+      + "<path class=\"gm-line\" d=\"" + line + "\"/><g transform=\"translate(150 " + (height + 22) + ") rotate("
+      + tilt + ")\"><rect class=\"gm-beam\" x=\"-90\" y=\"-3\" width=\"180\" height=\"6\" rx=\"3\"/></g><path "
+      + "class=\"gm-pivot\" d=\"M150 " + (height + 22) + "l-9 16h18z\"/></svg>";
+  }
+
+  // The plain path as a table, built when its section opens.
+  function seesawTable(returns) {
+    const details = gameEl("details");
+    details.append(gameEl("summary", "", "Show the months as a table"));
+    details.addEventListener("toggle", () => {
+      if (!details.open || details.querySelector("table")) return;
+      const table = gameEl("table", "data-table");
+      const head = gameEl("tr");
+      for (const name of ["Month", "Stock return", "Stocks, never rebalanced"]) head.append(gameEl("th", "", name));
+      table.append(head);
+      gameRules.driftPath(returns).forEach((share, index) => {
+        const row = gameEl("tr");
+        for (const text of [String(index + 1), percent(returns[index], 1), percent(share, 1)]) {
+          row.append(gameEl("td", "", text));
+        }
+        table.append(row);
+      });
+      details.append(table);
+    });
+    return details;
+  }
+
+  function seesawScreen(round) {
+    const rules = gameRules.SEESAW;
+    const picture = toolPicture("gm-ladder gm-seesaw", seesawSvg(gameRules.driftPath(round.returns)));
+    const readout = toolReadout("Drawn: never rebalanced. The mix ends at "
+      + percent(gameRules.driftPath(round.returns).slice(-1)[0], 0) + " stocks.");
+    const choices = gameChoices("Rebalancing plan", round.options.map((option) => [option.id, option.label]));
+    choices.addEventListener("change", () => {
+      const option = round.options.find((item) => item.id === play.answer);
+      if (!option) return;
+      const path = gameRules.driftPath(round.returns, option.months);
+      picture.innerHTML = seesawSvg(path);
+      readout.textContent = "Drawn: " + option.label.toLowerCase() + ".";
+    });
+    const nodes = [gameEl("p", "", "Your mix starts at " + percent(rules.target, 0) + " stocks; the green band is "
+      + percent(rules.low, 0) + " to " + percent(rules.high, 0) + ". Stocks swing month to month (illustrative), "
+      + "bonds earn a little. Which plan keeps you in the green band the most months?"), picture, readout, choices,
+    seesawTable(round.returns)];
+    return { nodes, reveal: () => round.options.map((option) => option.label + ": " + option.inBand + " of "
+      + rules.months).join("; ") + "." };
+  }
+
+  // ---- Plug the Leaks ----
+  const leakLabel = (id) => gameRules.leakPool().find((leak) => leak.id === id).label;
+  const leakText = (ids) => ids.map((id) => leakLabel(id).toLowerCase()).join(" and ");
+
+  // A tank whose water stands at `share` of the fee-free end value.
+  function leakTank(share) {
+    const level = (110 - 100 * Math.max(0, Math.min(1, share))).toFixed(1);
+    return "<svg viewBox=\"0 0 300 120\"><rect class=\"gm-tank\" x=\"100\" y=\"8\" width=\"100\" height=\"104\" "
+      + "rx=\"8\"/><rect class=\"gm-water\" x=\"104\" y=\"" + level + "\" width=\"92\" height=\"" + (110 - level)
+      .toFixed(1) + "\" rx=\"4\"/></svg>";
+  }
+
+  function leaksScreen(round) {
+    const all = gameRules.leakFee(round.leaks);
+    const free = gameRules.leakValue(0);
+    const left = (option) => all - gameRules.leakFee(option.plugs);
+    const picture = toolPicture("gm-ladder gm-leaks", leakTank(gameRules.leakValue(all) / free));
+    const readout = toolReadout("Fees now: " + percent(all, 2) + " a year.");
+    const list = gameEl("ul");
+    for (const id of round.leaks) {
+      list.append(gameEl("li", "", leakLabel(id) + ": " + percent(gameRules.leakPool()
+        .find((leak) => leak.id === id).fee, 2) + " a year"));
+    }
+    const pair = round.kind === "pair";
+    const choices = gameChoices(pair ? "Plug two" : "Plug one", round.options.map((option) => [option.id,
+      "Plug the " + leakText(option.plugs)]));
+    choices.addEventListener("change", () => {
+      const option = round.options.find((item) => item.id === play.answer);
+      if (!option) return;
+      picture.innerHTML = leakTank(gameRules.leakValue(left(option)) / free);
+      readout.textContent = "Fees left: " + percent(left(option), 2) + " a year.";
+    });
+    const nodes = [gameEl("p", "", fullMoney(100000) + " grows for 30 years at 6% a year, less these yearly fees. "
+      + (pair ? "Plug two: which pair saves the most?" : "Plug one: which saves the most?")), list, picture, readout,
+    choices];
+    return { nodes, reveal: () => round.options.map((option) => "Plug the " + leakText(option.plugs) + ": "
+      + percent(left(option), 2) + " left, ends with " + fullMoney(gameRules.leakValue(left(option))))
+      .join("; ") + ". With no fees: " + fullMoney(free) + "." };
+  }
+
+  // ---- Early Bird Snowball ----
+  function snowballScreen(round) {
+    const { rival, rivalStart, you } = round.preset;
+    const readout = toolReadout("");
+    const choices = gameChoices("Latest start age", round.choices.map((age) => [age, "Start at " + age]));
+    choices.addEventListener("change", () => {
+      if (play.answer == null) return;
+      readout.textContent = "Starting at " + play.answer + ": " + (65 - Number(play.answer)) + " years of saving.";
+    });
+    const after = gameEl("div", "dialog-body");
+    after.hidden = true;
+    const nodes = [gameEl("p", "", "Your rival saves " + fullMoney(rival) + " a month from age " + rivalStart
+      + " to 65. You save " + fullMoney(you) + " a month. At 7% a year, what is the latest age you can start and "
+      + "still end with more?"), choices, readout, after];
+    return { nodes, reveal: () => {
+      const mine = gameRules.snowballValue(you, round.answer);
+      const theirs = gameRules.snowballValue(rival, rivalStart);
+      after.append(gameBars([["You, from " + round.answer, mine], ["Rival, from " + rivalStart, theirs]],
+        "At 65"));
+      after.hidden = false;
+      return "Start at " + round.answer + ": " + fullMoney(mine) + "; rival: " + fullMoney(theirs) + ". A year later "
+        + "and you end below.";
+    } };
   }
   // ---- Compare: two configs (saved, the current settings or the example household) on the same draws ----
   function savedNames() {
@@ -6215,6 +6886,7 @@
   }
 
   function flashField(element) {
+    revealPanels(element);  // a folded panel opens first
     const target = element.closest(".field") || element.closest(".item-row") || element;
     target.classList.remove("undo-flash");
     void target.offsetWidth;  // restart the fade when the same field flashes again
@@ -6232,6 +6904,7 @@
           renderSettings();
         }
         goTo(place.tab, state.view);
+        revealField(path);  // a folded panel opens first
         let found = drawnField(path, document);
         if (!found) continue;
         if (found.row) {
@@ -7100,7 +7773,6 @@
     }
     if (panel.id === "accounts") {
       group.append(...benefitAccountRows());
-      group.append(warningsBox("owner-warnings"));
       // The surplus split edits each account's surplus share (High): at Medium it waits for Add detail, and the
       // stored shares keep working (renderSplit draws nothing without its holder).
       const share = (state.schema.types.Account || []).find((child) => child.name === "surplusShare");
@@ -7683,7 +8355,7 @@
   // Put the benefit table's ages into a person's claim-age select in place, so focus and scrolling stay.
   function updateClaimSelect(person) {
     const select = $(fieldId(person.role + ".socialSecurityAge"));
-    if (!select) return;
+    if (!select || select.tagName !== "SELECT") return;  // the claim age is a slider: no options to update
     const value = getPath(state.inputs, person.role + ".socialSecurityAge");
     const ages = claimAgeList(person.claimAges, value).map(String);
     if (JSON.stringify([...select.options].map((option) => option.value)) === JSON.stringify(ages)) return;
@@ -7752,7 +8424,6 @@
   function applyNotes() {
     const notes = state.notes;
     if (!notes) return;
-    fillWarnings("owner-warnings", notes.ownerWarnings);
     fillWarnings("strategy-warnings", notes.strategyWarnings);
     fillWarnings("car-warnings", notes.carWarnings);
     fillWarnings("home-warnings", notes.homeWarnings);
@@ -8372,7 +9043,8 @@
     inputsChanged();
   }
 
-  // Fields with their own control: the Social Security basis, an expense row's and the Roth conversion's ages.
+  // Fields with their own control: the Social Security basis, an expense row's and the Roth conversion's ages, and the
+  // claim and Medicare ages (one-knob age sliders).
   function specialField(field, path, value) {
     if (/^(you|partner)\.socialSecurityBasis$/.test(path)) return basisToggle(field, path, value);
     if (/^(you|partner)\.employerMatch\.percent$/.test(path)) return matchPercentField(field, path);
@@ -8382,7 +9054,37 @@
     if (at && (RADIO_SEGMENTED[at.type] || []).includes(at.name)) return radioSegmentedField(field, path);
     if (at && at.type === "ExpenseItem" && at.name === "year") return expenseAgesField(field, path, at.item);
     if (path === "strategies.rothConversion.startAge") return rothAgesField(field, path);
+    if (/^(you|partner)\.socialSecurityAge$/.test(path)) return claimAgeField(field, path);
+    if (path === "premiums.medicareAge") return medicareAgeField(field, path);
     return null;
+  }
+
+  // The Social Security claim age as a one-knob age slider over the claim ages (appInfo claimAgeRange: 62 to 70, whole
+  // years, as the model reads it).
+  function claimAgeField(field, path) {
+    const [low, high] = state.info.claimAgeRange.map(Number);
+    return oneAgeField(field, path, low, high, "Claim age");
+  }
+
+  // The Medicare age as a one-knob age slider from 65 (MEDICARE_SLIDER_LOW) to your age in the run's last year.
+  function medicareAgeField(field, path) {
+    const low = MEDICARE_SLIDER_LOW;
+    const high = Math.max(low, Number(state.inputs.you.currentAge) + planYears(state.inputs) - 1);
+    return oneAgeField(field, path, low, high, "Medicare age");
+  }
+
+  // A one-knob age slider (ageRangeField) for the whole-year age at `path` from `low` to `high`; a saved age outside
+  // shows at the nearest end and is kept until the knob moves. `store` takes the age instead of setValue (the
+  // walkthrough's pending answer); `id` replaces the field's id.
+  function oneAgeField(field, path, low, high, name, store, id) {
+    const saved = () => Number(store ? store.value : getPath(state.inputs, path));
+    const at = Math.min(high, Math.max(low, saved()));
+    return ageRangeField(field, {
+      low, high, set: true, outside: saved() < low || saved() > high, values: { at }, names: { at: name },
+      ids: { at: id || fieldId(path) },
+      text: () => "Age " + saved(),
+      store: (knob, age) => (store ? store.set(age) : setValue(path, age)),
+    });
   }
 
   // An expense row's From and To ages on the ages slider (ageRangeField) from your age today to your age in the run's
@@ -8431,7 +9133,7 @@
   // as no age yet). Each knob is a role=slider stop (arrows, Page Up / Page Down by 5, Home, End) with the id in
   // `ids`; a drag on the track moves the nearer knob. A knob moved calls `store(name, age)`; `text()` reads the ages
   // beside the label. A stored age outside the track (`outside`) shows at its end and is kept until a knob moves.
-  function ageRangeField(field, { low, high, values, ids, set, outside, text: textOf, store }) {
+  function ageRangeField(field, { low, high, values, ids, set, outside, text: textOf, store, names: named }) {
     const single = "at" in values;
     const wrap = fieldShell(field.label, field.help, null);
     wrap.classList.add("age-range-field");
@@ -8447,7 +9149,7 @@
     fill.className = "age-range-fill";
     rail.append(fill);
     track.append(rail);
-    const names = { at: "Age paid", from: "From age", to: "To age" };
+    const names = { at: "Age paid", from: "From age", to: "To age", ...named };
     const knobs = {};
     for (const name of Object.keys(values)) {
       const knob = document.createElement("div");
@@ -8683,8 +9385,19 @@
     return wrap;
   }
 
-  // The Social Security basis as a two-position toggle (Earnings history, Manual entry). Without an
-  // earnings history Earnings history is disabled with a hint, so the basis stays on the table the loader accepts.
+  // Whether a person ("you", "partner") has the earnings history the earnings basis reads: entered years, or a last
+  // salary to backtrack from.
+  function hasEarningsHistory(role) {
+    const person = getPath(state.inputs, role) || {};
+    const history = person.salaryHistory;
+    return person.earningsHistoryMode === "lastSalary" ? Number(person.lastSalary) > 0
+      : history != null && Object.keys(history).length > 0;
+  }
+
+  // The Social Security basis as a two-position toggle (Earnings history, Manual entry). With the earnings history
+  // filled in, Earnings history is simply chosen. Without it, a pop-up asks "Enter earnings history?": Yes opens that
+  // history on Income (with Back to Social Security), No keeps Manual entry; either way the basis stays on the table
+  // (the loader refuses the earnings basis without a history) until the history is entered and Back is tapped.
   function basisToggle(field, path, value) {
     const wrap = fieldShell(field.label, field.help, null);
     const group = document.createElement("div");
@@ -8692,10 +9405,8 @@
     group.setAttribute("role", "group");
     group.setAttribute("aria-label", field.label);
     group.id = fieldId(path);
-    const person = getPath(state.inputs, path.split(".")[0]) || {};
-    const history = person.salaryHistory;
-    const hasHistory = person.earningsHistoryMode === "lastSalary" ? Number(person.lastSalary) > 0
-      : history != null && Object.keys(history).length > 0;
+    const role = path.split(".")[0];
+    const hasHistory = hasEarningsHistory(role);
     const hint = document.createElement("p");
     hint.className = "field-help basis-hint";
     hint.id = group.id + "-hint";
@@ -8708,15 +9419,15 @@
       button.dataset.basis = choice;
       button.textContent = field.choiceLabels[choice];
       button.setAttribute("aria-pressed", String(choice === value));
-      if (choice === "earnings" && !hasHistory) {
-        button.setAttribute("aria-describedby", hint.id);
-        button.disabled = value !== "earnings";  // an earnings basis already set stays visible; its error explains it
-      }
+      if (choice === "earnings" && !hasHistory) button.setAttribute("aria-describedby", hint.id);
       button.addEventListener("click", () => {
         if (choice === getPath(state.inputs, path)) return;
+        if (choice === "earnings" && !hasEarningsHistory(role)) {
+          askEarningsHistory(role);
+          return;
+        }
         setValue(path, choice);
-        if (choice === "earnings") goToEarnings(path.split(".")[0]);  // the earnings history it reads, on Income
-        else refreshForm();  // the entered table shows only on Manual entry
+        refreshForm();  // the entered table shows only on Manual entry
       });
       group.append(button);
     }
@@ -8725,10 +9436,20 @@
     return wrap;
   }
 
-  // Earnings history chosen on Retirement leads to that person's earnings history on Income (opened and scrolled to),
-  // with a floating Back to Social Security button and a dismiss (X). Shown only after that choice; gone when Inputs
-  // or the Income chip is left.
+  // Yes on "Enter earnings history?" leads to that person's earnings history on Income (opened and scrolled to), with
+  // a large Back to Social Security button in the top bar and a dismiss (X). Shown only after that choice; gone when
+  // Inputs or the Income chip is left.
   let earningsReturn = null;  // the person ("you", "partner") whose Social Security Back returns to
+
+  // The pop-up before the jump: Yes opens the earnings history, No keeps Manual entry (the benefit amount).
+  function askEarningsHistory(role) {
+    const whose = role === "partner" ? "Your partner's" : "Your";
+    openDialog({ title: "Enter earnings history?",
+      text: whose + " earnings history is empty, and the estimate from earnings needs it. Enter it on Income now? "
+        + "No keeps Manual entry (the benefit amount) until the history is entered.",
+      actions: [["No", "button button-quiet", () => refreshForm(), "earningsAskNo"],
+        ["Yes", "button", () => { goToEarnings(role); }, "earningsAskYes"]] });
+  }
 
   function goToEarnings(role) {
     earningsReturn = role;
@@ -8775,12 +9496,16 @@
       if (summary) summary.focus({ preventScroll: true });
     });
     bar.append(back, close);
-    $("app").append(bar);
+    document.querySelector(".topbar").append(bar);  // in the sticky top bar: never over a control of Income
   }
 
+  // Back to Social Security: a history entered meanwhile makes the earnings estimate the basis.
   function backToSocialSecurity() {
     const role = earningsReturn;
     earningsReturn = null;
+    if (hasEarningsHistory(role) && getPath(state.inputs, role + ".socialSecurityBasis") !== "earnings") {
+      setValue(role + ".socialSecurityBasis", "earnings");
+    }
     state.chips.settings = "retirement";
     savePrefs();
     renderSettings();
@@ -8817,25 +9542,46 @@
     return at ? sheetDefault(at.type, at.name, at.item, state.info.sheetRules) : panelDefault(path, state.inputs);
   }
 
+  // The schema field drawn at each path (fieldControl), so a field with no blank rule can fall back on its shipped
+  // default (fieldDefault): grey while it holds it, with a reset button once it differs.
+  const drawnFields = new Map();
+
+  // Whether a field follows a blank rule (a sheet or panel default) rather than its shipped default.
+  function hasBlankRule(path) {
+    return defaultBlankOf(path) !== undefined;
+  }
+
+  // A field with no blank rule that has a shipped default: {value, blank} with both the default, or null.
+  function shippedDefaultOf(path) {
+    if (hasBlankRule(path)) return null;
+    const value = fieldDefault(drawnFields.get(path));
+    return value == null ? null : { value, blank: value };
+  }
+
   function markDefault(element, path) {
     const at = sheetItemOf(path);
-    element.classList.toggle("is-default", at ? showsDefault(at.type, at.name, at.item, state.info.sheetRules)
-      : panelDefault(path, state.inputs) !== null);
+    const grey = !hasBlankRule(path) ? atFieldDefault(drawnFields.get(path), getPath(state.inputs, path))
+      : at ? showsDefault(at.type, at.name, at.item, state.info.sheetRules) : panelDefault(path, state.inputs) !== null;
+    element.classList.toggle("is-default", grey);
     syncReset(element);
   }
 
-  // What a sheet or panel field's reset button puts back ({value, blank}, from the same rules as sheetDefaultOf), or
-  // null when it has no default.
+  // What a sheet or panel field's reset button puts back ({value, blank}, from the same rules as sheetDefaultOf, else
+  // its shipped default), or null when it has no default.
   function resetTargetOf(path) {
     const at = sheetItemOf(path);
-    return at ? sheetResetTarget(at.type, at.name, at.item, state.info.sheetRules) : panelResetTarget(path, state.inputs);
+    const target = at ? sheetResetTarget(at.type, at.name, at.item, state.info.sheetRules)
+      : panelResetTarget(path, state.inputs);
+    return target || shippedDefaultOf(path);
   }
 
   // Whether a sheet or panel field already holds what its reset button would show (a figure typed equal to its
   // default), so there is nothing to reset.
   function atResetTarget(path) {
     const target = resetTargetOf(path);
-    return target !== null && sameValue(getPath(state.inputs, path), target.value);
+    const value = getPath(state.inputs, path);
+    return target !== null && (sameValue(value, target.value)
+      || (!hasBlankRule(path) && atFieldDefault(drawnFields.get(path), value)));
   }
 
   // What a field with a default stores when cleared: its sheet rule's blank (sheetBlank), null for a panel default,
@@ -9094,6 +9840,7 @@
 
   // `filter` (a panel's list filter, see filteredPositions) limits which items of a list field are shown.
   function fieldControl(field, path, filter) {
+    drawnFields.set(path, field);
     const fallback = sheetDefaultOf(path);
     // A blank with a prompt and nothing to show (a car's value today without a year bought) is an empty box.
     const prompt = fallback ? null : sheetPromptOf(path);
@@ -10161,6 +10908,9 @@
       const item = Object.assign(newItem(field.type), filterStartValues(filter));
       const usual = field.type === "Account" && state.info.usualReturns[item.kind];
       if (usual) [item.meanReturn, item.returnStdDev] = usual;  // a new account starts with its kind's usual returns
+      if (field.type === "Account") {  // a new account starts with its kind's owner (Joint for cash, You for a 401k)
+        Object.assign(item, kindOwnerFilled({ ...item, owner: null }, null, state.info.defaultOwners));
+      }
       if (field.type === "Child") item.yourAgeAtBirth = state.inputs.you.currentAge;  // a new child is born this year
       // A new Major Spending row is paid this year until its knob moves (with no From age it would never be paid).
       if (field.type === "ExpenseItem" && item.category === state.info.sheetRules.majorCategory && item.year == null) {
@@ -10339,7 +11089,8 @@
     const item = getPath(state.inputs, sheetOpen.path)[sheetOpen.position];
     const cleared = clearedOnChange(sheetOpen.field.type, name, item, state.info.sheetRules);
     if (sheetOpen.field.type === "Account" && name === "kind") {  // the returns follow the kind unless overridden
-      Object.assign(cleared, kindReturnsFilled(item, sheetOpen.kind, state.info.usualReturns));
+      Object.assign(cleared, kindReturnsFilled(item, sheetOpen.kind, state.info.usualReturns),
+        kindOwnerFilled(item, sheetOpen.kind, state.info.defaultOwners));
     }
     Object.assign(item, cleared);
     if (Object.keys(cleared).length) inputsChanged();
@@ -12095,7 +12846,8 @@
   // and its retirement and medical plans open their guided sheets (openGuidedPlan).
   const WALK_GUIDED = { plan401k: "retirement", medicalPlan: "medical" };  // a plan question and its guided sheet
   const walk = { saved: null, index: null, plan: null, open: false, busy: false, pending: null, swap: 0,
-    mapReturn: null, importing: false, lastTotal: null, flashTimer: null, unlockFrom: null, fromLow: false };
+    mapReturn: null, importing: false, lastTotal: null, flashTimer: null, unlockFrom: null, fromLow: false,
+    branchReturn: null, fromReview: false };
 
   function walkSave() {
     saveExperience({ walk: walk.saved });  // with storage blocked `walk.saved` still keeps this visit consistent
@@ -12280,8 +13032,10 @@
 
   // The short bullets under a Go deeper offer: what its deeper questions cover.
   // A question's `prompt`, `offer`, `preview` or `choices` (`key`) as the open scenario's effort words it: at Medium
-  // its `medium` wording where the tree gives one (the deeper questions cover less there), else its own.
+  // its `medium` wording where the tree gives one (the deeper questions cover less there), else its own. A household
+  // with no partner reads a question's `singlePrompt` where it has one.
   function walkText(node, key) {
+    if (key === "prompt" && node.singlePrompt && state.inputs && state.inputs.partner == null) return node.singlePrompt;
     const medium = node.medium;
     if (medium && hasOwn(medium, key) && shownExperience().effort === "medium") return medium[key];
     return node[key];
@@ -12297,6 +13051,55 @@
       + "</ul>";
   }
 
+  // The branch icon of Go deeper and of a deeper question's breadcrumb.
+  const BRANCH_ICON = "<svg class=\"walk-branch-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"6\" "
+    + "cy=\"5\" r=\"2.2\"/><circle cx=\"6\" cy=\"19\" r=\"2.2\"/><circle cx=\"18\" cy=\"9\" r=\"2.2\"/><path "
+    + "d=\"M6 7.2v9.6M18 11.2c0 4-6 3-11 6\"/></svg>";
+  const TIER_ORDER = { low: 0, medium: 1, high: 2 };
+
+  // What a Go deeper branch holds, as its button says: "2 more detailed questions" ("Up to" while some depend on the
+  // answers), or "Opens the Accounts page in the app" when it only leads to Inputs pages. Questions above the effort
+  // are left out, as the plan leaves them out.
+  function walkBranchLabel(node) {
+    const effort = TIER_ORDER[walkEffort()] ?? 2;
+    const found = [];
+    const visit = (parent) => {
+      for (const child of parent.deeper || []) {
+        if ((TIER_ORDER[child.tier] ?? 0) > effort) continue;
+        found.push(child);
+        visit(child);
+      }
+    };
+    visit(node);
+    const pages = found.filter((child) => child.control === "handoff").map((child) => child.handoff.label);
+    if (found.length && pages.length === found.length) {
+      const names = [...new Set(pages)];
+      return "Opens the " + names.join(" and ") + (names.length > 1 ? " pages" : " page") + " in the app";
+    }
+    const count = found.length;
+    return (found.some((child) => child.conditional) ? "Up to " : "") + count + " more detailed question"
+      + (count === 1 ? "" : "s");
+  }
+
+  // Where a deeper question sits in its branch: {number, total} among the deeper rows right after the main question
+  // it branches from, or null for a main question.
+  function walkBranchPlace(id) {
+    const rows = walkRows();
+    const at = rows.findIndex((row) => row.id === id);
+    if (at < 0 || !rows[at].depth) return null;
+    let root = at;
+    while (root > 0 && rows[root].depth > 0) root -= 1;
+    let end = root + 1;
+    while (end < rows.length && rows[end].depth > 0) end += 1;
+    return { number: at - root, total: end - root - 1 };
+  }
+
+  function walkBranchEyebrow(text) {
+    const eyebrow = walkEyebrow("", "walk-deeper walk-branch-crumb");
+    eyebrow.innerHTML = BRANCH_ICON + "<span>" + escapeText(text) + "</span>";
+    return eyebrow;
+  }
+
   function walkPreview(preview) {
     const holder = document.createElement("div");
     holder.innerHTML = walkPreviewHtml(preview);
@@ -12307,6 +13110,7 @@
   // `animate` false (opening) shows it at once.
   function showWalkScreen(id, direction, animate) {
     if (id !== "start") walk.importing = false;  // a picker left open on the first step no longer imports into it
+    if (WALK_SCREENS.includes(id)) walk.fromReview = false;  // Back to summary is offered only on the way back to it
     walk.saved.current = id;
     walkSave();
     const screen = id === "start" ? startScreen() : id === "welcome" ? welcomeScreen() : id === "review" ? reviewScreen()
@@ -12376,6 +13180,31 @@
     $("walkCountTotal").textContent = String(progress.total);
     if (walk.lastTotal != null && progress.total !== walk.lastTotal) flashWalkTotal();
     walk.lastTotal = progress.total;
+    renderWalkRail(id);
+  }
+
+  // The question timeline down the right side: a dot per planned question on the main line, Go deeper questions
+  // stepped aside as a branch that rejoins the line at the next main question; the current one highlighted, answered
+  // ones filled, skipped ones dimmed. A dot jumps to its question (walkTrailClick), as the Trail does.
+  function renderWalkRail(id) {
+    const rail = $("walkRail");
+    const rows = walkRows();
+    rail.hidden = id === "start" || id === "welcome" || !rows.length;
+    if (rail.hidden) { rail.replaceChildren(); return; }
+    rail.innerHTML = "<ol class=\"walk-rail-list\">" + rows.map((row, at) => {
+      const status = walkStatus(walk.saved, row.id, id);
+      const label = walkLabel(walk.index[row.id].node);
+      const branch = row.depth > 0;
+      const edge = branch && !(rows[at - 1] && rows[at - 1].depth > 0) ? " walk-rail-branch-start" : "";
+      const end = branch && !(rows[at + 1] && rows[at + 1].depth > 0) ? " walk-rail-branch-end" : "";
+      return "<li class=\"walk-rail-item" + (branch ? " walk-rail-branch" : "") + edge + end + "\"><button type=\"button\" "
+        + "class=\"walk-rail-dot\" data-jump=\"" + escapeText(row.id) + "\" data-status=\"" + status + "\""
+        + (status === "now" ? " aria-current=\"step\"" : "") + " aria-label=\"" + escapeText(label + ": "
+        + WALK_TAGS[status] + (branch ? " (Go deeper)" : "")) + "\"><span class=\"walk-rail-mark\" aria-hidden=\"true\">"
+        + "</span><span class=\"walk-rail-label\" aria-hidden=\"true\">" + escapeText(label) + "</span></button></li>";
+    }).join("") + "</ol>";
+    const current = rail.querySelector("[aria-current=step]");
+    if (current) current.scrollIntoView({ block: "nearest" });
   }
 
   // An answer added or removed questions: highlight the total for a second, fading out (held without motion when
@@ -12548,7 +13377,14 @@
       label.insertAdjacentHTML("beforeend", helpButtonHtml(field.label, helpId));
       wrap.insertAdjacentHTML("beforeend", helpTextHtml(helpId, field.help, "walk-help"));
     }
-    if (field.kind === "toggle") {
+    if (/(^|\.)socialSecurityAge$/.test(field.path)) {  // the claim age: the Inputs page's one-knob age slider
+      const [low, high] = state.info.claimAgeRange.map(Number);
+      const pending = { get value() { return walk.pending.values[field.path]; }, set: (age) => walkSet(field.path, age) };
+      const slider = oneAgeField({ ...field, help: null }, field.path, low, high, field.label, pending,
+        "walk-" + node.id + "-" + index);
+      slider.classList.add("walk-age-slider");
+      wrap.append(slider);
+    } else if (field.kind === "toggle") {
       wrap.append(walkChoices(labelIds, [[true, field.yes || "Yes"], [false, field.no || "No"]], Boolean(current),
         (value) => walkSet(field.path, value)));
     } else if (field.choices && field.choices.length <= 6) {
@@ -12694,10 +13530,21 @@
     const element = document.createElement("div");
     element.className = "walk-screen";
     element.dataset.question = id;
-    // "Question X of Y" is pinned above the stage (renderWalkTop); a deeper question and a question of an optional
-    // topic (counted in no total) are marked here.
-    if (row.depth > 0) element.append(walkEyebrow("Go deeper", "walk-deeper"));
-    else if (walk.index[id].topic.optional) element.append(walkEyebrow("Extra question", "walk-deeper"));
+    // "Question X of Y" is pinned above the stage (renderWalkTop); a deeper question (a side branch: "Detail 1 of 2 ·
+    // returns to main questions"), the first main question after a branch and a question of an optional topic
+    // (counted in no total) are marked here.
+    const branch = walkBranchPlace(id);
+    const returned = walk.branchReturn === id;
+    walk.branchReturn = null;
+    if (branch) {
+      element.classList.add("walk-in-branch");
+      element.append(walkBranchEyebrow("Detail " + branch.number + " of " + branch.total + " \u00b7 returns to main "
+        + "questions"));
+    } else if (returned) {
+      element.append(walkEyebrow("Back on the main questions", "walk-branch-back"));
+    } else if (walk.index[id].topic.optional) {
+      element.append(walkEyebrow("Extra question", "walk-deeper"));
+    }
     const head = document.createElement("div");
     head.className = "walk-head";
     head.append(walkHeading(walkText(node, "prompt")));
@@ -12768,18 +13615,35 @@
     error.setAttribute("role", "alert");
     error.hidden = true;
     element.append(example, error);
-    actions.push(walkButton("Continue", "button walk-primary", null, true));
+    const proceed = walkButton("Continue", "button walk-primary", null, true);
+    const beside = [];
     if (row.hasDeeper && node.offer && !walk.saved.opened.includes(id)) {
-      // With preview bullets the button just says "Go deeper" (the bullets say what it covers); else it names the offer.
-      // It sits in the scrolling question, under the answer, so the pinned actions stay short on a phone.
+      // Go deeper is a side branch: it sits beside Continue, with a branch icon and what the branch holds (its count of
+      // detailed questions, or the page it opens); the preview bullets stay in the question.
       const offer = walkText(node, "offer");
       const preview = walkText(node, "preview");
-      const hasPreview = Boolean(preview && preview.length);
-      const deeper = walkButton(hasPreview ? "Go deeper" : "Go deeper: " + offer,
-        "button button-quiet walk-deeper-button", walkDeeper);
-      if (hasPreview) deeper.setAttribute("aria-label", "Go deeper: " + offer);
-      element.append(deeper);
-      if (hasPreview) element.append(walkPreview(preview));
+      const deeper = walkButton("", "button button-quiet walk-deeper-button", walkDeeper);
+      deeper.id = "walkDeeper";
+      deeper.innerHTML = BRANCH_ICON + "<span class=\"walk-deeper-text\"><span>Go deeper</span><span "
+        + "class=\"walk-branch-label\">" + escapeText(walkBranchLabel(node)) + "</span></span>";
+      deeper.setAttribute("aria-label", "Go deeper: " + offer);
+      beside.push(deeper);
+      if (preview && preview.length) {
+        element.append(walkParagraph("Go deeper covers:", "walk-preview-title"), walkPreview(preview));
+      }
+    }
+    if (walk.fromReview) {  // opened with Change on the summary: save this answer and go straight back to it
+      const back = walkButton("Back to summary", "button button-quiet walk-summary-button", walkBackToSummary);
+      back.id = "walkToSummary";
+      beside.push(back);
+    }
+    if (beside.length) {
+      const pair = document.createElement("div");
+      pair.className = "walk-continue-row";
+      pair.append(proceed, ...beside);
+      actions.push(pair);
+    } else {
+      actions.push(proceed);
     }
     const game = walkGameButton(id);
     if (game) element.append(game);
@@ -12894,7 +13758,12 @@
         walk.busy = false;
       }
     }
-    if (walk.open) walkGo(walkAfter(id, following), "forward");
+    if (!walk.open) return;
+    const target = walkAfter(id, following);
+    const from = walkRow(id);
+    const to = walkRow(target);
+    walk.branchReturn = from && from.depth > 0 && to && !to.depth ? target : null;  // the branch ends: say so
+    walkGo(target, "forward");
   }
 
   // Change on a plan question's summary: the plan's guided sheet, then the same screen with the new summary.
@@ -12908,6 +13777,13 @@
       walk.busy = false;
     }
     if (walk.open && walk.saved.current === id) showWalkScreen(id, "forward", false);
+  }
+
+  // Back to summary, on a question opened from the summary: the answer is saved as Continue saves it, then the
+  // summary shows again.
+  async function walkBackToSummary() {
+    if (!(await walkCommit("answer"))) return;
+    if (walk.open) walkGo("review", "forward");
   }
 
   async function walkDeeper() {
@@ -13135,6 +14011,7 @@
     if (button.dataset.panel) { walkHandoff(button.dataset.panel); return; }
     if (button.dataset.field) { walkOpenField(button.dataset.field); return; }
     if (button.dataset.jump) {
+      if (walk.saved.current === "review") walk.fromReview = true;  // Change on the summary: offer Back to summary
       if (button.dataset.jump !== walk.saved.current) walkGo(button.dataset.jump);
       else $("walkTitle").focus();
       return;
@@ -13164,6 +14041,7 @@
     $("walkMapBackdrop").addEventListener("click", () => closeWalkMap());
     $("walkMapBody").addEventListener("click", walkTrailClick);
     $("walkStage").addEventListener("click", walkTrailClick);
+    $("walkRail").addEventListener("click", walkTrailClick);
     $("walkClose").addEventListener("click", openWalkLeave);
     $("walkKeep").addEventListener("click", () => closeWalkLeave());
     $("walkLeaveBackdrop").addEventListener("click", () => closeWalkLeave());
@@ -13603,6 +14481,7 @@
     delete $("tour").dataset.ready;
     const step = tour.steps[tour.at];
     const target = step && tourTarget(step);
+    if (target) revealPanels(target);  // a folded panel opens first
     if (!tourShown(target) || (step.when && !step.when())) {
       showTourStep(tour.at + tour.direction, tour.direction);
       return;
@@ -13846,6 +14725,7 @@
     $("sheetCancel").addEventListener("click", cancelSheet);
     $("sheetBackdrop").addEventListener("click", cancelSheet);
     wireKeyboardInset();
+    wireCollapse();
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       if (!$("rowMenu").hidden) { closeRowMenu(); return; }

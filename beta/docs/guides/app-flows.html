@@ -230,7 +230,7 @@
 <ul class="simple">
 <li><p><strong>Undo</strong> (the round button at the top bar’s left) steps back through the last 20 settled input states, Clear included. A burst of typing is one step. It starts empty whenever another scenario opens.</p></li>
 <li><p>After a step back, the page goes to the first changed field and tints it for one second.</p></li>
-<li><p>A field that shows a gray default gets a small circular-arrow button once you edit it. It puts the default back, so a blank field follows its source again. Reset counts as an Undo step.</p></li>
+<li><p>A number or choice that holds its default shows in gray: a blank field that follows its source, or a value equal to the shipped default (for example <em>Child inflation factor</em> at 20%). Once you change it, it shows in normal ink and gets a small circular-arrow button. The button puts the default back, so a blank field follows its source again. Reset counts as an Undo step. A group’s <em>Reset to defaults</em> button still resets the whole group.</p></li>
 </ul>
 </section>
 </section>
@@ -275,22 +275,22 @@
 <ol class="arabic simple">
 <li><p>Each control starts with your current setting, tagged “Example value” while it is the example’s.</p></li>
 <li><p>Change it, then tap <strong>Continue</strong> (or press Enter, or swipe left). <strong>Skip</strong> keeps what is shown. Swipe right to go back.</p></li>
-<li><p>Tap an (i) for the field’s help. Tap <strong>Go deeper: …</strong> for extra questions on the topic.</p></li>
-<li><p>Tap <strong>Open</strong> on a question that lives on an Inputs page. A “Back to the walkthrough” button brings you back.</p></li>
+<li><p>Tap an (i) for the field’s help. Tap <strong>Go deeper</strong>, beside Continue, for a side branch: its label says how many detailed questions it holds, or which page it opens. A branch question shows “Detail 1 of 2 · returns to main questions”, and the next main question says “Back on the main questions”. A timeline down the right side shows a dot per question (filled when answered, dimmed when skipped, ringed for the current one), with Go deeper questions stepped aside as a branch; tap a dot to go to that question.</p></li>
+<li><p>Tap <strong>Open</strong> on a question that lives on an Inputs page. A “Back to the walkthrough” button in the top bar, which never covers the page, brings you back.</p></li>
 </ol>
 <p>Answers write into the settings at once. A value out of range (“Age must be between 18 and 100.”) or an emptied number box is refused with a message under the field. Continue on an untouched question writes nothing.</p>
 <p>A follow-up question shows only after you say you have the thing, such as home questions after a Yes to owning a home.</p>
 </section>
 <section id="topics">
 <h3>Topics<a class="headerlink" href="#topics" title="Link to this heading"></a></h3>
-<p>The topics are About you, Work and pay, Savings, Spending, Retirement, Medicare and Health, plus the optional Tax strategies (Roth conversion, backdoor Roth and QCD), offered from the review only. Retirement asks the claim age and the Social Security benefit: Yes takes the table from your statement, and No or not sure estimates it from your pay. It also asks about a move to another state. <strong>Go deeper</strong> on Spending goes by category on the Expenses page instead. A monthly spending total replaces every monthly expense row with one <em>Everything else</em> row, and one-off rows stay.</p>
+<p>The topics are About you, Work and pay, Savings, Spending, Retirement, Medicare and Health, plus the optional Tax strategies (Roth conversion, backdoor Roth and QCD), offered from the review only. Questions about today come first; Retirement comes last and asks when each of you stops working, whether spending changes in retirement, the claim age and the Social Security benefit: Yes takes the table from your statement, and No or not sure estimates it from your pay. It also asks about a move to another state. <strong>Go deeper</strong> on Spending goes by category on the Expenses page instead. A monthly spending total replaces every monthly expense row with one <em>Everything else</em> row, and one-off rows stay.</p>
 </section>
 <section id="trail-and-review">
 <h3>Trail and review<a class="headerlink" href="#trail-and-review" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>A thin bar at the top has one segment per topic. <strong>Back</strong> returns to the previous question.</p></li>
 <li><p>The route button opens <strong>Your trail</strong>: every topic and question with a status (Answered, Skipped, Now, Not yet). Tap a row to go there.</p></li>
-<li><p>The last screen, <strong>Here is your plan</strong>, lists each answer with a <strong>Change</strong> button. It adds “Still from the example household” with an <strong>Open</strong> button for each item not yet replaced.</p></li>
+<li><p>The last screen, <strong>Here is your plan</strong>, lists each answer with a <strong>Change</strong> button; the question it opens has <strong>Back to summary</strong> beside Continue, which saves the answer and returns. It adds “Still from the example household” with an <strong>Open</strong> button for each item not yet replaced.</p></li>
 <li><p>A row also has <strong>Open in Inputs</strong>, which pauses the Walkthrough.</p></li>
 <li><p><strong>Finish</strong> opens Outputs, Summary.</p></li>
 </ul>
@@ -299,9 +299,9 @@
 <h3>Leave and resume<a class="headerlink" href="#leave-and-resume" title="Link to this heading"></a></h3>
 <p>The X (or Escape; Escape first closes the trail) asks what to do:</p>
 <ul class="simple">
-<li><p><strong>Keep going</strong></p></li>
-<li><p><strong>Continue later</strong>: the answers stay, and a reload or the menu resumes at the same question.</p></li>
-<li><p><strong>Undo my answers</strong>: the settings go back to what they were when the Walkthrough started.</p></li>
+<li><p><strong>Save answers and open the app</strong>: the answers stay, and a reload or the menu resumes at the same question.</p></li>
+<li><p><strong>Keep answering</strong>: back to the question.</p></li>
+<li><p><strong>Discard answers from this session</strong>: the settings go back to what they were when the Walkthrough started.</p></li>
 </ul>
 <p>Progress belongs to the open scenario, so switching scenarios switches which Walkthrough resumes. The automatic Monte Carlo waits while the Walkthrough is open.</p>
 </section>
