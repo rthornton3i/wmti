@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, isPanelSource, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -224,7 +224,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.cbf4eb9469.js");
+      worker = new Worker("worker.5f5c8592aa.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -784,6 +784,7 @@
 
   // Show the current tab and view: panels and sub-panels hidden or shown, tab roles and roving tabindex set.
   function showPlace() {
+    noteViewSoon();  // a view left or shown (25-collapse.js)
     syncAwardsTab();  // the Awards tab shows only in Gamer style
     for (const name of TABS) {
       $("panel-" + name).hidden = !tabShown(name);
@@ -1257,6 +1258,7 @@
 
   // Open every folded panel around `element` before it is shown (a jump to a field, Undo, the tour).
   function revealPanels(element) {
+    leaveHold();  // the view it lands on is not reset
     enhancePanels();  // a panel drawn just now is shown folded or open before it is opened
     for (let panel = element && element.closest(".is-collapsed"); panel; panel = panel.parentElement.closest(".is-collapsed")) {
       foldPanel(panel, false);
@@ -1266,6 +1268,7 @@
   // Open the folded panels that hold input `path` (its field, else the field or list of a shorter part of it), before
   // the place that shows it looks for it on screen.
   function revealField(path) {
+    leaveHold();  // the view it lands on is not reset
     enhancePanels();
     const parts = path.split(".");
     for (let end = parts.length; end > 0; end -= 1) {
@@ -1279,6 +1282,118 @@
     const observer = new MutationObserver(() => enhancePanels());
     for (const tabId of COLLAPSE_TABS) observer.observe($(tabId), { childList: true, subtree: true });
     enhancePanels();
+    wireLeave();
+  }
+
+  // ---- Leaving a view: back within LEAVE_RESET_MS as it was left, later folded and at its top ----
+  // A view is what one column shows: Setup, an Inputs chip page (or the Low page), an Outputs view (Plots with its
+  // sub-tab) or Awards. A view left (a chip, a swipe, a bottom tab, the app hidden) and shown again within
+  // LEAVE_RESET_MS comes back at the scroll it was left at (a stray swipe costs nothing); shown again later, every
+  // panel in it folds and it opens at its top. That fold is a fold like any other: kept in the prefs, so a reload
+  // shows the view as it was last seen. Nothing happens on a first visit, while a field in the view is being typed in,
+  // while the tour or the walkthrough is open, or when the view was reached to show a field (revealField and
+  // revealPanels: a jump to a field, Undo, the tour), which opens that field's panel as before.
+  const LEAVE_RESET_MS = 5000;
+  // The tests set WMTI_LEAVE_DELAY before the page loads (a long one, so a test that comes back to a view later finds
+  // it as it left it) and change it with wmtiViews.setLeaveDelay.
+  const leave = { delay: typeof window.WMTI_LEAVE_DELAY === "number" ? window.WMTI_LEAVE_DELAY : LEAVE_RESET_MS,
+    shown: {}, scroll: {}, left: {}, hold: false, queued: false };
+  window.wmtiViews = { setLeaveDelay: (ms) => { leave.delay = ms; } };  // for the tests
+
+  // The view a tab's column shows now.
+  function leaveViewKey(tab) {
+    if (tab === "inputs") return "inputs/" + (lowOn() ? "low" : state.chips.settings);
+    if (tab === "outputs") return "outputs/" + state.view + (state.view === "plots" ? "/" + shownSubtab("plots") : "");
+    return tab;
+  }
+
+  function leaveScroll(tab) {
+    return wide.on ? $("panel-" + tab).scrollTop : window.scrollY;
+  }
+
+  function leaveScrollTo(tab, top) {
+    if (wide.on) $("panel-" + tab).scrollTop = top;
+    else window.scrollTo(0, top);
+  }
+
+  // A reveal is on its way (a jump to a field, Undo): the view it lands on is left as the reveal shows it.
+  function leaveHold() {
+    leave.hold = true;
+    setTimeout(() => { leave.hold = false; }, 0);
+  }
+
+  // Note the shown views once the move that changed them (and its own scroll to the top) is done.
+  function noteViewSoon() {
+    if (leave.queued) return;
+    leave.queued = true;
+    queueMicrotask(noteViews);
+  }
+
+  // Each column whose view changed: the view left keeps its scroll and the time; the view shown comes back as it was
+  // (within the delay) or folded at its top (later).
+  function noteViews() {
+    leave.queued = false;
+    const now = Date.now();
+    for (const tab of TABS) {
+      const key = tabShown(tab) ? leaveViewKey(tab) : null;
+      const before = leave.shown[tab] || null;
+      if (key === before) continue;
+      if (before) leave.left[before] = { at: now, scroll: leave.scroll[before] || 0, wide: wide.on };
+      if (key) leave.shown[tab] = key;
+      else delete leave.shown[tab];
+      if (key) leaveArrive(tab, key, now);
+    }
+  }
+
+  function leaveArrive(tab, key, now) {
+    const left = leave.left[key];
+    delete leave.left[key];
+    if (!left || leave.hold || walk.open || !$("tour").hidden) {
+      leave.scroll[key] = leaveScroll(tab);
+      return;
+    }
+    if (now - left.at >= leave.delay) {
+      resetView(tab);
+      return;
+    }
+    const top = left.wide === wide.on ? left.scroll : 0;
+    leave.scroll[key] = top;
+    leaveScrollTo(tab, top);
+    requestAnimationFrame(() => {  // a page drawn after this frame may be taller
+      if (leave.shown[tab] === key && leaveScroll(tab) !== top) leaveScrollTo(tab, top);
+    });
+  }
+
+  // Fold every panel in the view a column shows and scroll it to its top, unless a field in it is being typed in.
+  function resetView(tab) {
+    const holder = tab === "outputs" ? $("view-" + state.view) : $("panel-" + tab);
+    if (isTyping(document.activeElement) && holder.contains(document.activeElement)) return;
+    if (COLLAPSE_TABS.includes("panel-" + tab)) {
+      enhancePanels();
+      for (const panel of holder.querySelectorAll("[data-collapse-key]")) {
+        if (!panel.classList.contains("is-collapsed") && !panel.querySelector("[aria-invalid=true]")) {
+          foldPanel(panel, true);
+        }
+      }
+    }
+    leave.scroll[leave.shown[tab]] = 0;
+    leaveScrollTo(tab, 0);
+  }
+
+  // Keep each shown view's scroll; the app hidden leaves its views, and shown again after the delay resets them.
+  function wireLeave() {
+    document.addEventListener("scroll", () => {
+      for (const tab of Object.keys(leave.shown)) leave.scroll[leave.shown[tab]] = leaveScroll(tab);
+    }, { capture: true, passive: true });
+    document.addEventListener("visibilitychange", () => {
+      const now = Date.now();
+      for (const tab of Object.keys(leave.shown)) {
+        const key = leave.shown[tab];
+        if (document.hidden) leave.left[key] = { at: now, scroll: leaveScroll(tab), wide: wide.on };
+        else if (leave.left[key]) leaveArrive(tab, key, now);
+      }
+    });
+    noteViewSoon();
   }
 
   // ---- Swipe: a sideways drag moves to the next or previous Inputs panel, Outputs sub-tab, or walkthrough question ----
@@ -7451,6 +7566,7 @@
 
   // Plots: the charts of the last Monte Carlo, marked when stale (their tables are in the Final report).
   function renderPlots() {
+    noteViewSoon();  // a view left or shown (25-collapse.js)
     const body = $("plots-body");
     const selected = PLOT_VIEWS.some((view) => view.id === state.chips.plots) ? state.chips.plots : PLOT_VIEWS[0].id;
     renderChips("chips-plots", PLOT_VIEWS, selected, (id) => { state.chips.plots = id; savePrefs(); renderPlots(); });
@@ -7577,6 +7693,7 @@
   }
 
   function renderSettings() {
+    noteViewSoon();  // a view left or shown (25-collapse.js)
     if (lowOn()) {  // Low: the one Low page; Setup keeps its error banner, the hidden Household card and Advanced
       renderSettingsError();
       renderHousehold();
@@ -9970,7 +10087,8 @@
           }, () => atResetTarget(path));
         }
         const at = sheetItemOf(path);
-        if (at && sheetSources(at.type).includes(at.name)) {  // the figures that follow it, or show with it, redraw
+        // The figures that follow it, or show with it (a sheet's or panel's blank defaults), redraw.
+        if ((at && sheetSources(at.type).includes(at.name)) || (!at && isPanelSource(path))) {
           input.addEventListener("change", () => {
             refreshForm();
             const redrawn = $(fieldId(path));
@@ -11457,6 +11575,7 @@
     // One group per lane: its bar row, then the cards of its items in order (a car's calculated replacements under
     // it), so each row's items sit right below it.
     let calculatedShown = false;
+    const usedKeys = new Set();  // the Home legend lists only the kinds a bar draws
     for (const row of timelineBars(reply.segments, reply.currentAge, reply.lastAge)) {
       const group = document.createElement("div");
       group.className = "timeline-group";
@@ -11468,7 +11587,10 @@
         const span = document.createElement("span");
         span.className = "timeline-bar" + (bar.isCalculated ? " timeline-calculated" : "");
         span.dataset.mode = bar.mode;
-        if (kind === "Home" && bar.mode !== "gap") span.dataset.primary = String(bar.primary);
+        if (kind === "Home" && bar.mode !== "gap") {
+          span.dataset.primary = String(bar.primary);
+          if (!bar.isCalculated) usedKeys.add(bar.mode === "rent" ? "rent" : bar.primary ? "primary" : "second");
+        }
         if (bar.isCalculated) {  // the Relocation strategy's home or rent: gray, drawn over the stretch it replaces
           span.dataset.calculated = "true";
           calculatedShown = true;
@@ -11503,7 +11625,7 @@
       group.append(lane, list);
       parts.push(group);
     }
-    if (kind === "Home") parts.push(timelineHomeLegend(words, calculatedShown));
+    if (kind === "Home" && (usedKeys.size || calculatedShown)) parts.push(timelineHomeLegend(words, usedKeys, calculatedShown));
     else if (calculatedShown) {
       const legend = document.createElement("p");
       legend.className = "field-help timeline-legend";
@@ -11518,11 +11640,11 @@
   // The Home timeline's legend under the bars: a swatch and its words for the primary residence, a second home, rent
   // and, while the Relocation strategy adds one, the calculated home or rent. The swatches are decoration; the words
   // (and each card's text) carry the meaning.
-  function timelineHomeLegend(words, calculatedShown) {
+  function timelineHomeLegend(words, usedKeys, calculatedShown) {
     const legend = document.createElement("ul");
     legend.className = "field-help timeline-legend timeline-legend-home";
     legend.setAttribute("aria-label", "Legend");
-    const keys = ["primary", "second", "rent"].concat(calculatedShown ? ["calculated"] : []);
+    const keys = ["primary", "second", "rent"].filter((key) => usedKeys.has(key)).concat(calculatedShown ? ["calculated"] : []);
     for (const key of keys) {
       const entry = document.createElement("li");
       entry.dataset.swatch = key;
