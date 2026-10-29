@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-BiN6vPtysjyb+WuUA1q/9nKTKIm0uE7vzSHvt1ZTsNk=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-zVMD2kIfQKiAO9dkjxXk6EvBoP5hZeXYJSHuDQj/OFw=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -340,6 +340,10 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .info-box::before, .banner:not(.banner-warn):not(.banner-error)::before { content: "i"; position: absolute;
   left: 10px; top: 10px; width: 20px; height: 20px; border-radius: 50%; background: var(--info-line);
   color: var(--info-bg); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+/* A passing information banner fading out before it is hidden (showFadingBanner in 00-core.js) */
+.banner { transition: opacity 0.4s ease; }
+.banner.banner-fading { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .banner { transition: none; } }
 .banner-error { background: var(--bad-soft); color: var(--ink); border-left: 4px solid var(--bad); }
 .banner-error strong { color: var(--bad); }
 .banner-warn { background: var(--warn-soft); color: var(--ink); border-left: 4px solid var(--warn); }
@@ -507,6 +511,13 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 /* Long row labels (scenario names, setting paths) wrap so the sticky first column leaves room for the figures. */
 .data-table.wrap-first th:first-child { white-space: normal; min-width: 7.5em; max-width: 10.5em; overflow-wrap: anywhere;
   text-align: left; }
+/* Already counted from other tabs (80-settings.js): fits the box at phone width; the last column, the tab a cost is
+   set on, wraps instead of widening the table (its full text is also in the cell's title). */
+.data-table.counted-table { width: 100%; }
+.data-table.counted-table :is(th, td) { padding: 6px; }
+.data-table.counted-table th:first-child { min-width: 6em; }
+.data-table.counted-table td.source { min-width: 0; overflow-wrap: anywhere; }
+.data-table.counted-table thead th:last-child { text-align: left; }
 
 /* Low results (charts.js renderGauge, the fan chart's inner band; 40-setup.js lowResultCards): one accent arc on a
    neutral track, no verdict colours. Tokens only. */
@@ -526,6 +537,9 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 
 /* Settings */
 .settings { display: grid; gap: var(--section-gap); }
+/* A switch or chip redraws the whole pane (renderSettings); the browser's scroll anchoring, its anchor node gone, then
+   jumped the page (to the top). The page keeps its scroll and the new pane grows below it instead. */
+#settings-body { overflow-anchor: none; }
 .group { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 20px; padding: 4px 16px 14px;
   box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow);
   margin: 0; min-width: 0; display: grid; }
@@ -770,6 +784,13 @@ h2.collapse-head { display: flex; align-items: center; gap: var(--space-2); }
 .range:disabled { cursor: default; opacity: 0.45; }
 .range-row { display: grid; grid-template-columns: minmax(0, 1fr) 4.5em; gap: 10px; align-items: center; }
 .range-value, .surplus-value { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
+/* Benefits: the HSA and FSA caps, a slider to the IRS limit with its dollar amount, grey at the default (the limit),
+   and the reset beside the amount once moved (limitSliderField in app.js). */
+.limit-slider .range-row { grid-template-columns: minmax(0, 1fr) auto; }
+.limit-slider .range-value { display: block; min-width: 4.5em; }
+.limit-slider .range-value.is-default { color: var(--muted); font-weight: 400; }
+.limit-slider .has-reset.reset-shown > .range-value { padding-right: 36px; }
+.limit-slider .limit-note[hidden] { display: none; }
 .surplus-body { display: grid; gap: 4px; padding-top: 6px; }
 .split-bar { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; background: var(--surface-2);
   margin-bottom: 6px; }
@@ -1548,6 +1569,8 @@ label.gm-card:has(input:checked) { border-color: var(--gm-mint); box-shadow: ins
 .menu-item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 6px; border: 0;
   border-bottom: 1px solid var(--line); background: transparent; font-size: 16px; text-align: left; cursor: pointer; }
 a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link styled as its sibling buttons */
+.menu-item.menu-danger { color: var(--bad); border-bottom: 0; }  /* Clear all data, the menu's last item */
+.menu-message { margin: 4px 0 10px; }  /* the line Clear all data shows before the page reloads */
 .menu > .menu-item:last-child { border-bottom: 0; }
 .menu-group { display: grid; gap: 2px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 /* s422 Appearance sub-menu: the entry's chevron turns down while its schemes show, indented under it */
@@ -1827,14 +1850,19 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
   font-size: 14px; text-decoration: underline; }
 
 /* The ownership timeline on the Home and Cars panes: one group per lane, its bar row (owned filled, rented hatched,
-   leased outlined, no car blank, a car's calculated replacements gray) then its segment cards with their buttons and
-   its calculated replacement cards (gray, dashed); and the workflow's fields in the bottom sheet. */
+   leased outlined, no car blank, a car's calculated replacements gray), each bar a button whose popover opens under
+   its row; and the workflow's fields in the bottom sheet. */
 .timeline-body { display: grid; gap: 10px; }
 .earnings-editor .input { width: 100%; min-width: 6em; }
 .timeline-group { display: grid; gap: 8px; padding: 6px 0; }
 .timeline-group + .timeline-group { border-top: 1px solid var(--line); padding-top: 12px; }
-.timeline-lane { position: relative; height: 22px; border-radius: 6px; background: var(--surface-2); }
-.timeline-bar { position: absolute; top: 0; bottom: 0; border-radius: 6px; box-sizing: border-box; }
+.timeline-lane { position: relative; height: 28px; border-radius: 6px; background: var(--surface-2); }
+.timeline-bar { position: absolute; top: 0; bottom: 0; border-radius: 6px; box-sizing: border-box; margin: 0;
+  padding: 0; border: 0; background: transparent; -webkit-appearance: none; appearance: none; }
+button.timeline-bar { cursor: pointer; }
+/* No z-index: a car's calculated replacements (later siblings) stay on top of its bar, so each stays tappable. */
+button.timeline-bar:focus-visible { outline-offset: -2px; }
+button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink); }
 .timeline-bar[data-mode=own] { background: var(--s0); }
 .timeline-bar[data-mode=rent] { background: repeating-linear-gradient(45deg, var(--s1) 0 4px, transparent 4px 8px); }
 .timeline-bar[data-mode=lease] { border: 2px solid var(--s2); }
@@ -1848,15 +1876,22 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .timeline-bar.timeline-calculated[data-mode=rent] {
   background: repeating-linear-gradient(45deg, var(--muted) 0 4px, transparent 4px 8px); opacity: .7; }
 .timeline-bar.timeline-calculated[data-mode=lease] { background: var(--surface-2); border: 2px dashed var(--muted); }
-.timeline-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.timeline-card, .timeline-replacement { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--line);
-  border-radius: 10px; background: var(--surface); min-width: 0; overflow-wrap: anywhere; }
-.timeline-replacement.is-calculated { margin-left: 14px; border-style: dashed; background: var(--surface-2);
-  color: var(--muted); }
-.timeline-replacement .timeline-text { font-weight: 400; }
-.timeline-text { font-weight: 600; }
-.timeline-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.timeline-actions .button[data-action=edit] { display: inline-flex; align-items: center; gap: 6px; }
+/* A bar's popover: under its row, full width of the row (so it stays on screen at any width), its pointer over the
+   bar (--caret, percent of the row). */
+.timeline-popover { position: relative; display: grid; gap: 4px; margin-top: 6px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+  box-shadow: 0 4px 14px var(--edge-shadow); min-width: 0; overflow-wrap: anywhere; }
+.timeline-popover::before { content: ""; position: absolute; top: -7px; left: var(--caret, 50%); width: 12px;
+  height: 12px; margin-left: -6px; background: inherit; border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line); transform: rotate(45deg); }
+.timeline-popover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.timeline-popover-name { min-width: 0; }
+.timeline-popover-close { flex: none; width: 36px; height: 36px; margin: -6px -6px -6px 0; border: 0;
+  border-radius: 50%; background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.timeline-popover-close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; }
+.timeline-popover-role, .timeline-popover-summary { margin: 0; }
+.timeline-popover-open { justify-self: start; margin-top: 4px; }
 .button-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2;
   stroke-linecap: round; stroke-linejoin: round; }
 .timeline-legend { display: flex; align-items: center; gap: 6px; margin: 0; }
@@ -2195,15 +2230,6 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
         <div class="banner banner-error" id="household-error" role="alert" hidden></div>
         <form id="household-body" class="settings" novalidate></form>
       </div>
-      <div class="card">
-        <div class="title-help"><h2>Start over</h2><button type="button" class="help-button" aria-expanded="false" aria-controls="help-reset" aria-label="About Start over"><span>i</span></button></div>
-        <p class="field-help" id="help-reset" hidden>Replace your settings with the example household that ships with the model (its figures are fictional). Clear all data removes everything this app keeps in this browser: your settings, saved scenarios, walkthrough progress, preferences, your agreement to the Terms and the offline copy; use it on a shared device when you finish.</p>
-        <div class="row-buttons">
-          <button type="button" class="button button-danger" id="resetButton">Load example household</button>
-          <button type="button" class="button button-danger" id="clearDataButton">Clear all data on this device</button>
-        </div>
-        <p class="banner" id="clearMessage" role="status" hidden></p>
-      </div>
       <details class="card disclosure advanced" id="advancedSettings">
         <summary id="advancedSummary"><span class="advanced-head"><span>Advanced settings</span><span class="advanced-hint">Inflation, years to simulate, Monte Carlo runs and seed, for people who know what they change</span></span></summary>
         <div class="run-card" id="inflationCard">
@@ -2397,6 +2423,15 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h0"/></svg><span>About</span></button>
     <button type="button" class="menu-item" id="menuLegal">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg><span>Legal</span></button>
+    <!-- Start over (90-report-files.js): each asks for a second tap before it acts. Load example household replaces
+         the open scenario with the example household (its figures are fictional); Clear all data removes everything
+         this app keeps in this browser (settings, saved scenarios, walkthrough progress, preferences, the Terms
+         agreement and the offline copy), for a shared device. -->
+    <button type="button" class="menu-item" id="resetButton" title="Replace your settings with the example household (its figures are fictional).">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg><span>Load example household</span></button>
+    <button type="button" class="menu-item menu-danger" id="clearDataButton" title="Remove everything this app keeps in this browser; use it on a shared device when you finish.">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg><span>Clear all data on this device</span></button>
+    <p class="banner menu-message" id="clearMessage" role="status" hidden></p>
   </div>
 </div>
 
@@ -2483,16 +2518,16 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "3863b8f41d4f", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
+<script>window.WMTI_BUILD = { id: "9ed02080b870", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.9127bc34d2.js"></script>
+<script src="shared.160d098f47.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.b610d1f57c.js"></script>
 <script src="gamify.c0d6719c49.js"></script>
 <script src="games.7803be786a.js"></script>
 <script src="report.e4260e4993.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.621e4e5c5b.js"></script>
+<script src="app.55d9af72f7.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
