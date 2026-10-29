@@ -61,7 +61,7 @@
   const YEARLY_GROUPS = [
     ["Income sources", /^(Paycheck|Interest|Social Security$|Asset Sale|Employer Match|Home Sale|Gross Income|Net Earnings)/,
       "Money coming in each year by source: pay, interest, Social Security, employer match and sales."],
-    ["Taxes, deductions and withholding", /(Tax|Federal|State|MAGI|AGI|Deduction|Itemized|Dependents|HSA|FSA|Property|Medicare|Capital Gains|^Medical$|^Taxable)/,
+    ["Taxes, deductions and withholding", /(Tax|Federal|State|MAGI|AGI|Deduction|Itemized|Dependents|HSA|FSA|Property|Medicare|Capital Gains|^Medical$|^Taxable|^Penalties$)/,
       "Each year's taxes by kind and the income and deduction figures they are worked out from."],
     ["Deposits and withdrawals", /(Deposit|Withdraw|QCD|Conversion|Investment Gains|Shortfall)/,
       "Money put into and taken out of the accounts each year, with Roth conversions, investment gains and any "
@@ -90,7 +90,7 @@
     premiums: "Health plan and Medicare premiums, and the age Medicare starts.",
     supplement: "The Medicare supplement plan: whether it is on, its monthly cost and its cost sharing.",
     strategies: "Tax strategies and end-of-plan settings: Roth conversions, backdoor Roth, gifts to charity from an "
-      + "IRA, the tax rate on what is left, and relocation.",
+      + "IRA, the tax rate on what is left, relocation, and whether penalty-free money is drawn first.",
     home: "The home's monthly utility bills.",
     hsa: "The health savings account: whether it is on, how deposits are sized, the starting balance and returns.",
     dependentCareFsa: "The dependent care flexible spending account: whether it is on and its yearly cap.",

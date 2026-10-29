@@ -76,6 +76,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#sections-at-a-glance">Sections at a glance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#filing-tables-filing-tables">Filing tables (filing_tables)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#income-base-and-add-backs-state-base">Income base and add-backs (state_base)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#early-withdrawal-early-withdrawal">Early withdrawal (early_withdrawal)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#income-tax-brackets-income-brackets">Income tax brackets (income_brackets)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#standard-deduction-standard-deduction">Standard deduction (standard_deduction)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#exemption-credits-exemption-credits">Exemption credits (exemption_credits)</a></li>
@@ -207,7 +208,7 @@
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>19 sections: 9 confirmed primary, 6 confirmed secondary, 3 unconfirmed, 1 not rated</p></td>
+<td><p>20 sections: 9 confirmed primary, 6 confirmed secondary, 4 unconfirmed, 1 not rated</p></td>
 </tr>
 </tbody>
 </table>
@@ -375,71 +376,75 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">state_base</span></code></p></td>
 <td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-early-withdrawal"><span class="std std-ref">Early withdrawal</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">early_withdrawal</span></code></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-income-brackets"><span class="std std-ref">Income tax brackets</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">income_brackets</span></code></p></td>
 <td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-standard-deduction"><span class="std std-ref">Standard deduction</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">standard_deduction</span></code></p></td>
 <td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-exemption-credits"><span class="std std-ref">Exemption credits</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-exemption-credits"><span class="std std-ref">Exemption credits</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">exemption_credits</span></code></p></td>
 <td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-estate-inheritance"><span class="std std-ref">Estate and inheritance tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">estate_inheritance</span></code></p></td>
 <td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-social-security"><span class="std std-ref">Social Security benefits</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-social-security"><span class="std std-ref">Social Security benefits</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">social_security</span></code></p></td>
 <td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-local-income-tax"><span class="std std-ref">Local income tax</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-local-income-tax"><span class="std std-ref">Local income tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">local_income_tax</span></code></p></td>
 <td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-sales-tax"><span class="std std-ref">Sales tax</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-sales-tax"><span class="std std-ref">Sales tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">sales_tax</span></code></p></td>
 <td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-property-tax"><span class="std std-ref">Property tax</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-property-tax"><span class="std std-ref">Property tax</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">property_tax</span></code></p></td>
 <td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-home-insurance"><span class="std std-ref">Home insurance</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-home-insurance"><span class="std std-ref">Home insurance</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">home_insurance</span></code></p></td>
 <td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-car-insurance"><span class="std std-ref">Car insurance</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-car-insurance"><span class="std std-ref">Car insurance</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">car_insurance</span></code></p></td>
 <td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-car-taxes"><span class="std std-ref">Car taxes</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-car-taxes"><span class="std std-ref">Car taxes</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">car_taxes</span></code></p></td>
 <td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-fuel"><span class="std std-ref">Fuel</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-fuel"><span class="std std-ref">Fuel</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fuel</span></code></p></td>
 <td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-utilities"><span class="std std-ref">Utilities</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-utilities"><span class="std std-ref">Utilities</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">utilities</span></code></p></td>
 <td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-housing"><span class="std std-ref">Housing</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-housing"><span class="std std-ref">Housing</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">housing</span></code></p></td>
 <td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-health-premiums"><span class="std std-ref">Health premiums</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-health-premiums"><span class="std std-ref">Health premiums</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">health_premiums</span></code></p></td>
 <td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-price-indexes"><span class="std std-ref">Price indexes</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-price-indexes"><span class="std std-ref">Price indexes</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">price_indexes</span></code></p></td>
 <td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-ca-long-term-care"><span class="std std-ref">Long term care</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-ca-long-term-care"><span class="std std-ref">Long term care</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">long_term_care</span></code></p></td>
 <td><p><span class="law-chip law-chip-primary">Confirmed primary</span></p></td>
 </tr>
@@ -507,6 +512,41 @@
 </tbody>
 </table>
 <p><strong>Note:</strong> California does not recognise HSAs, so HSA deposits are added back to the income it taxes; 401(k) deferrals and deductible Traditional IRA deposits follow the federal treatment (confirmed primary: <a class="reference external" href="https://www.ftb.ca.gov/forms/2025/2025-540-ca-instructions.html">https://www.ftb.ca.gov/forms/2025/2025-540-ca-instructions.html</a>, validation run 2, 2026-10-22).</p>
+</div>
+</section>
+<section id="early-withdrawal-early-withdrawal">
+<span id="law-ca-early-withdrawal"></span><h2>Early withdrawal (early_withdrawal)<a class="headerlink" href="#early-withdrawal-early-withdrawal" title="Link to this heading"></a></h2>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
+<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
+<p>An early retirement-account withdrawal pays 2.5% on top of the federal penalty.</p>
+<p><strong>How the model uses this:</strong> The state’s additional tax on an early retirement-account withdrawal, charged on the amount the federal penalty applies to in a year lived in the state. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>As stored</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
+<td><p>no</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retirement_rate</span></code></p></td>
+<td><p>2.5%</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.025</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.ftb.ca.gov/forms/2025/2025-3805p-instructions.html">https://www.ftb.ca.gov/forms/2025/2025-3805p-instructions.html</a> (Cal. Rev. &amp; Tax. Code 17085)</p>
+<p><strong>Note:</strong> California adds retirement_rate of an early distribution from a qualified plan or IRA to its tax, on the amount the federal additional tax applies to (Form 3805P). Rate recalled, not checked against the page. The model applies it to the penalized Traditional and Roth amount in a year lived in California, after the federal exceptions. Not modelled: whether California follows each federal exception, and its treatment of HSA and 529 money.</p>
 </div>
 </section>
 <section id="income-tax-brackets-income-brackets">

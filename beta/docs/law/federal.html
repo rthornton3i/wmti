@@ -88,6 +88,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#home-sale-exclusion-home-sale-exclusion">Home sale exclusion (home_sale_exclusion)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#estate-tax-estate-tax">Estate tax (estate_tax)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#early-withdrawal-early-withdrawal">Early withdrawal (early_withdrawal)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#roth-distributions-roth-distributions">Roth distributions (roth_distributions)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hsa-non-medical-withdrawals-hsa-nonmedical">HSA non-medical withdrawals (hsa_nonmedical)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#non-qualified-withdrawals-nonqualified-529">529 non-qualified withdrawals (nonqualified_529)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#aca-premium-credit-aca-premium-credit">ACA premium credit (aca_premium_credit)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#social-security-benefit-formula-social-security-benefit-formula">Social Security benefit formula (social_security_benefit_formula)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#social-security-wage-base-social-security-wage-base">Social Security wage base (social_security_wage_base)</a></li>
@@ -212,7 +215,7 @@
 <td><p>4</p></td>
 </tr>
 <tr class="row-even"><td><p>Sections</p></td>
-<td><p>24 sections: 1 confirmed primary, 7 confirmed secondary, 4 unconfirmed, 12 not rated</p></td>
+<td><p>27 sections: 1 confirmed primary, 7 confirmed secondary, 7 unconfirmed, 12 not rated</p></td>
 </tr>
 </tbody>
 </table>
@@ -442,23 +445,35 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">early_withdrawal</span></code></p></td>
 <td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-federal-aca-premium-credit"><span class="std std-ref">ACA premium credit</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-federal-roth-distributions"><span class="std std-ref">Roth distributions</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">roth_distributions</span></code></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-federal-hsa-nonmedical"><span class="std std-ref">HSA non-medical withdrawals</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hsa_nonmedical</span></code></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-federal-nonqualified-529"><span class="std std-ref">529 non-qualified withdrawals</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nonqualified_529</span></code></p></td>
+<td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-federal-aca-premium-credit"><span class="std std-ref">ACA premium credit</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">aca_premium_credit</span></code></p></td>
 <td><p><span class="law-chip law-chip-secondary">Confirmed secondary</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-federal-social-security-benefit-formula"><span class="std std-ref">Social Security benefit formula</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-federal-social-security-benefit-formula"><span class="std std-ref">Social Security benefit formula</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">social_security_benefit_formula</span></code></p></td>
 <td><p><span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-federal-social-security-wage-base"><span class="std std-ref">Social Security wage base</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-federal-social-security-wage-base"><span class="std std-ref">Social Security wage base</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">social_security_wage_base</span></code></p></td>
 <td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#law-federal-payroll-rates"><span class="std std-ref">Payroll rates</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#law-federal-payroll-rates"><span class="std std-ref">Payroll rates</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">payroll_rates</span></code></p></td>
 <td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#law-federal-additional-medicare-thresholds"><span class="std std-ref">Additional Medicare tax thresholds</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#law-federal-additional-medicare-thresholds"><span class="std std-ref">Additional Medicare tax thresholds</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">additional_medicare_thresholds</span></code></p></td>
 <td><p><span class="law-chip law-chip-none">Not rated</span></p></td>
 </tr>
@@ -1833,8 +1848,8 @@
 <div class="law-section law-unconfirmed docutils container">
 <p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
 <p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
-<p>Before age 59.5, a withdrawal from a retirement account pays a 10% penalty.</p>
-<p><strong>How the model uses this:</strong> The age from which retirement accounts can be drawn without the penalty, and the penalty rate before it. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p>Before age 59.5, a withdrawal from a retirement account pays a 10% penalty; a 401k is free from age 55 after leaving the employer.</p>
+<p><strong>How the model uses this:</strong> The age from which retirement accounts can be drawn without the penalty, the penalty rate before it, and the separation age of the rule of 55 (401k only). More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
 <p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
@@ -1861,10 +1876,123 @@
 <td><p>10%</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0.1</span></code></p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">separation_age</span></code></p></td>
+<td><p>55</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">55</span></code></p></td>
+</tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/taxtopics/tc558">https://www.irs.gov/taxtopics/tc558</a> (IRC 72(t))</p>
-<p><strong>Note:</strong> The additional tax on early distributions from qualified plans and IRAs (IRC 72(t)): 10% of a distribution taken before age 59 1/2, with exceptions; moved from the code on 2026-10-22, not checked against the page. The model does not charge it; the Strategies tab warns when Roth conversions start before penalty_free_age, since money taken out to pay their tax could owe it.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/taxtopics/tc558">https://www.irs.gov/taxtopics/tc558</a> (IRC 72(t)(1), 72(t)(2)(A)(i) and (v))</p>
+<p><strong>Note:</strong> The additional tax on early distributions from qualified plans and IRAs (IRC 72(t)): penalty_rate of the taxable part of a distribution taken before age penalty_free_age (59 1/2). The rule of 55 (72(t)(2)(A)(v)): no additional tax on a 401k distribution after separation from service in or after the year the person reaches separation_age. Recalled, not checked against the page. The model charges it on Traditional withdrawals (not on the Roth conversion or a QCD) and on the Roth amounts the Roth rules penalize; ages are whole years, so age 59 pays all year. Not modelled: SEPP (72(t)(2)(A)(iv)), disability, death, medical, first-home, education, birth or adoption and the other exceptions; the age-50 public safety rule.</p>
+</div>
+</section>
+<section id="roth-distributions-roth-distributions">
+<span id="law-federal-roth-distributions"></span><h2>Roth distributions (roth_distributions)<a class="headerlink" href="#roth-distributions-roth-distributions" title="Link to this heading"></a></h2>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
+<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
+<p>Roth earnings and each conversion are free after 5 years (earnings also wait for the penalty-free age).</p>
+<p><strong>How the model uses this:</strong> The years a Roth must be held before its earnings, and each conversion, leave without tax or penalty. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>As stored</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
+<td><p>no</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">five_year_years</span></code></p></td>
+<td><p>5</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/publications/p590b">https://www.irs.gov/publications/p590b</a> (IRC 408A(d), 72(t)(6); Treas. Reg. 1.408A-6; IRC 72(e)(8) and Treas. Reg. 1.402A-1 for a Roth 401k)</p>
+<p><strong>Note:</strong> A Roth distribution is qualified (no tax) from age 59 1/2 once five_year_years have passed since the first Roth funding year. A Roth IRA (all of one owner’s Roth IRAs as one pool) pays out contributions first, then conversions oldest first, then earnings (408A(d)(4)); a conversion taken out within five_year_years of its year and before 59 1/2 pays the additional tax on its once-taxed amount (72(t)(6)); earnings taken out unqualified are ordinary income and, before 59 1/2, penalized. A Roth 401k payout is split pro-rata between basis and earnings (72(e)(8)). The model reads five tax years as whole years (free when the year minus the funding year is at least five). Recalled, not checked against the page. Not modelled: a ten percent layer for conversions into a Roth 401k, a clock per Roth 401k plan versus per IRA owner, contribution-year layers, rollovers between Roth kinds.</p>
+</div>
+</section>
+<section id="hsa-non-medical-withdrawals-hsa-nonmedical">
+<span id="law-federal-hsa-nonmedical"></span><h2>HSA non-medical withdrawals (hsa_nonmedical)<a class="headerlink" href="#hsa-non-medical-withdrawals-hsa-nonmedical" title="Link to this heading"></a></h2>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
+<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
+<p>An HSA withdrawal not for medical costs pays 20% before age 65.</p>
+<p><strong>How the model uses this:</strong> The penalty on an HSA withdrawal not used for medical costs, and the age it stops. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>As stored</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
+<td><p>no</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">penalty_rate</span></code></p></td>
+<td><p>20%</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.2</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">penalty_free_age</span></code></p></td>
+<td><p>65</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">65</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/publications/p969">https://www.irs.gov/publications/p969</a> (IRC 223(f)(2) and (f)(4))</p>
+<p><strong>Note:</strong> An HSA distribution not used for qualified medical costs is ordinary income, plus penalty_rate of it before age penalty_free_age (the additional tax ends at 65, death or disability). Recalled, not checked against the page. The model draws the HSA for other spending only as a last resort, after every other account. Not modelled: state treatment (CA and NJ tax HSA money differently).</p>
+</div>
+</section>
+<section id="non-qualified-withdrawals-nonqualified-529">
+<span id="law-federal-nonqualified-529"></span><h2>529 non-qualified withdrawals (nonqualified_529)<a class="headerlink" href="#non-qualified-withdrawals-nonqualified-529" title="Link to this heading"></a></h2>
+<div class="law-section law-unconfirmed docutils container">
+<p>Confidence: <span class="law-chip law-chip-unconfirmed">Unconfirmed</span></p>
+<p><strong>Unconfirmed:</strong> the file marks this section as not checked against a source; treat its figures with care.</p>
+<p>The earnings part of a 529 withdrawal not for education pays 10%.</p>
+<p><strong>How the model uses this:</strong> The penalty on the earnings part of a 529 withdrawal not used for education. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p class="rubric">As stored in the file</p>
+<table class="law-table docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>As stored</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">indexed</span></code></p></td>
+<td><p>no</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">penalty_rate</span></code></p></td>
+<td><p>10%</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.1</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Check at:</strong> <a class="reference external" href="https://www.irs.gov/publications/p970">https://www.irs.gov/publications/p970</a> (IRC 529(c)(3) and (c)(6))</p>
+<p><strong>Note:</strong> The earnings part of a 529 distribution not used for qualified education is ordinary income, plus penalty_rate of that part (the share of earnings is one less the account’s basis over its balance). Recalled, not checked against the page. The model draws a 529 for other spending only as a last resort, after every account but the HSA. Not modelled: the scholarship, death, disability and Roth-rollover exceptions; state recapture.</p>
 </div>
 </section>
 <section id="aca-premium-credit-aca-premium-credit">
