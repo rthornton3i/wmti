@@ -13,7 +13,8 @@
   const EFFORT_RANK = { low: 0, medium: 1, high: 2 };
   const EFFORT_NAMES = { low: "Low", medium: "Medium", high: "High" };
   const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views the explorer award counts
-  const GAME_IDS = ["bracket", "claim", "receipts", "decade"];  // the mini games (games.js GAME_IDS)
+  const GAME_IDS = ["bracket", "claim", "receipts", "decade", "seesaw", "leaks", "snowball"];  // games.js GAME_IDS
+  const ORIGINAL_GAME_IDS = ["bracket", "claim", "receipts", "decade"];  // the four games All-rounder asks for
   const MAX_STARS = 3;
 
   // Levels by the XP they start at.
@@ -72,7 +73,7 @@
     { id: "receipt_sorter", title: "Receipt sorter", how: "Finish Receipt Sort.", keys: ["game.receipts.done"] },
     { id: "decade_survivor", title: "Decade survivor", how: "Finish The Bad Decade.", keys: ["game.decade.done"] },
     { id: "all_rounder", title: "All-rounder", how: "Finish all four mini games.",
-      keys: GAME_IDS.map((id) => "game." + id + ".done") },
+      keys: ORIGINAL_GAME_IDS.map((id) => "game." + id + ".done") },
   ]);
 
   const QUEST_BY_ID = new Map(QUESTS.map((quest) => [quest.id, quest]));
@@ -432,8 +433,161 @@
     return parts.length ? parts.join(". ") + "." : "";
   }
 
+  // ---- Glass Garden ----
+  // The Garden tab's rules. A bed is a walkthrough topic and opens at its level; its soil is the share of the topic's
+  // questions filled in (answered in the walkthrough, or an input that differs from the example household); the plants
+  // grow with the latest simulation's chance of success; the season follows a plan year. Nothing here is stored: the
+  // app draws the garden from the plan, the answers and the ledger every time. Display only; no XP rule reads it.
+
+  // Beds in level order: `topic` the walkthrough topic id, `level` the level it opens at. Level 8 opens nothing new.
+  const BEDS = deepFreeze([
+    { id: "aboutYou", title: "About you", level: 1 },
+    { id: "workAndPay", title: "Work and pay", level: 2 },
+    { id: "saved", title: "Savings", level: 2 },
+    { id: "livingCosts", title: "Spending", level: 3 },
+    { id: "retiring", title: "Retirement", level: 4 },
+    { id: "medicareCover", title: "Medicare", level: 5 },
+    { id: "healthCosts", title: "Health", level: 6 },
+    { id: "taxStrategies", title: "Tax strategies", level: 7, optional: true },
+  ].map((bed) => ({ ...bed, topic: bed.id })));
+  // The input lists a question without fields writes, by its action: it is filled when that list differs.
+  const ACTION_PATHS = deepFreeze({ partner: ["partner"], count: ["children"], childAges: ["children"],
+    carCount: ["cars"], carCosts: ["cars"], homeCount: ["homes"], total: ["expenses"], balances: ["accounts"] });
+  const SEASONS = deepFreeze(["Spring", "Summer", "Autumn", "Winter"]);
+  // Growth stages by the chance of success: below each `below` share (null: no simulation yet).
+  const GROWTH = deepFreeze([
+    { stage: 1, name: "sprouting", below: 0.5 }, { stage: 2, name: "leafy", below: 0.75 },
+    { stage: 3, name: "budding", below: 0.9 }, { stage: 4, name: "in bloom", below: Infinity },
+  ]);
+  const MAX_STEPS = 3;  // the level-up card's "what earned it" lines
+  // The Garden's tools, each opening one mini game at its level (all reachable without the tool games' own XP).
+  const TOOLS = deepFreeze([
+    { id: "can", title: "Watering can", game: "seesaw", level: 3 },
+    { id: "shears", title: "Shears", game: "leaks", level: 5 },
+    { id: "pouch", title: "Seed pouch", game: "snowball", level: 6 },
+  ]);
+
+  // The beds open at `level`, in table order (their ids).
+  function bedsOpen(level) {
+    return BEDS.filter((bed) => bed.level <= number(level)).map((bed) => bed.id);
+  }
+
+  // The tools open at `level`, in table order (their ids).
+  function toolsOpen(level) {
+    return TOOLS.filter((tool) => tool.level <= number(level)).map((tool) => tool.id);
+  }
+
+  // The tool that opens game `gameId`, or null for a game that needs none.
+  function toolOf(gameId) {
+    return TOOLS.find((tool) => tool.game === gameId) || null;
+  }
+
+  // What opens at `level` (or, with `fromLevel`, at every level above it up to `level`): beds then tools, each
+  // `{kind, id, title, level}` (a tool also has its `game`).
+  function unlocksAt(level, fromLevel) {
+    const top = number(level);
+    const low = fromLevel == null ? top - 1 : number(fromLevel);
+    const within = (item) => item.level > low && item.level <= top;
+    return [...BEDS.filter(within).map((bed) => ({ kind: "bed", id: bed.id, title: bed.title, level: bed.level })),
+      ...TOOLS.filter(within).map((tool) => ({ kind: "tool", id: tool.id, title: tool.title, level: tool.level,
+        game: tool.game }))];
+  }
+
+  /**
+   * Count each bed's questions and the ones filled in.
+   *
+   * A bed counts its topic's top-level questions asked at the effort (Low asks from the Medium list); a conditional
+   * question is left out of the total but counts as filled when it is. Filled: answered (not skipped) in the
+   * walkthrough, or one of its fields (else the input list its action writes) differs from the example household.
+   * A bed with no question at the effort, or an optional topic not opened in the walkthrough with nothing filled, is
+   * a rest bed.
+   *
+   * @param {object} tree - The walkthrough tree (`topics`, each with `questions`).
+   * @param {object} ctx - `{answers, opened, inputs, defaults, effort, tierShown, valueAt, same}`: the saved answers
+   *     and opened ids, the scenario's inputs, the example's, the effort, and the app's helpers (whether a tier is
+   *     shown at an effort; the value at a field path of some data; whether two values are the same).
+   * @returns {object[]} `{id, topic, title, level, filled, total, rest}` per bed, in table order.
+   */
+  function bedCounts(tree, ctx) {
+    const topics = isRecord(tree) && Array.isArray(tree.topics) ? tree.topics : [];
+    const { answers, opened, inputs, defaults, effort, tierShown, valueAt, same } = isRecord(ctx) ? ctx : {};
+    const saved = isRecord(answers) ? answers : {};
+    const openedIds = Array.isArray(opened) ? opened : [];
+    const asked = effort === "low" ? "medium" : effort;
+    const differs = (path) => !same(valueAt(inputs, path), valueAt(defaults, path));
+    const filledOf = (node) => {
+      const answer = saved[node.id];
+      if (isRecord(answer) && answer.status === "answered") return true;
+      if (!isRecord(inputs) || !isRecord(defaults)) return false;
+      const fields = Array.isArray(node.fields) ? node.fields : [];
+      if (fields.length) return fields.some((field) => isRecord(field) && differs(field.path));
+      return (ACTION_PATHS[node.action] || []).some(differs);
+    };
+    return BEDS.map((bed) => {
+      const topic = topics.find((item) => isRecord(item) && item.id === bed.topic);
+      const shown = (topic && Array.isArray(topic.questions) ? topic.questions : [])
+        .filter((node) => isRecord(node) && tierShown(node.tier, asked));
+      const total = shown.filter((node) => !node.conditional).length;
+      const filled = Math.min(total, shown.filter(filledOf).length);
+      const unopened = bed.optional === true && !openedIds.includes(bed.topic) && filled === 0;
+      return { id: bed.id, topic: bed.topic, title: bed.title, level: bed.level, filled, total,
+        rest: total === 0 || unopened };
+    });
+  }
+
+  // The soil share of the open beds (ids in `open`, every bed when absent), rest beds left out: filled over total.
+  function soilOf(counts, open) {
+    const list = (Array.isArray(counts) ? counts : [])
+      .filter((bed) => isRecord(bed) && !bed.rest && (!Array.isArray(open) || open.includes(bed.id)));
+    const total = list.reduce((sum, bed) => sum + number(bed.total), 0);
+    const filled = list.reduce((sum, bed) => sum + Math.min(number(bed.filled), number(bed.total)), 0);
+    return total > 0 ? filled / total : 0;
+  }
+
+  // The plants' stage for a chance of success: 0 "seedlings" without a simulation, then 1 to 4 ("in bloom").
+  function growthStage(share) {
+    if (share == null || !Number.isFinite(Number(share))) return { stage: 0, name: "seedlings" };
+    const found = GROWTH.find((row) => Number(share) < row.below);
+    return { stage: found.stage, name: found.name };
+  }
+
+  // The season `yearsIn` plan years after the start: each year Spring, Summer, Autumn, Winter in quarters.
+  function seasonAt(yearsIn) {
+    const value = Math.max(0, number(yearsIn));
+    const year = Math.floor(value);
+    const season = Math.min(SEASONS.length - 1, Math.floor((value - year) * SEASONS.length));
+    return { season, name: SEASONS[season], year };
+  }
+
+  /**
+   * The level-up card for one evaluation's grants, or null when no level was reached.
+   *
+   * @param {object[]} grants - From `evaluate` (not changed).
+   * @param {function} nameOf - The app's name of a grant for the "what earned it" lines.
+   * @param {number} [fromLevel] - The level before the grants (default the reached level less one).
+   * @returns {object|null} `{level, name, steps, more, unlocks}`: up to three steps `{text, xp}`, largest XP first;
+   *     `more` the count of the rest; `unlocks` the names of what opened (one line saying all is open at the top).
+   */
+  function levelUpCard(grants, nameOf, fromLevel) {
+    const list = Array.isArray(grants) ? grants.filter(isRecord) : [];
+    const reached = list.find((grant) => grant.kind === "level");
+    if (!reached) return null;
+    const name = typeof nameOf === "function" ? nameOf : (grant) => grant.title || grant.key;
+    const earned = list.filter((grant) => grant.kind !== "level" && grant.kind !== "award" && number(grant.xp) > 0)
+      .map((grant, position) => ({ grant, position }))
+      .sort((one, two) => number(two.grant.xp) - number(one.grant.xp) || one.position - two.position)
+      .map(({ grant }) => ({ text: String(name(grant)), xp: number(grant.xp) }));
+    const opened = unlocksAt(reached.level, fromLevel).map((item) => (item.kind === "tool"
+      ? item.title + " tool" : item.title + " bed"));
+    const top = reached.level >= LEVELS[LEVELS.length - 1].level;
+    return { level: reached.level, name: reached.name, steps: earned.slice(0, MAX_STEPS),
+      more: Math.max(0, earned.length - MAX_STEPS), unlocks: opened.length ? opened : top ? ["Every bed and tool is open"] : [] };
+  }
+
   const api = { VERSION, MAX_KEYS, GAME_IDS, LEVELS, XP, QUESTS, AWARDS, emptyLedger, cleanLedger, mergeLedgers, xpOf, levelOf,
-    gamifyFacts, questStatus, evaluate, resetLedger, grantsText };
+    gamifyFacts, questStatus, evaluate, resetLedger, grantsText,
+    ORIGINAL_GAME_IDS, TOOLS, toolsOpen, toolOf,
+    BEDS, ACTION_PATHS, SEASONS, bedsOpen, unlocksAt, bedCounts, soilOf, growthStage, seasonAt, levelUpCard };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiGamify = api;
 })(typeof self !== "undefined" ? self : this);

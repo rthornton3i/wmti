@@ -17,6 +17,12 @@
       remember: "Each tax-favored account pays for its own kind of cost; the rest comes from regular money." },
     { id: "decade", title: "The Bad Decade",
       remember: "The same returns in a different order can end far apart once you are withdrawing." },
+    { id: "seesaw", title: "Drift Seesaw",
+      remember: "Rebalancing sells what grew and buys what lagged, so your risk stays where you chose it." },
+    { id: "leaks", title: "Plug the Leaks",
+      remember: "A small yearly fee is a large share of what you keep after decades; the biggest drips matter most." },
+    { id: "snowball", title: "Early Bird Snowball",
+      remember: "Time in the market does more than the amount: starting earlier can beat saving double later." },
   ];
   const GAME_IDS = GAMES.map((game) => game.id);
 
@@ -320,11 +326,196 @@
     return answer === round.answer;
   }
 
+  // ---- Drift Seesaw (rebalancing) ----
+  // A 60% stock mix drifts with twelve seeded monthly stock returns (bonds earn a fixed 0.3% a month). A rebalance
+  // after month k puts the share back to 60% before month k+1. Each round offers four schedules of at most three
+  // rebalances; the right one keeps the share inside the 55 to 65% band the most months, and is always unique.
+  const SEESAW = deepFreezeGames({ target: 0.6, low: 0.55, high: 0.65, bond: 0.003, months: 12, worst: -0.05,
+    best: 0.11, leaveFrom: 4, leaveTo: 7, tries: 50 });
+  // The schedules of each round (months after which to rebalance; [] is never).
+  const SEESAW_SETS = deepFreezeGames([
+    [[], [6], [4, 8], [3, 6, 9]],
+    [[], [3], [5, 10], [2, 6, 10]],
+    [[], [9], [3, 9], [4, 7, 10]],
+  ]);
+  // Returns used when no seeded draw within `tries` gives a fair round (checked by the tests).
+  const SEESAW_FALLBACK = deepFreezeGames([-0.03, 0.06, 0.04, 0.1, 0.03, -0.04, 0.1, 0.07, 0.11, -0.03, 0.01, -0.04]);
+
+  function deepFreezeGames(value) {
+    if (value && typeof value === "object") {
+      Object.values(value).forEach(deepFreezeGames);
+      Object.freeze(value);
+    }
+    return value;
+  }
+
+  // The stock share at the end of each month (before any rebalance that month), `months` the rebalance months.
+  function driftPath(returns, months = []) {
+    const path = [];
+    let share = SEESAW.target;
+    returns.forEach((rate, index) => {
+      const stocks = share * (1 + rate);
+      const bonds = (1 - share) * (1 + SEESAW.bond);
+      share = stocks / (stocks + bonds);
+      path.push(share);
+      if (months.includes(index + 1)) share = SEESAW.target;
+    });
+    return path;
+  }
+
+  function monthsInBand(path) {
+    return path.filter((share) => share >= SEESAW.low - 1e-9 && share <= SEESAW.high + 1e-9).length;
+  }
+
+  function seesawLabel(months) {
+    if (!months.length) return "Never";
+    if (months.length === 1) return "After month " + months[0];
+    return "After months " + months.slice(0, -1).join(", ") + " and " + months[months.length - 1];
+  }
+
+  // The four options of a round: `{id, months, label, inBand}`.
+  function seesawOptions(returns, set) {
+    return set.map((months) => ({ id: months.length ? "m" + months.join("-") : "none", months: months.slice(),
+      label: seesawLabel(months), inBand: monthsInBand(driftPath(returns, months)) }));
+  }
+
+  // Whether a round is fair: the plain path leaves the band in months 4 to 7 and one option is best.
+  function seesawFair(returns, set) {
+    const left = driftPath(returns).findIndex((share) => share < SEESAW.low || share > SEESAW.high) + 1;
+    if (left < SEESAW.leaveFrom || left > SEESAW.leaveTo) return false;
+    const counts = seesawOptions(returns, set).map((option) => option.inBand);
+    return counts.filter((count) => count === Math.max(...counts)).length === 1;
+  }
+
+  function seesawRounds(seed) {
+    const random = rng(seed);
+    return SEESAW_SETS.map((set) => {
+      let returns = null;
+      for (let attempt = 0; attempt < SEESAW.tries && !returns; attempt += 1) {
+        const draw = Array.from({ length: SEESAW.months },
+          () => roundTo(SEESAW.worst + random() * (SEESAW.best - SEESAW.worst), 0.001));
+        if (seesawFair(draw, set)) returns = draw;
+      }
+      if (!returns) returns = SEESAW_FALLBACK.slice();
+      const options = seesawOptions(returns, set);
+      const best = options.reduce((top, option) => (option.inBand > top.inBand ? option : top));
+      return { kind: "seesaw", returns, options: shuffled(random, options), answer: best.id };
+    });
+  }
+
+  function gradeSeesaw(round, answer) {
+    return answer === round.answer;
+  }
+
+  // ---- Plug the Leaks (fees) ----
+  // $100,000 grows 30 years at 6% a year less the yearly fees. Rounds 1 and 2: plug one of four leaks (round 2 with
+  // sizes next to each other); round 3: plug two (four pairs). Every fee differs, so the best is unique.
+  const LEAKS = deepFreezeGames({ start: 100000, growth: 0.06, years: 30 });
+  const LEAK_POOL = deepFreezeGames([
+    { id: "expense", label: "Fund expense ratio", fee: 0.0075 },
+    { id: "advisory", label: "Advisory fee", fee: 0.01 },
+    { id: "trading", label: "Trading costs", fee: 0.003 },
+    { id: "account", label: "Account fee", fee: 0.0015 },
+    { id: "shareClass", label: "High-fee share class", fee: 0.005 },
+    { id: "load", label: "Sales load, spread out", fee: 0.0025 },
+    { id: "wrap", label: "Wrap fee", fee: 0.004 },
+    { id: "cash", label: "Idle cash drag", fee: 0.002 },
+    { id: "marketing", label: "Marketing (12b-1) fee", fee: 0.0035 },
+    { id: "platform", label: "Platform fee", fee: 0.001 },
+  ]);
+
+  function leakPool() {
+    return LEAK_POOL;
+  }
+
+  // The yearly fee of leak ids together.
+  function leakFee(ids) {
+    return ids.reduce((sum, id) => sum + LEAK_POOL.find((leak) => leak.id === id).fee, 0);
+  }
+
+  // What the start grows to with `fee` a year taken off the growth.
+  function leakValue(fee) {
+    return LEAKS.start * (1 + LEAKS.growth - fee) ** LEAKS.years;
+  }
+
+  function leakRounds(seed) {
+    const random = rng(seed);
+    const one = (leaks) => leaks.map((id) => ({ id, plugs: [id] }));
+    const bestOf = (leaks, options) => options.reduce((top, option) => (leakFee(option.plugs) > leakFee(top.plugs)
+      ? option : top)).id;
+    const first = shuffled(random, LEAK_POOL.map((leak) => leak.id)).slice(0, 4);
+    const sorted = LEAK_POOL.slice().sort((one, two) => one.fee - two.fee).map((leak) => leak.id);
+    const from = Math.floor(random() * (sorted.length - 3));
+    const second = shuffled(random, sorted.slice(from, from + 4));
+    const third = shuffled(random, LEAK_POOL.map((leak) => leak.id)).slice(0, 4);
+    const pairs = [];
+    for (let left = 0; left < third.length; left += 1) {
+      for (let right = left + 1; right < third.length; right += 1) pairs.push([third[left], third[right]]);
+    }
+    pairs.sort((one, two) => leakFee(two) - leakFee(one));
+    const chosen = [pairs[0], ...shuffled(random, pairs.slice(1)).slice(0, 3)];
+    const pairOptions = shuffled(random, chosen.map((plugs) => ({ id: plugs.join("+"), plugs })));
+    return [
+      { kind: "one", leaks: first, options: one(first), answer: bestOf(first, one(first)) },
+      { kind: "one", leaks: second, options: one(second), answer: bestOf(second, one(second)) },
+      { kind: "pair", leaks: third, options: pairOptions, answer: pairOptions.reduce((top, option) =>
+        (leakFee(option.plugs) > leakFee(top.plugs) ? option : top)).id },
+    ];
+  }
+
+  function gradeLeaks(round, answer) {
+    return answer === round.answer;
+  }
+
+  // ---- Early Bird Snowball (starting early) ----
+  // A rival saves a monthly amount from a start age to 65 at 7% a year; you save half as much. What is the latest
+  // age you can start and still end with more? The answer is found by scanning SNOW_MIN to SNOW_MAX.
+  const SNOW_MIN = 16;
+  const SNOW_MAX = 45;
+  const SNOW_END = 65;
+  const SNOW_RATE = 0.07;
+  const SNOW_PRESETS = deepFreezeGames([
+    { rival: 600, rivalStart: 35, you: 300 },
+    { rival: 500, rivalStart: 40, you: 250 },
+    { rival: 800, rivalStart: 30, you: 400 },
+  ]);
+  const SNOW_STEPS = [-2, 0, 2, 5, 9];  // the options around the answer
+
+  // What `monthly` saved from `startAge` to 65 grows to at 7% a year.
+  function snowballValue(monthly, startAge) {
+    const years = Math.max(0, SNOW_END - startAge);
+    return monthly * 12 * ((1 + SNOW_RATE) ** years - 1) / SNOW_RATE;
+  }
+
+  // The latest start age from which you end with more than the rival, or null when none does.
+  function latestWinningStart(preset) {
+    const rival = snowballValue(preset.rival, preset.rivalStart);
+    for (let age = SNOW_MAX; age >= SNOW_MIN; age -= 1) if (snowballValue(preset.you, age) > rival) return age;
+    return null;
+  }
+
+  function snowballRounds(seed) {
+    const random = rng(seed);
+    return shuffled(random, SNOW_PRESETS.map((preset, index) => index)).map((index) => {
+      const preset = SNOW_PRESETS[index];
+      const answer = latestWinningStart(preset);
+      const ages = [...new Set(SNOW_STEPS.map((step) => Math.min(SNOW_MAX, Math.max(SNOW_MIN, answer + step))))];
+      return { kind: "snowball", preset, answer, choices: shuffled(random, ages) };
+    });
+  }
+
+  function gradeSnowball(round, answer) {
+    return Number(answer) === round.answer;
+  }
+
   const api = { ROUNDS, NOT_ADVICE, GAMES, GAME_IDS, rng, starsOf,
     bracketAt, bracketRounds, gradeBracket,
     FULL_AGE, LIFESPANS, claimRows, claimants, cumulative, breakEvenAge, leaderAt, claimRounds, gradeClaim, claimSentence,
     BINS, RECEIPTS, RECEIPT_SCREENS, receiptRounds, receiptCheck, gradeReceipts,
-    RETURNS, START, SPEND, TRIM, SPEND_STEP, SPEND_MAX, decadePair, trimmedPair, higherOf, decadeRounds, gradeDecade };
+    RETURNS, START, SPEND, TRIM, SPEND_STEP, SPEND_MAX, decadePair, trimmedPair, higherOf, decadeRounds, gradeDecade,
+    SEESAW, SEESAW_SETS, SEESAW_FALLBACK, seesawFair, driftPath, monthsInBand, seesawOptions, seesawRounds, gradeSeesaw,
+    leakPool, leakFee, leakValue, leakRounds, gradeLeaks,
+    SNOW_MIN, SNOW_MAX, SNOW_PRESETS, snowballValue, latestWinningStart, snowballRounds, gradeSnowball };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiGames = api;
 })(typeof self !== "undefined" ? self : this);

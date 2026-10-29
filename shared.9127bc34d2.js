@@ -450,6 +450,25 @@
     return value == null ? null : { value, blank: null };
   }
 
+  // A number or select field's shipped default from the settings schema (the dataclass default), or null when it has
+  // none to show: a blank (null) default, a switch, text, a list or object, or a figure derived from others. A field
+  // holding it is drawn grey (`.is-default`) and one that differs gets a reset button that puts it back.
+  const DEFAULT_KINDS = ["number", "integer", "select"];
+  function fieldDefault(field) {
+    if (!field || !DEFAULT_KINDS.includes(field.kind) || field.replaces) return null;
+    const value = field.default;
+    return typeof value === "number" || typeof value === "string" ? value : null;
+  }
+
+  // Whether `value` is a field's shipped default (fieldDefault); numbers match within rounding (20% typed is 0.2).
+  const DEFAULT_TOLERANCE = 1e-9;
+  function atFieldDefault(field, value) {
+    const target = fieldDefault(field);
+    if (target == null || value == null) return false;
+    if (typeof target === "number") return typeof value === "number" && Math.abs(value - target) <= DEFAULT_TOLERANCE;
+    return value === target;
+  }
+
   // ---- Beneficiaries (Benefits > Beneficiaries; stored as `strategies.heirs`, a list whose shares total 1) ----
   const SHARE_TOLERANCE = 1e-6;  // as wmti.strategies.plans.HEIR_SHARE_TOLERANCE
 
@@ -806,6 +825,17 @@
       }
     });
     return filled;
+  }
+
+  // The owner an account takes from its kind (wmti.inputs.retirementInputs.defaultOwner): Joint for cash, Investments
+  // and 529, You for a 401k or IRA. A blank owner, one still the previous kind's default, or Joint on a kind one person
+  // holds becomes the new kind's; an owner the user chose otherwise is kept. `defaults` is appInfo().defaultOwners.
+  function kindOwnerFilled(item, previousKind, defaults) {
+    const fresh = defaults && defaults[item.kind];
+    if (!fresh) return {};
+    const previous = previousKind != null ? defaults[previousKind] : null;
+    const follows = item.owner == null || item.owner === previous || (item.owner === "JOINT" && fresh !== "JOINT");
+    return follows && item.owner !== fresh ? { owner: fresh } : {};
   }
 
   // The collapsed returns header of an account sheet: "Return 6.0% · std dev 12.0%".
@@ -1714,6 +1744,9 @@
     inputs.expenses = (schema.suggestedExpenses || []).map((row) => ({ ...blankObject(schema, "ExpenseItem"), ...row }));
     inputs.strategies.heirs = [heirDefaults(schema.types.Heir, 0, 1)];
     inputs.years = null;  // until you are 100 (yearsToAge100), following your age
+    // The child inflation factor keeps its shipped default (20% per child): a blank 0 would make children cost nothing.
+    const childFactor = (schema.types[schema.root] || []).find((field) => field.name === "childFactorPerChild");
+    if (fieldDefault(childFactor) != null) inputs.childFactorPerChild = fieldDefault(childFactor);
     return inputs;
   }
 
@@ -2349,7 +2382,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,

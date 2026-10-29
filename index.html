@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-KLyOxQ/Bnjq8h7W6xvccBGMqkRmWw4lbG/pzVe4UGrA=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-2mOM12PkIUA+um7PKYKXPf9Mg6bhoBG5ov/o3N/ftZU=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -690,6 +690,22 @@ details > summary::after { content: ""; flex: none; width: 8px; height: 8px; mar
   border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg);
   transition: transform 0.15s; }
 details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+/* Collapsible panels (app.js 25-collapse.js): a chevron at the right of each card's or pane's header folds the panel to
+   its header; folded, the header shows a copy of the panel's switch. No height animation. */
+.collapse-head { cursor: pointer; }
+.collapse-head.legend-help, .chart .collapse-head { justify-content: flex-start; }
+h2.collapse-head { display: flex; align-items: center; gap: var(--space-2); }
+.collapse-tools { display: inline-flex; align-items: center; gap: var(--space-2); margin-left: auto; flex: none; }
+.collapse-button { display: grid; place-items: center; width: 36px; height: 36px; margin: calc(-1 * var(--space-1)) 0;
+  padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
+.collapse-button:hover { background: var(--surface-2); color: var(--ink); }
+.collapse-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; transform: rotate(180deg); transition: transform 0.15s; }
+.collapse-button[aria-expanded="false"] svg { transform: none; }
+.is-collapsed > :not(.collapse-head):not(.collapse-path):not(.collapse-keep),
+.is-collapsed .collapse-path > :not(.collapse-head):not(.collapse-path):not(.collapse-keep) { display: none !important; }
+.pane.is-collapsed > legend { padding-right: 0; }
+@media (prefers-reduced-motion: reduce) { .collapse-button svg { transition: none; } }
 .normal-part { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
 .curve-box { display: grid; gap: 2px; }
 .curve { width: 100%; height: 60px; display: block; }
@@ -1209,6 +1225,119 @@ label.gm-card:has(input:checked) { border-color: var(--gm-mint); box-shadow: ins
   .gm-ladder text, .gm-readout { fill: CanvasText; color: CanvasText; }
   .gm-dialog :focus-visible { outline-color: Highlight; }
 }
+/* Glass Garden (Gamer style, 53-garden.js): the Garden tab's terrarium. Classes: .gd-scene (the card), .gd-stage
+   with data-season 0-3 (Spring to Winter) and data-growth 0-4, .gd-beds (the bed grid), .gd-bed with data-state
+   open|locked|rest|complete and --soil 0 to 1, .gd-soil (one tilted soil plane per bed), .gd-plants and .gd-plant
+   (tiny inline SVGs), .gd-label and .gd-cover (bed names on opaque --surface, so their contrast is the scheme's),
+   .gd-chips, .gd-status, .gd-year, .gd-detail, .gd-next (the hero's Next step) and .gd-reveal (the level-up card).
+   Season hues mix with the scheme's --surface and --ink, so light and dark schemes need no rules of their own; text
+   never uses a fixed colour. Locked is a dashed border plus the words "Level N", complete the word "Complete". */
+.gd-scene { display: grid; gap: 12px; }
+.gd-stage { --gd-hue: #8fd3ff; --gd-green: #3fae3f; --gd-bloom: #d6457a;
+  --gd-sky: color-mix(in srgb, var(--gd-hue) 28%, var(--surface));
+  --gd-ground: color-mix(in srgb, var(--gd-green) 20%, var(--surface));
+  --gd-leaf: color-mix(in srgb, var(--gd-green) 70%, var(--ink));
+  --gd-flower: color-mix(in srgb, var(--gd-bloom) 80%, var(--ink));
+  position: relative; min-width: 0; padding: 12px; border-radius: 16px; overflow: hidden;
+  border: 1px solid var(--line); background: linear-gradient(180deg, var(--gd-sky), var(--gd-ground)); }
+.gd-stage[data-season="1"] { --gd-hue: #4fe3c9; --gd-green: #00897b; --gd-bloom: #e0a400; }
+.gd-stage[data-season="2"] { --gd-hue: #ffb37a; --gd-green: #c76a12; --gd-bloom: #e0662a; }
+.gd-stage[data-season="3"] { --gd-hue: #aeb8e0; --gd-green: #5a6390; --gd-bloom: #8a93c0; }
+.gd-house { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.gd-hills { fill: color-mix(in srgb, var(--gd-leaf) 14%, transparent); }
+.gd-frame { fill: none; stroke: color-mix(in srgb, var(--ink) 18%, transparent); stroke-width: 1.5;
+  vector-effect: non-scaling-stroke; }
+.gd-beds { position: relative; display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(130px, calc(50% - 5px)), 1fr)); }
+.gd-bed { position: relative; display: grid; grid-template-rows: 1fr auto auto; min-width: 0; min-height: 124px;
+  padding: 6px 6px 8px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  background: color-mix(in srgb, var(--surface) 25%, transparent); color: var(--ink); font: inherit;
+  text-align: center; cursor: pointer; }
+.gd-bed[data-state="complete"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.gd-bed[data-state="rest"] { border-style: dashed; }
+.gd-bed[data-state="locked"] { border: 1.5px dashed var(--ink-2); }
+.gd-plants { position: relative; z-index: 1; display: flex; justify-content: space-evenly; align-items: flex-end;
+  min-height: 52px; margin-bottom: -12px; }
+.gd-plant { width: 24px; height: 40px; overflow: visible; }
+.gd-stage[data-growth="0"] .gd-plant { height: 26px; }
+.gd-stage[data-growth="1"] .gd-plant { height: 32px; }
+.gd-stage[data-growth="3"] .gd-plant { height: 44px; }
+.gd-stage[data-growth="4"] .gd-plant { height: 48px; }
+.gd-stem { fill: none; stroke: var(--gd-leaf); stroke-width: 2.2; stroke-linecap: round; }
+.gd-leaf { fill: color-mix(in srgb, var(--gd-leaf) 60%, var(--surface)); stroke: var(--gd-leaf); stroke-width: 1; }
+.gd-bud { fill: var(--gd-flower); }
+.gd-petal { fill: color-mix(in srgb, var(--gd-flower) 70%, var(--surface)); stroke: var(--gd-flower); stroke-width: 1; }
+.gd-core { fill: #e8b400; }
+.gd-ghost { fill: none; stroke: color-mix(in srgb, var(--ink) 45%, transparent); stroke-width: 1.2;
+  stroke-dasharray: 2 3; }
+.gd-sway { transform-origin: 50% 100%; transform-box: fill-box; animation: gd-sway 5s ease-in-out infinite alternate; }
+.gd-plant:nth-child(2) .gd-sway { animation-delay: -1.3s; }
+.gd-plant:nth-child(3) .gd-sway { animation-delay: -2.6s; }
+.gd-plant:nth-child(4) .gd-sway { animation-delay: -3.9s; }
+@keyframes gd-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+.gd-soil-wrap { position: relative; height: 26px; perspective: 360px; perspective-origin: 50% 0; }
+.gd-soil { position: absolute; left: 0; right: 0; bottom: 0; height: 52px; transform-origin: 50% 100%;
+  transform: rotateX(60deg); border-radius: 10px 10px 4px 4px; border: 3px solid #6b4a2c;
+  background: repeating-linear-gradient(90deg, transparent 0 14px, rgb(0 0 0 / 0.15) 14px 16px),
+    color-mix(in srgb, #3a2414 calc(var(--soil, 0) * 100%), #c9b08a); }
+.gd-bed[data-state="locked"] .gd-soil { filter: saturate(0.3) brightness(0.85); }
+.gd-label { position: relative; z-index: 1; display: grid; gap: 2px; margin-top: 6px; padding: 4px 6px;
+  border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 0.85rem; line-height: 1.2;
+  overflow-wrap: anywhere; }
+.gd-label span, .gd-cover span { color: var(--ink-2); }
+.gd-cover { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; gap: 4px; padding: 6px;
+  border-radius: 12px; background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 75%, transparent),
+    color-mix(in srgb, var(--surface) 45%, transparent)); font-size: 0.85rem; line-height: 1.2; }
+.gd-cover strong, .gd-cover span { padding: 2px 6px; border-radius: 6px; background: var(--surface); color: var(--ink);
+  overflow-wrap: anywhere; }
+.gd-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.gd-chip { display: grid; flex: 1 1 88px; min-width: 0; min-height: 44px; padding: 6px 10px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; text-align: left;
+  cursor: pointer; }
+.gd-chip small { color: var(--ink-2); font-size: 0.75rem; }
+.gd-chip b { overflow-wrap: anywhere; }
+.gd-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+.gd-year { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 12px; }
+.gd-year input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent); }
+.gd-year output { grid-column: 1 / -1; color: var(--ink-2); }
+.gd-detail h3 { margin: 0 0 4px; }
+.gd-detail p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.gm-hero .gd-next { color: var(--hero-ink); }
+.gd-reveal ul { margin: 0 0 8px; padding-left: 1.2em; }
+.gd-reveal p { margin: 0 0 8px; }
+/* Flat and still: no tilt where 3D is missing, and under reduced motion no tilt and no sway (the same text shows). */
+@supports not (transform-style: preserve-3d) {
+  .gd-soil { transform: none; height: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gd-soil { transform: none; height: 26px; }
+  .gd-sway { animation: none; }
+}
+@media (forced-colors: active) {
+  .gd-stage { background: Canvas; }
+  .gd-bed, .gd-chip, .gd-label, .gd-cover strong, .gd-cover span { background: Canvas; color: CanvasText;
+    border-color: CanvasText; box-shadow: none; }
+  .gd-cover { background: Canvas; }
+}
+/* The Garden's tools row (.gd-tools, .gd-tool with data-state open|locked: locked is dashed plus "Level N") and the
+   tool games' decorative pictures in the game pop-up: Drift Seesaw's band, line and beam, Plug the Leaks' tank. */
+.gd-tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.gd-tool { display: grid; gap: 2px; min-width: 0; min-height: 44px; padding: 6px 8px; border-radius: 12px;
+  border: 1px solid var(--accent); background: var(--surface); color: var(--ink); font: inherit; text-align: center;
+  cursor: pointer; }
+.gd-tool b { font-size: 0.9rem; overflow-wrap: anywhere; }
+.gd-tool span { color: var(--ink-2); font-size: 0.8rem; overflow-wrap: anywhere; }
+.gd-tool[data-state="locked"] { border: 1.5px dashed var(--ink-2); }
+.gm-game-card[data-locked="true"] { border-style: dashed; }
+.gm-band { fill: color-mix(in srgb, var(--gm-mint) 22%, transparent); }
+.gm-line { fill: none; stroke: var(--gm-mint); stroke-width: 2.5; stroke-linejoin: round; }
+.gm-beam { fill: var(--gm-ink); transition: transform 0.3s ease; }
+.gm-pivot { fill: var(--gm-violet); }
+.gm-tank { fill: var(--gm-deep); stroke: var(--gm-ink); stroke-width: 2; }
+.gm-water { fill: var(--gm-mint); }
+@media (forced-colors: active) {
+  .gd-tool { background: Canvas; color: CanvasText; border-color: CanvasText; }
+}
 /* Picker: the effort and style picker (s420, app.js experienceGroups) in the pop-up, its only place. Effort is a
    vertical energy bar (role=slider) with a stop per level; style a 3D tile per style. Each choice's radio lies unseen
    over its stop or tile. The bar's fill and knob sit at --pk-f (set by paintExperience, live while dragging), so
@@ -1480,6 +1609,47 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .walk { position: fixed; inset: 0; z-index: 80; height: 100dvh; display: grid; grid-template-rows: auto 1fr auto;
   background: var(--bg); color: var(--ink); padding-top: env(safe-area-inset-top, 0px); }
 .walk-top { width: 100%; max-width: 40rem; margin-inline: auto; padding: 12px var(--gutter) 0; }
+/* The question timeline (index.html #walkRail): its own column on the right, beside the question and the actions, so
+   it never covers them; a slim dot rail on a phone, with each question's name on a wide screen. */
+.walk { --walk-rail: 30px; grid-template-columns: minmax(0, 1fr) var(--walk-rail); }
+.walk > .walk-top { grid-column: 1 / -1; }
+.walk > .walk-stage { grid-column: 1; grid-row: 2; }
+.walk > .walk-actions { grid-column: 1; grid-row: 3; }
+.walk-rail { grid-column: 2; grid-row: 2 / 4; overflow: hidden auto; overscroll-behavior: contain; padding: 8px 0 16px;
+  scrollbar-width: none; }
+.walk-rail[hidden] { display: none; }
+.walk-rail-list { position: relative; list-style: none; margin: 0; padding: 0; display: grid;
+  grid-template-columns: minmax(0, 1fr); }
+.walk-rail-list::before { content: ""; position: absolute; top: 6px; bottom: 6px; right: 14px; width: 2px;
+  background: var(--line); }
+.walk-rail-item { position: relative; }
+.walk-rail-dot { position: relative; display: flex; flex-direction: row-reverse; align-items: center;
+  justify-content: flex-start; gap: 8px;
+  width: 100%; min-height: 15px; padding: 0 9px 0 0; border: 0; background: transparent; color: var(--ink-2);
+  cursor: pointer; font: inherit; text-align: right; }
+.walk-rail-mark { flex: none; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--muted);
+  background: var(--bg); }
+.walk-rail-dot[data-status="answered"] .walk-rail-mark { background: var(--accent); border-color: var(--accent); }
+.walk-rail-dot[data-status="skipped"] .walk-rail-mark { opacity: 0.4; }
+.walk-rail-dot[data-status="now"] .walk-rail-mark { width: 14px; height: 14px; border: 3px solid var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft); }
+.walk-rail-label { display: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; text-wrap: nowrap;
+  font-size: 0.8rem; }
+.walk-rail-dot[data-status="now"] .walk-rail-label { color: var(--ink); font-weight: 650; }
+.walk-rail-dot[data-status="skipped"] .walk-rail-label { opacity: 0.6; }
+/* A Go deeper branch: its dots step left of the main line on a line of their own that leaves and rejoins it. */
+.walk-rail-branch .walk-rail-dot { padding-right: 19px; }
+.walk-rail-branch::before { content: ""; position: absolute; top: 0; bottom: 0; right: 24px; width: 2px;
+  background: var(--accent); opacity: 0.6; }
+.walk-rail-branch-start::after, .walk-rail-branch-end::after { content: ""; position: absolute; right: 14px; width: 12px;
+  height: 2px; background: var(--accent); opacity: 0.6; }
+.walk-rail-branch-start::after { top: 0; }
+.walk-rail-branch-end::after { bottom: 0; }
+@media (min-width: 900px) {
+  .walk { --walk-rail: 220px; }
+  .walk-rail-dot { min-height: 22px; }
+  .walk-rail-label { display: block; }
+}
 .walk-progress { display: flex; gap: 6px; min-height: 5px; }
 .walk-progress span { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
 .walk-progress span[data-state="done"] { background: var(--accent); }
@@ -1530,13 +1700,26 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .walk-option[aria-checked="true"] .walk-radio::after { content: ""; width: 12px; height: 12px; border-radius: 50%;
   background: var(--accent); }
 .walk-field .field { background: var(--surface); margin: 0; }
+.walk-age-slider .field-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .walk-example { justify-self: start; padding: 4px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--ink-2);
   font-size: 0.85rem; }
 .walk-error { color: var(--bad); font-weight: 600; }
 .walk-actions { width: 100%; max-width: 34rem; margin-inline: auto; display: grid; gap: 8px;
   padding: 10px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); }
 .walk-primary { min-height: 56px; border-radius: 16px; font-size: 1.05rem; }
-.walk-deeper-button { min-height: 48px; border-radius: 16px; }
+/* Go deeper beside Continue: a side branch, with its icon and what it holds (95-walkthrough.js walkBranchLabel) */
+.walk-continue-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 8px; }
+.walk-deeper-button { display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 6px 10px;
+  border-radius: 16px; text-align: left; }
+.walk-deeper-text { display: grid; min-width: 0; line-height: 1.2; }
+.walk-branch-label { color: var(--ink-2); font-size: 0.78rem; font-weight: 500; }
+.walk-branch-icon { flex: none; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; }
+.walk-branch-crumb { display: flex; align-items: center; gap: 6px; }
+.walk-branch-crumb .walk-branch-icon { width: 16px; height: 16px; }
+.walk-screen.walk-in-branch { border-left: 3px solid var(--line); padding-left: 12px; }
+.walk-eyebrow.walk-branch-back { color: var(--good); }
+.walk-preview-title { color: var(--ink-2); font-size: 0.9rem; font-weight: 600; margin-bottom: -10px; }
 .walk-preview { margin: -2px 0 2px; padding-left: 1.4em; color: var(--ink-2); font-size: 0.9rem; }
 .walk-quiet-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 12px; }
 .walk-quiet { min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--ink-2); font-size: 0.95rem;
@@ -1566,6 +1749,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .walk-sheet-body { overflow-y: auto; padding: 0 var(--gutter) 20px; }
 .walk-leave { grid-template-rows: none; gap: 10px; padding: 20px var(--gutter) calc(20px + env(safe-area-inset-bottom, 0px)); }
 .walk-leave .button-danger { justify-self: stretch; }
+.walk-leave .walk-leave-note { margin: -6px 0 4px; font-size: 0.85rem; }
 .walk-trail, .walk-trail-list { list-style: none; margin: 0; padding: 0; display: grid; }
 .walk-topic-group { padding-top: 14px; display: grid; gap: 4px; }
 .walk-trail-list > li { padding-left: calc(var(--depth, 0) * 18px); border-bottom: 1px solid var(--line); }
@@ -1582,21 +1766,23 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .walk-review-row { display: flex; align-items: center; gap: 10px; min-height: 48px; padding-block: 4px; }
 .walk-change { flex: none; min-height: 44px; min-width: 44px; padding: 0 10px; border: 0; border-radius: 10px;
   background: transparent; color: var(--accent); font-weight: 600; cursor: pointer; }
-.walk-resume { position: fixed; z-index: 75; left: 50%; transform: translateX(-50%);
-  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); min-height: 44px; padding: 0 18px; border: 0;
-  border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 600;
+/* Back to the walkthrough: a full-width row of the sticky top bar (index.html), never over a control of the page */
+.walk-resume { display: block; width: 100%; max-width: 640px; margin: 8px auto 0; min-height: 44px; padding: 0 18px;
+  border: 0; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 600;
   box-shadow: 0 6px 20px var(--edge-shadow); cursor: pointer; }
+.walk-resume[hidden] { display: none; }
+.wide .topbar > .walk-resume { order: 1; flex: none; width: auto; margin: 0; }
 .walk-toast { position: fixed; z-index: 75; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
   bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); padding: 12px 16px; border-radius: 14px;
   background: var(--hero); color: var(--hero-ink); box-shadow: 0 6px 20px var(--edge-shadow); }
-/* Back to Social Security, on Income after Earnings history was chosen on Retirement: a pill above the tab bar */
-.earnings-return { position: fixed; z-index: 74; left: 50%; transform: translateX(-50%);
-  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center;
-  max-width: calc(100% - 2 * var(--gutter)); border-radius: 999px; background: var(--accent); color: var(--accent-ink);
-  box-shadow: 0 6px 20px var(--edge-shadow); }
-.earnings-return button { min-height: 44px; border: 0; background: transparent; color: inherit; font-weight: 600;
+/* Back to Social Security, on Income after Yes to "Enter earnings history?": a large full-width row of the sticky top
+   bar, hard to miss and never over a control of the page */
+.earnings-return { display: flex; align-items: center; max-width: 640px; margin: 10px auto 0; border-radius: 16px;
+  background: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 20px var(--edge-shadow); }
+.earnings-return button { min-height: 56px; border: 0; background: transparent; color: inherit; font-weight: 700;
   cursor: pointer; }
-.earnings-return-back { padding: 0 6px 0 18px; }
+.earnings-return-back { flex: 1; padding: 0 8px 0 20px; font-size: 19px; text-align: left; }
+.wide .topbar > .earnings-return { order: 1; flex: none; margin: 0; }
 .earnings-return-close { min-width: 44px; padding: 0 12px; font-size: 20px; line-height: 1; }
 .earnings-return button:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: -4px; border-radius: 999px; }
 /* The "New version ready" bar of the installed (static host) build, above the tab bar */
@@ -1912,6 +2098,8 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
     <div class="pinned" id="pinned" aria-label="Headline figures" aria-live="polite"></div>
+    <!-- In the sticky top bar, so it never covers a control of the Inputs page the walkthrough handed off to. -->
+    <button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
   </header>
 
   <div class="band">
@@ -1923,7 +2111,7 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
         <button type="button" role="tab" class="chip view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-compare" data-view="compare" aria-controls="view-compare">Compare</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-optimize" data-view="optimize" aria-controls="view-optimize">Optimize</button>
-        <button type="button" role="tab" class="chip view-tab" id="sub-awards" data-view="awards" aria-controls="panel-awards" hidden>Awards</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-awards" data-view="awards" aria-controls="panel-awards" hidden>Garden</button>
       </div>
       <button type="button" class="chips-pin" id="chipsPinOut" aria-pressed="true" aria-label="Unpin groups">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
@@ -2086,7 +2274,7 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
     <button type="button" role="tab" class="tab" id="tab-outputs" data-tab="outputs" aria-controls="panel-outputs">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Outputs</span></button>
     <button type="button" role="tab" class="tab" id="tab-awards" data-tab="awards" aria-controls="panel-awards" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Awards</span></button>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9M12 12c0-4-3-7-8-7 0 5 3 7 8 7zM12 14c0-4 3-6 8-6 0 4-3 6-8 6z"/></svg><span>Garden</span></button>
   </nav>
 
   <!-- Every sheet and dialog: its title in a header that stays at the top, a footer that stays at the bottom with its
@@ -2264,6 +2452,8 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
   <p class="sr-only" id="walkLive" aria-live="polite"></p>
   <div class="walk-stage" id="walkStage"></div>
   <div class="walk-actions" id="walkActions"></div>
+  <!-- The question timeline: main questions on one line, Go deeper branches beside it (95-walkthrough.js). -->
+  <nav class="walk-rail" id="walkRail" aria-label="Question timeline" hidden></nav>
   <div class="walk-backdrop" id="walkMapBackdrop" hidden></div>
   <div class="walk-sheet" id="walkMap" role="dialog" aria-modal="true" aria-labelledby="walkMapTitle" hidden>
     <div class="walk-sheet-head">
@@ -2275,26 +2465,27 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
   <div class="walk-backdrop" id="walkLeaveBackdrop" hidden></div>
   <div class="walk-sheet walk-leave" id="walkLeave" role="dialog" aria-modal="true" aria-labelledby="walkLeaveTitle" hidden>
     <h2 id="walkLeaveTitle">Leave the walkthrough?</h2>
-    <p class="muted">Your answers are already in your settings.</p>
-    <button type="button" class="button" id="walkKeep">Keep going</button>
-    <button type="button" class="button button-quiet" id="walkLater">Continue later</button>
-    <button type="button" class="button button-danger" id="walkUndo">Undo my answers</button>
+    <button type="button" class="button" id="walkLater" aria-describedby="walkLaterNote">Save answers and open the app</button>
+    <p class="muted walk-leave-note" id="walkLaterNote">Keeps every answer in your settings; finish later from the menu.</p>
+    <button type="button" class="button button-quiet" id="walkKeep" aria-describedby="walkKeepNote">Keep answering</button>
+    <p class="muted walk-leave-note" id="walkKeepNote">Closes this and goes back to the question.</p>
+    <button type="button" class="button button-danger" id="walkUndo" aria-describedby="walkUndoNote">Discard answers from this session</button>
+    <p class="muted walk-leave-note" id="walkUndoNote">Puts your settings back as they were when the walkthrough started.</p>
   </div>
 </form>
-<button type="button" class="walk-resume" id="walkResume" hidden>Back to the walkthrough</button>
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "f059b60e209b", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
+<script>window.WMTI_BUILD = { id: "b73fbb7585fa", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.e1ff2cb346.js"></script>
+<script src="shared.9127bc34d2.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.25d1a94d61.js"></script>
-<script src="gamify.71c59c99b7.js"></script>
-<script src="games.feab804215.js"></script>
+<script src="gamify.c0d6719c49.js"></script>
+<script src="games.7803be786a.js"></script>
 <script src="report.e4260e4993.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.cc6a0df8dd.js"></script>
+<script src="app.a99577ffda.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
