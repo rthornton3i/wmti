@@ -410,8 +410,7 @@
   // The blank panel figures that show the value the model uses until edited, by path: the move age of
   // Strategies > Relocation is your Social Security claim age, else with no benefit the age your pay stops (today's
   // age when retired), as wmti moveYear reads it (defaultSpendingStartAge).
-  // A blank Years to simulate runs until you are 100 (yearsToAge100). A blank Leave the 401k employer at age is that
-  // person's retirement age (today's age when retired), as wmti separationAgeOf reads it (salaryStopAge).
+  // A blank Years to simulate runs until you are 100 (yearsToAge100).
   const PANEL_DEFAULTS = {
     "strategies.relocation.moveAge": (inputs) => {
       const you = inputs && inputs.you;
@@ -419,23 +418,7 @@
       return defaultSpendingStartAge(you);
     },
     years: (inputs) => (inputs && inputs.you ? yearsToAge100(inputs.you.currentAge) : null),
-    "you.separationAge": (inputs) => salaryStopAgeOf(inputs && inputs.you),
-    "partner.separationAge": (inputs) => salaryStopAgeOf(inputs && inputs.partner),
   };
-
-  // The age a person's pay stops (wmti salaryStopAge): today's age when retired, else the retirement age; null with
-  // no person.
-  function salaryStopAgeOf(person) {
-    if (!person) return null;
-    return person.retired ? person.currentAge : person.salaryEndAge;
-  }
-
-  // The panel fields a blank panel figure follows (PANEL_DEFAULTS), so editing one redraws the form and the gray
-  // figure keeps up: each person's age and retirement age.
-  const PANEL_SOURCES = ["you.currentAge", "you.salaryEndAge", "partner.currentAge", "partner.salaryEndAge"];
-  function isPanelSource(path) {
-    return PANEL_SOURCES.includes(path);
-  }
 
   // The run length of a blank Years to simulate, as wmti yearsToAge100 reads it: the years until you are
   // PLAN_END_AGE (the last year is the one you are 99), at least 1.
@@ -2399,7 +2382,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, panelDefault, isPanelSource, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText,

@@ -315,13 +315,14 @@
   }
 
   // An employer match not fully used: the person deposits less of their pay than the employer matches up to. The
-  // extra match a year at today's pay, grown at the real return to the year their pay ends. One item per person.
+  // extra match a year at today's pay, grown at the real return to the year their pay ends. One item per person, on
+  // their own Traditional deposit share (the match is paid on it).
   function unusedMatch(inputs, growth) {
     const plan = (inputs && inputs.contributions) || {};
-    const share = plan.enabled ? number(plan.traditionalShare) : 0;
     const items = [];
     for (const [role, whose] of [["you", "Your"], ["partner", "Your partner's"]]) {
       const person = inputs && inputs[role];
+      const share = plan.enabled && person ? number((person.retirementDeposit || {}).traditionalShare) : 0;
       const match = person && person.employerMatch;
       if (!person || person.retired || !match || !match.enabled || !(match.rate > 0) || !(match.cap > share)) continue;
       const salary = number(person.salary);
