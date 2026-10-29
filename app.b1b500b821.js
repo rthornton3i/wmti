@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, isPanelSource, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -171,7 +171,7 @@
     experience: null, defaultExperience: null,  // the open scenario's experience block, and a block-less scenario's
     walkTree: null, result: null, error: null, lastRunMs: null, bootMs: null, pyodideVersion: null,
     resultInputsText: null,  // the inputs text the single run's result ran on
-    notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, planOpen: false,
+    notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, depositMoveNotes: [],
     heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
     tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
@@ -224,7 +224,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.5f5c8592aa.js");
+      worker = new Worker("worker.7fc224d9cd.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -7846,10 +7846,8 @@
         && getPath(state.inputs, name.split(".")[0] + ".socialSecurityBasis") === "earnings") continue;  // Manual entry only
       if (panel.headings && panel.headings[name]) group.append(personHeading(panel.headings[name], group));
       if (panel.labels && panel.labels[name]) field = { ...field, label: panel.labels[name] };
-      if (panel.id === "savings" && name === "contributions") {
-        group.append(...savingsFields(field, name));
-        continue;
-      }
+      // The plan's only field is its switch (drawn above); "contributions" places the deposit per account below.
+      if (panel.id === "savings" && name === "contributions") continue;
       if (field.kind === "object" && name.includes(".")) {
         group.append(...objectChildren(field, name, panel.headings, group));
         continue;
@@ -8143,24 +8141,8 @@
     return element;
   }
 
-  // ---- Benefits, Retirement plan: its switch and each person's employer match (panel fields, drawn first), then the
-  // household plan in a disclosure, and a deposit slider per account ----
-  function savingsFields(field, path) {
-    const children = (state.schema.types[field.type] || []).filter((child) => child.name !== "enabled"
-      && detailShownFor(field.type, child));
-    const plan = document.createElement("details");
-    plan.className = "plan-details";
-    plan.open = state.planOpen;
-    plan.addEventListener("toggle", () => { state.planOpen = plan.open; });
-    const where = noteHelp("Which account each deposit goes into", "Each person's Traditional deposit and employer "
-      + "match go into the first Traditional account they own (a 401k before an IRA), else the first Traditional "
-      + "account; the Roth deposit goes into the first Roth account. The yearly limits come from the law data.",
-      "field-label", null, "info-box");
-    plan.innerHTML = "<summary>Household plan (used until you set account amounts)</summary>" + where.head + where.text;
-    for (const child of children) plan.append(fieldElement(child, path + "." + child.name));
-    return [plan];
-  }
-
+  // ---- Benefits, Retirement plan: its switch, each person's employer match and deposit (% of pay, panel fields drawn
+  // first, see depositShareField), then a deposit slider per account ----
   function depositSection() {
     const part = document.createElement("div");
     part.className = "surplus deposits";
@@ -8195,6 +8177,7 @@
   function renderDeposits() {
     const holder = $("depositBody");
     const deposits = state.deposits;
+    fillDepositReadouts();  // each person's deposit readout follows the same answer
     if (!holder || !deposits) return;
     if (!deposits.ok || !deposits.accounts.length) {
       holder.dataset.key = "";
@@ -8203,8 +8186,8 @@
           + "</p>";
       return;
     }
-    const key = JSON.stringify([deposits.perAccount, deposits.notes, deposits.accounts.map((item) =>
-      [item.name, item.kind, item.owner, item.noRoom])]);
+    const key = JSON.stringify([deposits.perAccount, deposits.notes, state.depositMoveNotes,
+      deposits.accounts.map((item) => [item.name, item.kind, item.owner, item.noRoom])]);
     if (holder.dataset.key !== key) {
       holder.dataset.key = key;
       holder.replaceChildren(...depositRows(deposits));
@@ -8217,10 +8200,23 @@
       slider.max = String(item.maximum);
       if (!(depositMove.pending && depositMove.name === item.name)) slider.value = String(item.value);
       slider.setAttribute("aria-valuetext", fullMoney(item.value));
-      row.querySelector(".deposit-help").textContent = "Limit " + fullMoney(item.limit) + " a year, of which the "
-        + "owner's other accounts in the group take " + fullMoney(item.usedByOthers) + "; at most "
-        + fullMoney(item.maximum) + " here.";
+      row.querySelector(".deposit-help").textContent = depositCaption(item);
     });
+  }
+
+  // A slider's caption, per person: the owner's own deposit (and its share of their pay) against the owner's own
+  // limit, what the owner's other accounts sharing that limit take, and apart from it any deposit of the other person
+  // that lands here on the plan (they have no account of their own).
+  function depositCaption(item) {
+    const whose = item.owner === 0 ? ["Your", "your"] : ["Your partner's", "their"];
+    const other = item.owner === 0 ? "your partner's" : "your";
+    const own = item.ownDeposit == null ? item.value : item.ownDeposit;
+    let text = whose[0] + " deposit " + fullMoney(own)
+      + (item.percentOfPay != null ? " (" + percent(item.percentOfPay, 1) + " of pay)" : "") + ". Limit "
+      + fullMoney(item.limit) + " a year, of which " + whose[1] + " other accounts sharing it take "
+      + fullMoney(item.usedByOthers) + "; at most " + fullMoney(item.maximum) + " here.";
+    if (item.fromOthers > 0) text += " Plus " + other + " " + fullMoney(item.fromOthers) + " goes to this account.";
+    return text;
   }
 
   function depositRows(deposits) {
@@ -8264,7 +8260,7 @@
         parts.push(row);
       }
     });
-    for (const text of deposits.notes) {
+    for (const text of [...(deposits.perAccount ? state.depositMoveNotes : []), ...deposits.notes]) {
       const note = document.createElement("p");
       note.className = "info-box";
       note.textContent = text;
@@ -8304,25 +8300,34 @@
       state.error = reply.value.error;
       renderSettingsError();
     }
+    let switched = false;
     if (reply && reply.value.inputs) {
       const accounts = reply.value.inputs.accounts;
       state.inputs.accounts.forEach((account, position) => {
         if (accounts[position]) account.deposit = accounts[position].deposit;
       });
+      // The first move names the amounts it wrote (moveDeposit notes); they stay until the plan is back.
+      if (reply.value.notes && reply.value.notes.length) state.depositMoveNotes = reply.value.notes;
+      switched = Boolean(reply.value.sliders && reply.value.sliders.perAccount
+        && !(state.deposits && state.deposits.perAccount));
       if (reply.value.sliders) state.deposits = reply.value.sliders;
       inputsChanged();
     }
     const next = depositMove.pending;
     depositMove.pending = null;
-    renderDeposits();
+    // Amounts per account grey out each person's deposit boxes, so the pane is drawn again once.
+    if (switched) refreshForm();
+    else renderDeposits();
     if (next) moveDeposit(next.name, next.amount);
   }
 
-  // Blank every 401k and IRA deposit, so the household plan applies again.
+  // Blank every 401k and IRA deposit, so the household plan applies again; each person's deposit boxes come back.
   function useHouseholdPlan() {
     const kinds = state.info.sheetRules.depositKinds;
     for (const account of state.inputs.accounts) if (kinds.includes(account.kind)) account.deposit = null;
+    state.depositMoveNotes = [];
     inputsChanged();
+    refreshForm();
     requestDeposits();
   }
 
@@ -9165,6 +9170,7 @@
   function specialField(field, path, value) {
     if (/^(you|partner)\.socialSecurityBasis$/.test(path)) return basisToggle(field, path, value);
     if (/^(you|partner)\.employerMatch\.percent$/.test(path)) return matchPercentField(field, path);
+    if (DEPOSIT_SHARE_PATH.test(path)) return depositShareField(field, path);
     const at = sheetItemOf(path);
     if (at && at.type === "Car" && at.name === "replaceBy") return segmentedField(field, path, value);
     if (at && at.type === "Car" && at.name === "payMethod") return segmentedField(field, path, carPaidBy(at.item));
@@ -9500,6 +9506,159 @@
       setValue(matchPath + ".cap", terms.cap);
     }));
     return wrap;
+  }
+
+  // ---- A person's retirement deposit (Benefits > Retirement plan): the total share of pay and the Roth part of it
+  // (the schema's derived fields), each a number box and a slider bound to the one value: typing moves the slider and
+  // dragging fills the box. A move goes to wmti (moveDepositShare), which stores the Traditional and Roth shares; a new
+  // total keeps the Roth part and a new Roth part keeps the total. Under the total, a readout of what the person
+  // deposits after the limits (depositSliders `people`). With deposits set per account the controls are disabled.
+  const DEPOSIT_SHARE_PATH = /^(you|partner)\.retirementDeposit\.(percent|rothSplit)$/;
+  const depositShareMove = { busy: false, pending: null };
+
+  // The derived value shown: the stored shares read as their total, or the Roth part of that total.
+  function depositShareValue(role, name) {
+    const deposit = getPath(state.inputs, role + ".retirementDeposit") || {};
+    const traditional = Number(deposit.traditionalShare) || 0;
+    const roth = Number(deposit.rothShare) || 0;
+    if (name === "percent") return traditional + roth;
+    return traditional + roth > 0 ? roth / (traditional + roth) : 0;
+  }
+
+  function depositsPerAccount() {
+    const kinds = state.info.sheetRules.depositKinds;
+    return (state.inputs.accounts || []).some((account) => kinds.includes(account.kind) && account.deposit != null);
+  }
+
+  function depositShareField(field, path) {
+    const [, role, name] = DEPOSIT_SHARE_PATH.exec(path);
+    const id = fieldId(path);
+    const wrap = fieldShell(field.label, field.help, id);
+    wrap.classList.add("deposit-share");
+    const box = numberInput(id, field, depositShareValue(role, name), (next) => {
+      const error = walkBoundsError(field, next, null);
+      const problem = wrap.querySelector(".field-error");
+      input.setAttribute("aria-invalid", String(Boolean(error)));
+      problem.hidden = !error;
+      problem.textContent = error || "";
+      if (error) return;
+      slider.value = String(next);
+      moveDepositShare(role, name, next);
+    });
+    const input = box.querySelector("input");
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.className = "range";
+    slider.id = id + "-slider";
+    slider.min = String(field.minimum);
+    slider.max = String(field.maximum);
+    slider.step = String(field.step);
+    slider.value = String(depositShareValue(role, name));
+    slider.setAttribute("aria-label", field.label);
+    slider.addEventListener("input", () => {
+      const next = Number(slider.value);
+      input.value = shown(next, scaleOf(field));
+      moveDepositShare(role, name, next);
+    });
+    wrap.append(box, slider);
+    const atDefault = () => Math.abs(depositShareValue(role, name) - field.default) <= 1e-9;
+    input.classList.toggle("is-default", atDefault());
+    addResetButton(input, field.label, () => resetValueText(field.default, field, input), () => {
+      input.value = shown(field.default, scaleOf(field));
+      slider.value = String(field.default);
+      moveDepositShare(role, name, field.default);
+    }, atDefault);
+    if (name === "percent") {
+      const readout = document.createElement("p");
+      readout.className = "field-help deposit-readout";
+      readout.dataset.role = role;
+      wrap.append(readout);
+      fillDepositReadout(readout);
+    }
+    if (depositsPerAccount()) {
+      input.disabled = true;
+      slider.disabled = true;
+      wrap.classList.add("field-disabled");
+      const note = document.createElement("p");
+      note.className = "field-help switch-note";
+      note.textContent = "Set per account below.";
+      wrap.append(note);
+      if (name === "percent") {
+        const back = document.createElement("button");
+        back.type = "button";
+        back.className = "button button-quiet";
+        back.textContent = "Go back to the household plan";
+        back.addEventListener("click", useHouseholdPlan);
+        wrap.append(back);
+      }
+    }
+    return wrap;
+  }
+
+  // "Traditional x% = $a · Roth y% = $b a year (limit $L)": what the person deposits in the first year after the
+  // limits, from the last depositSliders answer; empty until it arrives.
+  function fillDepositReadout(readout) {
+    const people = (state.deposits && state.deposits.ok && state.deposits.people) || [];
+    const person = people.find((item) => item.role === readout.dataset.role);
+    if (!person) {
+      readout.textContent = "";
+      return;
+    }
+    readout.textContent = "Traditional " + percent(person.traditionalShare, 1) + " = " + fullMoney(person.traditional)
+      + " · Roth " + percent(person.rothShare, 1) + " = " + fullMoney(person.roth) + " a year (limit "
+      + fullMoney(person.limit) + ")";
+  }
+
+  function fillDepositReadouts() {
+    for (const readout of document.querySelectorAll(".deposit-readout")) fillDepositReadout(readout);
+  }
+
+  // Send a total or Roth-part move to wmti (moveDepositShare); one move is in flight at a time and only the newest
+  // waiting position is kept. The reply's Traditional and Roth shares are stored, and its sliders redraw the deposits.
+  async function moveDepositShare(role, name, value) {
+    if (depositShareMove.busy) {
+      depositShareMove.pending = { role, name, value };
+      return;
+    }
+    depositShareMove.busy = true;
+    let reply = null;
+    try {
+      reply = await engine.call("moveDepositShare", [JSON.stringify(state.inputs), role, name, value]);
+    } catch (error) {
+      reply = null;
+    }
+    depositShareMove.busy = false;
+    const answer = reply && reply.value;
+    if (answer && !answer.inputs) {
+      state.error = answer.error;
+      renderSettingsError();
+    }
+    if (answer && answer.inputs && answer.inputs[role] && state.inputs[role]) {
+      state.inputs[role].retirementDeposit = answer.inputs[role].retirementDeposit;
+      if (answer.sliders) state.deposits = answer.sliders;
+      inputsChanged();
+      syncDepositShareDefaults();
+      renderDeposits();
+    }
+    const next = depositShareMove.pending;
+    depositShareMove.pending = null;
+    if (next) moveDepositShare(next.role, next.name, next.value);
+  }
+
+  // After a move: each drawn total and Roth part shows the stored shares (the other one of a pair stays as wmti kept
+  // it), grey at its default with the reset button hidden.
+  function syncDepositShareDefaults() {
+    for (const [path, field] of drawnFields) {
+      const match = DEPOSIT_SHARE_PATH.exec(path);
+      const input = match && $(fieldId(path));
+      if (!input) continue;
+      const value = depositShareValue(match[1], match[2]);
+      if (document.activeElement !== input) input.value = shown(value, scaleOf(field));
+      const slider = $(fieldId(path) + "-slider");
+      if (slider && document.activeElement !== slider) slider.value = String(value);
+      input.classList.toggle("is-default", Math.abs(value - field.default) <= 1e-9);
+      syncReset(input);
+    }
   }
 
   // Whether a person ("you", "partner") has the earnings history the earnings basis reads: entered years, or a last
@@ -10087,8 +10246,7 @@
           }, () => atResetTarget(path));
         }
         const at = sheetItemOf(path);
-        // The figures that follow it, or show with it (a sheet's or panel's blank defaults), redraw.
-        if ((at && sheetSources(at.type).includes(at.name)) || (!at && isPanelSource(path))) {
+        if (at && sheetSources(at.type).includes(at.name)) {  // the figures that follow it, or show with it, redraw
           input.addEventListener("change", () => {
             refreshForm();
             const redrawn = $(fieldId(path));

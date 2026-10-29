@@ -215,7 +215,6 @@
 <li><p><strong>Earnings history</strong> is a disclosure, closed until opened. A toggle picks <em>Manual entry</em> (year-by-year rows) or <em>Last salary</em> (the last salary, the last year it was paid and a table of filled-in years).</p></li>
 <li><p>The filled-in table is read-only until <em>Edit</em>; a typed year is marked “edited”.</p></li>
 <li><p><em>I’m retired</em>, above the salary, hides the salary and <em>Retirement age</em> (kept, not used) and opens the earnings history.</p></li>
-<li><p><em>Leave the 401k employer at age</em> (High effort) is blank by default. It shows that person’s retirement age (today’s age when retired) in gray until you type an age.</p></li>
 </ul>
 </section>
 <section id="children">
@@ -377,7 +376,7 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Retirement plan</p></td>
-<td><p>The plan’s switch; each person’s employer match under its own sub-heading (“Your employer match”, “Partner employer match”) with one “Employer match (% of pay)” box (0% to 100%); the household plan; a deposit slider per account (see below).</p></td>
+<td><p>The plan’s switch; each person’s employer match under its own sub-heading (“Your employer match”, “Partner employer match”) with one “Employer match (% of pay)” box (0% to 100%); each person’s deposit under “Your deposit” and “Partner deposit”: a “Deposit (% of pay)” box with a slider, bound both ways, and at High (or Add detail) a “Roth part of the deposit” box with a slider, each grey at its default with a reset; under the total a line with the Traditional and Roth shares, their first-year dollars after the limits and the 401k limit; a deposit slider per account (see below).</p></td>
 </tr>
 <tr class="row-odd"><td><p>Medical plan</p></td>
 <td><p>The health premium, the pre-tax switch and the plan’s cost sharing. An “HSA” sub-section shows while the plan is on.</p></td>
@@ -623,8 +622,8 @@
 <h3>Deposit per account<a class="headerlink" href="#deposit-per-account" title="Link to this heading"></a></h3>
 <p>The Retirement plan pane of Benefits ends with a slider per Traditional 401k, Roth 401k, Traditional IRA and Roth IRA account, by owner, from 0 to the most its limits leave, in steps of $100.</p>
 <ul class="simple">
-<li><p>Until an amount is set, the sliders show what the household plan deposits.</p></li>
-<li><p>The first move sets the amount for every account. Raising one slider lowers the most the others sharing its limit can take.</p></li>
+<li><p>Until an amount is set, the sliders show what each person’s deposit (% of pay) puts into each account, also as a share of the owner’s pay. A person with no 401k or IRA of their own deposits into the other’s, and the pane says so.</p></li>
+<li><p>The first move sets the amount for every account and names the amounts it wrote. Raising one slider lowers the most the others sharing its limit can take. With amounts set, each person’s deposit boxes are greyed out (“Set per account below”).</p></li>
 <li><p>“Go back to the household plan” clears every amount.</p></li>
 <li><p>An account with no room says why. When the settings are not valid, the page asks you to fix them first.</p></li>
 </ul>
