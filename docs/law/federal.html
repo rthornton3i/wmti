@@ -1999,8 +1999,8 @@
 <span id="law-federal-aca-premium-credit"></span><h2>ACA premium credit (aca_premium_credit)<a class="headerlink" href="#aca-premium-credit-aca-premium-credit" title="Link to this heading"></a></h2>
 <div class="law-section law-secondary docutils container">
 <p>Confidence: <span class="law-chip law-chip-secondary">Confirmed secondary</span></p>
-<p>The premium credit stops above 4 times the poverty guideline.</p>
-<p><strong>How the model uses this:</strong> The income limit (a multiple of the poverty guideline) above which the marketplace premium credit stops, for the Strategies tab’s warning. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
+<p>The premium credit stops above 4 times the poverty guideline; a child stays on a family medical plan until age 26.</p>
+<p><strong>How the model uses this:</strong> The income limit (a multiple of the poverty guideline) above which the marketplace premium credit stops, for the Strategies tab’s warning, and the age a child leaves a family medical plan. More in <a class="reference internal" href="../guides/model-rules.html"><span class="doc">the model rules</span></a>.</p>
 <p class="rubric">As stored in the file</p>
 <table class="law-table docutils align-default">
 <colgroup>
@@ -2023,14 +2023,18 @@
 <td><p>4</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">4.0</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">poverty_guideline</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dependent_coverage_age</span></code></p></td>
+<td><p>26</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">26</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">poverty_guideline</span></code></p></td>
 <td><p>guideline_year: 2,025; first_person: 15,650; each_additional: 5,500</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&quot;guideline_year&quot;:</span> <span class="pre">2025,</span> <span class="pre">&quot;first_person&quot;:</span> <span class="pre">15650.0,</span> <span class="pre">&quot;each_additional&quot;:</span> <span class="pre">5500.0}</span></code></p></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Check at:</strong> <a class="reference external" href="https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines">https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines</a>, IRS Rev. Proc. 2025-25 and 26 USC 36B</p>
-<p><strong>Note:</strong> Marketplace (ACA) premium tax credit, 2026 coverage: the enhanced credits expired after 2025, so the credit ends completely above 400% of the federal poverty level (cliff_multiple, from CRS R48290 as quoted in the 2026-10-19 tax policy audit). Coverage year Y uses the poverty guideline published in Y-1 (the 2025 contiguous-states guideline here). The guideline figures were read back from the audit’s cliff figures (62,600 for one person, 84,600 for two) and the HHS page itself was not opened. The 2026 applicable percentages (2.10% to 9.96% of income) are deliberately not stored: the model does not charge the credit, it only warns where the cliff is.</p>
+<p><strong>Check at:</strong> <a class="reference external" href="https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines">https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines</a>, IRS Rev. Proc. 2025-25 and 26 USC 36B; dependent coverage: <a class="reference external" href="https://www.healthcare.gov/young-adults/children-under-26/">https://www.healthcare.gov/young-adults/children-under-26/</a> and 42 USC 300gg-14</p>
+<p><strong>Note:</strong> Marketplace (ACA) premium tax credit, 2026 coverage: the enhanced credits expired after 2025, so the credit ends completely above 400% of the federal poverty level (cliff_multiple, from CRS R48290 as quoted in the 2026-10-19 tax policy audit). Coverage year Y uses the poverty guideline published in Y-1 (the 2025 contiguous-states guideline here). The guideline figures were read back from the audit’s cliff figures (62,600 for one person, 84,600 for two) and the HHS page itself was not opened. The 2026 applicable percentages (2.10% to 9.96% of income) are deliberately not stored: the model does not charge the credit, it only warns where the cliff is. dependent_coverage_age: a plan that covers children must keep a child on it until the 26th birthday (ACA dependent coverage, 42 USC 300gg-14); the model keeps each child on the household medical plan from birth until 26, whatever the child’s spending years.</p>
 </div>
 </section>
 <section id="social-security-benefit-formula-social-security-benefit-formula">

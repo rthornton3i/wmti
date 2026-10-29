@@ -13,7 +13,7 @@
 // leaves every request there alone (the beta's own worker, or the network, answers it).
 "use strict";
 
-const BUILD_ID = "0efe3383e1e2";
+const BUILD_ID = "3863b8f41d4f";
 const CHANNEL = "stable";
 const CACHE_FAMILY = CHANNEL === "beta" ? "wmti-beta" : "wmti";
 const CACHE_PREFIX = CACHE_FAMILY + ":" + self.registration.scope + ":";
@@ -24,7 +24,7 @@ const DOCS_PATH = new URL("docs/", self.registration.scope).pathname;
 const OTHER_CHANNEL_PATHS = CHANNEL === "beta" ? [] : [new URL("beta/", self.registration.scope).pathname];
 const FILES = [
  "./",
- "app.b1b500b821.js",
+ "app.621e4e5c5b.js",
  "charts.ae4d661d99.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
@@ -55,8 +55,8 @@ const FILES = [
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
  "report.e4260e4993.js",
  "shared.9127bc34d2.js",
- "wmti.37e7840160.wasm",
- "worker.7fc224d9cd.js"
+ "wmti.d4203a31bf.wasm",
+ "worker.d19374897c.js"
 ];
 
 self.addEventListener("install", (event) => {
