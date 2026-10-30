@@ -383,7 +383,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <li><p><strong>Defaults</strong>: none. A new loan starts now and runs to its last payment, with no early payoff or penalty.</p></li>
 <li><p><strong>Charged</strong> as expenses out of cash flow. Balances are subtracted from net worth.</p></li>
 <li><p><strong>Mortgage interest deduction</strong> comes only from loans secured by a home (each home’s loans on <a class="reference internal" href="#tab-home"><span class="std std-ref">Home</span></a>, and a Mortgage loan saved here before homes held their loans). Auto, Student and Other loans never count.</p></li>
-<li><p><strong>Payment in Expenses</strong>: tick it when the payment is already an Expenses row (such as a Mortgage row in Bills). The loan then is not charged or taken from net worth and only feeds the deduction. Otherwise the payment is charged twice.</p></li>
+<li><p><strong>Payments</strong>: every loan’s payment, a home’s mortgage and a car’s loan included, is charged by its own tab and its balance is taken from net worth. Do not also enter the payment as an Expenses row, or it is charged twice. Files saved before schema version 64 that marked a payment as an Expenses row now have it charged from the loan.</p></li>
 <li><p><strong>Starts later</strong>: a loan owes nothing before its start year, and its balance is the amount borrowed then. No cash arrives with it, so a loan that pays for a car or home belongs on that car or home.</p></li>
 <li><p><strong>Pay off early</strong>: payments run through the end of the year you are the payoff age. The balance then owed is paid in one sum from the accounts, plus the prepayment penalty, in <em>Loan Payoffs</em>. The penalty is not deductible. A loan whose payment is an Expenses row cannot be paid off early, nor can a forgiven one.</p></li>
 </ul>
@@ -783,7 +783,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 </section>
 <section id="expense-chart">
 <span id="tab-expense-breakdown"></span><h3>Expense chart<a class="headerlink" href="#expense-chart" title="Link to this heading"></a></h3>
-<p>It averages the middle half of the runs. The child inflation factor, loan payments (unless <em>Payment in Expenses</em> is ticked) and healthcare costs appear where charged, and the random major expense shows as its average over those runs.</p>
+<p>It averages the middle half of the runs. The child inflation factor, loan payments and healthcare costs appear where charged, and the random major expense shows as its average over those runs.</p>
 </section>
 </section>
 <section id="how-compare-judges">

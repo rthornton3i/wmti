@@ -5,8 +5,8 @@
   "use strict";
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
-    sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, carLoanNow, homeMortgageNow, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetFieldNote, sheetSources,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, carLoanNow, homeMortgageNow, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -295,7 +295,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.90e3482d51.js");
+      worker = new Worker("worker.83d9a36b39.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -9739,6 +9739,13 @@
       show();
     });
     wrap.append(row, note);
+    if (path === "dependentCareFsa.cap") {  // wmti sets aside only what the year's child care needs
+      const needed = document.createElement("p");
+      needed.className = "field-help switch-note";
+      needed.textContent = "Only what's needed is set aside: the smallest of this cap, the year's child care and the "
+        + "federal limit.";
+      wrap.append(needed);
+    }
     addResetButton(output, field.label, () => "IRS limit", () => {
       setValue(path, null);
       show();
@@ -10889,6 +10896,8 @@
         input.type = "text";
         input.value = value == null ? "" : value;
         input.addEventListener("input", () => setValue(path, input.value));
+        const at = sheetItemOf(path);
+        if (at && at.type === "ExpenseItem" && at.name === "name") watchExpenseName(path, input);
         wrap.append(input);
         return wrap;
       }
@@ -11617,7 +11626,7 @@
     if (typeName === "Loan") {
       const span = spanText(item, state.inputs.you.currentAge);
       return { name: item.name, detail: item.kind + " · " + percent(item.annualRate, 2) + " · " + item.remainingMonths
-        + " months" + (item.refinance ? " · refinanced" : "") + (item.paymentsInExpenses ? " · payment in Expenses" : "")
+        + " months" + (item.refinance ? " · refinanced" : "")
         + (item.improvesHome === false && state.info.sheetRules.homeLoanKinds.includes(item.kind) ? " · not deducted" : "")
         + (span ? " · " + span : ""),
       value: compactMoney(item.balance) };
@@ -11839,8 +11848,11 @@
     const homeOwner = homeOfLoans(path);  // a home's own loans (second mortgage, home equity)
     add.textContent = "Add " + (homeOwner ? "loan on this home" : typeWords(field.type));
     add.disabled = field.maximum != null && value.length >= field.maximum;
-    // `preset`: for an expense row, the Add picker's choice (a preset row, or null for a row of your own).
-    const addItem = (preset) => {
+    // `preset`: for an expense row, the Add picker's choice (a preset row, or null for a row of your own); a preset
+    // named like a cost another tab already counts asks first (`checked` once it was asked).
+    const addItem = (preset, checked) => {
+      if (field.type === "ExpenseItem" && preset && !checked
+        && warnCountedElsewhere(preset.name, () => addItem(preset, true), () => {})) return;
       if (field.type === "Heir") {  // an equal part for the new beneficiary; the others keep their split of the rest
         beginSheetSession(path);  // Cancel on its sheet removes it again
         setPath(state.inputs, path, addHeir(getPath(state.inputs, path), heirFieldsSchema()));
@@ -11886,10 +11898,11 @@
   }
 
   // The Expenses Add picker: the common expenses of this list's categories not in the list yet (settings schema
-  // `suggestedExpenses`), each added with its sales tax status and flags set, and Other for a row of your own (in
-  // the list's first category); nothing is listed until picked.
+  // `suggestedExpenses`) and not already counted on another tab (`countedElsewhere`), each added with its sales tax
+  // status and flags set, and Other for a row of your own (in the list's first category); nothing is listed until
+  // picked.
   function expensePicker(items, filter, disabled, addItem) {
-    const presets = expensePresetChoices(state.schema.suggestedExpenses, items, filter);
+    const presets = expensePresetChoices(state.schema.suggestedExpenses, items, filter, state.schema.countedElsewhere);
     const select = document.createElement("select");
     select.className = "input add-picker";
     select.setAttribute("aria-label", "Add expense");
@@ -11916,6 +11929,68 @@
       addItem(choice === "other" ? null : clone(presets[Number(choice)]));
     });
     return select;
+  }
+
+  // Before an Expenses row named like a cost another tab already counts (settings schema `countedElsewhere`, see
+  // countedElsewhereMatch) is kept, a warning: Go to <Tab> (none for a tax the model works out), Add anyway and
+  // Cancel. `keep` runs on Add anyway; `drop` on Cancel, Escape and the backdrop; `leave` (by default `drop`) on Go to,
+  // before that tab's Inputs chip opens. False, and nothing shown, when the name matches no such cost.
+  function warnCountedElsewhere(name, keep, drop, leave = drop) {
+    const cost = countedElsewhereMatch(name, state.schema.countedElsewhere);
+    if (!cost) return false;
+    let settled = false;
+    const once = (action) => () => {
+      if (settled) return;
+      settled = true;
+      action();
+    };
+    const actions = [];
+    if (cost.panel) {
+      actions.push(["Go to " + cost.tab, "button", once(() => { leave(); goToInputsPanel(cost.panel); }),
+        "countedElsewhereGo"]);
+    }
+    actions.push(["Add anyway", "button button-quiet", once(keep), "countedElsewhereAdd"],
+      ["Cancel", "button button-quiet", once(drop), "countedElsewhereCancel"]);
+    openDialog({ title: "Already counted", text: countedElsewhereText(name, cost), actions });
+    dialog.onClose = once(drop);  // Escape and the backdrop cancel; after a button it does nothing
+    return true;
+  }
+
+  // Open the Inputs chip of settings panel `panel` (the Low page has no chips: it opens Inputs), closing any sheet.
+  function goToInputsPanel(panel) {
+    if (sheetOpen) closeSheet(true);
+    if (!lowOn() && state.chips.settings !== panel) {
+      state.chips.settings = panel;
+      savePrefs();
+      renderSettings();
+    }
+    goTo("inputs", state.view);
+  }
+
+  // An expense sheet's Name box (`path`, the row's name): a name typed in and committed that looks like a cost another
+  // tab already counts asks first (warnCountedElsewhere), unless the name the row had when its sheet opened matched the
+  // same cost. Add anyway keeps it; Cancel puts back that earlier name (a row just added: its first name); Go to does
+  // that too, or for a row just added removes it (as the sheet's Cancel), and opens the tab. Names are checked only
+  // as they are typed, so saved rows load without a warning.
+  function watchExpenseName(path, input) {
+    input.addEventListener("change", () => {
+      const typed = input.value;
+      setTimeout(() => {  // a Cancel or Escape that blurred the box closes the sheet first: then nothing is asked
+        const open = sheetOpen && sheetOpen.path + "." + sheetOpen.position + ".name" === path;
+        if (!open || $("sheet").hidden || getPath(state.inputs, path) !== typed) return;
+        const opened = sheetSession ? getPath(JSON.parse(sheetSession.inputs), sheetOpen.path) : null;
+        const before = (opened || [])[sheetOpen.position];
+        const earlier = before ? before.name : newItem("ExpenseItem").name;  // a row just added: its first name
+        const counted = state.schema.countedElsewhere;
+        const was = countedElsewhereMatch(earlier, counted);
+        if (typed === earlier || (was && was === countedElsewhereMatch(typed, counted))) return;
+        const putBack = () => {
+          setValue(path, earlier);
+          refreshForm();
+        };
+        warnCountedElsewhere(typed, () => {}, putBack, before ? putBack : cancelSheet);
+      }, 0);
+    });
   }
 
   // The home whose own loans a list path holds ("homes.<n>.loans"), or null for any other list.
@@ -12228,6 +12303,13 @@
       }
       const listFilter = ((state.schema.itemListFilters || {})[field.type] || {})[child.name];  // a home's loans
       const element = fieldElement(child, path + "." + position + "." + child.name, listFilter);
+      const noteText = sheetFieldNote(field.type, entry.name, items[position]);  // a 529's deposit stops on its own
+      if (noteText) {
+        const note = document.createElement("p");
+        note.className = "field-help switch-note";
+        note.textContent = noteText;
+        element.append(note);
+      }
       const holder = sections.find((item) => item.section.fields.includes(entry.name));
       if (holder) { holder.fields.push(element); continue; }
       if (entry.group && entry.group.startsWith("replaceRule")) {  // a car's replacement rule: one bordered block
@@ -12946,7 +13028,7 @@
       .filter((name) => !words.financingFields.includes(name));
     const payChoice = kind === "Car";
     const leaseNames = payChoice ? words.leaseFields : [];
-    // At Medium a High figure (a car's price paid, the extra payments, Payment in Expenses) is not asked: the new
+    // At Medium a High figure (a car's price paid, the extra payments) is not asked: the new
     // item takes its default.
     const names = own.concat([words.financingSwitch],
       words.financingFields.filter((name) => owned || !replaced.includes(name)), leaseNames)
