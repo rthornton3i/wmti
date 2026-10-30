@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-p2e0Jw3C8Lb9sMgRqYCa9ZboRlikCf3TW6mpXA63RaA=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-6g06vhaTuF4bJ/CLNGPd7kaZ6GyuQR/nrkjFewBJ2qc=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -554,6 +554,13 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .pane-svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   stroke-linejoin: round; }
 .pane:has(> .pane-switch) > legend { padding-right: 64px; }
+/* Every top-level pane keeps the switch's slot at the title's right, switch or not, open or folded, so each pane's
+   "i", chevron and switch line up down the page; a folded pane's copy of its switch (25-collapse.js) sits in that same
+   slot. A pane with no chevron (the Timeline) also keeps the chevron's room. */
+.pane:not(.subsection) > legend { padding-right: 64px; }
+.pane.summary-only > legend { padding-right: calc(64px + 36px + var(--space-2)); }
+.pane > legend > .help-button { margin-right: 0; }
+.pane:not(.subsection) > legend .collapse-switch { position: absolute; top: 15px; right: 16px; }
 .pane > .pane-switch .switch { position: absolute; top: 15px; right: 16px; }
 /* The switch's own words ("Household has a medical plan") are not shown: the toggle at the title says it; screen
    readers still read them (the input's aria-label). */
@@ -607,6 +614,12 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 #mc-bar:not([hidden]) + .mc-notice-row .help-button { margin: 0; }
 .mc-bar .run-row { padding-inline-end: var(--space-6); }
 .group > legend.legend-help { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* Every "i" sits at the far right of its row: the title or label takes the free space (long ones wrap), so the "i"
+   comes after it, last in a field row (after a switch or an age range's text) and just before a header's chevron. */
+legend.legend-help > :first-child:not(.help-button), .title-help > :first-child:not(.help-button),
+.field-head > .field-label { flex: 1 1 auto; min-width: 0; }
+.card-head > .title-help, figcaption > .title-help { flex: 1 1 auto; }
+.field-head > .help-button { order: 1; }
 .field-help { font-size: 13px; color: var(--muted); }
 .field-error { font-size: 13px; color: var(--bad); font-weight: 500; }
 .input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--field-bg);
@@ -726,13 +739,13 @@ h2.collapse-head { display: flex; align-items: center; gap: var(--space-2); }
 .collapse-tools { display: inline-flex; align-items: center; gap: var(--space-2); margin-left: auto; flex: none; }
 .collapse-button { display: grid; place-items: center; width: 36px; height: 36px; margin: calc(-1 * var(--space-1)) 0;
   padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
+.collapse-button[hidden] { display: none; }
 .collapse-button:hover { background: var(--surface-2); color: var(--ink); }
 .collapse-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   stroke-linejoin: round; transform: rotate(180deg); transition: transform 0.15s; }
 .collapse-button[aria-expanded="false"] svg { transform: none; }
 .is-collapsed > :not(.collapse-head):not(.collapse-path):not(.collapse-keep),
 .is-collapsed .collapse-path > :not(.collapse-head):not(.collapse-path):not(.collapse-keep) { display: none !important; }
-.pane.is-collapsed > legend { padding-right: 0; }
 @media (prefers-reduced-motion: reduce) { .collapse-button svg { transition: none; } }
 .normal-part { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
 .curve-box { display: grid; gap: 2px; }
@@ -849,6 +862,11 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
 .panel-note { padding-bottom: 6px; white-space: pre-line; }
 /* A section's rule on screen under its title (Roth conversion: every ceiling applies, the lowest one stops it). */
 .pane-lead { margin: 0 0 6px; font-weight: 600; color: var(--ink-2); }
+/* Another tab named in a lead (the Medical plan's "Retirement tab"): a link-styled button that opens it; its 44 px
+   target overlaps the lines round it so the line height stays. */
+.pane-lead-link { display: inline-block; min-height: 44px; margin: -12px 0; padding: 0; border: 0; background: transparent;
+  font: inherit; line-height: 44px; color: var(--accent); text-decoration: underline; text-underline-offset: 3px;
+  cursor: pointer; }
 .plan-details { display: grid; gap: 4px; border-top: 1px solid var(--line); }
 .plan-details > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600;
   color: var(--accent); }
@@ -2637,7 +2655,7 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "e8dd364bee84", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "73586946e034", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.bc867c6434.js"></script>
 <script src="charts.ae4d661d99.js"></script>
@@ -2646,7 +2664,7 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 <script src="games.7803be786a.js"></script>
 <script src="report.1d974b470e.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.a551f582fa.js"></script>
+<script src="app.48a49bdeeb.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

@@ -304,7 +304,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.2b73145fb9.js");
+      worker = new Worker("worker.2aeeb0f68d.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1401,6 +1401,7 @@
           head.append(tools);
           head.addEventListener("click", (event) => {
             if (event.target.closest("button, input, select, textarea, a, label, .field-help")) return;
+            if (button.hidden) return;  // switched off: nothing to fold
             foldPanel(panel, !panel.classList.contains("is-collapsed"));
           });
         }
@@ -1430,6 +1431,8 @@
       button.setAttribute("aria-label", label);
       button.title = label;
     }
+    const gate = collapseSwitch(panel);
+    button.hidden = Boolean(gate && !gate.checked);  // a switched-off panel shows no fold arrow until it is turned on
     const tools = button.parentElement;
     let copy = tools.querySelector(".collapse-switch");
     const real = folded ? collapseSwitch(panel) : null;
@@ -8536,7 +8539,21 @@
     if (panel.lead) {  // a section's rule shown on screen under its title (Roth conversion)
       const lead = document.createElement("p");
       lead.className = "pane-lead";
-      lead.textContent = panel.lead;
+      // Another Inputs panel named in it as "<label> tab" (the Medical plan's Retirement tab) is a button that opens it.
+      const linked = (state.schema.panels || []).find((item) => item.id !== panel.id
+        && panel.lead.includes(item.label + " tab"));
+      if (linked) {
+        const words = linked.label + " tab";
+        const at = panel.lead.indexOf(words);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "pane-lead-link";
+        button.textContent = words;
+        button.addEventListener("click", () => goToInputsPanel(linked.id));
+        lead.append(panel.lead.slice(0, at), button, panel.lead.slice(at + words.length));
+      } else {
+        lead.textContent = panel.lead;
+      }
       group.append(lead);
     }
     if (panel.id === SETUP_PANEL) {
