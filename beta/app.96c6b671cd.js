@@ -7182,12 +7182,33 @@
       renderOptimize();
       return;
     }
-    if (settleTimer) settle();  // an edit still settling is a step of its own
-    state.inputs = reply.inputs;
-    entry.appliedText = JSON.stringify(state.inputs);
-    renderSettings();
-    inputsChanged();
-    renderOptimize();
+    // Ask first: keep the scenario as it is (a baseline to compare against later) and save the result as a new
+    // scenario, or apply it here (one Undo step).
+    const optimizedName = numberedName(state.scenarioName + " Optimized", takenNames(), true);
+    const roomForNew = Object.keys(state.scenarios).length < SAVED_LIMIT;
+    openDialog({ title: "Keep a baseline?",
+      text: (roomForNew ? "Save these settings as a new scenario, " + optimizedName + ", and keep " + state.scenarioName
+        + " unchanged to compare against later (Strategy > Compare)? Or apply them to " + state.scenarioName + "."
+        : "This device keeps at most " + SAVED_LIMIT + " scenarios, so the settings can only be applied to "
+          + state.scenarioName + ". Delete a scenario first to keep a baseline."),
+      actions: [CANCEL, ["Apply here", "button button-quiet", () => {
+        if (inputsText !== JSON.stringify(state.inputs)) return true;
+        if (settleTimer) settle();  // an edit still settling is a step of its own
+        state.inputs = reply.inputs;
+        entry.appliedText = JSON.stringify(state.inputs);
+        renderSettings();
+        inputsChanged();
+        renderOptimize();
+        return true;
+      }, "optimizeApplyHere"]].concat(roomForNew ? [["Save as new scenario", "button", () => {
+        if (settleTimer) settle();
+        putScenario(optimizedName, reply.inputs);  // keeps the open scenario's experience block
+        storeScenarios();
+        renderSaved();
+        renderCompare();
+        leaveOpen(() => openSaved(optimizedName));
+        return true;
+      }, "optimizeSaveNew"]] : []) });
   }
 
   // The inputs a config name stands for, as stored now (no upgrade, no experience block): the key the differences
