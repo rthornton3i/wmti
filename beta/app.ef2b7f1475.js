@@ -14983,8 +14983,12 @@
       const panel = node.handoff;
       element.append(walkParagraph("This is set on the " + panel.label + " page, where you can see and change every "
         + "row. Your answers so far are kept.", "walk-lede"));
-      actions.push(walkButton("Continue", "button walk-primary", null, true),
-        walkButton("Open " + panel.label, "walk-quiet", () => walkHandoff(panel.panel)));
+      // Open the page sits beside Continue, as large as Go deeper.
+      const pair = document.createElement("div");
+      pair.className = "walk-continue-row";
+      pair.append(walkButton("Continue", "button walk-primary", null, true),
+        walkButton("Open " + panel.label, "button button-quiet walk-deeper-button", () => walkHandoff(panel.panel)));
+      actions.push(pair);
       return { element, actions };
     }
     const controls = document.createElement("div");
