@@ -131,9 +131,9 @@
   const SHEET_LAYOUTS = {
     Account: {
       order: ["name", "kind", "owner", "startingValue", "meanReturn", "returnStdDev", "costBasis", "iraBasis",
-        "rothBasis"],
+        "stateIraBasis", "rothBasis"],
       groups: { meanReturn: "returns", returnStdDev: "returns", costBasis: "returns", iraBasis: "returns",
-        rothBasis: "returns" },
+        stateIraBasis: "returns", rothBasis: "returns" },
     },
     // Drawn in titled sections by each field's schema group: Basics, Value, How it is paid, Replacement, Commute,
     // Running costs. A car owned today opens its Value with the price paid, the year bought and the two depreciation
@@ -202,6 +202,7 @@
       if (name === "autoCreated") return "set by the Roth conversion switch";
       if (name === "costBasis" && item.kind !== rules.costBasisKind) return rules.costBasisKind + " accounts only";
       if (name === "iraBasis" && item.kind !== rules.iraBasisKind) return rules.iraBasisKind + " accounts only";
+      if (name === "stateIraBasis" && item.kind !== rules.iraBasisKind) return rules.iraBasisKind + " accounts only";
       if (name === "rothBasis" && !(rules.rothBasisKinds || []).includes(item.kind)) {
         return (rules.rothBasisKinds || []).join(" and ") + " accounts only";
       }
@@ -875,6 +876,7 @@
     if (typeName === "Account" && field === "kind") {
       if (item.kind !== rules.costBasisKind && item.costBasis != null) cleared.costBasis = null;
       if (item.kind !== rules.iraBasisKind && item.iraBasis != null) cleared.iraBasis = null;
+      if (item.kind !== rules.iraBasisKind && item.stateIraBasis != null) cleared.stateIraBasis = null;
       if (!(rules.rothBasisKinds || []).includes(item.kind) && item.rothBasis != null) cleared.rothBasis = null;
       if (!rules.depositKinds.includes(item.kind) && item.deposit != null) cleared.deposit = null;
     }

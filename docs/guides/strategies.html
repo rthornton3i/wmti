@@ -283,29 +283,32 @@ with it off, and pick both in <strong>Compare</strong>.</p>
 <tr class="row-odd"><td><p>What</p></td>
 <td><p>Fills the Roth IRA room that the income phase-out removes: after-tax cash goes
 into a Traditional IRA as a nondeductible deposit and is converted to the
-first Roth IRA in the same year.</p></td>
+earner’s own first Roth IRA in the same year.</p></td>
 </tr>
 <tr class="row-even"><td><p>Set it</p></td>
 <td><p><strong>Strategies</strong> tab: <strong>Make a backdoor Roth deposit</strong>, with an optional yearly
 cap in today’s dollars.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Modeled</p></td>
-<td><p>The deposit is the IRA limit (with the catch-up from age 50) times the share
-the phase-out removes, for each person who earns, and no more than their pay
-less their Traditional deposit. It is paid only from the year’s cash before any
+<td><p>Each earner’s room is the IRA limit (with the catch-up from age 50) times the
+share the phase-out removes, no more than their pay less their Traditional
+deposit; a person with no Roth IRA of their own has none. The household’s
+deposit (the cap, or all the room) is split in proportion to the rooms, each
+part into its earner’s own Roth IRA. It is paid only from the year’s cash before any
 withdrawal and is not income. It shows as <code class="docutils literal notranslate"><span class="pre">Ret.</span> <span class="pre">Deposit</span> <span class="pre">(Backdoor)</span></code> and
 <code class="docutils literal notranslate"><span class="pre">Backdoor</span> <span class="pre">Conversion</span></code>; <code class="docutils literal notranslate"><span class="pre">Conversion</span> <span class="pre">Taxable</span></code> is the taxable part of both
 kinds of conversion.</p></td>
 </tr>
 <tr class="row-even"><td><p>Pro-rata rule</p></td>
 <td><p>With no pre-tax IRA money the conversion is tax free. Otherwise the pre-tax
-share of the whole IRA pool is taxed (Form 8606) and the basis left carries on.
-The first year starts from the <em>IRA basis</em> on the Traditional IRA accounts, a
+share of the owner’s own IRA pool is taxed (Form 8606 is each person’s) and the
+basis left carries on, per person. The first year starts from the <em>IRA basis</em>
+on each owner’s Traditional IRA accounts, a
 fixed dollar amount that loses inflation in today’s-value runs. A Traditional
 401k is outside the pool.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Limits</p></td>
-<td><p>A Roth IRA account must exist. A person’s Roth deposit on the Benefits tab that
+<td><p>A Roth IRA owned by a person paid today must exist. A person’s Roth deposit on the Benefits tab that
 goes into a Roth IRA is held to the part of the IRA limit their income leaves,
 so the backdoor keeps the rest. IRA amounts set per account share the IRA limit,
 so the backdoor gets only what is left (the tab warns when that is nothing).</p></td>
@@ -526,10 +529,14 @@ total either way. The simulation weighs the deduction now against tax-free
 withdrawals later. With the household plan the model matches only the Traditional
 deposit, so the Traditional share never drops below the share the match needs; real
 plans often match Roth deposits too. Greyed out when nobody has both.</p></li>
-<li><p><em>Add an IRA</em>: a Roth or Traditional IRA for a paid person with no 401k. Greyed out
-with the reason (<em>needs per-account deposits</em>, <em>no one has earned pay</em>) when it
-cannot apply. A Roth IRA above the income range is left out (the backdoor covers
-it). A spousal IRA is not modeled.</p></li>
+<li><p><em>Add an IRA</em>: a Roth IRA for each paid person, and a Traditional IRA for a paid
+person with no 401k (the lower deduction beside a workplace plan is not modeled),
+owned by that person. With deposits set per account it asks for its room as its own
+amount; on the household plan it adds that room as a share of pay to the owner’s
+Traditional or Roth share, which flows into the IRA once the 401k limit is reached
+(the 401k raise may then go past the 401k limit too). Greyed out with the reason
+(<em>no one has earned pay</em>) when it cannot apply. A Roth IRA above the income range is
+left out (the backdoor covers it). A spousal IRA is not modeled.</p></li>
 <li><p><em>Add a 529 per child</em>: for each child under college age with a college cost and no
 529, fed from surplus cash.</p></li>
 <li><p><em>Add Savings</em>, <em>Add CD &amp; Bonds</em>, <em>Add Investments</em>: when the household holds none and
@@ -695,9 +702,10 @@ the main reason a married couple converts, never apply; a conversion’s value i
 understated (the tab warns).</p></li>
 <li><p>Early-withdrawal penalties follow the account order unless <em>Use penalty-free money
 first</em> is on; SEPP and the other exceptions are not modelled.</p></li>
-<li><p>The after-tax IRA basis (Form 8606) is one household figure, so the taxed part of
-Traditional income is spread over the returns by what each owner’s accounts paid
-out. The backdoor deposit goes to the first Roth IRA whoever earns it.</p></li>
+<li><p>The after-tax IRA basis (Form 8606) is kept per person, and each owner’s taxed IRA
+income goes on their own return; the Traditional IRA deduction limit for people
+covered by a workplace plan is not modelled (every Traditional IRA deposit is
+treated as deductible).</p></li>
 <li><p>The Net Investment Income Tax counts only interest and realized gains: a conversion
 that lifts income above its threshold pulls them into it, but dividends are not
 modelled, so a dividend-heavy household’s conversion costs more than shown.</p></li>
