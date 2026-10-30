@@ -309,7 +309,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.aa2a8e654d.js");
+      worker = new Worker("worker.44cbbfe419.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1433,10 +1433,14 @@
           head.append(tools);
           head.addEventListener("click", (event) => {
             if (event.target.closest("button, input, select, textarea, a, label, .field-help")) return;
-            if (button.hidden) return;  // switched off: nothing to fold
+            if (button.classList.contains("collapse-off")) return;  // switched off: nothing to fold
             foldPanel(panel, !panel.classList.contains("is-collapsed"));
           });
         }
+        // The header reads title ... [switch] [i] [chevron]: the "i" moves into the tools, just before the chevron,
+        // so every pane's "i" and chevron line up at the far right whether or not it has a switch.
+        const ownHelp = head.querySelector(":scope > .help-button");
+        if (ownHelp) tools.insertBefore(ownHelp, tools.querySelector(":scope > .collapse-button"));
         const help = head.querySelector(".help-button");  // the header's "i" text still opens while folded
         const helpText = help && document.getElementById(help.getAttribute("aria-controls"));
         if (helpText && panel.contains(helpText)) helpText.classList.add("collapse-keep");
@@ -1464,10 +1468,13 @@
       button.title = label;
     }
     const gate = collapseSwitch(panel);
-    button.hidden = Boolean(gate && !gate.checked);  // a switched-off panel shows no fold arrow until it is turned on
+    button.classList.toggle("collapse-off", Boolean(gate && !gate.checked));  // a switched-off panel shows no fold arrow until it is turned on
     const tools = button.parentElement;
     let copy = tools.querySelector(".collapse-switch");
-    const real = folded ? collapseSwitch(panel) : null;
+    // The header shows the panel's switch: always for a pane's own toggle (its original is hidden, styles.css), and
+    // for a first-field feature switch only while folded (open, the field row shows it).
+    const gateSwitch = collapseSwitch(panel);
+    const real = gateSwitch && (folded || gateSwitch.closest(".pane-switch")) ? gateSwitch : null;
     if (!real) {
       if (copy) copy.remove();
       return;
@@ -15620,14 +15627,17 @@
     const head = document.createElement("div");
     head.className = "walk-head";
     head.append(walkHeading(walkText(node, "prompt")));
-    const help = node.fields.length === 1 ? node.fields[0].help : null;
-    if (help && row.control !== "handoff") {
+    // One "i" button on the heading: the question's about blurb (what is asked, why, what to do if unsure), then a
+    // single field's own help; a hand-off shows the blurb only.
+    const help = node.fields.length === 1 && row.control !== "handoff" ? node.fields[0].help : null;
+    const texts = [node.about, help].filter(Boolean);
+    element.append(head);
+    if (texts.length) {
       const helpId = newHelpId();
-      head.insertAdjacentHTML("beforeend", helpButtonHtml(node.fields[0].label, helpId));
-      element.append(head);
-      element.insertAdjacentHTML("beforeend", helpTextHtml(helpId, help, "walk-help"));
-    } else {
-      element.append(head);
+      head.insertAdjacentHTML("beforeend", helpButtonHtml(node.fields.length === 1 ? node.fields[0].label
+        : "this question", helpId));
+      element.insertAdjacentHTML("beforeend", "<div class=\"walk-about\" id=\"" + helpId + "\" hidden>"
+        + texts.map((text) => "<p class=\"field-help walk-help\">" + escapeText(text) + "</p>").join("") + "</div>");
     }
     const hintSpec = spendingHint(node, walk.plan.facts);  // the Low spending wording, else the question's own
     if (hintSpec && walk.plan.facts) {
