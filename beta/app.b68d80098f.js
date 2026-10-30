@@ -304,7 +304,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.2aeeb0f68d.js");
+      worker = new Worker("worker.2eb526ef9d.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -2390,15 +2390,24 @@
     const helpId = headline.help ? newHelpId() : null;
     const label = "<span class=\"tile-label\">" + escapeText(headline.label) + "</span>";
     const subtitle = headline.subtitle ? "<span class=\"tile-subtitle\">" + escapeText(headline.subtitle) + "</span>" : "";
+    const lines = (headline.range ? "<span class=\"tile-change\">Middle half of the runs: "
+        + escapeText(fullMoney(headline.range[0])) + " to " + escapeText(fullMoney(headline.range[1])) + "</span>" : "")
+      + (headline.change ? "<span class=\"tile-change\">" + escapeText(headline.change) + " from "
+        + escapeText(state.scenarioName) + "</span>" : "");
+    const value = "<span class=\"tile-value\">"
+      + escapeText(headline.unit === "percent" ? percent(headline.value, 1) : fullMoney(headline.value)) + "</span>";
+    // Minimalist (glanceOn): the big number first; the subtitle and the range or change lines a Details tap away.
+    const body = glanceOn() ? value + glanceDetails("Details", subtitle + lines) : subtitle + value + lines;
     return "<div class=\"tile" + (first ? " tile-first" : "") + (stale ? " stale-results" : "") + "\">"
       + (helpId ? "<div class=\"tile-head\">" + label + helpButtonHtml(headline.label, helpId) + "</div>" : label)
-      + subtitle + "<span class=\"tile-value\">"
-      + escapeText(headline.unit === "percent" ? percent(headline.value, 1) : fullMoney(headline.value)) + "</span>"
-      + (headline.range ? "<span class=\"tile-change\">Middle half of the runs: " + escapeText(fullMoney(headline.range[0]))
-        + " to " + escapeText(fullMoney(headline.range[1])) + "</span>" : "")
-      + (headline.change ? "<span class=\"tile-change\">" + escapeText(headline.change) + " from "
-        + escapeText(state.scenarioName) + "</span>" : "")
+      + body
       + (helpId ? helpTextHtml(helpId, headline.help, "tile-help") : "") + accountantWhyButton(headline, source) + "</div>";
+  }
+
+  // Minimalist's tap-to-open box (a details element) round `inner` under `summary`; "" when there is nothing inside.
+  function glanceDetails(summary, inner) {
+    return inner ? "<details class=\"glance-more\"><summary>" + escapeText(summary) + "</summary>" + inner + "</details>"
+      : "";
   }
 
   // Whether the open scenario shows at Low effort, where Summary opens with the gauge and the fan chart (and the
@@ -2484,10 +2493,11 @@
     }
     const result = entry.value;
     const tables = result.tables;
-    html += "<div class=\"result-meta\"><span>" + result.runs + " runs</span><span>Seed " + escapeText(result.seed)
+    const meta = "<div class=\"result-meta\"><span>" + result.runs + " runs</span><span>Seed " + escapeText(result.seed)
       + "</span><span>" + escapeText(dollarsText(result.dollars)) + "</span></div>"
       + "<p class=\"note dollars-note\" id=\"dollarsNote\">"  // what the dollars are, before any figure
-      + escapeText(dollarsNote(ranInputs(entry, stale), result.dollars)) + "</p>" + lowHolder + "<div class=\"tiles\">"
+      + escapeText(dollarsNote(ranInputs(entry, stale), result.dollars)) + "</p>";
+    html += (glanceOn() ? glanceDetails("About these figures", meta) : meta) + lowHolder + "<div class=\"tiles\">"
       + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale, "mc")).join("")
       + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false, "single")).join("")
         : "")
@@ -2547,9 +2557,11 @@
     style: "How results are shown. Style never changes the numbers." };
   // The style tiles' icons (stroke colour, stroke width, 24 by 24 shapes); a style the app does not know uses the first.
   const PICKER_STYLE_ICONS = {
+    standard: ["#3d4a54", 1.6, '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/>'],
     accountant: ["#185FA5", 1.6, '<rect x="5" y="3" width="14" height="18" rx="2"/><rect x="8" y="6" width="8" height="3"/>'
       + '<path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/>'],
     coach: ["#FFF4DD", 1.8, '<path d="M4 18l6-6 4 4 6-8"/><path d="M15 8h5v5"/>'],
+    glance: ["#24242a", 1.4, '<circle cx="12" cy="12" r="8"/><path d="M9 12h6"/>'],
     gamer: ["#5DFFC8", 1.8, '<rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M15 12h.01M18 13h.01"/>'],
   };
   const PICKER_SPARKS = 8;  // sparks over the energy bar's top edge at High; the first two also at Medium
@@ -2801,6 +2813,12 @@
     const effort = offered.efforts.some((item) => item.id === experience.effort) ? experience.effort : "high";
     const style = offered.styles.some((item) => item.id === experience.style) ? experience.style : "accountant";
     return { effort, style };
+  }
+
+  // Whether the open scenario shows the Minimalist style (id "glance"): Summary then keeps each tile's secondary lines
+  // and the run facts behind a Details tap. Accountant's features otherwise; never with the gamify features off.
+  function glanceOn() {
+    return Boolean(state.info && state.experience) && shownExperience().style === "glance";
   }
 
   // Mark the page with the open scenario's effort and style (data-effort and data-style on <html>, always ids the
@@ -4423,17 +4441,20 @@
   const gamify = window.WmtiGamify;
   const GAMER_TICK_MS = 300;  // the debounce of gamerTick
   const GAMER_TOAST_MS = 3500;  // how long the toast line shows
+  // Gamer is a look only for now (owner, 2026-10-30): the HUD styling of styles.css "Gamer HUD look". false keeps the
+  // Awards tab, Garden, XP, quests, quest map, mini games and toasts off; true brings them back unchanged.
+  const GAMER_EXTRAS = false;
   const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views a visit marks seen
   // `pending`: a level-up card waiting for the Garden tab (memory only); `year`: the Garden's Plan year slider;
   // `detail`: the bed or chip the Garden's detail area explains.
   const gamer = { timer: null, toastTimer: null, migrated: false, pending: null, year: 0, detail: null };
   window.wmtiGamer = { state: () => state.game, tick: gamerTickNow, tree: () => state.walkTree };  // for the tests
 
-  // Whether the open scenario shows Gamer style; never with the gamify features off (gamifyOn), so no Awards view,
-  // XP, quest map, Quick game or mini game shows then.
+  // Whether the Gamer extras show: Gamer style with GAMER_EXTRAS on; never with the gamify features off (gamifyOn), so
+  // no Awards view, XP, quest map, Quick game or mini game shows then.
   function gamerOn() {
     if (!gamifyOn() || !state.info || !state.info.experience || !state.experience) return false;
-    return shownExperience().style === "gamer";
+    return GAMER_EXTRAS && shownExperience().style === "gamer";
   }
 
   // The Outputs views (Awards is a bottom tab of its own, not a view; Strategy's views are STRATEGY_VIEWS).

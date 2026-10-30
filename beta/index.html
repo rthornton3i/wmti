@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-uMapWrI4luZpcaSB5A9mCaT/7Ihr/wT0ZcKyM8+FaFU=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-KHXThzYpnoO0z5xAWqx0oRdjxhoNclSOMTgLTnKmsu8=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1139,6 +1139,7 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
 :root[data-effort="medium"] { --fx-e: 0.65; --fx-e-hue: #f2c94c; }
 :root[data-effort="high"] { --fx-e: 1; --fx-e-hue: #eb5757; }
 :root[data-style="accountant"] { --fx-s: 0.3; --fx-s-a: #6b84a3; --fx-s-b: #6b84a3; }
+:root[data-style="glance"] { --fx-s: 0.15; --fx-s-a: #6b84a3; --fx-s-b: #6b84a3; }  /* Minimalist: half Accountant's slate */
 :root[data-style="coach"] { --fx-s: 0.6; --fx-s-a: #2cc492; --fx-s-b: #2cc492; }
 :root[data-style="gamer"] { --fx-s: 1; --fx-s-a: #ff5fb0; --fx-s-b: #7f5cff; }
 /* Where they show (the cards, tiles, groups, pinned figures and open card take --fx-glow in their own rules above;
@@ -1518,6 +1519,12 @@ label.gm-card:has(input:checked) { border-color: var(--gm-mint); box-shadow: ins
     radial-gradient(circle at 15% 85%, rgb(93 255 200 / 0.3), transparent 50%), linear-gradient(180deg, #34279a, #1c1450);
   box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.25), 0 5px 0 #120c38, 0 0 14px #ff5fb0, 0 0 28px #7f5cff; }
 .pk-gamer .pk-info { background: rgb(255 255 255 / 0.12); color: #ffe3f3; border-color: rgb(255 227 243 / 0.5); }
+.pk-standard { color: #1f2a33; border: 1px solid #9aa6ae; background: linear-gradient(180deg, #ffffff, #dfe5e9);
+  box-shadow: inset 0 2px 0 #fff, 0 5px 0 #a7b1b8, 0 9px 16px rgb(0 0 0 / 0.18); }
+.pk-standard .pk-info { background: #fff; color: #3d4a54; border-color: #9aa6ae; }
+.pk-glance { color: #24242a; border: 1px solid #d6d6d2; background: #ffffff;
+  box-shadow: 0 5px 0 #e2e2de, 0 9px 16px rgb(0 0 0 / 0.1); }
+.pk-glance .pk-info { background: #fff; color: #5f5e5a; border-color: #d6d6d2; }
 .pk-style .pk-info[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .pk-style.pk-on { filter: none; transform: scale(1.03); }
 .pk-style.pk-on::after { content: ""; position: absolute; inset: -7px; border-radius: 24px; border: 4px solid var(--accent);
@@ -2226,6 +2233,111 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 #ledgerStatus:empty { display: none; }
 /* The edit sheet's title takes the focus on open (no keyboard): no ring on it */
 #sheetTitle:focus { outline: none; }
+/* ==== Style looks (owner, 2026-10-30) ====
+   Each style's own look, keyed on data-style on <html> (applyExperience, 45-experience.js). Only fonts, shapes, rules,
+   spacing and layout change: every colour is an existing token, so each colour scheme, light and dark, keeps working.
+   Standard has no block: it is the classic look. Phone first: nothing here widens a row past the 16 px gutters. */
+
+/* ---- Accountant: a bank statement. Report header bands on the cards, boxed totals, tabular figures in the data
+   font, square corners, thin rules and source lines set as footnotes. Charts and icons stay. ---- */
+html[data-style="accountant"] { --radius: 4px; }
+html[data-style="accountant"] .panels { border-radius: 8px 8px 0 0; }
+html[data-style="accountant"] :is(.card, .tile, .group, .tile-first) { border-radius: 4px; }
+html[data-style="accountant"] :is(.button, .banner, .info-box, .table-scroll, .nextstep, .chart-full, .view-toggle,
+  .view-toggle button, .nextstep-check-result) { border-radius: 3px; }
+html[data-style="accountant"] .card > :is(h2, .card-head):first-child { margin: calc(-1 * var(--space-4))
+  calc(-1 * var(--space-4)) 0; padding: var(--space-2) var(--space-4); background: var(--surface-2);
+  border-bottom: 1px solid var(--line); border-radius: 4px 4px 0 0; }
+html[data-style="accountant"] .card > h2:first-child, html[data-style="accountant"] .card > .card-head:first-child h2,
+html[data-style="accountant"] .chart-title, html[data-style="accountant"] .group > legend { font-size: 13px;
+  font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+html[data-style="accountant"] .group > legend { border-bottom: 1px solid var(--line); margin-bottom: var(--space-1); }
+html[data-style="accountant"] .chart figcaption { padding-bottom: var(--space-1); border-bottom: 1px solid var(--line); }
+html[data-style="accountant"] :is(.tile-value, .pin-value, .gauge-figure, .result-meta, .data-table, .loan-payment-value) {
+  font-family: var(--font-data); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+html[data-style="accountant"] .tile-value { font-weight: 500; padding-top: var(--space-1); border-top: 1px solid var(--line); }
+html[data-style="accountant"] .tile-first .tile-value { justify-self: start; border-top: 0; padding-bottom: 2px;
+  border-bottom: 3px double currentColor; }
+html[data-style="accountant"] .tiles { gap: var(--space-2); }
+html[data-style="accountant"] .data-table thead th { border-bottom: 2px solid var(--ink-2); }
+html[data-style="accountant"] :is(.chart-note, .result-meta) { font-size: 12px; font-style: italic; }
+html[data-style="accountant"] #results-body > .note { font-size: 12.5px; padding-top: var(--space-2);
+  border-top: 1px solid var(--line); }
+html[data-style="accountant"] #results-body > .note::before { content: "Note. "; font-weight: 650; font-style: normal; }
+
+/* ---- Coach: a classroom. Chalkboard bands over the cards (the hero pair of tokens), a rounded friendly font from the
+   device (no web font), round buttons, numbered lessons in Next steps and the Walkthrough trail, and a Report card
+   tag on the lead result. ---- */
+html[data-style="coach"] { --font-body: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand", system-ui, -apple-system,
+  "Segoe UI", Roboto, sans-serif; --radius: 16px; }
+html[data-style="coach"] :is(.card, .group) { border-radius: 24px; }
+html[data-style="coach"] .tile { border-radius: 20px; }
+html[data-style="coach"] .button { border-radius: 999px; }
+html[data-style="coach"] .card > :is(h2, .card-head):first-child { margin: calc(-1 * var(--space-4))
+  calc(-1 * var(--space-4)) 0; padding: var(--space-3) var(--space-4); background: var(--hero); color: var(--hero-ink);
+  border-radius: 24px 24px 8px 8px; border-bottom: 4px solid var(--hero-sub); font-weight: 700; letter-spacing: 0.01em; }
+html[data-style="coach"] .card > .card-head:first-child :is(h2, .chart-note, .help-button),
+html[data-style="coach"] .card > h2:first-child .help-button { color: var(--hero-sub); }
+html[data-style="coach"] .card > .card-head:first-child h2 { color: var(--hero-ink); }
+html[data-style="coach"] .group > legend { width: auto; padding-bottom: 2px; margin-bottom: var(--space-2);
+  border-bottom: 3px solid var(--accent); }
+html[data-style="coach"] .group > legend.legend-help { width: 100%; }
+html[data-style="coach"] .tile-value { font-weight: 800; }
+html[data-style="coach"] .tile-first::before { content: "Report card"; justify-self: start; padding: 1px 10px;
+  border: 2px solid var(--hero-sub); border-radius: 999px; color: var(--hero-sub); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em; }
+html[data-style="coach"] .nextsteps-list { counter-reset: lesson; }
+html[data-style="coach"] .nextstep { counter-increment: lesson; border-radius: 18px; }
+html[data-style="coach"] .nextstep h3::before { content: "Lesson " counter(lesson); display: block; color: var(--accent);
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+html[data-style="coach"] .walk-rail-list { counter-reset: lesson; }
+html[data-style="coach"] .walk-rail-item { counter-increment: lesson; }
+html[data-style="coach"] .walk-rail-label::before { content: counter(lesson) ". "; font-variant-numeric: tabular-nums; }
+
+/* ---- Minimalist (id glance): calm and sparse. One big number per tile in one column, more white space, lighter
+   headings, fewer inner rules; Summary keeps the tiles' secondary lines and the run facts behind a Details tap
+   (glanceDetails, 40-setup.js). Cards keep their 3:1 edge ring. ---- */
+html[data-style="glance"] { --section-gap: var(--space-6); }
+html[data-style="glance"] .card { padding: var(--space-5) var(--space-4); gap: var(--space-4); }
+html[data-style="glance"] .card h2 { font-weight: 500; font-size: 18px; }
+html[data-style="glance"] .tiles { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+html[data-style="glance"] .tile { padding: var(--space-5) var(--space-4); gap: var(--space-2); }
+html[data-style="glance"] .tile-label { font-size: 14px; }
+html[data-style="glance"] .tile-value { font-size: clamp(28px, 9vw, 40px); font-weight: 600; letter-spacing: -0.02em; }
+html[data-style="glance"] .tile-first .tile-value { font-size: clamp(34px, 11vw, 56px); }
+html[data-style="glance"] :is(.table-scroll, .nextstep, .chart-full, .view-toggle) { border-color: transparent; }
+html[data-style="glance"] .chart figcaption .chart-note, html[data-style="glance"] .result-meta { font-size: 12px; }
+.glance-more { min-width: 0; }
+.glance-more > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 14px;
+  font-weight: 600; color: var(--accent); }
+.tile-first .glance-more > summary { color: var(--hero-sub); }
+.glance-more[open] { display: grid; gap: var(--space-1); }
+
+/* ---- Gamer: a heads-up display. Thin glowing frames in the accent token (its pink and violet cue is off here),
+   readouts and labels in the data font, square corners, a tick meter under each figure and plainer plots. A look only
+   while GAMER_EXTRAS (51-gamer.js) is false: no Garden, quests, awards or games. ---- */
+html:root[data-style="gamer"] { --fx-s: 0; --radius: 3px; }
+html[data-style="gamer"] :is(.card, .tile, .group) { border-radius: 3px; background-image: none;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 10px -2px color-mix(in srgb, var(--accent) 55%, transparent), var(--fx-glow); }
+html[data-style="gamer"] .tile-first { box-shadow: 0 0 0 1px var(--hero-sub),
+  0 0 12px -2px color-mix(in srgb, var(--accent) 60%, transparent), var(--fx-glow); }
+html[data-style="gamer"] :is(.button, .banner, .info-box, .table-scroll, .nextstep, .chart-full, .view-toggle,
+  .view-toggle button) { border-radius: 2px; }
+html[data-style="gamer"] :is(.tile-label, .pin-label, .card h2, .chart-title, .group > legend, .gauge-caption) {
+  font-family: var(--font-data); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+html[data-style="gamer"] :is(.tile-label, .pin-label) { font-size: 11.5px; }
+html[data-style="gamer"] :is(.card h2, .chart-title, .group > legend) { font-size: 13px; color: var(--accent); }
+html[data-style="gamer"] :is(.tile-value, .pin-value, .gauge-figure, .result-meta, .data-table) {
+  font-family: var(--font-data); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+html[data-style="gamer"] .tile-value { font-weight: 500; }
+html[data-style="gamer"] .tile::after { content: ""; height: 3px; margin-top: 2px; opacity: 0.7;
+  background: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 9px); }
+html[data-style="gamer"] .tile-first::after { background: repeating-linear-gradient(90deg, var(--hero-sub) 0 6px,
+  transparent 6px 9px); }
+html[data-style="gamer"] :is(.progress, .progress span, .walk-progress span) { border-radius: 0; }
+html[data-style="gamer"] .chart-svg .grid { stroke-dasharray: 2 4; }
+html[data-style="gamer"] .chart-svg .band { opacity: 0.12; }
+html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
 
 </style>
 
@@ -2660,7 +2772,7 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "52742f226071", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "5e5de4d9d7b8", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.bc867c6434.js"></script>
 <script src="charts.ae4d661d99.js"></script>
@@ -2669,7 +2781,7 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 <script src="games.7803be786a.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.440149c7c0.js"></script>
+<script src="app.b68d80098f.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
