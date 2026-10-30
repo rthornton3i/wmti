@@ -2252,8 +2252,10 @@
   // the last Monte Carlo (marked when stale), then the two single-run headlines (net earnings or withdrawal, annual
   // expense). While a run after a change is under way its figures read RUNNING_TEXT: the single run's while it runs,
   // the median before the first Monte Carlo and while a stale one is being replaced (a run going, or the single run
-  // it waits for).
+  // it waits for). Median final worth and the two single-run headlines are buttons that open their Outputs plot in a
+  // pop-up (PIN_PLOTS, the PLOT_VIEWS id; openPinPlot in 70-plots.js), with the timeline's tap hint at the top right.
   const RUNNING_TEXT = "Running…";
+  const PIN_PLOTS = { "Median final worth": "total", "Avg net earnings": "flows", "Avg annual expense": "expenses" };
   function renderPinned() {
     const pinned = $("pinned");
     if (!state.result || needsSetup(state.inputs)) { pinned.replaceChildren(); return; }
@@ -2263,8 +2265,17 @@
     const today = state.result.netWorthToday;
     const stalePin = entry && stale ? " stale-results" : "";
     const money = (value) => (singleBusy ? RUNNING_TEXT : compactMoney(value));
-    const pin = (label, value, extra) => "<div class=\"pin" + extra + "\"><span class=\"pin-label\">" + escapeText(label)
-      + "</span><span class=\"pin-value\">" + escapeText(value) + "</span></div>";
+    const pin = (label, value, extra) => {
+      const inner = "<span class=\"pin-label\">" + escapeText(label) + "</span><span class=\"pin-value\">"
+        + escapeText(value) + "</span>";
+      const plot = PLOT_VIEWS.find((view) => view.id === PIN_PLOTS[label]);
+      if (!plot) return "<div class=\"pin" + extra + "\">" + inner + "</div>";
+      const name = label + " " + value + ", " + (timelineTouch() ? "tap" : "click") + " to show the " + plot.label + " plot";
+      return "<button type=\"button\" class=\"pin pin-button" + extra + "\" data-plot=\"" + plot.id
+        + "\" aria-haspopup=\"dialog\" aria-label=\"" + escapeText(name) + "\">" + inner
+        + "<span class=\"timeline-bar-icon pin-tap\" aria-hidden=\"true\">" + TIMELINE_TAP_ICON + TIMELINE_CLICK_ICON
+        + "</span></button>";
+    };
     pinned.innerHTML = (today ? pin(today.label, money(today.value), "") : "")
       + pin("Median final worth", medianRunning ? RUNNING_TEXT : compactMoney(median.value), stalePin)
       + state.result.headlines.slice(0, 2).map((headline) => pin(headline.label, money(headline.value), "")).join("");
@@ -7976,6 +7987,50 @@
     }
     body.replaceChildren(...parts);
     figures.forEach(([figure, spec]) => figure && charts.attachChart(figure, spec));
+  }
+
+  // A headline chip's plot (renderPinned in 40-setup.js): the Outputs view `viewId` (PLOT_VIEWS) of the last Monte
+  // Carlo in the scenario dialog, drawn by chartCard as on Outputs (dimmed when stale), or "Run the plan first" before
+  // one. Closes on its X, Close, Escape or a tap outside; Chart / Table and the beneficiaries box redraw it and Outputs.
+  function openPinPlot(viewId) {
+    const view = PLOT_VIEWS.find((item) => item.id === viewId);
+    if (!view) return;
+    const holder = document.createElement("div");
+    holder.className = "pin-plot-body";
+    const fill = () => {
+      const { entry, stale } = latestMonteCarlo();
+      if (!entry) {
+        const empty = document.createElement("p");
+        empty.className = "muted";
+        empty.textContent = "Run the plan first.";
+        holder.replaceChildren(empty);
+        return;
+      }
+      const cards = [];
+      const figures = [];
+      for (const id of view.charts || [view.id]) {
+        const spec = entry.value.charts.find((item) => item.id === id);
+        if (!spec) continue;
+        const card = chartCard(spec, () => { fill(); renderPlots(); });
+        if (stale) card.classList.add("stale-results");
+        figures.push([card.querySelector("figure"), card.chartSpec]);
+        cards.push(card);
+      }
+      holder.replaceChildren(...cards);
+      figures.forEach(([figure, spec]) => figure && charts.attachChart(figure, spec));
+    };
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "pin-plot-close";
+    close.setAttribute("aria-label", "Close");
+    close.innerHTML = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/></svg>";
+    close.addEventListener("click", () => closeDialog());
+    openDialog({ title: view.label, body: [holder], actions: [["Close", "button", () => true]] });
+    $("dialog").classList.add("pin-plot-dialog");
+    $("dialog").querySelector(".dialog-head").append(close);
+    dialog.onClose = () => { $("dialog").classList.remove("pin-plot-dialog"); close.remove(); };
+    fill();  // after the dialog shows, so the charts measure their width
+    close.focus();
   }
 
   // ---- Settings ----
@@ -16146,6 +16201,11 @@
     $("importButton").addEventListener("click", importDialog);
     $("dialog").addEventListener("keydown", (event) => trapFocus(event, $("dialog")));
     $("dialogBackdrop").addEventListener("click", () => closeDialog());
+    // A headline chip with a plot opens it (renderPinned, openPinPlot).
+    $("pinned").addEventListener("click", (event) => {
+      const chip = event.target.closest(".pin-button");
+      if (chip) openPinPlot(chip.dataset.plot);
+    });
     $("rowMenu").addEventListener("keydown", rowMenuKeys);
     document.addEventListener("click", (event) => {
       if (!$("rowMenu").hidden && !event.target.closest("#rowMenu")) closeRowMenu(false);
