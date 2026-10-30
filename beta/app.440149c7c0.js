@@ -14092,9 +14092,12 @@
         if (found && found.ok) config.differences = found.differences;
         else config.differencesError = found ? found.error : "no answer";
       }
+      // Each person's Social Security benefit at the claim age, entered or estimated, for the Social Security table.
+      const benefits = await ask("benefitTables", [JSON.stringify(state.inputs)]);
       if ($("reportProgressText")) $("reportProgressText").textContent = "Drawing the PDF";
       const data = report.buildReport({ scenarioName: state.scenarioName, date: new Date(), inputs: state.inputs,
-        monteCarlo: current.value, single: state.result, configs, schema: state.schema, rules: state.info.sheetRules });
+        monteCarlo: current.value, single: state.result, configs, schema: state.schema, rules: state.info.sheetRules,
+        benefits });
       const images = {};
       for (const spec of data.plots.map((plot) => plot.spec).concat(data.comparison ? [data.comparison.spec] : [])) {
         const image = await reportChartImage(spec);
