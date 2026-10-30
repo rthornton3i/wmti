@@ -1167,16 +1167,18 @@
     return [first === undefined ? null : first, second === undefined ? null : second];
   }
 
-  // Where a tab name from the URL hash or saved prefs leads: {tab, view} with the bottom-bar tab (setup, inputs or
-  // outputs) and, for Outputs, the view (summary, plots or compare; null keeps the current view). Takes the names of
+  // Where a tab name from the URL hash or saved prefs leads: {tab, view} with the bottom-bar tab (setup, inputs,
+  // outputs or strategy) and, for Outputs and Strategy, the view (summary or plots; strategies, compare or optimize;
+  // null keeps the current view). Compare and Optimize, once Outputs views, lead to Strategy. Takes the names of
   // the older five-tab page too (results, plots, settings, compare, more). Household and settings lead to Setup,
   // where the Household settings are. Savings and benefits lead to the Benefits chip of Inputs (`chip`);
   // healthcare to the Healthcare chip; retirement, medicare and the Social Security names to the Retirement chip, which
   // holds Social Security and Medicare. Unknown names give null.
   const ROUTES = {
     setup: ["setup", null], inputs: ["inputs", null], outputs: ["outputs", null],
-    summary: ["outputs", "summary"], plots: ["outputs", "plots"], compare: ["outputs", "compare"],
-    optimize: ["outputs", "optimize"], awards: ["awards", null],
+    summary: ["outputs", "summary"], plots: ["outputs", "plots"], compare: ["strategy", "compare"],
+    optimize: ["strategy", "optimize"], strategy: ["strategy", null], strategies: ["strategy", "strategies"],
+    awards: ["awards", null],
     results: ["outputs", "summary"], settings: ["setup", null], household: ["setup", null], config: ["inputs", null],
     more: ["setup", null], benefits: ["inputs", null, "savings"], savings: ["inputs", null, "savings"],
     healthcare: ["inputs", null, "healthcare"], retirement: ["inputs", null, "retirement"],
