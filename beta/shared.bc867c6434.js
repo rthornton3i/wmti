@@ -2457,12 +2457,16 @@
     return { entry: stack[stack.length - 1], stack: stack.slice(0, -1) };
   }
 
-  // The strategy search's progress line (as wmti.dashboard.optimizing.progressText): the step, the settings
-  // tried, the runs and, once a run has been timed, the seconds left (`optimizeSecondsLeft`).
+  // The strategy search's progress line (as wmti.dashboard.optimizing.progressText): the step (of "up to" the most
+  // steps when a later pass may not run), the run of the setting being simulated, the settings tried, the runs and,
+  // once a run has been timed, the seconds left (`optimizeSecondsLeft`).
   function optimizeStepText(detail) {
     if (!detail) return "Starting the search";
+    const run = detail.runsPer ? " · run " + detail.run + " of " + detail.runsPer : "";
     const head = detail.phase === "recheck" ? "Re-checking the best settings on fresh draws"
-      : detail.step ? "Step " + detail.step + " of " + detail.steps + ": " + detail.label : detail.label;
+      : detail.step ? "Step " + detail.step + " of " + (detail.upTo ? "up to " : "") + detail.steps + run + ": "
+        + detail.label
+      : detail.label + run;
     const left = optimizeSecondsLeft(detail);
     return head + ". " + detail.tried + " settings tried, " + detail.runs + " runs"
       + (left == null ? "" : "; about " + Math.round(left) + " s left") + ".";
