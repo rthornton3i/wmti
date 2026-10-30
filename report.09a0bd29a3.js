@@ -49,6 +49,10 @@
       [["salaryHistory"], (person) => person.earningsHistoryMode === "lastSalary"],
       [["socialSecurityByAge"], (person) => person.socialSecurityBasis === "earnings"]],
   };
+  // A person's Social Security settings, left out of their settings card: the Social Security table shows them, one
+  // row per person (`socialSecurityTable`).
+  const SOCIAL_SECURITY_FIELDS = ["socialSecurityAge", "socialSecurityBasis", "socialSecurityByAge"];
+  const PEOPLE = [["you", "You"], ["partner", "Partner"]];
   // List item fields the app's sheet leaves to another page; the report still lists them with the item.
   const SHOWN_ELSEWHERE = { Account: ["deposit", "surplusShare"],
     ExpenseItem: ["child", "education", "dependentCare", "retirementChange"] };
@@ -117,7 +121,6 @@
     rents: "Each rent with its amount and the years it is paid.",
     visits: "The doctor visits a year used to work out healthcare costs.",
     salaryHistory: "Past pay by year, used to estimate Social Security from earnings.",
-    socialSecurityByAge: "The yearly Social Security benefit by the age it is claimed, as entered.",
     salaryOverrides: "Pay set by hand for given years, in place of the raise rules.",
     heirs: "Who inherits what is left at the end of the plan: each one's share, other income and filing status, and "
       + "how the payout is taken.",
@@ -292,6 +295,7 @@
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
+  const YEAR_KEY = /^(year|(?!.*PerYear$).*Year)$/;  // a calendar-year field (lastSalaryYear), not a rate per year
   const RATE_KEY = /(rate|share|return|stddev|chance|raise|mean|mode|minimum|maximum|factor|coinsurance)/i;
 
   // A setting's value as short text: rates and shares as percents, numbers grouped, objects as "key value; ...".
@@ -300,6 +304,7 @@
     if (typeof value === "boolean") return value ? "Yes" : "No";
     if (typeof value === "number") {
       if (RATE_KEY.test(key) && Math.abs(value) <= 1.5 && !Number.isInteger(value)) return percent(value, 2);
+      if (YEAR_KEY.test(key) && Number.isInteger(value)) return String(value);  // a calendar year reads 2025, not 2,025
       return formatValue(value);
     }
     if (Array.isArray(value)) return value.map((item) => inputText(key, item)).join(", ");
@@ -385,7 +390,7 @@
   // suggested expense rows not filled in yet (`unfilledSuggestion`) are left out of the expenses. With the
   // settings `schema` and the sheet `rules`, a field the app hides now (a car's loan figures without a loan, the
   // commute figures with the commute off, a section whose switch is off) is left out the same way for every type.
-  function inputTables(inputs, schema, rules) {
+  function inputTables(inputs, schema, rules, benefits) {
     const keyRows = [];
     const lists = [];
     const isHidden = panelHidden(inputs, schema);
@@ -402,6 +407,7 @@
       if (value && typeof value === "object" && !Array.isArray(value)) {
         for (const [inner, item] of Object.entries(value)) {
           if (typeName && objectFieldHidden(typeName, inner, value)) continue;
+          if (PEOPLE.some(([role]) => path === role) && SOCIAL_SECURITY_FIELDS.includes(inner)) continue;
           walk(item, group, (label ? label + ": " : "") + humanize(inner), inner, (listTitle ? listTitle + ": " : "")
             + (LIST_TITLES[inner] || humanize(inner)), path + "." + inner, fieldType(schema, typeName, inner));
         }
@@ -431,6 +437,8 @@
     }
     const cards = [...groups.values()].map(({ group, tab: tabLabel, rows }) => ({ title: group,
       columns: ["Setting", "Value"], rows, card: true, tab: tabLabel }));
+    const social = socialSecurityTable(inputs, benefits, isHidden);
+    if (social) lists.push({ ...social, list: true, tab: tab("you.socialSecurityAge") });
     const order = Object.values(LIST_TITLES);
     lists.sort((left, right) => rank(order, left.title) - rank(order, right.title));
     // The tabs in the panels' order, a table on no tab last; within a tab the cards, then the lists (stable sort).
@@ -449,6 +457,54 @@
       briefed.add(card.title);
     }
     return tables;
+  }
+
+  // How a person's Social Security benefit is set: the entered table, or an estimate from their earnings history.
+  function benefitSource(person) {
+    if (person.socialSecurityBasis !== "earnings") return "Entered by claim age";
+    return person.earningsHistoryMode === "lastSalary" ? "Estimated from earnings (last salary)"
+      : "Estimated from earnings (by year)";
+  }
+
+  // The Social Security table: one row per person with the same columns, how the benefit is set first, then the claim
+  // age and the monthly and yearly benefit at it in today's dollars. The benefit comes from `benefits` (the
+  // benefitTables reply, `{ok, people}`: each person's table of `used` amounts by age and whether each was entered or
+  // estimated), else from the entered table; an estimated amount (from earnings, or between entered ages) reads
+  // "~$X", and the table's note says those are approximate. Null when no person has a claim age.
+  function socialSecurityTable(inputs, benefits, isHidden) {
+    const cards = benefits && benefits.ok && Array.isArray(benefits.people) ? benefits.people : [];
+    const rows = [];
+    let estimated = false;
+    for (const [role, name] of PEOPLE) {
+      const person = inputs && inputs[role];
+      if (!person || typeof person !== "object" || isHidden(role) || !Number.isFinite(person.socialSecurityAge)) continue;
+      const age = person.socialSecurityAge;
+      const card = cards.find((item) => item && item.role === role);
+      let monthly = null;
+      let basis = null;
+      if (card && card.table && Array.isArray(card.table.data)) {
+        const columns = card.table.columns || [];
+        const row = card.table.data.find((item) => item[columns.indexOf("age")] === age);
+        if (row && row[columns.indexOf("used")] != null) {
+          monthly = row[columns.indexOf("used")];
+          basis = row[columns.indexOf("basis")];
+        }
+      } else if (person.socialSecurityBasis !== "earnings") {
+        const entered = (person.socialSecurityByAge || {})[age];
+        if (entered != null) { monthly = Number(entered); basis = "entered"; }
+      }
+      const approximate = basis === "estimated" || (basis == null && person.socialSecurityBasis === "earnings");
+      estimated = estimated || (approximate && monthly != null);
+      const money = (value) => (monthly == null ? "Not available" : (approximate ? "~" : "") + fullMoney(value));
+      rows.push([benefitSource(person), name, String(age), money(monthly), money(monthly * 12)]);
+    }
+    if (!rows.length) return null;
+    return { title: "Social Security", columns: ["How the benefit is set", "Person", "Claim age", "Monthly benefit",
+      "Yearly benefit"], numeric: [false, false, true, true, true], rows,
+    brief: "How each person's Social Security benefit is set, the age it is claimed and the benefit at that age, in "
+      + "today's dollars.",
+    note: estimated ? "~ marks an estimated benefit (worked out from earnings, or between entered ages): it is "
+      + "approximate. Amounts without ~ are as entered." : "" };
   }
 
   // The settings tables (`inputTables`) as the Your settings section's parts: one part per app tab, headed by its
@@ -578,7 +634,8 @@
       brief: block === 0 ? table.brief : "",
       columns: positions.map((position) => table.columns[position]),
       numeric: positions.map((position) => numeric[position]),
-      rows: table.rows.map((row) => positions.map((position) => row[position])) }));
+      rows: table.rows.map((row) => positions.map((position) => row[position])),
+      note: block === blocks.length - 1 ? table.note : "" }));
   }
 
   // ---- plot summaries ----
@@ -863,7 +920,7 @@
     const dollarsLine = dollarsNote(data.inputs, monteCarlo.dollars);
     const Money = money.charAt(0).toUpperCase() + money.slice(1) + ".";
     const perYear = " One row per year, led by your age; " + money + ".";
-    const settings = inputTables(data.inputs, data.schema, data.rules);
+    const settings = inputTables(data.inputs, data.schema, data.rules, data.benefits);
     const accounts = [];
     if (tables.accounts) {
       accounts.push(frameTable("Accounts by year", tables.accounts, null,
@@ -1388,6 +1445,11 @@
         }
         y += rowHeight;
       });
+      if (table.note) {
+        font(7.5, "normal", MUTED);
+        for (const text of doc.splitTextToSize(plain(table.note), width)) { doc.text(text, PAGE.margin, y + 8.5); y += 9; }
+        y += 2;
+      }
       y += 10;
     }
 
