@@ -1557,9 +1557,8 @@
 
   // The parts of the inputs the walkthrough does not set in full that still hold the example household's figures:
   // [panel, label, count, unit] each. A whole list (children, expense rows, cars, loans, homes) equal to the
-  // example's; else, within a changed list, the example's one-off (Major Spending) rows still there and the children
-  // still born at the example's ages; and each Social Security benefit table still the example's (a benefit estimated
-  // from pay is not listed).
+  // example's; else, within a changed list, the children still born at the example's ages; and each Social Security
+  // benefit table still the example's (a benefit estimated from pay is not listed).
   function exampleLeftoverList(inputs, defaults) {
     if (!inputs || !defaults) return [];
     const same = (key) => sameValue(inputs[key], defaults[key]);
@@ -1569,11 +1568,6 @@
       ["loans", "Loans", (inputs.loans || []).length, "loans"],
       ["home", "Homes", (inputs.homes || []).length, "homes"]].filter((item) => item[2] > 0
         && same(item[0] === "home" ? "homes" : item[0]));
-    if (!same("expenses")) {
-      const major = (rows) => (rows || []).filter((row) => row.category === "Major Spending");
-      const kept = major(inputs.expenses).filter((row) => major(defaults.expenses).some((old) => sameValue(old, row)));
-      if (kept.length) items.push(["expenses", "One-off costs (college, daycare, repairs)", kept.length, "rows"]);
-    }
     if (!same("children")) {
       const born = (inputs.children || []).filter((child, index) => defaults.children && defaults.children[index]
         && child.yourAgeAtBirth === defaults.children[index].yourAgeAtBirth);
