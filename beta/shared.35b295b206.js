@@ -210,12 +210,8 @@
       if (name === "deposit") return "set per account on the Benefits page";
       if (name === "surplusShare") return "set under Where surplus cash goes on the Accounts page";
       if (name === "autoCreated") return "set by the Roth conversion switch";
-      if (name === "costBasis" && item.kind !== rules.costBasisKind) return rules.costBasisKind + " accounts only";
-      if (name === "iraBasis" && item.kind !== rules.iraBasisKind) return rules.iraBasisKind + " accounts only";
-      if (name === "stateIraBasis" && item.kind !== rules.iraBasisKind) return rules.iraBasisKind + " accounts only";
-      if (name === "rothBasis" && !(rules.rothBasisKinds || []).includes(item.kind)) {
-        return (rules.rothBasisKinds || []).join(" and ") + " accounts only";
-      }
+      const basisReason = accountBasisHidden(name, item.kind, rules);
+      if (basisReason) return basisReason;
       if ((name === "monthlyDeposit" || name === "depositToAge")
         && !(rules.monthlyDepositKinds || []).includes(item.kind)) {
         return "cash, Investments and 529 accounts only";
@@ -913,6 +909,25 @@
       if (item && item[toggle] && labels[name]) return labels[name];
     }
     return null;
+  }
+
+  // Why an account's basis field (cost, IRA or Roth basis) is not used for its kind, in words tied to how that kind
+  // is taxed; null when the kind keeps that basis or the field is not a basis.
+  function accountBasisHidden(name, kind, rules) {
+    const roth = rules.rothBasisKinds || [];
+    const keeps = name === "costBasis" ? kind === rules.costBasisKind
+      : name === "iraBasis" || name === "stateIraBasis" ? kind === rules.iraBasisKind
+        : name === "rothBasis" ? roth.includes(kind) : null;
+    if (keeps === null || keeps) return null;
+    if (kind === "Traditional 401k") return "none: pre-tax money, all taxed when taken out";
+    if (kind === "529") return "not needed: growth is tax-free for school costs";
+    if (kind === "Checking" || kind === "Savings" || kind === "CD & Bonds") {
+      return "not needed: interest is taxed each year";
+    }
+    if (roth.includes(kind)) return "not needed: uses Roth basis instead";
+    if (kind === rules.iraBasisKind) return "not needed: uses IRA basis instead";
+    if (kind === rules.costBasisKind) return "not needed: uses Cost basis instead";
+    return "not used for " + kind + " accounts";
   }
 
   // Why a car's loan or a home's mortgage figure is left off its sheet by its Define loan by (`loanBasis`): the
