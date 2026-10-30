@@ -295,7 +295,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.98f751985e.js");
+      worker = new Worker("worker.520383ba22.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1526,9 +1526,216 @@
     noteViewSoon();
   }
 
+  // ---- Hold sliders: a finger must hold a slider still before it moves ----
+  // Every slider (each <input type=range> and each ages slider, `.age-range`) resists a passing swipe: a finger that
+  // touches it moves nothing until it has stayed within HOLD_SLIDER_SLOP px for HOLD_SLIDER_MS. Moving sooner lets go
+  // of the slider, so the page scrolls or the sideways swipe (30-swipe-menu.js) moves on as from anywhere else. After
+  // the hold the handle lifts (a larger knob with the value above it, `.hold-lift`; a short buzz where the phone has
+  // one) and follows the finger, which no longer scrolls the page: held on the handle it drags from where it is, held
+  // on the track it jumps there. A tap alone moves nothing. A mouse or pen moves at once, lifted the same way; the
+  // keys work as before. A range input's own touch moves are undone and kept from its listeners while the finger is
+  // down; the moves made here reach them as ordinary input and change events. An ages slider gives its own drag to
+  // this code through `track.holdSlider` (ageRangeField, 81-help.js).
+  const HOLD_SLIDER_MS = 120;
+  const HOLD_SLIDER_SLOP = 8;  // px a finger may wander during the hold
+  const HOLD_GRAB_PX = 28;  // a hold this close to the handle drags the handle from where it is
+  const HOLD_THUMB_PX = 16;  // a range input's thumb width: its value runs between the thumb's centres at each end
+  const HOLD_BUZZ_MS = 12;
+  const HOLD_SLIDERS = "input[type=range], .age-range";
+  // The tests set WMTI_HOLD_DELAY before the page loads to change the hold (0: a touch lifts at once).
+  const hold = { delay: typeof window.WMTI_HOLD_DELAY === "number" ? window.WMTI_HOLD_DELAY : HOLD_SLIDER_MS,
+    session: null, pointer: null, lift: null };
+
+  // Whether a slider is being moved now (a lifted touch, or a mouse or pen held down on it): no swipe starts then.
+  function holdSliderBusy() {
+    return Boolean((hold.session && hold.session.lifted) || hold.pointer);
+  }
+
+  // The slider `target` sits in, or null (none, or a disabled range input).
+  function holdSliderOf(target) {
+    const element = target && target.closest ? target.closest(HOLD_SLIDERS) : null;
+    return element && !element.disabled ? element : null;
+  }
+
+  // How to move a slider: `handle(x)` the handle's middle {x, y} and its value text (`x`, before a drag, picks the
+  // ages slider's nearer knob), `start(x)` and `move(x)` put the handle at `x`, `end()` closes the drag.
+  function holdAdapter(element) {
+    return element.tagName === "INPUT" ? rangeHoldAdapter(element) : element.holdSlider || null;
+  }
+
+  function rangeHoldAdapter(input) {
+    const min = input.min === "" ? 0 : Number(input.min);
+    const max = input.max === "" ? 100 : Number(input.max);
+    const span = () => { const box = input.getBoundingClientRect(); return [box, Math.max(0, box.width - HOLD_THUMB_PX)]; };
+    const set = (x) => {
+      const [box, width] = span();
+      const share = width > 0 ? Math.min(1, Math.max(0, (x - box.left - HOLD_THUMB_PX / 2) / width)) : 0;
+      const before = input.value;
+      input.value = String(min + share * (max - min));  // the input keeps it to its step and ends
+      if (input.value !== before) input.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    let first = null;
+    return {
+      handle: () => {
+        const [box, width] = span();
+        const share = max > min ? (Number(input.value) - min) / (max - min) : 0;
+        return { x: box.left + HOLD_THUMB_PX / 2 + share * width, y: box.top + box.height / 2, text: rangeHoldText(input) };
+      },
+      start: (x) => { first = input.value; set(x); },
+      move: set,
+      end: () => { if (first !== null && input.value !== first) input.dispatchEvent(new Event("change", { bubbles: true })); },
+    };
+  }
+
+  // A range input's value as its page shows it: its aria-valuetext, the output for it, the typed box beside it, or the
+  // bare value.
+  function rangeHoldText(input) {
+    if (input.getAttribute("aria-valuetext")) return input.getAttribute("aria-valuetext");
+    const output = input.id ? [...document.querySelectorAll("output")].find((item) => item.htmlFor.contains(input.id)) : null;
+    if (output && output.textContent) return output.textContent;
+    const field = input.closest(".field");
+    const box = field ? field.querySelector("input:not([type=range]):not([type=checkbox]):not([type=radio])") : null;
+    if (box && box.value) return box.value;
+    return input.value;
+  }
+
+  // Show the lifted handle over `element`'s handle (`x`: where the finger or pointer is, before a drag).
+  function showHoldLift(session, x) {
+    let lift = hold.lift;
+    if (!lift) {
+      lift = document.createElement("div");
+      lift.className = "hold-lift";
+      lift.setAttribute("aria-hidden", "true");
+      lift.innerHTML = "<span class=\"hold-lift-knob\"></span><span class=\"hold-lift-bubble\"></span>";
+      document.body.append(lift);
+      hold.lift = lift;
+    }
+    const handle = session.adapter.handle(x);
+    if (!handle) return;
+    lift.style.left = handle.x + "px";
+    lift.style.top = handle.y + "px";
+    lift.lastChild.textContent = handle.text;
+    if (!lift.classList.contains("on")) {
+      const accent = getComputedStyle(session.element).accentColor;
+      lift.style.setProperty("--hold-accent", accent && accent !== "auto" ? accent : "");
+      lift.classList.add("on");
+      session.element.classList.add("hold-lifted");
+    }
+  }
+
+  function hideHoldLift(element) {
+    if (hold.lift) hold.lift.classList.remove("on");
+    if (element) element.classList.remove("hold-lifted");
+  }
+
+  function holdTouchOf(event, session) {
+    return [...event.changedTouches].find((touch) => touch.identifier === session.id) || null;
+  }
+
+  function holdTouchStart(event) {
+    if (hold.session) endHold(hold.session, null);
+    if (event.touches.length > 1) return;
+    const element = holdSliderOf(event.target);
+    const adapter = element ? holdAdapter(element) : null;
+    if (!adapter) return;
+    const touch = event.changedTouches[0];
+    const session = { element, adapter, id: touch.identifier, x: touch.clientX, y: touch.clientY, grab: 0,
+      lifted: false, value: element.value };
+    session.timer = setTimeout(() => liftHold(session), hold.delay);
+    hold.session = session;
+  }
+
+  // The hold is over: the handle lifts and goes to the finger.
+  function liftHold(session) {
+    if (hold.session !== session) return;
+    session.lifted = true;
+    try { if (navigator.vibrate) navigator.vibrate(HOLD_BUZZ_MS); } catch (error) { /* no vibration here */ }
+    const handle = session.adapter.handle(session.x);
+    session.grab = handle && Math.abs(session.x - handle.x) < HOLD_GRAB_PX ? handle.x - session.x : 0;
+    session.adapter.start(session.x + session.grab);
+    session.value = session.element.value;
+    showHoldLift(session);
+  }
+
+  function holdTouchMove(event) {
+    const session = hold.session;
+    const touch = session ? holdTouchOf(event, session) : null;
+    if (!touch) return;
+    if (!session.lifted) {
+      if (Math.hypot(touch.clientX - session.x, touch.clientY - session.y) > HOLD_SLIDER_SLOP) endHold(session, null);
+      return;
+    }
+    if (event.cancelable) event.preventDefault();
+    session.adapter.move(touch.clientX + session.grab);
+    session.value = session.element.value;
+    showHoldLift(session);
+  }
+
+  function holdTouchEnd(event) {
+    const session = hold.session;
+    if (!session || !holdTouchOf(event, session)) return;
+    // No click follows: a tap moves nothing, and a range input's own tap would.
+    if (event.type === "touchend" && event.cancelable) event.preventDefault();
+    endHold(session, event);
+  }
+
+  // Close a touch on a slider; its range input's own late events (its change on lift-off) stay held back this turn.
+  function endHold(session, event) {
+    clearTimeout(session.timer);
+    if (session.lifted) {
+      session.lifted = false;
+      session.adapter.end();
+      hideHoldLift(session.element);
+    }
+    if (!event) { hold.session = null; return; }
+    setTimeout(() => { if (hold.session === session) hold.session = null; }, 0);
+  }
+
+  // A range input's own input and change events while a finger is on it: undone and kept from its listeners.
+  function holdGuard(event) {
+    const session = hold.session;
+    if (!session || !event.isTrusted || event.target !== session.element || session.element.tagName !== "INPUT") return;
+    session.element.value = session.value;
+    event.stopImmediatePropagation();
+  }
+
+  // A mouse or pen moves the slider at once (its own handlers do); the handle lifts until the button is let go.
+  function holdPointerDown(event) {
+    if (event.pointerType === "touch" || event.button > 0) return;
+    const element = holdSliderOf(event.target);
+    const adapter = element ? holdAdapter(element) : null;
+    if (!adapter) return;
+    const session = { element, adapter };
+    hold.pointer = session;
+    requestAnimationFrame(() => { if (hold.pointer === session) showHoldLift(session, event.clientX); });
+  }
+
+  function holdPointerUp() {
+    if (!hold.pointer) return;
+    hideHoldLift(hold.pointer.element);
+    hold.pointer = null;
+  }
+
+  function wireHoldSliders() {
+    document.addEventListener("touchstart", holdTouchStart, { capture: true, passive: true });
+    document.addEventListener("touchmove", holdTouchMove, { capture: true, passive: false });
+    document.addEventListener("touchend", holdTouchEnd, { capture: true, passive: false });
+    document.addEventListener("touchcancel", holdTouchEnd, { capture: true, passive: false });
+    window.addEventListener("input", holdGuard, true);
+    window.addEventListener("change", holdGuard, true);
+    // A long press on a slider is the hold, not the browser's menu.
+    document.addEventListener("contextmenu", (event) => { if (holdSliderOf(event.target)) event.preventDefault(); }, true);
+    document.addEventListener("pointerdown", holdPointerDown, true);
+    window.addEventListener("pointermove", () => { if (hold.pointer) showHoldLift(hold.pointer); });
+    window.addEventListener("input", () => { if (hold.pointer) showHoldLift(hold.pointer); });
+    window.addEventListener("pointerup", holdPointerUp);
+    window.addEventListener("pointercancel", holdPointerUp);
+  }
+
   // ---- Swipe: a sideways drag moves to the next or previous Inputs panel, Outputs sub-tab, or walkthrough question ----
   // An enhancement only: the chips, Continue and Back do the same. A touch or pen drag that starts in the area (not in
-  // a field, slider, drag handle, chart, chips row or sideways-scrolling table) and goes mostly sideways follows the
+  // a field, drag handle, chart, chips row or sideways-scrolling table; a slider is fine, since it waits for a hold,
+  // 26-hold-slider.js, and no swipe starts once it has lifted) and goes mostly sideways follows the
   // finger; let go past a third of the width, or flicked, it moves on (finger to the left: forward), otherwise it
   // springs back. On Outputs it steps through the sub-tabs of each view and on to the next view; it never moves between
   // the bottom tabs (Setup, Inputs, Outputs): past an end it springs back.
@@ -1538,8 +1745,9 @@
   const SWIPE_SPRING = "transform " + BUBBLE_MS + "ms cubic-bezier(0.34, 1.4, 0.64, 1)";
 
   function swipeStartsOn(target, root) {
-    if (!target.closest || target.closest("input, select, textarea, [contenteditable], [role=slider], .drag-handle, "
-      + ".chart-svg, canvas, .chips")) return false;
+    if (!target.closest) return false;
+    if (!holdSliderOf(target) && target.closest("input, select, textarea, [contenteditable], [role=slider], "
+      + ".drag-handle, .chart-svg, canvas, .chips")) return false;
     for (let node = target; node && node !== root; node = node.parentElement) {
       if (node.scrollWidth > node.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(node).overflowX)) return false;
     }
@@ -1574,6 +1782,7 @@
         dx = event.clientX - down.clientX;
         const dy = event.clientY - down.clientY;
         if (sideways === null) {
+          if (holdSliderBusy()) { stop(); return; }  // a slider held long enough takes the finger
           if (Math.abs(dx) < SWIPE_SLOP && Math.abs(dy) < SWIPE_SLOP) return;
           sideways = Math.abs(dx) > 1.5 * Math.abs(dy);
           if (!sideways) { stop(); return; }
@@ -9620,39 +9829,67 @@
       return Math.round(low + share * (high - low));
     };
     let dragging = null;  // {name, pointerId}; name is null until a drag between two knobs at one age picks a side
-    track.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0) return;
-      event.preventDefault();
-      const age = ageAt(event.clientX);
+    // A drag that starts at `clientX` (`pointerId`: the mouse or pen's, or "hold" for a held finger) moves the nearer
+    // knob there; `drag` follows it.
+    const grab = (clientX, pointerId) => {
+      const age = ageAt(clientX);
       let name = "at";
       if (!single) {
         if (values.from === values.to) name = age < values.from ? "from" : age > values.to ? "to" : null;
         else name = Math.abs(age - values.from) <= Math.abs(age - values.to) ? "from" : "to";
       }
-      dragging = { name, pointerId: event.pointerId, start: age };
-      track.setPointerCapture(event.pointerId);
+      dragging = { name, pointerId, start: age };
       if (name) {
         knobs[name].focus({ preventScroll: true });
         move(name, age);
       } else {
         knobs.to.focus({ preventScroll: true });
       }
-    });
-    track.addEventListener("pointermove", (event) => {
-      if (!dragging || dragging.pointerId !== event.pointerId) return;
-      const age = ageAt(event.clientX);
+    };
+    const drag = (clientX) => {
+      const age = ageAt(clientX);
       if (!dragging.name) {
         if (age === dragging.start) return;
         dragging.name = age < dragging.start ? "from" : "to";
         knobs[dragging.name].focus({ preventScroll: true });
       }
       move(dragging.name, age);
+    };
+    // A finger is left to the hold (26-hold-slider.js), which drives the same drag.
+    track.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || event.pointerType === "touch") return;
+      event.preventDefault();
+      grab(event.clientX, event.pointerId);
+      track.setPointerCapture(event.pointerId);
+    });
+    track.addEventListener("pointermove", (event) => {
+      if (!dragging || dragging.pointerId !== event.pointerId) return;
+      drag(event.clientX);
     });
     const stop = (event) => {
       if (dragging && dragging.pointerId === event.pointerId) dragging = null;
     };
     track.addEventListener("pointerup", stop);
     track.addEventListener("pointercancel", stop);
+    // The knob a drag moves (else the knob nearest `clientX`, else the focused or first one): its middle and its age.
+    const knobCentre = (knob) => {
+      const box = knob.getBoundingClientRect();
+      return { x: box.left + box.width / 2, y: box.top + box.height / 2, text: knob.getAttribute("aria-valuetext") };
+    };
+    track.holdSlider = {
+      handle: (clientX) => {
+        let knob = dragging && dragging.name ? knobs[dragging.name] : null;
+        if (!knob && clientX != null) {
+          knob = Object.values(knobs).reduce((best, item) => (!best || Math.abs(knobCentre(item).x - clientX)
+            < Math.abs(knobCentre(best).x - clientX) ? item : best), null);
+        }
+        knob = knob || Object.values(knobs).find((item) => item === document.activeElement) || Object.values(knobs)[0];
+        return knob ? knobCentre(knob) : null;
+      },
+      start: (clientX) => grab(clientX, "hold"),
+      move: (clientX) => { if (dragging && dragging.pointerId === "hold") drag(clientX); },
+      end: () => { if (dragging && dragging.pointerId === "hold") dragging = null; },
+    };
     draw();
     wrap.append(track);
     const ends = document.createElement("div");
@@ -12026,8 +12263,9 @@
   }
 
   // ---- Ownership timeline: the Home and Cars panes' Timeline block and its workflow in the bottom sheet ----
-  // The block is a picture: its bars have no Edit or Delete; tapping one opens a popover naming the item, with Open to
-  // its edit sheet. The workflow (Add, and Edit timeline from an item's sheet) is reached from the item list.
+  // Tapping a bar opens a popover naming the item: a car's has Edit (its edit sheet) and Delete, a home's Open to its
+  // edit sheet. The Cars block also has an Add per lane and Add car (another car: a new lane); the workflow (Add, and
+  // Edit timeline from an item's sheet) is also reached from the item list.
   // The segments and every edit come from wmti.assets.timeline through the worker (timelineView, timelineApply), so the
   // phone refits and fills exactly as wmti does. Each add or edit is one screen in the words of
   // schema.timeline.flow, with one Save (applies the edit and closes) and one Cancel (closes, applies nothing); its
@@ -12035,7 +12273,8 @@
   const timelineNotes = {};  // by kind: the notes of the last edit, shown once under the block
   const timelineSegmentsShown = {};  // by kind: the segments last drawn, for the Add screen's "Replaces" choice
   let timelinePopover = null;  // the open bar popover: {bar, element, close}
-  let timelineFlow = null;   // the open workflow: {kind, step, position, lane, year, history, notes, error, busy, addChoice}
+  let timelineFlow = null;   // the open workflow: {kind, step, position, lane, year, history, notes, error, busy, addChoice,
+  // atYear (a lane's own Add: a future purchase on that lane at any detail, with no Replaces choice)}
 
   function timelineWords(kind) {
     return state.schema.timeline.flow[kind];
@@ -12164,6 +12403,9 @@
         }
       }
       group.append(lane);
+      // A car lane is one replacement chain: its own Add puts a car on it at a chosen year, between two cars too
+      // (the neighbours refit, wmti.assets.timeline rule 1).
+      if (kind === "Car") group.append(timelineAddButton("+ Add car to this timeline", "add-to-lane", row.lane));
       parts.push(group);
     }
     if (kind === "Home" && (usedKeys.size || calculatedShown)) parts.push(timelineHomeLegend(words, usedKeys, calculatedShown));
@@ -12174,8 +12416,24 @@
       legend.append(document.createTextNode("Gray: " + words.calculated.toLowerCase()));
       parts.push(legend);
     }
-    // Adding is the item list's one Add button (it opens this timeline's Add screen): no second one here.
+    // Cars: with none yet, Add car; with one or more, Add another car starts a new lane (its own timeline). The item
+    // list's Add opens the same screen. Homes are added from the item list.
+    if (kind === "Car") {
+      const any = reply.segments.some((segment) => segment.position != null);
+      parts.push(timelineAddButton(any ? "Add another car" : "Add car", "add-car", null));
+    }
     body.replaceChildren(...parts);
+  }
+
+  // A Cars timeline Add button: opens the Add screen for lane `lane` (null: a new lane). A lane's Add asks the year
+  // the car is bought (a future purchase), so it can go anywhere on the lane.
+  function timelineAddButton(text, action, lane) {
+    const button = timelineButton(text, action, "button-quiet timeline-add-button");
+    button.addEventListener("click", () => {
+      closeTimelinePopover(false);
+      openTimeline("Car", "add", lane == null ? { lane: null } : { lane, addChoice: "future", atYear: true });
+    });
+    return button;
   }
 
   // The Home timeline's legend under the bars: a swatch and its words for the primary residence, a second home, rent
@@ -12210,7 +12468,9 @@
       : bar.text.startsWith(prefix) ? bar.text.slice(prefix.length) : bar.text;
     const open = !bar.isCalculated && bar.itemList != null && bar.itemIndex != null
       ? { list: bar.itemList, index: bar.itemIndex } : null;
-    return { name: bar.name, role, years, summary, open };
+    // A car's popover offers Edit and Delete (`position`, its timeline position); a home's keeps Open.
+    const position = kind === "Car" && open && bar.position != null ? bar.position : null;
+    return { name: bar.name, role, years, summary, open, kind, position };
   }
 
   // Make a timeline bar a button: its accessible name, and a tap (or Enter, Space) toggles its popover under the row,
@@ -12233,7 +12493,6 @@
   }
 
   function openTimelinePopover(bar, center, parts) {
-    const group = bar.closest(".timeline-group");
     const pop = document.createElement("div");
     pop.className = "timeline-popover";
     pop.id = "timeline-popover-" + newHelpId();
@@ -12260,7 +12519,33 @@
     summary.textContent = parts.summary;
     pop.append(head, role, summary);
     let openButton = null;
-    if (parts.open) {
+    if (parts.open && parts.position != null) {
+      // A car: Edit opens its edit sheet; Delete (tap twice) removes it, its lane's neighbours refitting to fill
+      // its time.
+      const actions = document.createElement("div");
+      actions.className = "timeline-popover-actions";
+      openButton = timelineButton("Edit", "edit", "button-primary");
+      openButton.setAttribute("aria-label", "Edit " + parts.name);
+      openButton.addEventListener("click", () => {
+        closeTimelinePopover(false);
+        openTimelineItem(parts.open.list, parts.open.index);
+      });
+      const remove = timelineButton("Delete", "delete", "button-danger");
+      remove.setAttribute("aria-label", "Delete " + parts.name);
+      remove.addEventListener("click", async () => {
+        if (remove.dataset.armed !== "true") {
+          remove.dataset.armed = "true";
+          remove.textContent = "Tap again to delete";
+          remove.setAttribute("aria-label", "Tap again to delete " + parts.name);
+          return;
+        }
+        remove.disabled = true;
+        closeTimelinePopover(false);
+        await timelineDeleteAt(parts.kind, parts.position);
+      });
+      actions.append(openButton, remove);
+      pop.append(actions);
+    } else if (parts.open) {
       openButton = timelineButton("Open " + parts.name, "open", "button-primary timeline-popover-open");
       openButton.addEventListener("click", () => {
         closeTimelinePopover(false);
@@ -12293,7 +12578,7 @@
     close.addEventListener("click", () => closeTimelinePopover(true));
     document.addEventListener("click", outside, true);
     document.addEventListener("keydown", escape, true);
-    group.append(pop);
+    bar.closest(".timeline-lane").after(pop);  // under the bar row, above the lane's Add
     bar.setAttribute("aria-expanded", "true");
     bar.setAttribute("aria-controls", pop.id);
     (openButton || close).focus({ preventScroll: true });
@@ -12325,7 +12610,7 @@
     sheetOpen = null;
     sheetParents.length = 0;
     timelineFlow = { kind, step, position: null, lane: 0, year: null, history: [], notes: [], error: null, busy: false,
-      addChoice: null, ...(options || {}) };
+      addChoice: null, atYear: false, ...(options || {}) };
     $("sheetTitle").textContent = "Timeline";
     $("sheet").classList.add("timeline-sheet");
     $("sheet").hidden = false;
@@ -12636,7 +12921,8 @@
       // At Medium a future purchase and a planned sale wait for the pane's Add detail (timelineLaterShown).
       const other = kind === "Home" ? "rent" : "lease";
       const later = timelineLaterShown(kind);
-      const options = [["owned", words.addOptions.owned]].concat(later ? [["future", words.addOptions.future]] : [])
+      const options = [["owned", words.addOptions.owned]]
+        .concat(later || flow.atYear ? [["future", words.addOptions.future]] : [])
         .concat(kind === "Home" ? [[other, "Rent"]] : []);
       const choice = timelineChoice("What are you adding?", options, flow.addChoice || null);
       const holder = document.createElement("div");
@@ -12687,7 +12973,7 @@
           ? timelineYear(kept.purchaseAge) : flow.year || state.info.lawTaxYear + 1);
         const end = timelineYearInput(words.saleYear + " (optional)", yearOf(kept.saleAge), true);
         const figures = timelineFigures(kind, owned, kept.figures);
-        const replaces = owned ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);
+        const replaces = owned || flow.atYear ? null : timelineReplaces(kind, start, kept.replaces, flow.lane);
         end.hidden = !later;  // a planned sale (High); a car's lease end stays
         if (kind === "Car") {  // a car leased: the years are the lease's start and end
           const caption = (element) => element.querySelector(".field-label");
@@ -12871,6 +13157,14 @@
     const result = await applyTimeline(kind, { op: "delete", position: at });
     timelineNotes[kind] = result.ok ? result.notes : [result.error];
     closeSheet();
+  }
+
+  // Delete the item at timeline position `at` from its bar's popover, the same way: the notes (or the refusal) show
+  // under the block, redrawn.
+  async function timelineDeleteAt(kind, at) {
+    const result = await applyTimeline(kind, { op: "delete", position: at });
+    timelineNotes[kind] = result.ok ? result.notes : [result.error];
+    renderSettings();
   }
 
   // Apply the screen's edit; on refusal show its sentence on the same screen. Returns the result, or null.
@@ -13760,8 +14054,9 @@
   // The short bullets under a Go deeper offer: what its deeper questions cover.
   // A question's `prompt`, `offer`, `preview` or `choices` (`key`) as the open scenario's effort words it: at Medium
   // its `medium` wording where the tree gives one (the deeper questions cover less there), else its own. A household
-  // with no partner reads a question's `singlePrompt` where it has one.
+  // with no partner reads a question's `singlePrompt` where it has one, and Low effort its `promptLow` (spending).
   function walkText(node, key) {
+    if (key === "prompt" && node.promptLow && lowOn()) return node.promptLow;
     if (key === "prompt" && node.singlePrompt && state.inputs && state.inputs.partner == null) return node.singlePrompt;
     const medium = node.medium;
     if (medium && hasOwn(medium, key) && shownExperience().effort === "medium") return medium[key];
@@ -14186,8 +14481,50 @@
     if (node.action === "childAges") return walkChildAges(node);
     const total = walk.plan.facts ? Math.round(walk.plan.facts.monthlySpending) : 0;
     walk.pending.values.total = total;
-    return walkNumberBox(node, { kind: "number", unit: "money", label: "Monthly spending", minimum: 0, maximum: null,
+    // Above Low the number is only what the counted costs (walkCountedTable) leave out.
+    const label = lowOn() ? "Monthly spending" : "Everything else, per month";
+    return walkNumberBox(node, { kind: "number", unit: "money", label, minimum: 0, maximum: null,
       nullable: false }, "total", total, labelIds, 0);
+  }
+
+  // Above Low, the spending question's summary of the monthly costs the plan already counts from the other answers
+  // (the rows of the Expenses tab's "Already counted from other tabs" table, settingsNotes `alreadyCounted`), with
+  // their total, so the amount asked is only what is left. It reads "Reading your plan" until the notes arrive.
+  function walkCountedTable() {
+    const box = document.createElement("div");
+    box.className = "walk-counted";
+    box.id = "walkCounted";
+    box.append(walkParagraph("Reading your plan", "walk-lede"));
+    fillWalkCounted(box);
+    return box;
+  }
+
+  async function fillWalkCounted(box) {
+    const inputsText = JSON.stringify(state.inputs);
+    const reply = await ask("settingsNotes", [inputsText, state.seed], "walkNotes");
+    if (!box.isConnected || inputsText !== JSON.stringify(state.inputs)) return;  // left, or a newer edit
+    const counted = reply && reply.ok && reply.alreadyCounted;
+    if (!counted) {
+      box.replaceChildren(walkParagraph("What your plan already counts could not be read; Inputs > Expenses lists it.",
+        "walk-lede"));
+      return;
+    }
+    const rows = counted.rows.filter((row) => row.monthly != null);  // the note on the taxes has no amount
+    if (!rows.length) {
+      box.replaceChildren(walkParagraph("Your other answers add no monthly costs yet.", "walk-lede"));
+      return;
+    }
+    const line = (item, monthly, yearly, strong) => {
+      const cell = (value) => "<td>" + (strong ? "<strong>" + fullMoney(value) + "</strong>" : fullMoney(value)) + "</td>";
+      return "<tr><th scope=\"row\">" + escapeText(item) + "</th>" + cell(monthly) + cell(yearly) + "</tr>";
+    };
+    const monthly = rows.reduce((sum, row) => sum + row.monthly, 0);
+    const yearly = rows.reduce((sum, row) => sum + row.yearly, 0);
+    box.innerHTML = "<p class=\"walk-label\">Already counted from your other answers</p>"
+      + "<table class=\"data-table wrap-first counted-table\"><thead><tr><th scope=\"col\">Item</th>"
+      + "<th scope=\"col\">Monthly</th><th scope=\"col\">Yearly</th></tr></thead><tbody>"
+      + rows.map((row) => line(row.item, row.monthly, row.yearly, false)).join("")
+      + line("Already counted", monthly, yearly, true) + "</tbody></table>";
   }
 
   // Labelled number boxes of one action answer, one per [label, value, field]; `onValue(index, number)` takes each.
@@ -14311,6 +14648,8 @@
     if (node.action && node.action !== "balances") controls.append(walkAction(node));
     else node.fields.forEach((field, index) => controls.append(walkField(node, field, index)));
     element.append(controls);
+    // Under the box, so it stays in view on a phone: what the other answers already count.
+    if (id === "spending" && !lowOn()) element.append(walkCountedTable());
     const guided = lowOn() && WALK_GUIDED[id] && walkRead(state.inputs, node.fields[0].path)
       && walk.plan.facts && walk.plan.facts[WALK_GUIDED[id] + "Summary"];
     if (guided) {  // a plan that is on, at Low: its summary, and Change opens its guided sheet
@@ -15443,6 +15782,7 @@
     document.addEventListener("focusin", (event) => $("app").classList.toggle("typing", isTyping(event.target)));
     document.addEventListener("focusout", () => $("app").classList.remove("typing"));
     document.addEventListener("keyup", enterEndsEdit);
+    wireHoldSliders();
     document.addEventListener("click", (event) => {
       const button = event.target.closest(".help-button");
       if (button) toggleHelp(button);

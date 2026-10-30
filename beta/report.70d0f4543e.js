@@ -4,6 +4,8 @@
 // four key results, the insights (warnings and opportunities, insights.js) and the charts, each with a one-line caption and a short summary built by rules from the run's
 // data; the addendum holds every table at the full page width, in small type with the header row repeated on each
 // page, grouped under section headings and subheadings, each table under its title and a one or two sentence brief.
+// Its settings are grouped by the app tab they are edited on: the single settings as cards of label and value pairs,
+// the lists of items as tables.
 // The settings tables leave out the fields the app hides. buildReport and the helpers run in Node for the tests;
 // drawReport needs only the jsPDF object it is given, and the page rasterizes the charts (standaloneSvg) before
 // calling it.
@@ -72,8 +74,8 @@
       "Spending each year by kind: bills, healthcare and premiums, college, cars, gifts and purchases."],
     ["Other", /./, "The other yearly figures, such as the inflation rate used each year."],
   ];
-  // The first sentence of the brief over each "Settings: <group>" table, by the group's settings key ("" for the
-  // single settings at the top level); a group not listed gets a general sentence.
+  // The first sentence of the brief on each settings card (the first of a group split over tabs), by the group's
+  // settings key ("" for the single settings at the top level); a group not listed gets a general sentence.
   const GROUP_BRIEFS = {
     "": "Settings that apply to the whole plan, such as the years planned, filing status, home state and withdrawal "
       + "order.",
@@ -96,6 +98,8 @@
     dependentCareFsa: "The dependent care flexible spending account: whether it is on and its yearly cap.",
     retirementSpending: "How spending changes once you retire, and the age the change starts.",
   };
+  // Whose settings a group holds, for the brief of a group's later card ("More of your settings"), by its key.
+  const GROUP_OWNERS = { "": "the plan-wide", you: "your", partner: "your partner's" };
   // Group titles that read better than the key spelled out.
   const GROUP_TITLES = { hsa: "Health savings account (HSA)", dependentCareFsa: "Dependent care FSA" };
   // The brief over each list table, by the list's key; a list not listed gets a general sentence.
@@ -355,9 +359,25 @@
     return Boolean(hiddenReason(typeName, name, item, { ...rules, timelineManaged: {} }));
   }
 
-  // The inputs as addendum tables: one "Settings: <group>" table (setting, value) per group of single settings, and one
-  // table per list of items (expenses, accounts, loans and so on), each with its `brief` (GROUP_BRIEFS, LIST_BRIEFS)
-  // and the list tables marked `list: true`; a list with no items gives no table, and the
+  // The app tab (settings panel label) a settings path is edited on, from the schema's panels: the panel listing the
+  // longest field name that is the path or holds it. Returns a test of a path giving the label, or null for none (and
+  // always null without panels).
+  function tabOf(schema) {
+    const owners = [];  // [field name, panel label]
+    for (const panel of (schema && schema.panels) || []) {
+      for (const name of panel.fields || []) owners.push([name, panel.label || humanize(panel.id)]);
+    }
+    owners.sort((left, right) => right[0].length - left[0].length);
+    return (path) => {
+      const found = owners.find(([name]) => path === name || path.startsWith(name + "."));
+      return found ? found[1] : null;
+    };
+  }
+
+  // The inputs as addendum tables, each with the app `tab` it is edited on (`tabOf`, null without the schema's panels)
+  // and in the tabs' order: per tab, one settings card (`card: true`, setting and value rows) per group of single
+  // settings, then one table per list of items (expenses, accounts, loans and so on, marked `list: true`), each with its
+  // `brief` (GROUP_BRIEFS, LIST_BRIEFS); a list with no items gives no table, and the
   // suggested expense rows not filled in yet (`unfilledSuggestion`) are left out of the expenses. With the
   // settings `schema` and the sheet `rules`, a field the app hides now (a car's loan figures without a loan, the
   // commute figures with the commute off, a section whose switch is off) is left out the same way for every type.
@@ -365,11 +385,14 @@
     const keyRows = [];
     const lists = [];
     const isHidden = panelHidden(inputs, schema);
+    const tab = tabOf(schema);
     const walk = (value, group, label, key, listTitle, path, typeName) => {
       if (isHidden(path)) return;
       if (isRecordList(value)) {
         const items = path === "expenses" ? value.filter((item) => !unfilledSuggestion(item)) : value;
-        if (items.length) lists.push({ ...recordTable(listTitle, items, typeName, rules, LIST_BRIEFS[key]), list: true });
+        if (items.length) {
+          lists.push({ ...recordTable(listTitle, items, typeName, rules, LIST_BRIEFS[key]), list: true, tab: tab(path) });
+        }
         return;
       }
       if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -381,7 +404,7 @@
         return;
       }
       if (value == null || (Array.isArray(value) && !value.length)) return;
-      keyRows.push([group, label, inputText(key, value)]);
+      keyRows.push([group, label, inputText(key, value), tab(path)]);
     };
     const groupKeys = new Map([["General", ""]]);
     const root = (schema && schema.root) || null;
@@ -395,21 +418,47 @@
         walk(value, group, "", key, title, key, typeName);
       } else walk(value, "General", humanize(key), key, title, key, typeName);
     }
-    // One table per group, in the order the groups first appear.
+    // One card per tab and group, in the order the groups first appear.
     const groups = new Map();
-    for (const [group, label, value] of keyRows) {
-      if (!groups.has(group)) groups.set(group, []);
-      groups.get(group).push([label, value]);
+    for (const [group, label, value, tabLabel] of keyRows) {
+      const id = JSON.stringify([tabLabel, group]);
+      if (!groups.has(id)) groups.set(id, { group, tab: tabLabel, rows: [] });
+      groups.get(id).rows.push([label, value]);
     }
-    const tables = [...groups].map(([group, rows]) => {
-      const lead = GROUP_BRIEFS[groupKeys.get(group)];
-      return { title: "Settings: " + group, columns: ["Setting", "Value"], rows,
-        brief: lead ? lead + " One row per setting, as entered in the app."
-          : "The " + group.toLowerCase() + " settings, one row per setting, as entered in the app." };
-    });
+    const cards = [...groups.values()].map(({ group, tab: tabLabel, rows }) => ({ title: group,
+      columns: ["Setting", "Value"], rows, card: true, tab: tabLabel }));
     const order = Object.values(LIST_TITLES);
     lists.sort((left, right) => rank(order, left.title) - rank(order, right.title));
-    return tables.concat(lists);
+    // The tabs in the panels' order, a table on no tab last; within a tab the cards, then the lists (stable sort).
+    const tabs = ((schema && schema.panels) || []).map((panel) => panel.label || humanize(panel.id));
+    const tables = cards.concat(lists).sort((left, right) => rank(tabs, left.tab) - rank(tabs, right.tab)
+      || Boolean(left.list) - Boolean(right.list));
+    // A group split over tabs gets its brief on its first card; the later ones say they hold more of it.
+    const briefed = new Set();
+    for (const card of tables.filter((table) => table.card)) {
+      const key = groupKeys.get(card.title);
+      const lead = GROUP_BRIEFS[key];
+      const name = card.title.toLowerCase();
+      card.brief = briefed.has(card.title) ? "More of " + (GROUP_OWNERS[key] || "the " + name) + " settings, as "
+        + "entered in the app." : lead ? lead + " As entered in the app." : "The " + name + " settings, as entered "
+        + "in the app.";
+      briefed.add(card.title);
+    }
+    return tables;
+  }
+
+  // The settings tables (`inputTables`) as the Your settings section's parts: one part per app tab, headed by its
+  // label and marked `tab: true`, in the tables' order; without tabs, the cards under "Settings" and the lists under
+  // "Lists".
+  function settingsParts(tables) {
+    const parts = [];
+    for (const table of tables) {
+      const heading = table.tab || (table.list ? "Lists" : "Settings");
+      const last = parts[parts.length - 1];
+      if (last && last.heading === heading) last.tables.push(table);
+      else parts.push({ heading, tab: true, tables: [table] });
+    }
+    return parts;
   }
 
   function rank(order, title) {
@@ -789,8 +838,9 @@
   // (appInfo().sheetRules), which leave out of the settings tables the fields the app hides. The comparison is there
   // only when configs has an item. Each plot carries its `summary` sentences; `insights` holds the warnings and
   // opportunities (insights.js) drawn after the key results. The addendum is a list of sections ({heading, intro,
-  // parts: [{heading (null for none), tables}], tables: every table of the parts}), empty parts and sections left
-  // out; every table carries a one or two sentence `brief` of what it shows and how to read it.
+  // parts: [{heading (null for none), tab, tables}], tables: every table of the parts}), empty parts and sections left
+  // out; Your settings has a part per app tab (`tab: true`, drawn as a shaded tab heading) holding its settings cards
+  // (`card: true`) and lists. Every table carries a one or two sentence `brief` of what it shows and how to read it.
   function buildReport(data) {
     const monteCarlo = data.monteCarlo;
     const plots = PLOTS.map((plot) => ({ spec: monteCarlo.charts.find((spec) => spec.id === plot.id),
@@ -834,8 +884,7 @@
     const sections = [
       { heading: "Your settings", intro: "The settings this report was run with (fields the app hides now are left "
         + "out); " + dollarsLine.charAt(0).toLowerCase() + dollarsLine.slice(1),
-        parts: [part("Single settings by group", settings.filter((table) => !table.list)),
-          part("Lists", settings.filter((table) => table.list))] },
+        parts: settingsParts(settings).map((item) => ({ ...part(item.heading, item.tables), tab: true })) },
       { heading: "Year by year results (middle half average of the runs)",
         intro: "Each year's figure is the average of the middle half of the runs, those between the 25th and 75th "
           + "percentile of final worth. " + Money,
@@ -915,13 +964,19 @@
   const INK = [11, 58, 79];
   const MUTED = [79, 103, 114];
   const RULE = [214, 226, 228];
-  // Addendum heading type: section heading and intro, part subheading, table title (alone when it has no brief) and
-  // brief; `after` is the space below, in points.
-  const ADDENDUM_TYPE = { section: { size: 12, style: "bold", after: 3 },
+  const SHADE = [237, 244, 245];  // the light fill of the headline tiles, tab headings, card titles and header rows
+  // Addendum heading type: section heading (ruled below) and intro, part subheading, an app tab's heading (a shaded
+  // band), table title (alone when it has no brief) and brief; `after` is the space below, in points.
+  const ADDENDUM_TYPE = { section: { size: 12, style: "bold", after: 6, rule: true },
     intro: { size: 8, style: "normal", color: MUTED, after: 8 }, part: { size: 10, style: "bold", after: 5 },
+    tab: { size: 10.5, style: "bold", after: 6, band: 6 },
     title: { size: 8.5, style: "bold", after: 1.5 }, lone: { size: 8.5, style: "bold", after: 3 },
     brief: { size: 7.5, style: "normal", color: MUTED, after: 4 } };
+  // A settings card: setting and value text size, line height, inner padding, the gap between its two columns, its
+  // title band height and the space below it (points).
+  const CARD_TYPE = { size: 7, line: 9, padding: 6, gap: 14, band: 15, after: 10 };
   const KEEP_ROWS = 4;  // a table's title and headings stay on the page with its header row and this many rows
+  const KEEP_WHOLE = 170;  // a table or card at most this tall (points) moves to a new page whole rather than split
   const LATIN = { "→": "->", "–": "-", "—": "-", "‘": "'", "’": "'", "“": "\"", "”": "\"", "…": "...", "≥": ">=",
     "≤": "<=", "−": "-", "›": ">" };
 
@@ -1108,35 +1163,152 @@
     }
     const bodyPages = doc.getNumberOfPages();
 
-    // Addendum: each section's heading and intro, each part's subheading, then each table's title and brief over the
-    // table, with its header row repeated on every page it runs onto. The headings wait (`pending`) and are drawn with
-    // the next table, on a new page when they, its header row and first rows do not fit.
+    // Addendum: each section's heading and intro, each part's subheading (an app tab's as a shaded band), then each
+    // table's title and brief over the table, with its header row repeated on every page it runs onto, or each
+    // settings card. The headings wait (`pending`) and are drawn with the next table or card, on a new page when they,
+    // its header row and first rows do not fit; a short table or card moves to a new page whole rather than split.
     newPage();
+    const baseLine = doc.getLineWidth();
     font(14, "bold");
-    doc.text("Addendum: tables", PAGE.margin, y + 12);
+    doc.text("Addendum", PAGE.margin, y + 12);
     y += 24;
     let pending = [];
     for (const section of report.addendum) {
       pending.push(leadText(section.heading, ADDENDUM_TYPE.section, 12));
       if (section.intro) pending.push(leadText(section.intro, ADDENDUM_TYPE.intro));
       for (const part of section.parts || [{ heading: null, tables: section.tables }]) {
-        if (part.heading) pending.push(leadText(part.heading, ADDENDUM_TYPE.part, 4));
-        for (const table of part.tables) fitTable(table);
+        if (part.heading) pending.push(leadText(part.heading, part.tab ? ADDENDUM_TYPE.tab : ADDENDUM_TYPE.part, 4));
+        for (const table of part.tables) {
+          if (table.card) drawCard(table); else fitTable(table);
+        }
       }
     }
 
-    // A heading or brief as wrapped lines in its type ({size, style, color, after}), `before` points above it unless
-    // it starts a page.
+    // A heading or brief as wrapped lines in its type ({size, style, color, after, band, rule}), `before` points above
+    // it unless it starts a page; a `band` type is drawn on a shaded band (that many points taller than its lines) with
+    // an ink bar at its left, a `rule` type over a rule.
     function leadText(text, type, before) {
       font(type.size, type.style, type.color);
-      const lines = doc.splitTextToSize(plain(text), width);
-      return { lines, type, before: before || 0, height: (before || 0) + lines.length * type.size * 1.25 + type.after };
+      const inset = type.band ? 10 : 0;
+      const lines = doc.splitTextToSize(plain(text), width - inset);
+      return { lines, type, before: before || 0, height: (before || 0) + lines.length * type.size * 1.25
+        + (type.band || 0) + type.after };
     }
     function drawLead(item) {
       if (y > PAGE.margin) y += item.before;
-      font(item.type.size, item.type.style, item.type.color);
-      for (const line of item.lines) { doc.text(line, PAGE.margin, y + item.type.size); y += item.type.size * 1.25; }
-      y += item.type.after;
+      const { type } = item;
+      const inset = type.band ? 10 : 0;
+      if (type.band) {
+        const height = item.lines.length * type.size * 1.25 + type.band;
+        doc.setFillColor(...SHADE);
+        doc.rect(PAGE.margin, y, width, height, "F");
+        doc.setFillColor(...INK);
+        doc.rect(PAGE.margin, y, 3, height, "F");
+        y += type.band / 2;
+      }
+      font(type.size, type.style, type.color);
+      for (const line of item.lines) { doc.text(line, PAGE.margin + inset, y + type.size); y += type.size * 1.25; }
+      if (type.band) y += type.band / 2;
+      if (type.rule) {
+        doc.setDrawColor(...INK);
+        doc.setLineWidth(0.6);
+        doc.line(PAGE.margin, y + 1.5, PAGE.margin + width, y + 1.5);
+        doc.setLineWidth(baseLine);
+        doc.setDrawColor(...RULE);
+      }
+      y += type.after;
+    }
+
+    // A settings card: a shaded title band, its brief, then its settings as label and value pairs, two to a line (a
+    // pair too long for half the width gets a line of its own, its value wrapped), with a rule between lines and a
+    // border around. The pending headings are drawn with it; a card that fits a page is never split, a longer one
+    // continues on the next page under its title marked "(continued)".
+    function drawCard(table) {
+      const card = CARD_TYPE;
+      const inner = width - 2 * card.padding;
+      const half = (inner - card.gap) / 2;
+      font(7.5, "normal");
+      const brief = table.brief ? doc.splitTextToSize(plain(table.brief), inner) : [];
+      const briefHeight = brief.length ? brief.length * 9 + 3 : 0;
+      font(card.size, "normal");
+      const pairs = table.rows.map(([label, value]) => {
+        const labelText = plain(label);
+        const valueText = plain(value);
+        const labelWidth = doc.getTextWidth(labelText);
+        if (labelWidth + doc.getTextWidth(valueText) + 10 <= half) {
+          return { half: true, labels: [labelText], values: [valueText] };
+        }
+        const labelColumn = Math.min(labelWidth + 10, inner * 0.45);
+        return { half: false, labelColumn, labels: doc.splitTextToSize(labelText, labelColumn - 10),
+          values: doc.splitTextToSize(valueText, inner - labelColumn) };
+      });
+      const lines = [];  // each [pair] (a whole line) or [pair, pair or undefined] (two halves)
+      let open = null;
+      for (const pair of pairs) {
+        if (pair.half) {
+          if (open) { open.push(pair); open = null; } else { open = [pair]; lines.push(open); }
+        } else { open = null; lines.push([pair]); }
+      }
+      const lineHeight = (line) => Math.max(...line.map((pair) => Math.max(pair.labels.length,
+        pair.values.length))) * card.line + 4;
+      const heights = lines.map(lineHeight);
+      const total = card.band + briefHeight + heights.reduce((sum, value) => sum + value, 0) + 4;
+      const leads = pending;
+      pending = [];
+      const leadHeight = leads.reduce((sum, item) => sum + item.height, 0);
+      const room = bottom - PAGE.margin;
+      const keep = leadHeight + (total <= room - leadHeight ? total
+        : card.band + briefHeight + heights.slice(0, KEEP_ROWS).reduce((sum, value) => sum + value, 0));
+      if (y + keep > bottom) newPage();
+      leads.forEach(drawLead);
+      let top = y;
+      const band = (title) => {
+        doc.setFillColor(...SHADE);
+        doc.rect(PAGE.margin, y, width, card.band, "F");
+        font(8.5, "bold");
+        doc.text(fitText(doc, title, inner), PAGE.margin + card.padding, y + card.band / 2 + 3);
+        y += card.band;
+      };
+      const border = () => {
+        doc.setDrawColor(...RULE);
+        doc.setLineWidth(0.6);
+        doc.rect(PAGE.margin, top, width, y - top, "S");
+        doc.setLineWidth(baseLine);
+      };
+      band(table.title);
+      if (brief.length) {
+        font(7.5, "normal", MUTED);
+        for (const text of brief) { doc.text(text, PAGE.margin + card.padding, y + 8.5); y += 9; }
+        y += 3;
+      }
+      const cell = (pair, left, cellWidth) => {
+        font(card.size, "normal", MUTED);
+        pair.labels.forEach((text, line) => doc.text(text, left, y + 2 + card.size + line * card.line));
+        font(card.size, "normal", INK);
+        pair.values.forEach((text, line) => doc.text(text, left + cellWidth, y + 2 + card.size + line * card.line,
+          { align: "right" }));
+      };
+      lines.forEach((line, index) => {
+        if (y + heights[index] > bottom - 2) {
+          y += 2;
+          border();
+          newPage();
+          top = y;
+          band(table.title + " (continued)");
+        } else if (index > 0 || brief.length) {
+          doc.setDrawColor(...RULE);
+          doc.setLineWidth(0.4);
+          doc.line(PAGE.margin + card.padding, y, PAGE.margin + width - card.padding, y);
+          doc.setLineWidth(baseLine);
+        }
+        if (line.length === 2 || line[0].half) {
+          line.forEach((pair, column) => { if (pair) cell(pair, PAGE.margin + card.padding + column * (half + card.gap), half); });
+        } else cell(line[0], PAGE.margin + card.padding, inner);
+        y += heights[index];
+      });
+      y += 4;
+      border();
+      y += card.after;
     }
 
     // A table split into column blocks by the width its text needs (`fitColumns`), each block drawn at full width.
@@ -1165,6 +1337,8 @@
       const headerHeight = Math.max(...headers.map((lines) => lines.length)) * (size + 1) + 4;
       const numeric = table.numeric || table.columns.map(() => false);
       const drawHeader = () => {
+        doc.setFillColor(...SHADE);
+        doc.rect(PAGE.margin, y, widths.reduce((sum, value) => sum + value, 0), headerHeight - 1.5, "F");
         font(size, "bold", INK);
         let x = PAGE.margin;
         headers.forEach((lines, column) => {
@@ -1187,8 +1361,10 @@
       const leads = pending.concat(leadText(table.title, table.brief ? ADDENDUM_TYPE.title : ADDENDUM_TYPE.lone),
         table.brief ? [leadText(table.brief, ADDENDUM_TYPE.brief)] : []);
       pending = [];
-      const needed = leads.reduce((sum, item) => sum + item.height, 0) + headerHeight
-        + rowHeight * Math.min(KEEP_ROWS, table.rows.length);
+      const leadHeight = leads.reduce((sum, item) => sum + item.height, 0);
+      const whole = headerHeight + rowHeight * table.rows.length;
+      const needed = leadHeight + (whole <= KEEP_WHOLE ? whole : headerHeight
+        + rowHeight * Math.min(KEEP_ROWS, table.rows.length));
       if (y + needed > bottom) newPage();
       leads.forEach(drawLead);
       drawHeader();
@@ -1302,7 +1478,7 @@
   }
 
   const api = { MAX_SAVED, PLOTS, NOTICE, IMAGE_SIZE, capSelection, reportFilename, householdLine, headlineFigures,
-    keyResults, compareSpec, differenceTables, differenceLines, inputTables, recordTable, yearlyTables, fitColumns, splitTable, buildReport, standaloneSvg,
+    keyResults, compareSpec, differenceTables, differenceLines, inputTables, settingsParts, recordTable, yearlyTables, fitColumns, splitTable, buildReport, standaloneSvg,
     legendItems, plain, drawReport, JUMP_SHARE, JUMP_FLOOR, DROP_SHARE, DROP_FLOOR, EMPTY_BALANCE, jumpAt, dropAt,
     emptiesAt, stopsAfter, startsAt, bandsSummary, histogramSummary, balancesSummary, cashFlowSummary, taxesSummary,
     expensesSummary, comparisonSummary, plotSummary, ledgerCsv, ledgerFilename };

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-fDcLvsCrO9yZXrayFK6UJLdbxmZKDNXp+Timp5ObywQ=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-y/xE2KX4PXsmbF7GJlo3M1CZ4gwj5j4udVxgcX/PCuU=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -782,6 +782,24 @@ h2.collapse-head { display: flex; align-items: center; gap: var(--space-2); }
 /* Sliders: the surplus split and the deposits */
 .range { width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); background: transparent; cursor: pointer; }
 .range:disabled { cursor: default; opacity: 0.45; }
+/* Every slider waits for a held finger (26-hold-slider.js): a long press is the hold, not a text pick or a menu. The
+   lifted handle is drawn over the slider's own: a knob about 1.8 times its size raised 6 px with a deep shadow, the
+   value in a bubble above it, popped in quickly (no pop with reduced motion). */
+input[type="range"], .age-range { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent; }
+.hold-lift { position: fixed; left: 0; top: 0; z-index: 10000; width: 0; height: 0; pointer-events: none; display: none; }
+.hold-lift.on { display: block; }
+.hold-lift-knob { position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; box-sizing: border-box;
+  border-radius: 50%; background: var(--surface); border: 3px solid var(--hold-accent, var(--accent));
+  transform: translateY(-6px) scale(1.8); box-shadow: 0 5px 9px rgb(0 0 0 / 0.32), 0 1px 3px rgb(0 0 0 / 0.25);
+  animation: hold-pop 0.18s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.hold-lift-bubble { position: absolute; left: 0; bottom: 34px; transform: translateX(-50%); padding: 3px 8px;
+  border-radius: 7px; background: var(--ink); color: var(--surface); font-size: 13px; font-weight: 650;
+  font-variant-numeric: tabular-nums; white-space: nowrap; animation: hold-bubble 0.18s ease-out; }
+@keyframes hold-pop { from { transform: translateY(0) scale(1); } 60% { transform: translateY(-7px) scale(2); }
+  to { transform: translateY(-6px) scale(1.8); } }
+@keyframes hold-bubble { from { opacity: 0; transform: translate(-50%, 6px) scale(0.8); } to { opacity: 1; transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .hold-lift-knob, .hold-lift-bubble { animation: none; } }
 .range-row { display: grid; grid-template-columns: minmax(0, 1fr) 4.5em; gap: 10px; align-items: center; }
 .range-value, .surplus-value { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
 /* Benefits: the HSA and FSA caps, a slider to the IRS limit with its dollar amount, grey at the default (the limit),
@@ -863,12 +881,12 @@ h2.collapse-head { display: flex; align-items: center; gap: var(--space-2); }
    the knob's half width so a knob at either end stays inside the sheet. */
 .age-range-field .field-head { flex-wrap: wrap; }
 .age-range-text { margin-left: auto; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ink); }
-.age-range { position: relative; min-height: 44px; padding: 0 22px; touch-action: none; cursor: pointer;
+.age-range { position: relative; min-height: 44px; padding: 0 22px; touch-action: pan-y; cursor: pointer;
   display: flex; align-items: center; }
 .age-range-rail { position: relative; flex: 1; height: 6px; border-radius: 3px; background: var(--toggle-off); }
 .age-range-fill { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); }
 .age-range-knob { position: absolute; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; touch-action: none; }
+  display: flex; align-items: center; justify-content: center; touch-action: pan-y; }
 .age-range-knob::before { content: ""; width: 26px; height: 26px; border-radius: 50%; background: var(--surface);
   border: 3px solid var(--accent); box-sizing: border-box; box-shadow: 0 1px 3px var(--edge-shadow); }
 .age-range-knob.is-default::before { border-color: var(--muted); }
@@ -1705,6 +1723,8 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .walk-head .help-button { margin: 4px 0 0; }
 .walk-lede { color: var(--ink-2); font-size: 1.05rem; }
 .walk-help { font-size: 0.95rem; }
+/* The spending question's table of the monthly costs already counted from the other answers */
+.walk-counted { display: grid; gap: 6px; }
 .walk-controls { display: grid; gap: 14px; padding-top: 6px; }
 .walk-field { display: grid; gap: 8px; }
 .walk-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 600; }
@@ -1892,6 +1912,10 @@ button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink)
   stroke-linecap: round; }
 .timeline-popover-role, .timeline-popover-summary { margin: 0; }
 .timeline-popover-open { justify-self: start; margin-top: 4px; }
+/* A car's popover Edit and Delete, and the Cars block's Add buttons: phone-sized hit targets. */
+.timeline-popover-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.timeline-popover-actions .button, .timeline-add-button { min-height: 44px; }
+.timeline-add-button { justify-self: start; }
 .button-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2;
   stroke-linecap: round; stroke-linejoin: round; }
 .timeline-legend { display: flex; align-items: center; gap: 6px; margin: 0; }
@@ -2518,16 +2542,16 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "293b28a7c1b2", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "e7d4f58b6ff1", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.f36b5dba8f.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.b610d1f57c.js"></script>
 <script src="gamify.c0d6719c49.js"></script>
 <script src="games.7803be786a.js"></script>
-<script src="report.e4260e4993.js"></script>
+<script src="report.70d0f4543e.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.da6053b696.js"></script>
+<script src="app.81d40961cb.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
