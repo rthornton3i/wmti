@@ -506,12 +506,11 @@ states let each spouse claim their own exclusions.</p></td>
 <td><p>Each state you tick, with staying put always a candidate (below).</p></td>
 </tr>
 <tr class="row-odd"><td><p>401k deposits and new accounts</p></td>
-<td><p>Six options, all on by default (below).</p></td>
+<td><p>Seven options, all on by default (below).</p></td>
 </tr>
 </tbody>
 </table>
-<p>Not searched: spending, the salary stop age, lowering a deposit, the Traditional/Roth
-deposit split, returns, healthcare choices and the beneficiaries’ payouts (over 10
+<p>Not searched: spending, the salary stop age, lowering a deposit’s total, returns, healthcare choices and the beneficiaries’ payouts (over 10
 years never leaves the beneficiaries less than all at once; see
 <a class="reference internal" href="#optimizer-findings"><span class="std std-ref">known findings</span></a>). These are life choices more than
 strategies. A strategy that cannot help the household is skipped with the reason.</p>
@@ -520,6 +519,13 @@ strategies. A strategy that cannot help the household is skipped with the reason
 <li><p><em>Raise 401k deposits</em>: each person’s Traditional share of pay (tried at 25, 50, 75
 and 100% of the gap to what their 401k limit allows) and, when their Roth deposit
 goes into a Roth 401k, their Roth share up to its 401k room. Deposits only go up.</p></li>
+<li><p><em>Traditional vs Roth 401k</em>: for each paid person with both a Traditional and a Roth
+401k, their 401k deposits moved between the two at the same total: all Traditional,
+three quarters, half, a quarter and all Roth, and on Standard and Thorough 5% of the
+total either way. The simulation weighs the deduction now against tax-free
+withdrawals later. With the household plan the model matches only the Traditional
+deposit, so the Traditional share never drops below the share the match needs; real
+plans often match Roth deposits too. Greyed out when nobody has both.</p></li>
 <li><p><em>Add an IRA</em>: a Roth or Traditional IRA for a paid person with no 401k. Greyed out
 with the reason (<em>needs per-account deposits</em>, <em>no one has earned pay</em>) when it
 cannot apply. A Roth IRA above the income range is left out (the backdoor covers
@@ -602,8 +608,12 @@ others held and compares candidates in rounds: all on a few runs, the best third
 least two) and your current pick on more, the best two on the most. A new setting
 replaces the current pick only when its score is higher by more than half a percent of
 the reference. The winner is then run again with your current settings on one or two
-fresh sets of draws, and the result says whether it held up. One that did not is
-likely luck; it can still be applied, with a warning.</p>
+fresh sets of draws, and the result says whether it held up. When it did not, the
+search drops its last step and re-checks the settings before it on the same fresh
+draws, up to three earlier settings, and keeps the first that holds up; the result
+names the steps dropped. Each is still held to the same margin, but trying several on
+the same draws makes a lucky pass a little more likely. When none holds up, the winner
+is kept: it is likely luck and can still be applied, with a warning.</p>
 <p><strong>Effort.</strong></p>
 <table class="docutils align-default">
 <colgroup>
@@ -638,7 +648,8 @@ likely luck; it can still be applied, with a warning.</p>
 </tbody>
 </table>
 <p>A search that may add accounts gets 300, 900 or 2,500 more runs (by effort), one that may
-raise 401k deposits 200, 500 or 1,200 more, and each ticked state 50, 224 or 672 more.
+raise 401k deposits 200, 500 or 1,200 more, one that may move them between Traditional
+and Roth 100, 300 or 800 more, and each ticked state 50, 224 or 672 more.
 The time cap is three times the budget at 0.2 s a run, a safety stop. Stop shows the
 best so far; Cancel keeps nothing. A search that uses its run budget before finishing
 asks whether to continue: <em>Continue</em> carries on with the budget raised by the effort’s
@@ -687,8 +698,9 @@ first</em> is on; SEPP and the other exceptions are not modelled.</p></li>
 <li><p>The after-tax IRA basis (Form 8606) is one household figure, so the taxed part of
 Traditional income is spread over the returns by what each owner’s accounts paid
 out. The backdoor deposit goes to the first Roth IRA whoever earns it.</p></li>
-<li><p>No Net Investment Income Tax, so a conversion that lifts income above its threshold
-costs less here than it would.</p></li>
+<li><p>The Net Investment Income Tax counts only interest and realized gains: a conversion
+that lifts income above its threshold pulls them into it, but dividends are not
+modelled, so a dividend-heavy household’s conversion costs more than shown.</p></li>
 <li><p>No IRMAA appeal and no ACA premium credit.</p></li>
 </ul>
 <p>See the <a class="reference internal" href="tax-law.html#law-backlog"><span class="std std-ref">Law backlog</span></a> in <a class="reference internal" href="tax-law.html"><span class="doc">Tax law in the model</span></a> for every rule the model does not charge
