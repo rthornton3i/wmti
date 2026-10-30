@@ -8002,6 +8002,7 @@
     const counted = state.notes && state.notes.alreadyCounted;
     const totals = expenseTotals(expenseSummary(state.inputs.expenses, state.info && state.info.expenseCategories,
       state.inputs.you && state.inputs.you.currentAge), counted ? counted.rows : null);
+    const nonZero = (row) => Math.abs(Number(row.monthly) || 0) >= 0.005;  // a row of $0 is left out
     const line = (row, strong) => {
       const cell = (value) => "<td>" + (strong ? "<strong>" + fullMoney(value) + "</strong>" : fullMoney(value)) + "</td>";
       return "<tr><th scope=\"row\">" + escapeText(row.item) + "</th>" + cell(row.monthly) + "</tr>";
@@ -8011,8 +8012,8 @@
       : EXPENSE_ROWS_NOTE + " " + EXPENSE_COUNTED_NOTE);
     card.innerHTML = about.head + about.text + "<table class=\"data-table\"><thead><tr><th scope=\"col\">Expenses</th>"
       + "<th scope=\"col\">Monthly</th></tr></thead><tbody>"
-      + totals.entered.map((row) => line(row, false)).join("")
-      + (totals.counted ? line(totals.counted, false) : "")
+      + totals.entered.filter(nonZero).map((row) => line(row, false)).join("")
+      + (totals.counted && nonZero(totals.counted) ? line(totals.counted, false) : "")
       + line(totals.total || { item: "Total expenses", monthly: null }, true)
       + "</tbody></table>";
   }
