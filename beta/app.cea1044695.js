@@ -6955,7 +6955,22 @@
       for (const box of boxes) box.parentElement.hidden = !matches.includes(box.value) && !box.checked;
     });
     search.disabled = !option.available;
-    wrap.append(search, list, row, limit, estimate);
+    // The checklist starts folded; its summary counts the ticked states. Open or shut lasts across redraws.
+    const fold = document.createElement("details");
+    fold.className = "state-fold";
+    fold.id = "optimizeStatesFold";
+    fold.open = Boolean(state.optimize.statesOpen);
+    const summary = document.createElement("summary");
+    const showCount = () => {
+      const count = options.states.length;
+      summary.textContent = "Choose states" + (count ? " (" + count + " ticked)" : "");
+    };
+    fold.addEventListener("toggle", () => { state.optimize.statesOpen = fold.open; });
+    list.addEventListener("change", showCount);
+    none.addEventListener("click", showCount);
+    showCount();
+    fold.append(summary, search, list, row, limit);
+    wrap.append(fold, estimate);
     if (!option.available) {
       wrap.classList.add("field-disabled");
       const why = document.createElement("p");
