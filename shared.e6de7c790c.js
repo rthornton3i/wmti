@@ -159,8 +159,7 @@
     // The loan's own figures first, then its Starts later and Pay off early sections, each opened by its switch.
     Loan: {
       order: ["name", "kind", "improvesHome", "balance", "annualRate", "remainingMonths", "extraMonthly", "refinance",
-        "forgiveAtMonth", "paymentsInExpenses", "startsLater", "startYear", "paysOffEarly", "payoffAge",
-        "prepayPenaltyRate"],
+        "forgiveAtMonth", "startsLater", "startYear", "paysOffEarly", "payoffAge", "prepayPenaltyRate"],
       groups: {},
       sections: true,
     },
@@ -484,12 +483,61 @@
   }
 
   // The Expenses Add picker's presets (settings schema `suggestedExpenses`, from .config/expenseCategories.json) that
-  // the shown list holds (`filter`, such as its categories) and that are not in the list yet, by name without case
-  // or outer spaces, in the file's order.
-  function expensePresetChoices(presets, items, filter) {
+  // the shown list holds (`filter`, such as its categories), that are not in the list yet, by name without case or
+  // outer spaces, and that no other tab already counts (`counted`, settings schema `countedElsewhere`; see
+  // countedElsewhereMatch), in the file's order.
+  function expensePresetChoices(presets, items, filter, counted) {
     const taken = new Set((items || []).map((item) => String(item.name || "").trim().toLowerCase()));
     return (presets || []).filter((preset) => itemMatches(preset, filter)
-      && !taken.has(String(preset.name).trim().toLowerCase()));
+      && !taken.has(String(preset.name).trim().toLowerCase()) && !countedElsewhereMatch(preset.name, counted));
+  }
+
+  // A lower-case word made singular by its ending, as wmti.inputs.countedelsewhere.singularWord: "utilities"
+  // "utility", "taxes" "tax"; words of three letters or fewer and words ending in "ss", "us" or "is" are kept.
+  function singularWord(word) {
+    if (word.length <= 3 || /(ss|us|is)$/.test(word)) return word;
+    if (word.endsWith("ies")) return word.slice(0, -3) + "y";
+    if (/(ches|shes|xes|sses|zes)$/.test(word)) return word.slice(0, -2);
+    if (word.endsWith("s")) return word.slice(0, -1);
+    return word;
+  }
+
+  // A name's words as the counted-elsewhere matcher compares them (wmti.inputs.countedelsewhere.nameWords): lower
+  // case, apostrophes and brackets dropped ("401(k)" reads "401k"), every other mark a space, each word singular.
+  function countedWords(name) {
+    return String(name == null ? "" : name).toLowerCase().replace(/['\u2019()]/g, "").split(/[^a-z0-9]+/)
+      .filter((word) => word).map(singularWord);
+  }
+
+  // The cost another tab already counts that an Expenses row's name looks like, or null: of `counted` (settings
+  // schema `countedElsewhere`, wmti.inputs.countedelsewhere.COUNTED_ELSEWHERE, each {thing, tab, panel, keywords}),
+  // the cost one of whose keywords appears as whole words, in order, in the name, the keyword with the most words
+  // winning (the first such cost on a tie). Matches as wmti.inputs.countedelsewhere.countedElsewhereMatch.
+  function countedElsewhereMatch(name, counted) {
+    const words = countedWords(name);
+    let best = null;
+    let bestSize = 0;
+    for (const cost of counted || []) {
+      for (const keyword of cost.keywords || []) {
+        const wanted = countedWords(keyword);
+        if (wanted.length <= bestSize) continue;
+        for (let start = 0; start + wanted.length <= words.length; start += 1) {
+          if (wanted.every((word, index) => words[start + index] === word)) {
+            best = cost;
+            bestSize = wanted.length;
+            break;
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  // The warning for an Expenses row named like a cost another tab counts (as
+  // wmti.inputs.countedelsewhere.countedElsewhereMessage).
+  function countedElsewhereText(name, cost) {
+    const where = cost.tab ? "is already counted on the " + cost.tab + " tab" : "the model already works out";
+    return String(name).trim() + " looks like " + cost.thing + ", which " + where + ". Adding it here counts it twice.";
   }
 
   // A new expense row from the Add picker: `blank` (a new item's defaults) with the preset's name, category, price
@@ -519,6 +567,15 @@
     if (!(stored === rule.blank || stored == null) || rule.shown(item, rules || {}) != null) return null;
     const text = rule.prompt(rules || {});
     return text == null ? null : { text, blank: rule.blank };
+  }
+
+  // A line shown under a sheet field for how the engine treats it, or null: a 529's monthly deposit is capped at its
+  // room (wmti.simulation.model: the college need less the balance), so it stops once growth covers the last payment.
+  function sheetFieldNote(typeName, name, item) {
+    if (typeName === "Account" && name === "monthlyDeposit" && item && item.kind === "529") {
+      return "Stops on its own once the 529 is on track: its estimated growth covers the last college payment.";
+    }
+    return null;
   }
 
   // Whether a sheet field shows its source's value (styled as a default, `.is-default`) rather than one entered.
@@ -2596,7 +2653,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetFieldNote, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,

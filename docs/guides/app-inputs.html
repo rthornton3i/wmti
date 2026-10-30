@@ -442,10 +442,10 @@
 </tr>
 </tbody>
 </table>
-<p>Put only costs no other tab enters here. A tax-deductible cost other than Charity, or a cost only in the child years, needs no row. A loan’s payment row may stay if <em>Payment in Expenses</em> is ticked on the loan.</p>
+<p>Put only costs no other tab enters here. A tax-deductible cost other than Charity, or a cost only in the child years, needs no row. Leave out loan, mortgage and car payments: their own tabs always charge them.</p>
 <ul>
 <li><p><strong>Lists.</strong> “Monthly expenses” has Bills, Planned Spending and Other Spending. “Major expenses” has Major Spending and Charity, amounts per year. Each sheet offers only its categories.</p></li>
-<li><p><strong>Add picker.</strong> A new scenario starts with no expense rows. Each list’s <em>Add expense</em> drop-down offers the common expenses of its categories not added yet (from <code class="docutils literal notranslate"><span class="pre">.config/expenseCategories.json</span></code>), then <em>Other (your own)</em>. A picked preset is added with its name, category, sales tax status and flags set and its amount blank ($0 in gray), and its sheet opens. A row left at 0 counts for nothing and is left out of the report’s Expenses table. The example household keeps its suggested rows, and a saved scenario keeps its own. Each preset also has a price type that sets how its cost changes after a move (see <a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>).</p>
+<li><p><strong>Add picker.</strong> A new scenario starts with no expense rows. Each list’s <em>Add expense</em> drop-down offers the common expenses of its categories not added yet (from <code class="docutils literal notranslate"><span class="pre">.config/expenseCategories.json</span></code>), then <em>Other (your own)</em>. It leaves out the presets another tab already counts (Out-of-pocket medical, Prescriptions, Childcare and Car repairs; see the warning below). A picked preset is added with its name, category, sales tax status and flags set and its amount blank ($0 in gray), and its sheet opens. A row left at 0 counts for nothing and is left out of the report’s Expenses table. The example household keeps its suggested rows, and a saved scenario keeps its own. Each preset also has a price type that sets how its cost changes after a move (see <a class="reference internal" href="states.html#states-moving"><span class="std std-ref">Moving at retirement</span></a>).</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 34.0%" />
@@ -485,6 +485,7 @@
 </table>
 </li>
 <li><p><strong>Already counted from other tabs.</strong> The panel opens with a read-only card of costs other tabs already charge, under “Bills - Other”, and the taxes note.</p></li>
+<li><p><strong>Counted twice warning.</strong> A row whose name, typed in its sheet, looks like a cost another tab already counts opens a warning: “&lt;Name&gt; looks like &lt;cost&gt;, which is already counted on the &lt;Tab&gt; tab. Adding it here counts it twice.” <em>Go to &lt;Tab&gt;</em> puts the name back (a row just added is removed) and opens that tab, <em>Add anyway</em> keeps the name and <em>Cancel</em> puts it back. A tax the model works out has no <em>Go to</em> button. The names are matched by whole words, ignoring case and plurals, against one table (<code class="docutils literal notranslate"><span class="pre">wmti.inputs.countedelsewhere</span></code>): mortgage, home loan, rent, property tax, home insurance and utilities (Home); car payment, lease, car insurance, fuel, tolls, parking and car upkeep (Cars); student, personal and other loan payments (Loans); medical costs and prescriptions (Healthcare); health premiums, HSA, FSA and retirement deposits such as 401k and IRA (Benefits); Medicare premiums (Retirement); daycare and college (Children); savings and 529 deposits (Accounts); income, payroll, sales and Social Security taxes (worked out by the model). Saved rows are never checked as they load.</p></li>
 <li><p><strong>Total expenses.</strong> The panel ends with a per-month card: each monthly category, Major Spending and Charity at your age today (per year divided by 12), one “Bills - Other” row and one “Total expenses” row. It reads n/a until the notes arrive.</p></li>
 </ul>
 <p>An expense sheet says whether the amount is per month or per year in today’s dollars.</p>
@@ -511,7 +512,7 @@
 </tbody>
 </table>
 <p>The <em>Exclude from child inflation</em>, <em>Education expense</em> and <em>Dependent care</em> ticks never show. Switching a row to Charity clears its ages and deduction.</p>
-<p>An expense card shows its period, any deduction, its ages and “not scaled by children”. A loan card shows “payment in Expenses”.</p>
+<p>An expense card shows its period, any deduction, its ages and “not scaled by children”. A loan card shows “refinanced” when it is.</p>
 </section>
 <section id="retirement">
 <h3>Retirement<a class="headerlink" href="#retirement" title="Link to this heading"></a></h3>
