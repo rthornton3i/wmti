@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, carLoanNow, homeMortgageNow, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -295,7 +295,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.2619d97bb1.js");
+      worker = new Worker("worker.24ed1d0785.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -8322,7 +8322,10 @@
   function mortgageRows() {
     const homes = state.inputs.homes || [];
     const mortgages = homes.flatMap((home) => (home.loans || []).map((loan) => ({ home, loan })));
-    const borrowed = (home) => (home.buysLater ? home.purchasePrice * (1 - home.downPaymentRate) : home.mortgageBalance);
+    const rules = state.info.sheetRules;
+    const borrowed = (home) => (home.buysLater ? home.purchasePrice * (1 - home.downPaymentRate)
+      : homeMortgageNow(home, rules).balance);
+    const monthsLeft = (home) => (home.buysLater ? home.mortgageMonthsLeft : homeMortgageNow(home, rules).monthsLeft);
     const owing = homes.filter((home) => home.hasMortgage && borrowed(home) > 0);
     if (!mortgages.length && !owing.length) return [];
     const wrap = fieldShell("Home loans", "Read-only here: each home's mortgage and its other loans (second mortgage, "
@@ -8338,7 +8341,7 @@
       row.querySelector(".item-name").textContent = home.name;
       row.querySelector(".item-value").textContent = compactMoney(borrowed(home));
       row.querySelector(".item-detail").textContent = home.name + " mortgage · " + percent(home.mortgageRate, 2) + " · "
-        + home.mortgageMonthsLeft + " months" + (span ? " · " + span : "");
+        + monthsLeft(home) + " months" + (span ? " · " + span : "");
       wrap.append(row);
     }
     for (const { home, loan } of mortgages) {
@@ -8429,7 +8432,8 @@
   // the amount owed today, or borrowed at a later purchase, and when the loan starts (bought later) and ends (sold),
   // with a button that opens the Cars chip where the loan is edited; nothing without a car loan.
   function carLoanRows() {
-    const owing = (state.inputs.cars || []).filter((car) => hasCarLoan(car));
+    const rules = state.info.sheetRules;
+    const owing = (state.inputs.cars || []).filter((car) => hasCarLoan(car, rules));
     if (!owing.length) return [];
     const wrap = fieldShell("Car loans", "Read-only here: a car loan is entered and edited with its car on the Cars chip.",
       null);
@@ -8442,10 +8446,11 @@
       const span = spanText(car, state.inputs.you.currentAge).replace("buys at", "starts at")
         .replace("sells at", "ends at") + (car.sellsLater && car.saleAge != null ? " (sold)" : "");
       row.querySelector(".item-name").textContent = car.name;
-      row.querySelector(".item-value").textContent = compactMoney(car.buysLater
-        ? car.purchasePrice * (1 - car.downPaymentRate) : car.loanBalance);
+      const now = car.buysLater ? null : carLoanNow(car, rules);
+      row.querySelector(".item-value").textContent = compactMoney(now ? now.balance
+        : car.purchasePrice * (1 - car.downPaymentRate));
       row.querySelector(".item-detail").textContent = car.name + " loan · " + percent(car.loanRate, 2) + " · "
-        + car.loanMonthsLeft + " months" + (span ? " · " + span : "");
+        + (now ? now.monthsLeft : car.loanMonthsLeft) + " months" + (span ? " · " + span : "");
       wrap.append(row);
     }
     const edit = document.createElement("button");
@@ -8692,7 +8697,68 @@
     // Amounts per account grey out each person's deposit boxes, so the pane is drawn again once.
     if (switched) refreshForm();
     else renderDeposits();
+    renderSheetDeposit();
     if (next) moveDeposit(next.name, next.amount);
+  }
+
+  // ---- An IRA's item sheet: the Benefits pane's deposit slider for that account (depositSliders), moved through
+  // moveDeposit, so the sheet and Benefits always show the one stored `deposit` ----
+  function sheetDepositBox(account) {
+    const kinds = (state.info.sheetRules.depositKinds || []).filter((kind) => kind.endsWith("IRA"));
+    if (!account || !kinds.includes(account.kind)) return null;
+    const box = document.createElement("div");
+    box.className = "field surplus-row deposit-row sheet-deposit";
+    box.id = "sheetDeposit";
+    box.dataset.name = account.name;
+    box.innerHTML = "<div class=\"deposit-head\"><label class=\"field-label\" for=\"sheetDepositRange\">Deposit per "
+      + "year</label><output class=\"surplus-value\"></output></div><input type=\"range\" class=\"range\" "
+      + "id=\"sheetDepositRange\" min=\"0\" hidden><p class=\"field-help deposit-help\">Reading the limits</p>";
+    const slider = box.querySelector("input");
+    slider.addEventListener("input", () => moveDeposit(account.name, Number(slider.value)));
+    requestSheetDeposit();
+    return box;
+  }
+
+  async function requestSheetDeposit() {
+    const inputsText = JSON.stringify(state.inputs);
+    let reply;
+    try {
+      reply = await engine.call("depositSliders", [inputsText], "deposits");
+    } catch (error) {
+      return;
+    }
+    if (!reply || inputsText !== JSON.stringify(state.inputs)) return;  // a newer edit asks again
+    state.deposits = reply.value;
+    renderSheetDeposit();
+  }
+
+  // Draw the open sheet's deposit slider from state.deposits: its value, maximum and the Benefits caption; on the
+  // household plan the caption says a move sets amounts per account in place of each person's % of pay.
+  function renderSheetDeposit() {
+    const box = $("sheetDeposit");
+    const deposits = state.deposits;
+    if (!box || !deposits) return;
+    const slider = box.querySelector("input");
+    const help = box.querySelector(".deposit-help");
+    const item = deposits.ok ? deposits.accounts.find((entry) => entry.name === box.dataset.name) : null;
+    slider.hidden = !item || Boolean(item.noRoom);
+    if (!deposits.ok) {
+      help.textContent = "Fix the settings to set deposits. " + deposits.error;
+      return;
+    }
+    if (!item) return;
+    if (item.noRoom) {
+      box.querySelector(".surplus-value").textContent = "";
+      help.textContent = "No room, " + item.noRoom + ".";
+      return;
+    }
+    box.querySelector(".surplus-value").textContent = fullMoney(item.value);
+    slider.step = String(deposits.step);
+    slider.max = String(item.maximum);
+    if (!(depositMove.pending && depositMove.name === item.name)) slider.value = String(item.value);
+    slider.setAttribute("aria-valuetext", fullMoney(item.value));
+    help.textContent = depositCaption(item) + (deposits.perAccount ? ""
+      : " Moving it sets an amount per account on Benefits in place of each person's % of pay.");
   }
 
   // Blank every 401k and IRA deposit, so the household plan applies again; each person's deposit boxes come back.
@@ -9590,6 +9656,10 @@
     const at = sheetItemOf(path);
     if (at && at.type === "Car" && at.name === "replaceBy") return segmentedField(field, path, value);
     if (at && at.type === "Car" && at.name === "payMethod") return segmentedField(field, path, carPaidBy(at.item));
+    // Define loan by: At purchase | Current; the other basis' figures hide (hiddenReason) and the sheet redraws.
+    if (at && ((at.type === "Car" && at.name === "loanBasis") || (at.type === "Home" && at.name === "mortgageBasis"))) {
+      return segmentedField(field, path, at.item[at.name] === "purchase" ? "purchase" : "current");
+    }
     if (at && (RADIO_SEGMENTED[at.type] || []).includes(at.name)) return radioSegmentedField(field, path);
     if (at && at.type === "ExpenseItem" && at.name === "year") return expenseAgesField(field, path, at.item);
     if (path === "strategies.rothConversion.startAge") return rothAgesField(field, path);
@@ -11552,7 +11622,7 @@
     if (typeName === "Car") {
       return carSummary(item, state.inputs.you.currentAge, state.info.sheetRules, schemaField("Car", "driver"));
     }
-    if (typeName === "Home") return homeSummary(item, state.inputs.you.currentAge);
+    if (typeName === "Home") return homeSummary(item, state.inputs.you.currentAge, state.info.sheetRules);
     if (typeName === "RentPeriod") {
       const from = item.startAge == null ? "today" : String(timelineYear(item.startAge));
       const to = item.endAge == null ? "open" : String(timelineYear(item.endAge));
@@ -11934,15 +12004,21 @@
     return note.textContent ? note : null;  // a monthly row needs no line: its amount reads Monthly
   }
 
-  // The loan figures a car's or home's monthly payment line follows on its sheet, the first one drawn: its term, else
-  // its rate, else what it owes.
-  const LOAN_PAYMENT_AFTER = { Car: ["loanMonthsLeft", "loanRate", "loanBalance", "downPaymentRate"],
-    Home: ["mortgageMonthsLeft", "mortgageRate", "mortgageBalance", "downPaymentRate"] };
+  // The loan figures a car's or home's monthly payment line follows on its sheet, the first one drawn: its term (months
+  // left, or the original term of a loan defined at purchase), else its rate, else what it owes.
+  const LOAN_PAYMENT_AFTER = {
+    Car: ["loanMonthsLeft", "loanTermMonths", "loanRate", "loanBalance", "loanOriginal", "loanStartYear",
+      "downPaymentRate"],
+    Home: ["mortgageMonthsLeft", "mortgageTermMonths", "mortgageRate", "mortgageBalance", "mortgageOriginal",
+      "mortgageStartYear", "downPaymentRate"],
+  };
 
   // A car paid with a loan or a home with a mortgage: a read-only Monthly payment line (principal and interest, from
-  // sheetLoanPayment) below its loan figures, kept current as they are typed (refreshLoanPayment).
+  // sheetLoanPayment) below its loan figures, kept current as they are typed (refreshLoanPayment). A loan defined at
+  // purchase also gets a grey line above it with today's balance and the time left worked out (`carLoanNow`).
   function placeLoanPayment(typeName, item, itemPath) {
-    if (!sheetLoanPayment(typeName, item)) return;
+    const loan = sheetLoanPayment(typeName, item, state.info.sheetRules);
+    if (!loan) return;
     const anchor = (LOAN_PAYMENT_AFTER[typeName] || []).map((name) => $(fieldId(itemPath + "." + name)))
       .find(Boolean);
     const holder = anchor && anchor.closest(".field");
@@ -11953,7 +12029,33 @@
     line.innerHTML = "<div class=\"field-head\"><span class=\"field-label\">Monthly payment</span></div>"
       + "<p class=\"loan-payment-value\" aria-live=\"polite\"></p><p class=\"field-help loan-payment-note\"></p>";
     holder.after(line);
+    if (loan.now && loan.now.derived) {
+      const derived = document.createElement("div");
+      derived.className = "field loan-derived";
+      derived.id = "sheetLoanDerived";
+      derived.innerHTML = "<p class=\"loan-payment-value\" aria-live=\"polite\"></p>";
+      line.before(derived);
+    }
     refreshLoanPayment();
+  }
+
+  // Months as "2 years 6 months", "3 years" or "7 months".
+  function yearsMonthsText(months) {
+    const years = Math.floor(months / 12);
+    const rest = months % 12;
+    const parts = [];
+    if (years) parts.push(years + (years === 1 ? " year" : " years"));
+    if (rest || !years) parts.push(rest + (rest === 1 ? " month" : " months"));
+    return parts.join(" ");
+  }
+
+  // The grey line of a loan defined at purchase: today's balance and the time left, "Paid off", or what is missing.
+  function loanDerivedText(now, typing) {
+    if (typing) return "—";
+    if (now.missing) return "Enter the original amount and start year";
+    if (!now.complete) return "—";
+    if (!(now.balance > 0) || now.monthsLeft <= 0) return "Paid off";
+    return "Today's balance " + fullMoney(now.balance) + ", " + yearsMonthsText(now.monthsLeft) + " left";
   }
 
   // The open sheet's Monthly payment line read again from its item: "—" while a loan figure is incomplete, also while
@@ -11962,7 +12064,7 @@
     const line = $("sheetLoanPayment");
     if (!line || !sheetOpen) return;
     const item = (getPath(state.inputs, sheetOpen.path) || [])[sheetOpen.position];
-    const loan = sheetLoanPayment(sheetOpen.field.type, item);
+    const loan = sheetLoanPayment(sheetOpen.field.type, item, state.info.sheetRules);
     if (!loan) return;
     const itemPath = sheetOpen.path + "." + sheetOpen.position;
     const typing = (LOAN_PAYMENT_AFTER[sheetOpen.field.type] || []).concat("purchasePrice").some((name) => {
@@ -11971,6 +12073,11 @@
     });
     line.querySelector(".loan-payment-value").textContent = loan.payment == null || typing ? "—"
       : fullMoney(loan.payment);
+    const derived = $("sheetLoanDerived");
+    if (derived) {
+      derived.hidden = !(loan.now && loan.now.derived);
+      if (!derived.hidden) derived.querySelector(".loan-payment-value").textContent = loanDerivedText(loan.now, typing);
+    }
     line.querySelector(".loan-payment-note").textContent = "Principal and interest"
       + (loan.todaysDollars ? ", in today's dollars" : "")
       + (loan.withCosts == null || typing ? "" : "; " + fullMoney(loan.withCosts) + " with property tax and insurance") + ".";
@@ -12136,6 +12243,10 @@
       } else {
         returns.append(element);
       }
+    }
+    if (field.type === "Account") {  // an IRA's deposit slider, linked to Benefits' Deposit per account
+      const deposit = sheetDepositBox(items[position]);
+      if (deposit) parts.push(deposit);
     }
     for (const { section, fields } of sections) {
       if (fields.length) parts.push(sheetSection(section, fields));  // a section with every field hidden is not drawn

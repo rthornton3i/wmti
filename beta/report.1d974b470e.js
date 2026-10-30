@@ -52,8 +52,12 @@
   // List item fields the app's sheet leaves to another page; the report still lists them with the item.
   const SHOWN_ELSEWHERE = { Account: ["deposit", "surplusShare"],
     ExpenseItem: ["child", "education", "dependentCare", "retirementChange"] };
-  // An item switch whose balance is 0 owes nothing, so its figures are not needed: switch -> balance field, by type.
-  const ZERO_BALANCE_SWITCHES = { Car: { hasLoan: "loanBalance" }, Home: { hasMortgage: "mortgageBalance" } };
+  // An item switch whose balance today is 0 owes nothing, so its figures are not needed: switch -> the balance today
+  // (as entered, or worked out for a loan defined at purchase), by type.
+  const ZERO_BALANCE_SWITCHES = {
+    Car: { hasLoan: (item, rules) => shared.carLoanNow(item, rules).balance },
+    Home: { hasMortgage: (item, rules) => shared.homeMortgageNow(item, rules).balance },
+  };
   // Titles of the input lists; any other list is titled from its key.
   const LIST_TITLES = { expenses: "Expenses", accounts: "Accounts and balances", loans: "Loans and mortgages",
     homes: "Homes", cars: "Cars", children: "Children and education", rents: "Rents", visits: "Healthcare visits",
@@ -352,9 +356,9 @@
     if (!rules || !typeName) return false;
     if ((SHOWN_ELSEWHERE[typeName] || []).includes(name)) return false;
     const switches = (rules.itemSwitches || {})[typeName] || {};
-    for (const [toggle, balance] of Object.entries(ZERO_BALANCE_SWITCHES[typeName] || {})) {
+    for (const [toggle, owed] of Object.entries(ZERO_BALANCE_SWITCHES[typeName] || {})) {
       if ((name === toggle || (switches[toggle] || []).includes(name)) && !item.buysLater && item[toggle]
-        && !(Number(item[balance]) > 0)) return true;
+        && !(owed(item, rules) > 0)) return true;
     }
     return Boolean(hiddenReason(typeName, name, item, { ...rules, timelineManaged: {} }));
   }

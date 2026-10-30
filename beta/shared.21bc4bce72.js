@@ -130,8 +130,8 @@
   // not name follow in schema order, so a new input is never dropped from its sheet.
   const SHEET_LAYOUTS = {
     Account: {
-      order: ["name", "kind", "owner", "startingValue", "meanReturn", "returnStdDev", "costBasis", "iraBasis",
-        "stateIraBasis", "rothBasis"],
+      order: ["name", "kind", "owner", "startingValue", "monthlyDeposit", "depositToAge", "meanReturn", "returnStdDev",
+        "costBasis", "iraBasis", "stateIraBasis", "rothBasis"],
       groups: { meanReturn: "returns", returnStdDev: "returns", costBasis: "returns", iraBasis: "returns",
         stateIraBasis: "returns", rothBasis: "returns" },
     },
@@ -144,7 +144,8 @@
     // sections are not drawn.
     Car: {
       order: ["name", "driver", "purchasePrice", "purchaseYear", "firstYearDrop", "depreciationRate", "valueToday",
-        "payMethod", "hasLoan", "loanBalance", "loanRate", "loanMonthsLeft", "loanExtraMonthly", "leases", "leaseMonthly",
+        "payMethod", "hasLoan", "loanBasis", "loanBalance", "loanOriginal", "loanStartYear", "loanRate", "loanMonthsLeft",
+        "loanTermMonths", "loanExtraMonthly", "leases", "leaseMonthly",
         "replaceBy", "replaceEveryYears", "replaceInYears", "replaceEveryMiles", "odometerToday", "replacementPrice",
         "replacementPayMethod", "replacementLoanRate", "replacementLoanMonths", "replacementDownPaymentRate",
         "replacementLeaseMonthly", "replacementLeaseMonths", "replacementLeaseFee",
@@ -164,8 +165,15 @@
       sections: true,
     },
     // Drawn in titled sections by each field's schema group (Basics, Mortgage, Property tax and insurance, Purchase,
-    // Sale), in schema order; each switch opens its section.
-    Home: { order: [], groups: {}, sections: true },
+    // Sale), in schema order, except that the mortgage opens with Define loan by and its current or at-purchase
+    // figures; each switch opens its section.
+    Home: {
+      order: ["name", "primaryResidence", "valueToday", "appreciationRate", "state", "hasMortgage", "mortgageBasis",
+        "mortgageBalance", "mortgageOriginal", "mortgageStartYear", "mortgageRate", "mortgageMonthsLeft",
+        "mortgageTermMonths", "mortgageExtraMonthly"],
+      groups: {},
+      sections: true,
+    },
   };
 
   // Why a field is left off an item's sheet, or null when it is shown. `rules` is appInfo().sheetRules. The switches
@@ -192,6 +200,8 @@
     for (const [toggle, names] of Object.entries((rules.itemSwitchReplaces || {})[typeName] || {})) {
       if (names.includes(name) && item[toggle]) return "not used while its " + toggle + " switch is on";
     }
+    const basisReason = loanBasisHidden(typeName, name, item, rules);
+    if (basisReason) return basisReason;
     // Used on this home only matters for a loan secured by a home (a home's own loans, or a Mortgage loan on Loans).
     if (typeName === "Loan" && name === "improvesHome" && !(rules.homeLoanKinds || []).includes(item.kind)) {
       return "for a loan secured by a home only";
@@ -205,6 +215,10 @@
       if (name === "stateIraBasis" && item.kind !== rules.iraBasisKind) return rules.iraBasisKind + " accounts only";
       if (name === "rothBasis" && !(rules.rothBasisKinds || []).includes(item.kind)) {
         return (rules.rothBasisKinds || []).join(" and ") + " accounts only";
+      }
+      if ((name === "monthlyDeposit" || name === "depositToAge")
+        && !(rules.monthlyDepositKinds || []).includes(item.kind)) {
+        return "cash, Investments and 529 accounts only";
       }
     }
     if (typeName === "Heir") {
@@ -255,7 +269,8 @@
     if ((rules.carPaidBySwitches || []).includes(name)) return "set by How it is paid";
     if ((((rules.itemSwitches || {}).Car || {}).hasLoan || []).includes(name)) {
       if (carPaidBy(item) !== "finance") return "shown while How it is paid is Finance";
-      return item.buysLater && name === "loanBalance" ? undefined : null;
+      const replacedLater = (((rules.itemSwitchReplaces || {}).Car || {}).buysLater || []);
+      return item.buysLater && replacedLater.includes(name) ? undefined : loanBasisHidden("Car", name, item, rules);
     }
     for (const [rule, entry] of Object.entries(rules.carReplaceRules || {})) {
       if (entry.fields.includes(name) && !item.leases && !carReplaceRulesOf(item)[rule]) {
@@ -335,28 +350,92 @@
     return amount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
   }
 
+  // What a level-payment loan still owes after `paid` of its payments (wmti.debts.loans.balanceAfter): the original
+  // before any, 0 once the term is paid.
+  function loanBalanceAfter(original, annualRate, termMonths, paid) {
+    if (paid <= 0) return Number(original);
+    if (paid >= termMonths) return 0;
+    const monthlyRate = annualRate / 12;
+    if (monthlyRate === 0) return original - original / termMonths * paid;
+    const payment = loanMonthlyPayment(original, annualRate, termMonths);
+    const growth = Math.pow(1 + monthlyRate, paid);
+    return original * growth - payment * (growth - 1) / monthlyRate;
+  }
+
+  // Today's balance and months left of a loan defined at purchase (wmti.debts.loans.loanNow): taken in January of
+  // `startYear`, so 12 payments are made in each year before `thisYear`. {balance: 0, monthsLeft: 0} once paid off.
+  function loanNow(original, annualRate, termMonths, startYear, thisYear) {
+    const paid = 12 * Math.max(0, thisYear - startYear);
+    if (paid >= termMonths) return { balance: 0, monthsLeft: 0 };
+    return { balance: loanBalanceAfter(original, annualRate, termMonths, paid), monthsLeft: termMonths - paid };
+  }
+
+  // The year a loan defined at purchase counts as today: the law year (`rules.loanBasis.thisYear`).
+  function loanBasisYear(rules) {
+    const basis = (rules || {}).loanBasis;
+    return basis && basis.thisYear != null ? basis.thisYear : new Date().getFullYear();
+  }
+
+  // An owned loan's balance today and months left (wmti carLoanNow, homeMortgageNow): as entered while Define loan by
+  // is Current; worked out from the original amount, start year (blank: this year) and term while it is At purchase
+  // (`derived` true; `complete` false while the original amount or term is not a usable number, `missing` true while
+  // the original amount is not above 0 or the start year is blank, so the sheet asks for them).
+  function ownedLoanNow(item, rules, names) {
+    if (item[names.basis] !== "purchase") {
+      return { balance: Number(item[names.balance]) || 0, monthsLeft: item[names.months], derived: false, complete: true,
+        missing: false };
+    }
+    const year = loanBasisYear(rules);
+    const blank = (value) => value == null || value === "";
+    const original = Number(item[names.original]);
+    const term = Number(item[names.term]);
+    const start = blank(item[names.start]) ? year : Number(item[names.start]);
+    const complete = !blank(item[names.original]) && isFinite(original) && Number.isInteger(term) && term >= 1
+      && isFinite(start);
+    const missing = !(original > 0) || blank(item[names.start]);
+    if (!complete) return { balance: 0, monthsLeft: 0, derived: true, complete: false, missing };
+    return { ...loanNow(original, Number(item[names.rate]) || 0, term, start, year), derived: true, complete: true,
+      missing };
+  }
+
+  const CAR_LOAN_NAMES = { basis: "loanBasis", balance: "loanBalance", months: "loanMonthsLeft",
+    original: "loanOriginal", start: "loanStartYear", term: "loanTermMonths", rate: "loanRate" };
+  const HOME_MORTGAGE_NAMES = { basis: "mortgageBasis", balance: "mortgageBalance", months: "mortgageMonthsLeft",
+    original: "mortgageOriginal", start: "mortgageStartYear", term: "mortgageTermMonths", rate: "mortgageRate" };
+
+  function carLoanNow(car, rules) {
+    return ownedLoanNow(car, rules, CAR_LOAN_NAMES);
+  }
+
+  function homeMortgageNow(home, rules) {
+    return ownedLoanNow(home, rules, HOME_MORTGAGE_NAMES);
+  }
+
   // The monthly payment a car or home sheet shows under its loan figures, or null when the item has no loan to show
   // (a car paid in cash or leased, a home with its Mortgage switch off). The loan is the model's (wmti _carLoan and
-  // homeLoan): owed today, or for an item bought later its price less the down payment (today's dollars), at the
-  // loan's rate over its term. `payment` is null while a figure is incomplete; a home's `withCosts` adds its property
-  // tax (per year, so / 12) and insurance (per month) while either is above 0, else null.
-  function sheetLoanPayment(typeName, item) {
+  // homeLoan): owed today (defined at purchase: today's balance over the months left, `carLoanNow`), or for an item
+  // bought later its price less the down payment (today's dollars), at the loan's rate over its term. `payment` is
+  // null while a figure is incomplete; a home's `withCosts` adds its property tax (per year, so / 12) and insurance
+  // (per month) while either is above 0, else null. `now` is the owned loan today (null for an item bought later).
+  function sheetLoanPayment(typeName, item, rules) {
     if (!item) return null;
     const financed = (price, down) => Number(price) * (1 - Number(down));
     if (typeName === "Car") {
       if (carPaidBy(item) !== "finance") return null;
-      const owed = item.buysLater ? financed(item.purchasePrice, item.downPaymentRate) : item.loanBalance;
-      return { payment: loanMonthlyPayment(owed, item.loanRate, item.loanMonthsLeft), withCosts: null,
-        todaysDollars: Boolean(item.buysLater) };
+      const now = item.buysLater ? null : carLoanNow(item, rules);
+      const owed = now ? (now.complete ? now.balance : null) : financed(item.purchasePrice, item.downPaymentRate);
+      return { payment: loanMonthlyPayment(owed, item.loanRate, now ? now.monthsLeft : item.loanMonthsLeft),
+        withCosts: null, todaysDollars: Boolean(item.buysLater), now };
     }
     if (typeName === "Home") {
       if (!item.hasMortgage) return null;
-      const owed = item.buysLater ? financed(item.purchasePrice, item.downPaymentRate) : item.mortgageBalance;
-      const payment = loanMonthlyPayment(owed, item.mortgageRate, item.mortgageMonthsLeft);
+      const now = item.buysLater ? null : homeMortgageNow(item, rules);
+      const owed = now ? (now.complete ? now.balance : null) : financed(item.purchasePrice, item.downPaymentRate);
+      const payment = loanMonthlyPayment(owed, item.mortgageRate, now ? now.monthsLeft : item.mortgageMonthsLeft);
       const tax = Number(item.propertyTax) || 0;
       const insurance = Number(item.homeInsurance) || 0;
       const withCosts = payment != null && (tax > 0 || insurance > 0) ? payment + tax / 12 + insurance : null;
-      return { payment, withCosts, todaysDollars: Boolean(item.buysLater) };
+      return { payment, withCosts, todaysDollars: Boolean(item.buysLater), now };
     }
     return null;
   }
@@ -396,6 +475,9 @@
       iraBasis: { blank: null, shown: (account, rules) => (account.kind === rules.iraBasisKind ? 0 : null) },
       rothBasis: { blank: null, shown: (account, rules) => ((rules.rothBasisKinds || []).includes(account.kind)
         ? Number(account.startingValue) || 0 : null) },
+      // A blank monthly deposit (cash, Investments and 529 accounts) is none.
+      monthlyDeposit: { blank: null, shown: (account, rules) => ((rules.monthlyDepositKinds || []).includes(account.kind)
+        ? 0 : null) },
     },
   };
 
@@ -833,12 +915,24 @@
     return null;
   }
 
+  // Why a car's loan or a home's mortgage figure is left off its sheet by its Define loan by (`loanBasis`): the
+  // other basis' figures (Current: the balance and months left; At purchase: the original amount, start year and
+  // term), or null. An item bought later or leased has no basis (its loan is the price less the down payment).
+  function loanBasisHidden(typeName, name, item, rules) {
+    const basis = (rules.loanBasis || {})[typeName];
+    if (!basis || !item || item.buysLater || item.leases) return null;
+    const other = item[basis.field] === "purchase" ? "current" : "purchase";
+    if (!basis[other].includes(name)) return null;
+    return "shown while Define loan by is " + (other === "purchase" ? "At purchase" : "Current");
+  }
+
   // The switches on an item's sheet that show or hide other fields, so changing one redraws the sheet (the timeline's
-  // switches and the car switches How it is paid sets are not on the sheet; How it is paid is).
+  // switches and the car switches How it is paid sets are not on the sheet; How it is paid is), and its Define loan by.
   function sheetSwitches(typeName, rules) {
     const managed = ((rules.timelineManaged || {})[typeName] || [])
       .concat(typeName === "Car" ? rules.carPaidBySwitches || [] : []);
-    const switches = Object.keys((rules.itemSwitches || {})[typeName] || {}).filter((toggle) => !managed.includes(toggle));
+    const switches = Object.keys((rules.itemSwitches || {})[typeName] || {}).filter((toggle) => !managed.includes(toggle))
+      .concat((rules.loanBasis || {})[typeName] ? [rules.loanBasis[typeName].field] : []);
     return typeName === "Car" ? switches.concat(["payMethod", "replacementPayMethod"]) : switches;
   }
 
@@ -862,7 +956,7 @@
 
   // The values a change of `field` (already set on `item`) clears so the loader accepts the item: a Charity row is
   // paid every year (no ages), never a child cost, education or dependent care and always deducted as Charity; only the cost-basis kind keeps a cost basis, only the IRA-basis kind an IRA basis and only the 401k and IRA
-  // kinds a deposit. Returns {field: value} for the fields that need clearing.
+  // kinds a deposit, only the cash, Investments and 529 kinds a monthly deposit and its end age. Returns {field: value} for the fields that need clearing.
   function clearedOnChange(typeName, field, item, rules) {
     const cleared = {};
     if (typeName === "ExpenseItem" && field === "category" && item.category === rules.charityCategory) {
@@ -879,6 +973,9 @@
       if (item.kind !== rules.iraBasisKind && item.stateIraBasis != null) cleared.stateIraBasis = null;
       if (!(rules.rothBasisKinds || []).includes(item.kind) && item.rothBasis != null) cleared.rothBasis = null;
       if (!rules.depositKinds.includes(item.kind) && item.deposit != null) cleared.deposit = null;
+      const monthly = (rules.monthlyDepositKinds || []).includes(item.kind);
+      if (!monthly && item.monthlyDeposit != null) cleared.monthlyDeposit = null;
+      if (!monthly && item.depositToAge != null) cleared.depositToAge = null;
     }
     // A car's How it is paid sets its Loan and Lease switches: Finance turns the Loan switch on, Lease the Lease
     // switch, Cash both off.
@@ -1289,15 +1386,15 @@
     const replaced = !car.leases && (price > 0 || method === "lease") && rules.length > 0;
     const how = { finance: ", financed", lease: ", leased" }[method] || "";
     const span = spanText(car, currentAge);
-    return { name: car.name, detail: choiceLabel(driverField, car.driver) + (hasCarLoan(car) ? " · loan" : "")
+    return { name: car.name, detail: choiceLabel(driverField, car.driver) + (hasCarLoan(car, sheetRules) ? " · loan" : "")
       + (replaced ? " · replaced every " + rules.join(" or ") + how : "") + (span ? " · " + span : ""),
     value: compactMoney(car.buysLater && !car.leases ? car.purchasePrice : carValueToday(car, sheetRules)) };
   }
 
   // A home's card: its name, "primary residence" or "second home", "mortgage" while its mortgage counts, when it is
   // bought and sold (`spanText`), and its value today (its price when bought later).
-  function homeSummary(home, currentAge) {
-    const owed = home.buysLater ? home.purchasePrice * (1 - home.downPaymentRate) : home.mortgageBalance;
+  function homeSummary(home, currentAge, rules) {
+    const owed = home.buysLater ? home.purchasePrice * (1 - home.downPaymentRate) : homeMortgageNow(home, rules).balance;
     const mortgage = home.hasMortgage && owed > 0;
     const span = spanText(home, currentAge);
     return { name: home.name, detail: (home.primaryResidence ? "primary residence" : "second home")
@@ -1386,10 +1483,10 @@
 
   // Whether a car charges its own loan (wmti hasCarLoan): owned today, its Loan switch on and a balance above 0;
   // bought later, financed (carPayMethodOf) with the price less the down payment above 0; a leased car never does.
-  function hasCarLoan(car) {
+  function hasCarLoan(car, rules) {
     if (car.leases) return false;
     if (car.buysLater) return carPayMethodOf(car) === "finance" && car.purchasePrice * (1 - car.downPaymentRate) > 0;
-    return Boolean(car.hasLoan) && car.loanBalance > 0;
+    return Boolean(car.hasLoan) && carLoanNow(car, rules).balance > 0;
   }
 
   // The calendar year in which you are `age`, and your age in a calendar year, as wmti.assets.timeline.yearOfAge and
@@ -1617,7 +1714,7 @@
   function carTotalsOf(data, rules) {
     const cars = (data && data.cars) || [];
     return { value: cars.reduce((sum, car) => sum + carValueToday(car, rules), 0),
-      loan: cars.reduce((sum, car) => sum + (car.hasLoan ? car.loanBalance || 0 : 0), 0) };
+      loan: cars.reduce((sum, car) => sum + (car.hasLoan ? carLoanNow(car, rules).balance : 0), 0) };
   }
 
   // The parts of the inputs the walkthrough does not set in full that still hold the example household's figures:
@@ -2472,7 +2569,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
