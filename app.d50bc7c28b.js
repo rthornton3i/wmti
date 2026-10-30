@@ -309,7 +309,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.44cbbfe419.js");
+      worker = new Worker("worker.858bcad414.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -6774,10 +6774,19 @@
     const key = JSON.stringify([state.inputs, state.seed]);
     if ((optimize.availability && optimize.availability.key === key) || optimize.availabilityPending === key) return;
     optimize.availabilityPending = key;
-    const reply = await ask("optimizeAvailability", [JSON.stringify(state.inputs), state.seed]);
+    // The options first (fast), then the slower time estimates, so the switches settle sooner.
+    const reply = await ask("optimizeAvailability", [JSON.stringify(state.inputs), state.seed, false]);
+    if (!reply || !reply.ok || key !== JSON.stringify([state.inputs, state.seed])) {
+      if (optimize.availabilityPending === key) optimize.availabilityPending = null;
+      if (optimizeShown() && !optimize.job) renderOptimize();  // lifts the cover
+      return;
+    }
+    optimize.availability = { key, options: reply.options, estimate: null };
+    if (optimizeShown() && !optimize.job) renderOptimize();
+    const timing = await ask("optimizeEstimates", [JSON.stringify(state.inputs), state.seed]);
     if (optimize.availabilityPending === key) optimize.availabilityPending = null;
-    if (!reply || !reply.ok || key !== JSON.stringify([state.inputs, state.seed])) return;
-    optimize.availability = { key, options: reply.options, estimate: reply.estimate };
+    if (!timing || !timing.ok || optimize.availability.key !== key) return;
+    optimize.availability.estimate = timing.estimate;
     if (optimizeShown() && !optimize.job) renderOptimize();
   }
 
@@ -6843,8 +6852,19 @@
     const switches = card.querySelector("#optimizeSwitches");
     const availability = optimize.availability;
     // Whether the switches show the answer for the settings now (tests wait for it).
-    switches.dataset.ready = String(Boolean(availability
-      && availability.key === JSON.stringify([state.inputs, state.seed])));
+    const ready = Boolean(availability && availability.key === JSON.stringify([state.inputs, state.seed]));
+    switches.dataset.ready = String(ready);
+    // Until the answer comes, a cover over the switches says so and they cannot be touched.
+    switches.classList.toggle("checking", !ready);
+    switches.inert = !ready;
+    if (!ready) {
+      const cover = document.createElement("p");
+      cover.className = "checking-cover";
+      cover.id = "optimizeChecking";
+      cover.setAttribute("role", "status");
+      cover.textContent = "Checking which options apply to your plan…";
+      switches.before(cover);
+    }
     for (const dimension of info.dimensions) {
       const option = optimizeOption(dimension.key);
       if (dimension.key === "states") {
@@ -6888,7 +6908,15 @@
   // once that many are ticked the rest are off with a short note. The estimate under it counts the ticked states.
   function optimizeStatesField(dimension, option, info) {
     const options = state.optimize.options;
-    const wrap = fieldShell(dimension.label, dimension.help, null);
+    // A switch turns the option on (off by default unless states are already ticked); once on, a chevron at the
+    // right opens the checklist, which starts folded. Open or shut lasts across redraws.
+    const statesOn = () => option.available && (options.statesOn ?? options.states.length > 0);
+    const wrap = switchField(dimension.label, dimension.help, "optimizeDim-states", statesOn(), (checked) => {
+      options.statesOn = checked;
+      if (checked) state.optimize.statesOpen = true;
+      syncFold();
+      showOptimizeStatesEstimate();
+    }, !option.available);
     wrap.id = "optimizeStates";
     const search = document.createElement("input");
     search.className = "input select-search";
@@ -6955,30 +6983,39 @@
       for (const box of boxes) box.parentElement.hidden = !matches.includes(box.value) && !box.checked;
     });
     search.disabled = !option.available;
-    // The checklist starts folded; its summary counts the ticked states. Open or shut lasts across redraws.
-    const fold = document.createElement("details");
+    const fold = document.createElement("div");
     fold.className = "state-fold";
     fold.id = "optimizeStatesFold";
-    fold.open = Boolean(state.optimize.statesOpen);
-    const summary = document.createElement("summary");
-    const showCount = () => {
-      const count = options.states.length;
-      summary.textContent = "Choose states" + (count ? " (" + count + " ticked)" : "");
-    };
-    fold.addEventListener("toggle", () => { state.optimize.statesOpen = fold.open; });
-    list.addEventListener("change", showCount);
-    none.addEventListener("click", showCount);
-    showCount();
-    fold.append(summary, search, list, row, limit);
+    fold.append(search, list, row, limit);
+    const chevron = document.createElement("button");
+    chevron.type = "button";
+    chevron.className = "collapse-button";
+    chevron.id = "optimizeStatesChevron";
+    chevron.setAttribute("aria-controls", fold.id);
+    chevron.setAttribute("aria-label", "Show states");
+    chevron.innerHTML = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 9l6 6 6-6\"/></svg>";
+    chevron.addEventListener("click", () => {
+      state.optimize.statesOpen = !state.optimize.statesOpen;
+      syncFold();
+    });
+    wrap.querySelector(".field-head").append(chevron);
     wrap.append(fold, estimate);
+    function syncFold() {
+      const on = statesOn();
+      const open = on && Boolean(state.optimize.statesOpen);
+      chevron.classList.toggle("collapse-off", !on);
+      chevron.setAttribute("aria-expanded", String(open));
+      fold.hidden = !open;
+      estimate.hidden = !on;
+    }
     if (!option.available) {
-      wrap.classList.add("field-disabled");
       const why = document.createElement("p");
       why.className = "field-help switch-note";
       why.id = "optimizeStates-note";
       why.textContent = "Not available: " + option.reason + ".";
       wrap.append(why);
     }
+    syncFold();
     syncPicks();
     return wrap;
   }
@@ -7054,7 +7091,9 @@
 
   // The ticked states the search takes: none while the States option cannot be used.
   function optimizeStates() {
-    return optimizeOption("states").available ? state.optimize.options.states.slice() : [];
+    const options = state.optimize.options;
+    const on = options.statesOn ?? options.states.length > 0;
+    return optimizeOption("states").available && on ? options.states.slice() : [];
   }
 
   // Start a search on the current settings, or resume `saved` (`savedOptimizeSearch`) with its own options.
