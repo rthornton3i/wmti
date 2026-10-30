@@ -12565,7 +12565,7 @@
         else {  // the pointer sits over the part not covered by its calculated replacements
           const shown = bar.calculated.length ? bar.calculated[0].left - bar.left : bar.width;
           timelineBarButton(span, bar.text, bar.left + shown / 2, () => timelinePopoverParts(kind, bar, words),
-            !bar.calculated.length);  // a bar whose end its calculated replacements cover shows no open hint
+            false);  // the row's one open hint goes on its last bar, below
         }
         lane.append(span);
         for (const mark of bar.calculated) {  // hatched: worked out from the replacement rule, not entered
@@ -12580,11 +12580,14 @@
           if (mark.note) part.title += ". " + mark.note;
           timelineBarButton(part, name + ", " + mark.year + " " + mark.label, mark.left + mark.width / 2,
             () => ({ name, role: "Car", years: "From " + mark.year + " (" + mark.label + ")",
-              summary: words.calculated + (mark.note ? ". " + mark.note : ""), open: null }));
+              summary: words.calculated + (mark.note ? ". " + mark.note : ""), open: null }), false);
           lane.append(part);
           calculatedShown = true;
         }
       }
+      // One open hint per row, at the right end of its last bar.
+      const buttons = lane.querySelectorAll("button.timeline-bar");
+      if (buttons.length) buttons[buttons.length - 1].append(timelineBarIcon());
       group.append(lane);
       // A car lane is one replacement chain: its own Add puts a car on it at a chosen year, between two cars too
       // (the neighbours refit, wmti.assets.timeline rule 1).
@@ -12666,19 +12669,21 @@
     + "<path d=\"M6 3l13 7.5-5.5 1.5 3.5 6.5-2.5 1.3-3.5-6.5L6 17.5z\"/></svg>";
   const timelineTouch = () => Boolean(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
 
+  function timelineBarIcon() {
+    const icon = document.createElement("span");
+    icon.className = "timeline-bar-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.innerHTML = TIMELINE_TAP_ICON + TIMELINE_CLICK_ICON;
+    return icon;
+  }
+
   // Make a timeline bar a button: its accessible name (with "tap to open" or "click to open"), the open hint at its
   // right end, and a tap (or Enter, Space) toggles its popover under the row, its pointer at `center` (percent of the
   // row) over the bar. `parts()` gives what the popover says; `hint` false leaves the open hint off.
   function timelineBarButton(button, label, center, parts, hint = true) {
     button.type = "button";
     button.setAttribute("aria-label", label + (timelineTouch() ? ", tap to open" : ", click to open"));
-    if (hint) {
-      const icon = document.createElement("span");
-      icon.className = "timeline-bar-icon";
-      icon.setAttribute("aria-hidden", "true");
-      icon.innerHTML = TIMELINE_TAP_ICON + TIMELINE_CLICK_ICON;
-      button.append(icon);
-    }
+    if (hint) button.append(timelineBarIcon());
     button.setAttribute("aria-expanded", "false");
     button.addEventListener("click", () => {
       const shown = timelinePopover && timelinePopover.bar === button;
