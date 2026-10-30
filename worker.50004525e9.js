@@ -15,6 +15,8 @@
 // posts one partial result, its progress's `partial` (the result of the runs done so far, from the same seed and
 // runs), once that many or more are done and some are still to come.
 // A Coach sweep ("leverSweep") is a short batched search with no finish, pause or run budget; a cancel drops it.
+// The Earliest retirement search ("earliestRetire") is batched like a strategy search: a finish keeps the best so far
+// and it pauses and resumes, but it has no run budget pause and no checkpoint.
 "use strict";
 
 // The host refuses .whl and .zip files, so they are published as *_whl.wasm / *_zip.wasm with unchanged bytes.
@@ -27,8 +29,8 @@ self.fetch = (input, init) => {
 
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize",
-  leverSweep: "startLeverSweep" };
-const MODEL_FILE = "wmti.33707bfefc.wasm";  // the build gives it a content-hashed name
+  leverSweep: "startLeverSweep", earliestRetire: "startEarliestRetire" };
+const MODEL_FILE = "wmti.8188d33b11.wasm";  // the build gives it a content-hashed name
 const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;
@@ -188,7 +190,7 @@ self.onmessage = (event) => {
     return;
   }
   if (job.fn === "pause" || job.fn === "resume") {
-    if (!batched || batched.id !== job.target || batched.fn !== "optimize") return;
+    if (!batched || batched.id !== job.target || (batched.fn !== "optimize" && batched.fn !== "earliestRetire")) return;
     batched.paused = job.fn === "pause";
     if (batched.paused) {
       batched.batches.pause();

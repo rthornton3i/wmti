@@ -192,7 +192,9 @@
     compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null, diffs: null, diffsPending: null, mergeUndo: [], merging: 0 },
     optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
-      options: { effort: null, preset: null, dimensions: {}, states: [] } },
+      options: { effort: null, preset: null, dimensions: {}, states: [] },
+      // The Earliest retirement card (59-earliest.js): its options (kept in the prefs), last result and message.
+      earliest: { options: { effort: null, failurePercent: null }, entry: null, message: null } },
     // The Next steps card (49-coach.js): the gaps and the inputs text they are for, the running check, each gap's kept
     // check and last message, and the scenario they belong to.
     coach: { gaps: null, gapsKey: null, pendingKey: null, job: null, entries: {}, messages: {}, scenarioName: null },
@@ -289,7 +291,8 @@
       plotView: state.plotView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
       exampleHidden: state.exampleHidden,
-      compare: { seed: compare.seed, pair: compare.pair } });
+      compare: { seed: compare.seed, pair: compare.pair },
+      earliest: { ...state.optimize.earliest.options } });
   }
 
   // ---- Engine (the worker) ----
@@ -301,7 +304,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.6ea75c48bf.js");
+      worker = new Worker("worker.50004525e9.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -502,6 +505,11 @@
     const pair = Array.isArray(compare.pair) ? compare.pair : compare.selected;
     if (Array.isArray(pair)) state.compare.pair = pair.filter((name) => typeof name === "string").slice(0, 2);
     // An older page's strategy variant, claim ages and Compare chip are ignored: Compare runs two configs only.
+    // The Earliest retirement options; checked against the offered choices once the card's info comes.
+    const earliest = isObject(prefs.earliest) ? prefs.earliest : {};
+    const options = state.optimize.earliest.options;
+    if (Number.isInteger(earliest.failurePercent)) options.failurePercent = earliest.failurePercent;
+    if (typeof earliest.effort === "string") options.effort = earliest.effort;
   }
 
   const isObject = (value) => value != null && typeof value === "object" && !Array.isArray(value);
@@ -6630,7 +6638,8 @@
         + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"optimizeResume\""
         + (state.error ? " disabled" : "") + ">Resume the search</button><button type=\"button\" class=\"button "
         + "button-quiet\" id=\"optimizeDiscard\">Discard</button></div></div>" : "")
-      + optimizeProgressHtml(optimize.job) + messageHtml(optimize.message);
+      + optimizeProgressHtml(optimize.job && optimize.job.kind !== "earliest" ? optimize.job : null)
+      + messageHtml(optimize.message);
     const switches = card.querySelector("#optimizeSwitches");
     const availability = optimize.availability;
     // Whether the switches show the answer for the settings now (tests wait for it).
@@ -6665,9 +6674,11 @@
     if (stop) stop.addEventListener("click", () => { if (optimize.job) engine.finish(optimize.job.id); });
     const cancel = card.querySelector("#optimizeCancel");
     if (cancel) cancel.addEventListener("click", () => { if (optimize.job) engine.cancel(optimize.job.id); });
-    card.querySelector("#optimizeCapContinue").addEventListener("click", () => answerOptimizeCap(true));
-    card.querySelector("#optimizeCapKeep").addEventListener("click", () => answerOptimizeCap(false));
-    body.replaceChildren(card);
+    const capContinue = card.querySelector("#optimizeCapContinue");
+    if (capContinue) capContinue.addEventListener("click", () => answerOptimizeCap(true));
+    const capKeep = card.querySelector("#optimizeCapKeep");
+    if (capKeep) capKeep.addEventListener("click", () => answerOptimizeCap(false));
+    body.replaceChildren(card, ...earliestCard());
     showOptimizeStatesEstimate();
     showOptimizeProgress();
     if (optimize.entry) body.append(...optimizeResult(optimize.entry));
@@ -6787,6 +6798,7 @@
   // Move the search's bar and text in place, so Stop and Cancel keep focus while it runs.
   function showOptimizeProgress() {
     const job = state.optimize.job;
+    if (job && job.kind === "earliest") { showEarliestProgress(); return; }
     const bar = $("optimizeBar");
     if (!bar || !job) return;
     const detail = job.detail;
@@ -6857,8 +6869,8 @@
           $("optimizeCapContinue").focus();
         }
       });
-    optimize.job = { id: job.id, detail: null, inputsText, dropped: false, paused: false, backgroundText: null,
-      wakeLock: null, checkpoint: null, checkpointAt: 0 };
+    optimize.job = { id: job.id, kind: "optimize", detail: null, inputsText, dropped: false, paused: false,
+      backgroundText: null, wakeLock: null, checkpoint: null, checkpointAt: 0 };
     optimize.message = null;
     renderOptimize();
     if ($("optimizeStop")) $("optimizeStop").focus();
@@ -7264,6 +7276,181 @@
     runCompare();
   }
 
+  // ---- Earliest retirement: the earliest retirement ages whose failing runs stay within a limit, under Optimize ----
+  // The search runs in the worker as a batched job ("earliestRetire", wmti.dashboard.earliest) in the strategy
+  // search's slot (`state.optimize.job`, kind "earliest"), so every guard that waits for a search waits for it too;
+  // Stop keeps the best so far, Cancel drops it. Its result is kept with the inputs text it ran on and applied through
+  // the strategy search's Apply and Undo (only the retirement ages change). The Python builds every text shown.
+
+  // Why nobody can be moved (as wmti.dashboard.earliest.movablePeople), or null when someone is paid today.
+  function earliestSkip(inputs) {
+    const reasons = [];
+    for (const [role, label] of [["you", "you"], ["partner", "your partner"]]) {
+      const person = inputs && inputs[role];
+      if (!person) continue;
+      if (!person.retired && person.salary > 0 && person.salaryEndAge > person.currentAge) return null;
+      reasons.push(label + ": " + (person.retired ? "already retired" : !(person.salary > 0) ? "no pay"
+        : "already past the retirement age"));
+    }
+    return "No one has pay to stop" + (reasons.length ? ": " + reasons.join("; ") : "") + ".";
+  }
+
+  // The card's options, each one the info offers (a stored choice it no longer offers takes the default).
+  function earliestOptions() {
+    const info = state.optimize.info.earliest;
+    const options = state.optimize.earliest.options;
+    if (!info.tolerances.includes(options.failurePercent)) options.failurePercent = info.defaultTolerance;
+    if (!info.efforts.some((effort) => effort.id === options.effort)) options.effort = info.defaultEffort.phone;
+    return options;
+  }
+
+  // The card and, below it, the last result: the nodes renderOptimize places after the strategy search's card.
+  function earliestCard() {
+    const optimize = state.optimize;
+    const info = optimize.info.earliest;
+    const options = earliestOptions();
+    const job = optimize.job;
+    const skip = state.inputs ? earliestSkip(state.inputs) : null;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.id = "earliestCard";
+    const about = titleHelp("h2", "Earliest retirement", info.help);
+    const tolerances = info.tolerances.map((value) => [String(value), value + "%"]);
+    const efforts = info.efforts.map((effort) => [effort.id, effort.label + " (" + effort.text + ")"]);
+    const failureHelp = noteHelp("What counts as a failing run", info.failureHelp, "field-help");
+    const starts = [["you", "you"], ["partner", "partner"]].filter(([role]) => state.inputs && state.inputs[role])
+      .map(([role, label]) => label + " " + state.inputs[role].salaryEndAge);
+    const running = Boolean(job && job.kind === "earliest");
+    card.innerHTML = "<div class=\"card-head\">" + about.head + "</div>" + about.text
+      + "<div class=\"pair\">" + selectHtml("earliestFailures", "Failures allowed", tolerances,
+        String(options.failurePercent))
+      + selectHtml("earliestEffort", "Effort (runs per age)", efforts, options.effort) + "</div>"
+      + failureHelp.head + failureHelp.text
+      + "<p class=\"field-help\" id=\"earliestStart\">Starting from: " + escapeText(starts.join(", ")) + "</p>"
+      + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"earliestRun\""
+      + (job || state.error || skip ? " disabled" : "") + ">Find earliest retirement</button></div>"
+      + (skip ? "<p class=\"field-help\" id=\"earliestSkip\">" + escapeText(skip) + "</p>" : "")
+      + (running ? earliestProgressHtml() : "") + messageHtml(optimize.earliest.message);
+    card.querySelector("#earliestFailures").addEventListener("change", (event) => {
+      options.failurePercent = Number(event.target.value);
+      savePrefs();
+    });
+    card.querySelector("#earliestEffort").addEventListener("change", (event) => {
+      options.effort = event.target.value;
+      savePrefs();
+    });
+    card.querySelector("#earliestRun").addEventListener("click", () => runEarliest());
+    const stop = card.querySelector("#earliestStop");
+    if (stop) stop.addEventListener("click", () => { if (optimize.job) engine.finish(optimize.job.id); });
+    const cancel = card.querySelector("#earliestCancel");
+    if (cancel) cancel.addEventListener("click", () => { if (optimize.job) engine.cancel(optimize.job.id); });
+    return optimize.earliest.entry ? [card, earliestResult(optimize.earliest.entry)] : [card];
+  }
+
+  function earliestProgressHtml() {
+    return "<div class=\"run-progress\" id=\"earliestProgress\"><div class=\"progress\" role=\"progressbar\" "
+      + "aria-label=\"Runs done\" aria-valuemin=\"0\" id=\"earliestBar\"><span></span></div>"
+      + "<p class=\"progress-text\" id=\"earliestProgressText\">Starting the search</p>"
+      + "<p class=\"progress-text\" id=\"earliestBackground\" aria-live=\"polite\"></p>"
+      + "<div class=\"run-row\"><button type=\"button\" class=\"button button-quiet\" id=\"earliestStop\">Stop, show best "
+      + "so far</button><button type=\"button\" class=\"button button-quiet\" id=\"earliestCancel\">Cancel</button></div>"
+      + "</div>";
+  }
+
+  // Move the search's bar and text in place, so Stop and Cancel keep focus while it runs.
+  function showEarliestProgress() {
+    const job = state.optimize.job;
+    const bar = $("earliestBar");
+    if (!bar || !job) return;
+    const detail = job.detail;
+    const planned = detail ? detail.expected : 1;
+    const runs = detail ? detail.runs : 0;
+    bar.querySelector("span").style.width = Math.min(1, runs / planned) * 100 + "%";
+    bar.setAttribute("aria-valuemax", String(planned));
+    bar.setAttribute("aria-valuenow", String(runs));
+    $("earliestProgressText").textContent = optimizeStepText(detail);
+    $("earliestBackground").textContent = job.backgroundText || "";
+    $("earliestBackground").hidden = !job.backgroundText;
+  }
+
+  // Start a search on the current settings with the card's options.
+  async function runEarliest() {
+    const optimize = state.optimize;
+    if (optimize.job || state.error || earliestSkip(state.inputs)) return;
+    const inputsText = JSON.stringify(state.inputs);
+    const options = earliestOptions();
+    if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
+    clearTimeout(mcTimer);
+    const job = engine.job("earliestRetire", [inputsText, JSON.stringify({ effort: options.effort,
+      failurePercent: options.failurePercent }), state.seed], null, (message) => {
+      if (!optimize.job) return;
+      optimize.job.detail = message.detail;
+      showEarliestProgress();
+    });
+    optimize.job = { id: job.id, kind: "earliest", detail: null, inputsText, dropped: false, paused: false,
+      backgroundText: null, wakeLock: null, checkpoint: null, checkpointAt: 0 };
+    optimize.earliest.message = null;
+    renderOptimize();
+    if ($("earliestStop")) $("earliestStop").focus();
+    holdScreenOn();
+    if (document.visibilityState === "hidden") optimizeVisibilityChanged();
+    let reply = null;
+    let failure = null;
+    try {
+      reply = await job.promise;
+    } catch (error) {
+      failure = String(error.message || error);
+    }
+    const { dropped } = optimize.job;
+    letScreenSleep(optimize.job);
+    optimize.job = null;
+    const earliest = optimize.earliest;
+    if (failure) earliest.message = { error: true, text: failure };
+    else if (!reply) earliest.message = dropped ? { text: "The settings changed, so the search was dropped. Run it again." }
+      : { text: "Cancelled. Nothing was kept from the search" + (earliest.entry ? "; the last result stays." : ".") };
+    else if (!reply.value.ok) earliest.message = { error: true, text: reply.value.error };
+    else earliest.entry = { value: reply.value, inputsText, ms: reply.ms, appliedText: null };
+    renderOptimize();
+    scheduleMc();  // an automatic Monte Carlo waits for the search
+  }
+
+  function earliestResult(entry) {
+    const result = entry.value;
+    const applied = optimizeApplied(entry);
+    const stale = !applied && entry.inputsText !== JSON.stringify(state.inputs);
+    const card = document.createElement("div");
+    card.className = "card" + (stale ? " stale-results" : "");
+    card.id = "earliestResult";
+    const held = result.recheck.held;
+    const banner = (text, kind) => "<p class=\"banner" + (kind ? " banner-" + kind : "") + "\" role=\"note\">"
+      + escapeText(text) + "</p>";
+    const problem = optimizeApplyProblem(entry);
+    let html = (stale ? banner("The settings changed since this search. Run it again to update it; Apply is off.", "warn")
+      : "") + "<div class=\"card-head\"><h2>Earliest retirement found</h2><span class=\"chart-note\">" + result.runs
+      + " runs · " + secondsText(entry.ms) + "</span></div>"
+      + "<p class=\"field-help\">" + escapeText(result.stopText) + "</p>"
+      + "<p id=\"earliestHeadline\">" + escapeText(result.headline) + "</p>"
+      + textTable("Ages tried", result.columns, result.rows)
+      + banner(result.recheck.text, held === false ? "warn" : null)
+      + result.notes.map((note) => "<p class=\"field-help\">" + escapeText(note) + "</p>").join("")
+      + "<p class=\"field-help\">" + escapeText(result.footnote) + "</p>";
+    if (applied) {
+      html += "<div class=\"run-row\"><span class=\"muted\" id=\"earliestApplied\">Applied "
+        + escapeText(result.applyText) + ".</span><button type=\"button\" class=\"button button-quiet\" "
+        + "id=\"earliestUndo\">Undo</button></div>";
+    } else if (result.changed) {
+      html += "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"earliestApply\""
+        + (problem ? " disabled" : "") + ">Apply these ages</button></div>"
+        + (problem ? "<p class=\"field-help\" id=\"earliestApplyWhy\">" + escapeText(problem) + "</p>"
+          : held === false ? "<p class=\"field-help\">This did not hold up on fresh draws; you can still apply it.</p>" : "");
+    }
+    card.innerHTML = html;
+    const apply = card.querySelector("#earliestApply");
+    if (apply) apply.addEventListener("click", () => applyOptimum(entry));
+    const undo = card.querySelector("#earliestUndo");
+    if (undo) undo.addEventListener("click", () => { undoLast(); renderOptimize(); });
+    return card;
+  }
   // ---- Scenarios on this device (Setup): the open scenario card, Other scenarios, New and Import ----
   // The open scenario is the settings being edited, under a name; Save (or Auto-save) keeps a copy of it under that
   // name. Other scenarios lists the saved copies except the open one, and the example household while it is not open.
