@@ -9434,7 +9434,7 @@
       });
       state.notes = Object.assign({}, state.notes, { surplus: reply.shares });
     },
-    motion: { busy: false, pending: null, position: null },
+    motion: { busy: false, pending: null, position: null, dragging: null, rerun: false },
   };
   const HEIR_SPLIT = {
     body: "heirSplitBody", idPrefix: "heir-share-", noun: "beneficiary",
@@ -9451,7 +9451,7 @@
       const heirs = getPath(state.inputs, HEIRS_PATH) || [];
       reply.shares.forEach((share, position) => { if (heirs[position]) heirs[position].share = share; });
     },
-    motion: { busy: false, pending: null, position: null },
+    motion: { busy: false, pending: null, position: null, dragging: null, rerun: false },
   };
 
   function splitSection(split, title, help) {
@@ -9491,9 +9491,12 @@
     items.forEach(([, share], position) => {
       const row = holder.querySelector(".surplus-row[data-position=\"" + position + "\"]");
       if (!row) return;
-      row.querySelector(".surplus-value").textContent = percent(share, 1);
       const slider = row.querySelector("input[type=range]");
-      if (!(split.motion.pending && split.motion.position === position)) slider.value = String(share * 100);
+      // The slider being dragged keeps the finger's place (and its figure); only the others follow the reply.
+      const held = split.motion.dragging === position || (split.motion.pending && split.motion.position === position);
+      if (held) return;
+      row.querySelector(".surplus-value").textContent = percent(share, 1);
+      slider.value = String(share * 100);
       slider.setAttribute("aria-valuetext", percent(share, 1));
       const segment = holder.querySelector(".split-bar [data-position=\"" + position + "\"]");
       if (segment) segment.style.flexGrow = String(share);
@@ -9542,7 +9545,25 @@
       const slider = row.querySelector("input");
       slider.id = id;
       slider.disabled = fixed;
-      slider.addEventListener("input", () => moveSplit(split, position, Number(slider.value) / 100));
+      // The dragged slider and its figure move at once; the others follow wmti's reply, and the plan reruns only when
+      // the drag ends, so nothing queues behind the finger.
+      slider.addEventListener("input", () => {
+        split.motion.dragging = position;
+        const share = Number(slider.value) / 100;
+        row.querySelector(".surplus-value").textContent = percent(share, 1);
+        moveSplit(split, position, share);
+      });
+      const release = () => {
+        if (split.motion.dragging !== position) return;
+        split.motion.dragging = null;
+        if (split.motion.rerun && !split.motion.busy) {
+          split.motion.rerun = false;
+          inputsChanged();
+        }
+        renderSplit(split);
+      };
+      slider.addEventListener("change", release);
+      slider.addEventListener("blur", release);  // a drag the browser cancelled still lets the plan rerun
       const lock = row.querySelector(".lock");
       lock.setAttribute("aria-pressed", String(isLocked));
       lock.setAttribute("aria-label", (isLocked ? "Unlock " : "Lock ") + name);
@@ -9594,6 +9615,10 @@
     }
     if (reply && reply.value.inputs) {
       split.apply(reply.value);
+      split.motion.rerun = true;
+    }
+    if (split.motion.rerun && motion.dragging == null && !motion.pending) {
+      split.motion.rerun = false;
       inputsChanged();
     }
     const next = motion.pending;
