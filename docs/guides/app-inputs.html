@@ -197,7 +197,8 @@
 <p>Inputs has one chip per area: Income, Children, Home, Cars, Loans, Accounts, Benefits, Healthcare, Expenses, Retirement and Strategies. Labels, help, units and bounds come from the settings schema. Household basics, the Seed, the Runs and the inflation settings are on Setup.</p>
 <p>Good to know:</p>
 <ul class="simple">
-<li><p>Home, Loans and Expenses have notes behind the “i” beside the group heading.</p></li>
+<li><p>Home, Loans and Expenses have notes behind the “i” at the right of the group heading.</p></li>
+<li><p>Every “i” sits at the far right of its row: in a pane heading just before the chevron and the switch’s place (kept on every pane, so they line up down the page); in a field, after the label and any switch.</p></li>
 <li><p>Only loans secured by a home feed the mortgage deduction.</p></li>
 <li><p>A home loan plus a Mortgage Bills row charges the payment twice.</p></li>
 <li><p>Charity rows are gifts per year. Any other row can be given a tax deduction.</p></li>
@@ -381,7 +382,7 @@
 <td><p>The plan’s switch, then one group per person, “Your plan” and “Partner’s plan” (with a partner): the deposit as two linked sliders, a “Traditional deposit (% of pay)” box with a slider and at High (or Add detail) a “Roth deposit (% of pay)” box with a slider, each bound both ways and grey at its default with a reset; then that person’s employer match, its switch and one “Employer match (% of pay)” box (0% to 100%). The deposit is % of pay only; no dollar amounts show. Each slider runs from 0% to the share of pay that reaches the person’s 401k limit this year (with any catch-up for their age), rounded up to the 1% step, and the two together never pass it: raising one past what the other leaves lowers the other, and at the limit the note “IRS limit: at most X% of pay together” shows (a share typed above the limit is held there). A saved share above it stays stored but shows the limit. A share whose kind of account (Traditional or Roth 401k or IRA) the person does not own shows a hint to add one in place of its slider. Without pay the sliders are off and a note says so. The notes on the deposits follow; the dollar slider per account shows only while amounts are set per account (see below).</p></td>
 </tr>
 <tr class="row-odd"><td><p>Medical plan</p></td>
-<td><p>The health premium for the household, the pre-tax switch and the plan’s cost sharing, with a <em>Per person</em> / <em>Combined</em> toggle right after the out-of-pocket maximum. An “HSA” sub-section shows while the plan is on.</p></td>
+<td><p>The health premium for the household, the pre-tax switch and the plan’s cost sharing, with a <em>Per person</em> / <em>Combined</em> toggle right after the out-of-pocket maximum. An “HSA” sub-section shows while the plan is on. Its note on screen reads: “After work ends: the Gap medical plan and Medicare are set on the Retirement tab.”; <em>Retirement tab</em> is a button that opens that chip.</p></td>
 </tr>
 <tr class="row-even"><td><p>HSA</p></td>
 <td><p>Its switch, then <em>HSA contribution each year</em> (“What the year’s costs need” or “The most allowed”), <em>HSA cap per year</em> (shown on “The most allowed” only: a slider from $0 to the legal limit for the coverage, family while the partner or a child is on the plan, and each person’s catch-up from 55; at the top by default, and a saved cap above it shows at the limit with an “IRS limit” note), <em>Contributed through payroll</em>, <em>Employer HSA contribution per year</em>, <em>HSA balance</em>, the mean return and standard deviation, and <em>HSA owner</em>.</p></td>
@@ -530,13 +531,16 @@
 <tr class="row-even"><td><p>Social Security</p></td>
 <td><p>Under a “You” and a “Partner” sub-heading (Partner only with a partner): the benefit basis, benefit table and claim age. The benefit by claim age (the benefit table or the estimate from earnings) sits closed under “Claim estimates” on every start of the app; one opened stays open for the visit.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Medicare</p></td>
+<tr class="row-odd"><td><p>Gap medical plan</p></td>
+<td><p>Its switch, then the monthly premium: health insurance from the first year nobody is paid until Medicare, in place of the Medical plan.</p></td>
+</tr>
+<tr class="row-even"><td><p>Medicare</p></td>
 <td><p>Medicare age and type, Part B, Part D premium (plan-specific, entered), coinsurance and out-of-pocket maximum.</p></td>
 </tr>
-<tr class="row-even"><td><p>Medicare supplement</p></td>
+<tr class="row-odd"><td><p>Medicare supplement</p></td>
 <td><p>Its switch, then four figures while it is on. Hidden on Medicare Advantage.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Spending in retirement</p></td>
+<tr class="row-even"><td><p>Spending in retirement</p></td>
 <td><p>Its switch, then <em>Equal change</em> or <em>Per expense</em>, the percent, the start age and a caption showing monthly rows before and after.</p></td>
 </tr>
 </tbody>

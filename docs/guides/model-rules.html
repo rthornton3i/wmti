@@ -321,7 +321,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <p><strong>Value</strong></p>
 <ul class="simple">
 <li><p>A car owned today is set by its <em>Purchase price (as paid)</em> and <em>Year bought</em>. Value today is the price times (1 - first-year drop) times (1 - depreciation) per later year. A car bought this year or later is at its price.</p></li>
-<li><p><em>Depreciation first year</em> blank uses the usual 20% (unconfirmed).</p></li>
+<li><p><em>Depreciation first year</em> blank uses the usual 25% (unconfirmed). <em>Depreciation per year</em> starts at 15% (unconfirmed). Both defaults are in <cite>.config/carDepreciation.json</cite>.</p></li>
 <li><p>A <em>Value today</em> you enter wins. Blank or 0 uses the estimate. With neither a value nor a year bought, the car has no value.</p></li>
 <li><p>A later car and each replacement starts at its price and drops in the year after purchase. Value is inflation adjusted like the home, shown as <em>Car Value</em> and counted in net worth.</p></li>
 </ul>
@@ -538,7 +538,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 </section>
 <section id="retirement">
 <span id="tab-retirement"></span><h2>Retirement<a class="headerlink" href="#retirement" title="Link to this heading"></a></h2>
-<p>Social Security for each person (under <em>You</em> and <em>Partner</em>), then <a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a>, the <a class="reference internal" href="#tab-medicare-supplement"><span class="std std-ref">Medicare supplement</span></a> and <a class="reference internal" href="#tab-spending-in-retirement"><span class="std std-ref">Spending in retirement</span></a>. The earnings history is on <a class="reference internal" href="#tab-income"><span class="std std-ref">Income</span></a>.</p>
+<p>Social Security for each person (under <em>You</em> and <em>Partner</em>), then the Gap medical plan (health insurance from the first year nobody is paid until Medicare), <a class="reference internal" href="#tab-medicare"><span class="std std-ref">Medicare</span></a>, the <a class="reference internal" href="#tab-medicare-supplement"><span class="std std-ref">Medicare supplement</span></a> and <a class="reference internal" href="#tab-spending-in-retirement"><span class="std std-ref">Spending in retirement</span></a>. The earnings history is on <a class="reference internal" href="#tab-income"><span class="std std-ref">Income</span></a>.</p>
 <section id="social-security">
 <span id="tab-social-security"></span><h3>Social Security<a class="headerlink" href="#social-security" title="Link to this heading"></a></h3>
 <p>Each person’s benefit basis, benefit table and claim age.</p>
