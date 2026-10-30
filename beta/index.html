@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-io2U6AtCXuihjtA4ofmLYe0G/pC1Refzj2qcDEycqM8=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-bQsjxtbr49Sma13L8t5J8UjClhHVhfa316gYJfjUy8w=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -319,15 +319,18 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .panels, .panels > .panel, .walk-stage { touch-action: pan-y; touch-action: pan-y pinch-zoom; }
 /* The Outputs sub-tabs (the chips rows under Summary | Plots): one thin row of underline text tabs on a 1px
    hairline, scrolling sideways if too narrow; the open one in the band's selected colour. The Inputs chips stay bubbles. */
-.chips-wrap[data-place^="outputs/"] .chips { gap: 4px; padding-block: 0;
+.chips-wrap:is([data-place^="outputs/"], [data-place="strategy"]) .chips { gap: 4px; padding-block: 0;
   box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--band-sub) 45%, transparent); }
-.chips-wrap[data-place^="outputs/"] .chip { min-height: 44px; padding: 0 12px; border-radius: 0; background: transparent;
+.chips-wrap:is([data-place^="outputs/"], [data-place="strategy"]) .chip { min-height: 44px; padding: 0 12px; border-radius: 0; background: transparent;
   color: var(--band-sub); white-space: nowrap; box-shadow: none; }
-.chips-wrap[data-place^="outputs/"] .chip-icon { display: none; }
-.chips-wrap[data-place^="outputs/"] .chip[aria-selected="true"] { background: transparent; color: var(--chip-on);
+.chips-wrap:is([data-place^="outputs/"], [data-place="strategy"]) .chip-icon { display: none; }
+.chips-wrap:is([data-place^="outputs/"], [data-place="strategy"]) .chip[aria-selected="true"] { background: transparent; color: var(--chip-on);
   font-weight: 650; box-shadow: inset 0 -2px 0 var(--chip-on); }
-.chips-wrap[data-place^="outputs/"] .chip:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
-.chips-wrap[data-place^="outputs/"] .chips-track { display: none; }
+.chips-wrap:is([data-place^="outputs/"], [data-place="strategy"]) .chip:focus-visible { outline: 3px solid var(--band-sub); outline-offset: -3px; }
+.chips-wrap:is([data-place^="outputs/"], [data-place="strategy"]) .chips-track { display: none; }
+.chips-wrap[data-place="strategy"] { grid-template-columns: minmax(0, 1fr); }  /* the Strategy views: Plots-style tabs, no pin */
+.chips-wrap[data-place="strategy"] .chips-pin { display: none; }
+.chips-wrap[data-place="strategy"] .chips { margin-block: 0; }
 
 .card { background: var(--surface); background-image: var(--fx-card-sheen); border: 0; border-radius: 20px; padding: var(--space-4);
   display: grid; gap: var(--space-3); min-width: 0; box-shadow: 0 0 0 1px var(--panel-edge), var(--fx-glow); }
@@ -908,6 +911,9 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
 .subpanel > * { min-width: 0; }
 /* Summary's body stacks its meta line, tiles and cards with the same gap as the subpanel. */
 #results-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
+/* Strategy: Compare and Optimize cards are spaced like Outputs; the notice's info button sits tight above them */
+#compare-body, #optimize-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
+#panel-strategy > .mc-notice-row { margin-bottom: calc(-1 * var(--section-gap) + 4px); }
 #results-body > * { min-width: 0; }
 /* The Next steps and Accountant holders add no box: their cards take the body's own gap, and an empty one no row. */
 #nextSteps, #accountantCards, #accountantLedger { display: contents; }
@@ -2012,7 +2018,7 @@ button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink)
 .wide #status, .wide #helpButton, .wide #menuButton { order: 2; }
 .wide .band, .wide .panels { display: contents; }
 .wide .band-title, .wide .band-sub, .wide .chips-pin { display: none; }
-.wide .band > .chips-wrap { align-self: start; padding: 2px var(--gutter) 10px; }
+.wide .band > .chips-wrap { align-self: start; padding: 10px var(--gutter) 10px; }
 /* Each panel starts right under its own chips: Inputs' chips take row 2 and its panel rows 3 and 4, beside Outputs'
    view chips (row 2), sub-tab chips (row 3, none on most views) and panel (row 4). Both top rows start level (no
    phone gap between the rows) and keep room for their scroll bar even when it is off, so they are one height. */
@@ -2024,6 +2030,8 @@ button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink)
 .wide .chips-wrap[data-place^="outputs/"] { grid-column: 5; grid-row: 3; }
 /* Strategy holds the Outputs column while selected: its view row under the Outputs row (where the sub-tabs go). */
 .wide .chips-wrap[data-place="strategy"] { grid-column: 5; grid-row: 3; }
+/* A second row sits tight under the Outputs row: no top padding, and the Outputs row's hidden track not doubled */
+.wide .band > .chips-wrap:is([data-place^="outputs/"], [data-place="strategy"]) { padding-top: 0; margin-top: -10px; }
 .wide #panel-setup { grid-column: 1; grid-row: 2 / 5; margin-top: 48px; }  /* under its fold bar (36 px and margins) */
 .wide #panel-inputs { grid-column: 3; grid-row: 3 / 5; }
 .wide #panel-outputs, .wide #panel-strategy, .wide #panel-awards { grid-column: 5; grid-row: 4; }
@@ -2628,7 +2636,7 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "c3adfa9a5919", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "d6188d5541b0", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.7413161bdf.js"></script>
 <script src="charts.ae4d661d99.js"></script>
