@@ -676,37 +676,44 @@ per-state rule is written in the code.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Net Investment Income Tax (NIIT)</p></td>
-<td><p>A 3.8% federal tax on the lesser of net investment income and income above
-200,000 single, 250,000 joint or 125,000 separate (not indexed). A conversion can
-pull interest and gains into it; charging it changes results for households with
-large taxable accounts.</p></td>
+<tr class="row-even"><td><p>Net Investment Income Tax (NIIT) beyond interest and gains</p></td>
+<td><p>The 3.8% NIIT is charged on the cash accounts’ interest and the realized long-term
+gains (a home’s taxable sale gain included). Dividends, rent, passive business
+income and net investment expenses are not in the model, so the NIIT is low for a
+dividend-heavy household; the heirs’ tax and the end-of-plan sale carry no NIIT.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Section 125 payroll-tax savings</p></td>
 <td><p>A pre-tax employer health premium also escapes Social Security and Medicare tax;
 the model still charges them.</p></td>
 </tr>
-<tr class="row-even"><td><p>Credits and the alternative minimum tax</p></td>
-<td><p>No tax credits (such as the child tax credit) and no AMT.</p></td>
+<tr class="row-even"><td><p>Other credits</p></td>
+<td><p>The child tax credit, its refundable part and the credit for other dependents are
+charged; the earned income, Saver’s, education and dependent care credits are not,
+nor head of household status.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Early-withdrawal exceptions</p></td>
+<tr class="row-odd"><td><p>AMT preferences</p></td>
+<td><p>The AMT adds back only the standard deduction, state and local taxes and the senior
+deduction; incentive stock options, private activity bond interest, the other
+preferences and the AMT credit carryforward are not modelled.</p></td>
+</tr>
+<tr class="row-even"><td><p>Early-withdrawal exceptions</p></td>
 <td><p>The 10% penalty, the rule of 55, the Roth ordering and five-year rules, the HSA’s
 20% and the 529’s 10% are charged (see <a class="reference internal" href="model-rules.html#early-withdrawals"><span class="std std-ref">Early withdrawals</span></a>); SEPP, disability,
 medical and the other exceptions are not. Only California’s additional state rate
 (2.5%) is in the law data; other states’ are not checked.</p></td>
 </tr>
-<tr class="row-even"><td><p>Affordable Care Act premium credit</p></td>
+<tr class="row-odd"><td><p>Affordable Care Act premium credit</p></td>
 <td><p>The enhanced credits expired after 2025: from 2026 income above 400% of the
 poverty level loses the whole credit. The Strategies tab warns with the
 household’s figure; the credit itself is not priced.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Rules that change in a given year</p></td>
+<tr class="row-even"><td><p>Rules that change in a given year</p></td>
 <td><p>A law section can start or end in a given year (the senior deduction ends after
 2028), but cannot switch to new figures, such as new brackets, New York’s rates or
 the IRMAA top tier. The SALT cap is the exception: it grows 1% a year through 2029
 and reverts to 10,000 in 2030.</p></td>
 </tr>
-<tr class="row-even"><td><p>Social Security benefit calculation</p></td>
+<tr class="row-odd"><td><p>Social Security benefit calculation</p></td>
 <td><p>Each table amount is the benefit at its claim age; ages not entered are estimated on
 straight lines. <em>Earnings history</em> (Retirement tab, <em>Benefit comes from</em>) uses a
 simplified method in today’s dollars. Not modeled: the year of eligibility
@@ -715,32 +722,32 @@ base, the earnings test, the special minimum and a recomputation for earnings af
 the claim. The 40 work credits are approximated by ten years with earnings. WEP and
 GPO were repealed.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Spousal, survivor and other family benefits</p></td>
+<tr class="row-even"><td><p>Spousal, survivor and other family benefits</p></td>
 <td><p>Each person gets only their own benefit: no spousal, survivor (no deaths),
 divorced-spouse or child benefit.</p></td>
 </tr>
-<tr class="row-even"><td><p>Social Security earnings test</p></td>
+<tr class="row-odd"><td><p>Social Security earnings test</p></td>
 <td><p>Benefits claimed before full retirement age are not withheld while earning above the
 annual limit, so an early claimant who still works is overpaid.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Joint-life RMD table</p></td>
+<tr class="row-even"><td><p>Joint-life RMD table</p></td>
 <td><p>Only the Uniform Lifetime Table is used; a spouse more than ten years younger as
 sole beneficiary would give smaller RMDs.</p></td>
 </tr>
-<tr class="row-even"><td><p>IRMAA appeal</p></td>
+<tr class="row-odd"><td><p>IRMAA appeal</p></td>
 <td><p>A life-changing event (such as retirement) lets Social Security use a later year’s
 income for the surcharge; the model always looks back two years.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Survivor and mortality</p></td>
+<tr class="row-even"><td><p>Survivor and mortality</p></td>
 <td><p>No one dies in the model, so a survivor’s single brackets and surcharge thresholds
 never apply; a conversion’s value is understated, and a later Social Security claim
 is judged to the end of the plan horizon.</p></td>
 </tr>
-<tr class="row-even"><td><p>Federal itemized-deduction limits for 2026</p></td>
+<tr class="row-odd"><td><p>Federal itemized-deduction limits for 2026</p></td>
 <td><p>A 0.5% of income floor on charity and a 35% cap on the value of itemized deductions
 are to be checked when the deductions feature is built.</p></td>
 </tr>
-<tr class="row-odd"><td><p>State rules that do not fit the schema</p></td>
+<tr class="row-even"><td><p>State rules that do not fit the schema</p></td>
 <td><p>Not modeled: the federal income tax deduction some states allow (Alabama, Missouri,
 Oregon), state-only capital gains taxes (Washington’s excise, Maryland’s 2%
 surtax), phase-outs at high incomes, part-year residence, senior property-tax

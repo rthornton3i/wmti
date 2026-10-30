@@ -63,7 +63,7 @@
   const YEARLY_GROUPS = [
     ["Income sources", /^(Paycheck|Interest|Social Security$|Asset Sale|Employer Match|Home Sale|Gross Income|Net Earnings)/,
       "Money coming in each year by source: pay, interest, Social Security, employer match and sales."],
-    ["Taxes, deductions and withholding", /(Tax|Federal|State|MAGI|AGI|Deduction|Itemized|Dependents|HSA|FSA|Property|Medicare|Capital Gains|^Medical$|^Taxable|^Penalties$)/,
+    ["Taxes, deductions and withholding", /(Tax|Federal|State|MAGI|AGI|Deduction|Itemized|Dependents|HSA|FSA|Property|Medicare|Capital Gains|^Medical$|^Taxable|^Penalties$|^NIIT$|^AMT$)/,
       "Each year's taxes by kind and the income and deduction figures they are worked out from."],
     ["Deposits and withdrawals", /(Deposit|Withdraw|QCD|Conversion|Investment Gains|Shortfall)/,
       "Money put into and taken out of the accounts each year, with Roth conversions, investment gains and any "

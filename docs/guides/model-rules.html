@@ -223,9 +223,10 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <p>One card per child, with daycare and college costs, and how much each child raises ordinary recurring expenses. The dependent care FSA is on <a class="reference internal" href="#tab-dependent-care-fsa"><span class="std std-ref">Benefits</span></a>.</p>
 <ul class="simple">
 <li><p><strong>Defaults</strong>: two children, born when you are 33 and 36, in their child years up to age 20, with a child inflation factor of 20% each. College runs from 18 for 4 years and daycare from 0 to 5, both at no cost until you set one.</p></li>
-<li><p><strong>Child years</strong> follow your age. With <em>n</em> children in their child years, ordinary recurring expenses are multiplied by 1 + <em>n</em> times the factor. <em>n</em> is also the number of dependents the state exemption uses.</p></li>
+<li><p><strong>Child years</strong> follow your age. With <em>n</em> children in their child years, ordinary recurring expenses are multiplied by 1 + <em>n</em> times the factor. <em>n</em> is also the number of dependents the state exemption uses; their ages set the federal child credits (see <a class="reference internal" href="#federal-extra-taxes"><span class="std std-ref">Federal taxes beyond the brackets</span></a>).</p></li>
 <li><p><strong>College</strong> is charged as Major Spending from your age at birth plus the start age, for the college years, grown by inflation. A child already in college pays only the years left. It is not added to expenses twice (the <em>College Costs</em> column shows that part).</p></li>
 <li><p><strong>Paying for college</strong>: a linked 529 pays first, up to its balance. Other 529 balances pay the rest by the withdrawal strategy, then the usual accounts.</p></li>
+<li><p><strong>Funding a 529</strong>: a 529 with a surplus share takes its share of surplus cash only until its balance, grown at its expected return, would pay the rest of its child’s college cost. The target each year is every college year still to come, in today’s dollars, discounted at the 529’s mean return over expected inflation. A year’s cost is paid from its start-of-year balance (the year’s gain is spent the next year), so the last college year’s cost counts in full at its start and each earlier year’s cost one year further discounted than it lies ahead; a 529 that holds its target pays every college year and ends near $0. It is the expected return, not a worst case: after a bad year the 529 takes surplus again, and what it cannot pay comes from the other accounts. After the last college year it takes none.</p></li>
 <li><p><strong>Daycare</strong> is charged the same way, from the start age through the end age. It is not an Expenses row. It counts as dependent care, in the <em>Tagged Dependent Care</em> column that caps the <a class="reference internal" href="#tab-dependent-care-fsa"><span class="std std-ref">dependent care FSA</span></a>.</p></li>
 </ul>
 </section>
@@ -286,7 +287,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <ul class="simple">
 <li><p>It counts the primary residence and the one other home with the most mortgage interest, plus any Mortgage loan left on Loans, under one principal limit from the law data (half for each separate return).</p></li>
 <li><p>Home equity debt counts only when the money bought, built or improved the home (<em>Used on this home</em>). Otherwise it deducts nothing and its balance stays out of the limit.</p></li>
-<li><p>A third home’s interest is not deducted. Pre-2018 debt limits, mortgage insurance premiums, depreciation recapture, the net investment income tax and rental income are not modeled.</p></li>
+<li><p>A third home’s interest is not deducted. Pre-2018 debt limits, mortgage insurance premiums, depreciation recapture and rental income are not modeled. A home’s taxable sale gain is net investment income for the NIIT.</p></li>
 </ul>
 </section>
 <section id="cars">
@@ -727,7 +728,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <ul class="simple">
 <li><p>Each account’s RMD uses its owner’s age and birth year. The joint-life table for a spouse 10 or more years younger is not modeled: the Uniform Lifetime Table is always used.</p></li>
 <li><p>A person’s QCD counts toward that person’s Traditional IRA RMDs together, never the other person’s. A 401k’s RMD is its own (see <a class="reference internal" href="strategies.html#rmd-strategy"><span class="std std-ref">Required minimum distributions</span></a>).</p></li>
-<li><p>The tax on Traditional withdrawals is federal, state and capital gains tax with the year’s taxed Traditional withdrawals less the same tax without them. It includes knock-ons such as more taxable Social Security, but not conversion tax, the tax on Roth earnings, penalties or IRMAA. The Final report’s yearly table shows it as <em>Tax on Traditional Withdrawals</em>.</p></li>
+<li><p>The tax on Traditional withdrawals is federal, state, capital gains and net investment income tax with the year’s taxed Traditional withdrawals less the same tax without them. It includes knock-ons such as more taxable Social Security, but not conversion tax, the tax on Roth earnings, penalties or IRMAA. The Final report’s yearly table shows it as <em>Tax on Traditional Withdrawals</em>.</p></li>
 <li><p>Amounts are in the run’s dollars.</p></li>
 </ul>
 </section>
@@ -740,7 +741,7 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <p><span class="caption-text">Taxes by kind and year. The hatched bar is sales tax already inside spending.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>The kinds are SS Tax, Medicare Tax, Federal, State, Capital Gains (LT) and Penalties, from the law data for your home state and filing status. The Penalties bar shows only in a plan that pays one. A setting such as the claim age shows up here year by year.</p>
+<p>The kinds are SS Tax, Medicare Tax, Federal, State, Capital Gains (LT), NIIT and Penalties, from the law data for your home state and filing status. The NIIT and Penalties bars show only in a plan that pays them. A setting such as the claim age shows up here year by year.</p>
 <p><strong>State rules</strong></p>
 <ul class="simple">
 <li><p>Each state treats Social Security as exempt (none taxed), federal (the part the federal return taxes) or threshold (none at or below a federal AGI limit, above it the federally taxed part up to a share of benefits), with an optional deduction. A rule that fits none is approximated and flagged unconfirmed.</p></li>
@@ -761,9 +762,15 @@ same figure buys now. A figure marked <code class="docutils literal notranslate"
 <li><p><strong>Ages</strong> are whole years, so age 59 pays all year (half a year too long). The summary shows <em>Penalties</em> (a tax), <em>Penalized Withdrawals</em> and <em>Roth Earnings Taxed</em> (both informational).</p></li>
 <li><p><strong>Not modelled</strong>: SEPP, disability, medical, first-home and the other exceptions; a five-year clock per Roth 401k plan; state rules beyond California. The rates are in the law data (<a class="reference internal" href="../law/federal.html"><span class="doc">Federal</span></a>).</p></li>
 </ul>
+<p id="federal-extra-taxes"><strong>Federal taxes beyond the brackets</strong></p>
+<ul class="simple">
+<li><p><strong>NIIT</strong>: 3.8% of the lesser of the net investment income and the AGI above 200,000 single, 250,000 joint or 125,000 separate (statute dollars, not indexed). The net investment income is the cash accounts’ interest plus the realized long-term gains, a home’s taxable sale gain included. It is its own tax kind, in Total taxes, and charged per return. Not modelled: dividends, rent, passive business income, net investment expenses, and the NIIT on the heirs’ tax and the end-of-plan sale.</p></li>
+<li><p><strong>Child credits</strong>: each child under 17 at the end of the year gets the child tax credit (2,200 in 2026, indexed) and each child aged 17 to 23 still in its child years the credit for other dependents (500, not indexed). Their sum falls by 50 for each 1,000 (or part) of AGI above 400,000 joint or 200,000 otherwise (not indexed). It is used against the federal tax, then the capital gains tax; the unused part is refundable up to 1,700 per child under 17 (indexed) and 15% of earned income above 2,500 (wages less pre-tax deferrals and benefits), so <em>Federal</em> can go below zero. The credits go on your return (person 0); <em>Federal Credits</em> shows them, already inside <em>Federal</em>. Not modelled: the earned income credit, Saver’s credit, education credits, the dependent care credit, head of household status, the three-or-more-children refund method, disabled or qualifying-relative dependents.</p></li>
+<li><p><strong>AMT</strong>: the alternative minimum taxable income is the taxable income with the standard deduction (or an itemizer’s state and local taxes) and the senior deduction added back; the non-itemizer charity deduction stays allowed. Above the exemption (90,100 single, 140,200 joint, 70,100 separate in 2026, indexed), which falls by 50% of the income above 500,000 (1,000,000 joint), it pays 26% up to 244,500 (122,250 separate) and 28% above, long-term gains keeping their rates. The excess over the regular tax is added to <em>Federal</em> and shown as <em>AMT</em>; the child credits also reduce it. After P.L. 119-21 it rarely applies. Not modelled: incentive stock options, private activity bond interest and the other preferences, the AMT credit carryforward and the extra AMT income of a separate return above the phase-out (IRC 55(d)(3)).</p></li>
+</ul>
 <p><strong>Why law figures jump</strong></p>
 <ul class="simple">
-<li><p>Some figures are not indexed by law: the Social Security taxability thresholds, state brackets and exemptions, the SALT floor from 2030, the mortgage limit, the home sale exclusion, the Additional Medicare thresholds, the dependent care FSA limit, the HSA catch-up and a few more (the law data lists them).</p></li>
+<li><p>Some figures are not indexed by law: the Social Security taxability thresholds, state brackets and exemptions, the SALT floor from 2030, the mortgage limit, the home sale exclusion, the Additional Medicare and NIIT thresholds, the dependent care FSA limit, the HSA catch-up and a few more (the law data lists them).</p></li>
 <li><p>The model holds each at its last dollar amount, so taxes creep up. After a random 3 to 7 years it restores it to its inflation-adjusted level, and the steps repeat.</p></li>
 <li><p>Congress and each state follow separate random schedules drawn from the seed, so federal and state taxes step in different years. The first year is never affected.</p></li>
 <li><p>Statute paths stay as written (SALT cap 2026 to 2029, senior deduction 2025 to 2028, top IRMAA threshold). There is no setting.</p></li>
