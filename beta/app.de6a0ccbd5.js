@@ -26,6 +26,7 @@
     ["model", "Loading the retirement model"], ["startup", "Reading your settings and the example household"]];
   const NOTES_PANELS = new Set(["accounts", "cars", "expenses", "retirement", "savings", "strategies"]);  // panels that show settingsNotes
   const SETUP_PANEL = "household";  // the schema panel drawn on Setup instead of as an Inputs chip
+  const STRATEGY_PANEL = "strategies";  // the schema panel drawn on Strategy's Strategies view instead of as an Inputs chip
   const INFLATION_CARD_FIELDS = ["useInflation", "inflation"];  // fields of that panel drawn in the Inflation card
   const RUN_CARD_FIELDS = ["years"];  // fields of that panel drawn in the Run card, in Advanced settings
   const ROLLOVER_SWITCH = "strategies.rothConversion.enabled";  // adds or removes the rollover account
@@ -101,9 +102,11 @@
     "Use of this app is at your own risk. The app is provided as is, without warranty.",
   ];
   const LEGAL_SUMMARY_CLOSING = "Please read the full Terms below.";
-  const TABS = ["setup", "inputs", "outputs", "awards"];  // the bottom bar, left to right (Awards: Gamer only)
-  const VIEWS = ["summary", "plots", "compare", "optimize"];  // the switch inside Outputs
-  const VIEW_ICONS = { summary: "chart", plots: "bands", compare: "sliders", optimize: "pig", awards: "sprout" };  // its chips' icons
+  const TABS = ["setup", "inputs", "outputs", "strategy", "awards"];  // the bottom bar, left to right (Awards: Gamer only)
+  const VIEWS = ["summary", "plots"];  // the switch inside Outputs
+  const STRATEGY_VIEWS = ["strategies", "compare", "optimize"];  // the switch inside Strategy
+  const VIEW_ICONS = { summary: "chart", plots: "bands", strategies: "receipt", compare: "sliders", optimize: "pig",
+    strategy: "compass", awards: "sprout" };  // its chips' icons
   // The color scheme, kept per viewer as plain text; index.html applies it before the first paint.
   const THEME_KEY = STORAGE_PREFIX + "theme.v1";
   // Every key this app keeps in localStorage; Clear all data on this device removes them all.
@@ -136,8 +139,9 @@
     inputs: ["Inputs", "", "Every change reruns the plan"],
     "outputs/summary": ["Outputs", "Summary", "From the last Monte Carlo"],
     "outputs/plots": ["Outputs", "Plots", "Middle half average of the runs"],
-    "outputs/compare": ["Outputs", "Compare", "Two configs on the same random draws"],
-    "outputs/optimize": ["Outputs", "Optimize", "The best strategy settings on the same random draws"],
+    "strategy/strategies": ["Strategy", "Strategies", "Tax strategies and end-of-plan settings"],
+    "strategy/compare": ["Strategy", "Compare", "Two configs on the same random draws"],
+    "strategy/optimize": ["Strategy", "Optimize", "The best strategy settings on the same random draws"],
     awards: ["Garden", "Garden", "Your garden, level, quests and awards, saved with this scenario"],
   };
   // Inline SVG icons (24 px grid, stroked): chips and pane titles.
@@ -159,6 +163,7 @@
     bands: "<path d=\"M3 17l5-5 4 3 8-8\"/><path d=\"M3 21h18\"/>",
     pencil: "<path d=\"M4 20h4L19 9l-4-4L4 16z\"/><path d=\"M13 7l4 4\"/>",  // the timeline's Edit timeline button
     star: "<path d=\"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>",
+    compass: "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M15.5 8.5l-2 5-5 2 2-5z\"/>",  // the Strategy chip
     sprout: "<path d=\"M12 21v-9M12 12c0-4-3-7-8-7 0 5 3 7 8 7zM12 14c0-4 3-6 8-6 0 4-3 6-8 6z\"/>",  // the Garden chip
   };
   // The icon of a chip or pane: the first word here found in its label, else in its id; sliders when none is. The
@@ -177,7 +182,7 @@
     resultInputsText: null,  // the inputs text the single run's result ran on
     notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, depositMoveNotes: [],
     heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
-    tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
+    tab: "outputs", view: "summary", strategyView: "strategies", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
     autoSaveOff: [], exampleHidden: false,
     openFolds: [],  // the closed-by-default disclosures opened this visit (the claim estimates, 80-settings.js)
@@ -280,7 +285,8 @@
   }
   function savePrefs() {
     const compare = state.compare;
-    store(PREFS_KEY, { tab: state.tab, view: state.view, chips: state.chips, plotView: state.plotView,
+    store(PREFS_KEY, { tab: state.tab, view: state.view, strategyView: state.strategyView, chips: state.chips,
+      plotView: state.plotView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
       exampleHidden: state.exampleHidden,
       compare: { seed: compare.seed, pair: compare.pair } });
@@ -295,7 +301,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.83d9a36b39.js");
+      worker = new Worker("worker.ae169f65da.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -429,10 +435,21 @@
       // Prefs of the older five-tab page (tab "settings", "plots", ...) lead to the matching new place.
       const route = tabRoute(prefs.tab);
       if (route) state.tab = route.tab;
-      if (route && route.view) state.view = route.view;
+      if (route && route.view) state[route.tab === "strategy" ? "strategyView" : "view"] = route.view;
       else if (outputViews().includes(prefs.view)) state.view = prefs.view;  // Awards only in Gamer style
+      if (STRATEGY_VIEWS.includes(prefs.strategyView)) state.strategyView = prefs.strategyView;
       Object.assign(state.chips, prefs.chips || {});
       if (route && route.chip) state.chips.settings = route.chip;
+      // Prefs of the page before the Strategy tab: Compare and Optimize were Outputs views, Strategies an Inputs chip.
+      if (state.tab === "outputs" && STRATEGY_VIEWS.includes(prefs.view)) {
+        state.tab = "strategy";
+        state.strategyView = prefs.view;
+      }
+      if (state.tab === "inputs" && state.chips.settings === STRATEGY_PANEL) {
+        state.tab = "strategy";
+        state.strategyView = STRATEGY_VIEWS[0];
+        state.chips.settings = null;  // Inputs opens at its first chip
+      }
       if (prefs.plotView === "table") state.plotView = "table";
       if (Array.isArray(prefs.surplusLocks)) state.surplusLocks = prefs.surplusLocks.filter((name) => typeof name === "string");
       restoreRunPrefs(prefs);
@@ -449,7 +466,7 @@
     if (hashRoute) state.tab = hashRoute.tab;
     if (hashRoute && hashRoute.tab === "setup") revealSetup();  // a link to Setup
     if (hashRoute && hashRoute.chip) state.chips.settings = hashRoute.chip;
-    if (hashRoute && hashRoute.view) state.view = hashRoute.view;
+    if (hashRoute && hashRoute.view) state[hashRoute.tab === "strategy" ? "strategyView" : "view"] = hashRoute.view;
     $("boot").hidden = true;
     $("app").hidden = false;
     try {
@@ -657,12 +674,17 @@
   const WIDE_QUERY = "(min-width: 1100px)";
   const wide = { on: false };
 
-  // Whether a tab's panel is on screen: always in the wide layout, else when it is the selected tab. Awards (Gamer)
-  // shows only while selected; in the wide layout it takes the Outputs column's place.
+  // Whether a tab's panel is on screen: always in the wide layout, else when it is the selected tab. Strategy and
+  // Awards (Gamer) show only while selected; in the wide layout they take the Outputs column's place.
   function tabShown(tab) {
-    if (tab === "awards") return state.tab === "awards";
-    if (wide.on) return tab !== "outputs" || state.tab !== "awards";
+    if (tab === "awards" || tab === "strategy") return state.tab === tab;
+    if (wide.on) return tab !== "outputs" || !outputsColumnTaken();
     return state.tab === tab;
+  }
+
+  // Whether Strategy or Awards holds the wide layout's Outputs column.
+  function outputsColumnTaken() {
+    return state.tab === "awards" || state.tab === "strategy";
   }
 
   function wireWide() {
@@ -739,7 +761,7 @@
   // A column the split shuts: a move there (a link into Inputs while only Outputs shows) opens both again.
   function splitShuts(tab) {
     return wide.on && ((tab === "inputs" && document.documentElement.classList.contains("split-only-outputs"))
-      || ((tab === "outputs" || tab === "awards")
+      || ((tab === "outputs" || tab === "strategy" || tab === "awards")
         && document.documentElement.classList.contains("split-only-inputs")));
   }
 
@@ -856,14 +878,37 @@
     else window.scrollTo(0, 0);
   }
 
-  // ---- Tabs, the Outputs switch and chips ----
+  // ---- Tabs, the Outputs and Strategy switches and chips ----
   function compareShown() {
-    return tabShown("outputs") && state.view === "compare";
+    return tabShown("strategy") && state.strategyView === "compare";
   }
 
-  // The key a scroll position is kept under: the tab, and for Outputs its view too.
+  // The view a tab shows: Outputs' (state.view) or Strategy's (state.strategyView); null for a tab without views.
+  function placeView(tab) {
+    if (tab === "outputs") return state.view;
+    return tab === "strategy" ? state.strategyView : null;
+  }
+
+  // The tab a view belongs to: Strategy for its three views, else Outputs.
+  function viewTab(view) {
+    return STRATEGY_VIEWS.includes(view) ? "strategy" : "outputs";
+  }
+
+  // The tab a settings panel is drawn on: Household on Setup, Strategies on Strategy, every other one on Inputs.
+  function paneTab(panelId) {
+    if (panelId === SETUP_PANEL) return "setup";
+    return panelId === STRATEGY_PANEL ? "strategy" : "inputs";
+  }
+
+  // Go to the tab a settings panel is drawn on (`tab`, from paneTab): Strategy opens at its Strategies view.
+  function goToPane(tab) {
+    goTo(tab, tab === "strategy" ? STRATEGY_VIEWS[0] : state.view);
+  }
+
+  // The key a scroll position is kept under: the tab, and for Outputs and Strategy its view too.
   function scrollKey() {
-    return state.tab === "outputs" ? "outputs/" + state.view : state.tab;
+    const view = placeView(state.tab);
+    return view ? state.tab + "/" + view : state.tab;
   }
 
   // Show the current tab and view: panels and sub-panels hidden or shown, tab roles and roving tabindex set.
@@ -876,17 +921,26 @@
       $("tab-" + name).tabIndex = name === state.tab ? 0 : -1;
     }
     if (!VIEWS.includes(state.view)) state.view = VIEWS[0];
-    const onAwards = state.tab === "awards";
+    if (!STRATEGY_VIEWS.includes(state.strategyView)) state.strategyView = STRATEGY_VIEWS[0];
+    const taken = outputsColumnTaken();
     for (const name of VIEWS) {
       $("view-" + name).hidden = name !== state.view;
-      $("sub-" + name).setAttribute("aria-selected", String(!onAwards && name === state.view));
-      $("sub-" + name).tabIndex = !onAwards && name === state.view ? 0 : -1;
+      $("sub-" + name).setAttribute("aria-selected", String(!taken && name === state.view));
+      $("sub-" + name).tabIndex = !taken && name === state.view ? 0 : -1;
     }
-    $("sub-awards").setAttribute("aria-selected", String(onAwards));  // wide only: Awards from the Outputs row
-    $("sub-awards").tabIndex = onAwards ? 0 : -1;
-    $("mc-bar").hidden = state.view === "compare" || state.view === "optimize";
-    // Wide: Inputs' chips, the Outputs view row and the open view's sub-tabs all show, each over its column.
-    const widePlaces = ["inputs", "outputs", "outputs/" + state.view];
+    for (const name of STRATEGY_VIEWS) {
+      $("view-" + name).hidden = name !== state.strategyView;
+      $("sub-" + name).setAttribute("aria-selected", String(name === state.strategyView));
+      $("sub-" + name).tabIndex = name === state.strategyView ? 0 : -1;
+    }
+    for (const tab of ["awards", "strategy"]) {  // wide only: Awards and Strategy from the Outputs row
+      $("sub-" + tab).setAttribute("aria-selected", String(state.tab === tab));
+      $("sub-" + tab).tabIndex = state.tab === tab ? 0 : -1;
+    }
+    $("sub-strategy").hidden = !wide.on;
+    // Wide: Inputs' chips, the Outputs view row and the open view's sub-tabs all show, each over its column; with
+    // Strategy open, its view row takes the sub-tabs' place under the Outputs row.
+    const widePlaces = ["inputs", "outputs", state.tab === "strategy" ? "strategy" : "outputs/" + state.view];
     for (const element of document.querySelectorAll(".band [data-place]")) {
       element.hidden = wide.on ? !widePlaces.includes(element.dataset.place)
         : element.dataset.place !== scrollKey() && element.dataset.place !== state.tab;
@@ -894,6 +948,7 @@
     for (const row of document.querySelectorAll(".band .chips")) trackChips(row);
     if (tabShown("inputs")) { placeBubble($("chips-settings"), false); centerChip($("chips-settings"), false); }
     placeViewBubble();
+    placeStrategyBubble();
     renderBand();
     placeBand();
     if (tabShown("inputs")) { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
@@ -902,78 +957,97 @@
     if (compareShown()) refreshCompare();
     if (optimizeShown()) renderOptimize();
     if (tabShown("outputs")) gamerSeen(state.view);
+    if (tabShown("strategy")) gamerSeen(state.strategyView);
     renderAwards();  // built only while it shows
   }
 
   // Move to a place (tab and view) and open it at its top, whether a tap or a swipe got there (the owner, s367: a new
   // tab starts at the top); a tap on the place already shown scrolls it to the top too. `remember` false (start-up)
-  // only shows the place.
+  // only shows the place. `view` is the Outputs view, or on Strategy its view; a view of the other tab (such as the
+  // Outputs view other callers pass along) keeps the tab's own.
   function goTo(tab, view, remember) {
     if (tab === "setup" && remember !== false) revealSetup();
+    const key = tab === "strategy" ? "strategyView" : "view";
+    if (view == null || viewTab(view) !== (tab === "strategy" ? "strategy" : "outputs")) view = state[key];
     if (remember === false) {
       state.tab = tab;
-      state.view = view;
+      state[key] = view;
       showPlace();
       return;
     }
     if (wide.on) {
       // Wide: every column shows and keeps its own scroll; the Outputs column opens another view at its top.
       if (splitShuts(tab)) setSplit(0.5, true);
-      if (tab === state.tab && view === state.view) { scrollPlaceTop(tab); return; }
-      const viewChanged = view !== state.view;
+      if (tab === state.tab && view === state[key]) { scrollPlaceTop(tab); return; }
+      const viewChanged = view !== state[key];
       state.tab = tab;
-      state.view = view;
+      state[key] = view;
       showPlace();
       savePrefs();
-      if (viewChanged) $("panel-outputs").scrollTop = 0;
+      if (viewChanged) $(tab === "strategy" ? "panel-strategy" : "panel-outputs").scrollTop = 0;
       return;
     }
-    if (tab === state.tab && view === state.view) { window.scrollTo(0, 0); return; }
+    if (tab === state.tab && view === state[key]) { window.scrollTo(0, 0); return; }
     state.tab = tab;
-    state.view = view;
+    state[key] = view;
     showPlace();
     savePrefs();
     window.scrollTo(0, 0);
   }
 
-  // The Outputs view row's bubble: over the selected view, gliding there when the view changed while Outputs showed.
+  // The Outputs view row's bubble: over the selected view (wide, the Garden or Strategy chip while that tab holds the
+  // column), gliding there when the view changed while Outputs showed.
   function placeViewBubble() {
     const row = $("views-outputs");
-    const shown = tabShown("outputs") || (wide.on && state.tab === "awards");
-    const selected = state.tab === "awards" ? "awards" : state.view;
+    const shown = tabShown("outputs") || (wide.on && outputsColumnTaken());
+    const selected = outputsColumnTaken() ? state.tab : state.view;
     const moved = row.dataset.tab === "outputs" && row.dataset.selected !== selected;
     row.dataset.tab = shown ? "outputs" : state.tab;
     row.dataset.selected = selected;
     if (shown) placeBubble(row, moved);
   }
 
+  // The Strategy view row's bubble, the same way.
+  function placeStrategyBubble() {
+    const row = $("views-strategy");
+    const shown = tabShown("strategy");
+    const moved = row.dataset.tab === "strategy" && row.dataset.selected !== state.strategyView;
+    row.dataset.tab = shown ? "strategy" : state.tab;
+    row.dataset.selected = state.strategyView;
+    if (shown) placeBubble(row, moved);
+  }
+
   function selectTab(tab, remember) {
-    goTo(tab, state.view, remember);
+    goTo(tab, placeView(tab) || state.view, remember);
   }
 
   // A tap (or arrow key) on a bottom tab other than the shown one opens that tab at its first sub-tab, at the top: the
-  // first Inputs panel, or the first Outputs view with its first sub-tabs. A swipe never changes the bottom tab.
+  // first Inputs panel, the first Outputs view with its first sub-tabs, or Strategy's first view (Strategies). A swipe
+  // never changes the bottom tab.
   function selectTabFresh(tab) {
     if (tab === state.tab || state.schema == null) { selectTab(tab); return; }
     let view = state.view;
     if (tab === "inputs") {
-      const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
+      const panels = inputsPanels();
       if (panels.length) state.chips.settings = panels[0].id;
     } else if (tab === "outputs") {
       view = outputViews()[0];
       state.chips.plots = PLOT_VIEWS[0].id;
+    } else if (tab === "strategy") {
+      view = STRATEGY_VIEWS[0];
     }
     goTo(tab, view);
-    if (tab === "inputs") renderSettings();
+    if (tab === "inputs" || tab === "strategy") renderSettings();
     else if (tab === "outputs") { renderResults(); renderPlots(); }
     scrollPlaceTop(tab);  // after the redraw, which can change the page's height
     centerSwipedChips();
   }
 
-  // An Outputs view; "awards" (the wide layout's Awards chip, or a Show me) opens the Awards tab.
+  // An Outputs or Strategy view; "awards" and "strategy" (the wide layout's Garden and Strategy chips, or a Show me)
+  // open that tab.
   function selectView(view, remember) {
-    if (view === "awards") { if (state.tab !== "awards") selectTabFresh("awards"); return; }
-    goTo("outputs", view, remember);
+    if (view === "awards" || view === "strategy") { if (state.tab !== view) selectTabFresh(view); return; }
+    goTo(viewTab(view), view, remember);
   }
 
   // Arrow keys, Home and End move between the tabs of a tab list and select the one reached.
@@ -1239,7 +1313,7 @@
   // header's "i" text still opens while folded.
   // Sheets, dialogs and the walkthrough sit outside the three tabs and never fold, nor does a summary with no inputs
   // (`.summary-only`: Expenses' summary card and the Home and Cars timelines), which has no chevron.
-  const COLLAPSE_TABS = ["panel-setup", "panel-inputs", "panel-outputs"];
+  const COLLAPSE_TABS = ["panel-setup", "panel-inputs", "panel-outputs", "panel-strategy"];
   const COLLAPSE_PANELS = ".card:not(details):not(.mc-bar):not(.summary-only), "
     + "fieldset.pane:not(.subsection):not(.summary-only), .files-card, .run-card";
   const COLLAPSE_HEADS = [":scope > legend", ":scope > .card-head", ":scope > .title-help:not(.note-help)",
@@ -1248,7 +1322,9 @@
   let collapseCount = 0;
   const collapseFolds = new Map();  // panel key to folded (true) or open (false), this visit only
   const COLLAPSE_START_FOLDED = window.WMTI_START_OPEN !== true;  // a panel not yet folded or opened this visit
-  const COLLAPSE_NEVER_AUTO = ["outputs"];  // tabs whose panels start open and are never folded but by hand
+  // Tabs whose panels start open and are never folded but by hand: Outputs, and Strategy's Compare and Optimize (its
+  // Strategies view folds as an Inputs chip does: its keys start "strategies", collapseKey).
+  const COLLAPSE_NEVER_AUTO = ["outputs", "strategy"];
 
   function isFolded(key) {
     if (collapseFolds.has(key)) return collapseFolds.get(key);
@@ -1266,7 +1342,7 @@
   }
 
   function collapseKey(panel, head) {
-    const tab = panel.closest(".panel").dataset.tab;
+    const tab = panel.closest("#view-strategies") ? "strategies" : panel.closest(".panel").dataset.tab;
     const title = head.matches("h2") ? head : head.querySelector(COLLAPSE_TITLE);
     const own = panel.dataset.collapseAuto ? "" : panel.id;  // an id given here changes with each drawing
     return tab + ":" + (own || (title ? title.textContent.trim() : ""));
@@ -1440,6 +1516,7 @@
   function leaveViewKey(tab) {
     if (tab === "inputs") return "inputs/" + (lowOn() ? "low" : state.chips.settings);
     if (tab === "outputs") return "outputs/" + state.view + (state.view === "plots" ? "/" + shownSubtab("plots") : "");
+    if (tab === "strategy") return "strategy/" + state.strategyView;
     return tab;
   }
 
@@ -1500,12 +1577,14 @@
     });
   }
 
-  // Fold every panel in the view a column shows (not on Outputs) and scroll it to its top, unless a field in it is
-  // being typed in.
+  // Fold every panel in the view a column shows (not on Outputs, nor Strategy's Compare and Optimize) and scroll it to
+  // its top, unless a field in it is being typed in.
   function resetView(tab) {
-    const holder = tab === "outputs" ? $("view-" + state.view) : $("panel-" + tab);
+    const view = placeView(tab);
+    const holder = view ? $("view-" + view) : $("panel-" + tab);
     if (isTyping(document.activeElement) && holder.contains(document.activeElement)) return;
-    if (COLLAPSE_TABS.includes("panel-" + tab) && !COLLAPSE_NEVER_AUTO.includes(tab)) {
+    const foldTab = view === "strategies" ? "strategies" : tab;
+    if (COLLAPSE_TABS.includes("panel-" + tab) && !COLLAPSE_NEVER_AUTO.includes(foldTab)) {
       enhancePanels();
       for (const panel of holder.querySelectorAll("[data-collapse-key]")) {
         if (!panel.classList.contains("is-collapsed") && !panel.querySelector("[aria-invalid=true]")) {
@@ -1841,31 +1920,35 @@
     return sub.list.some((item) => item.id === stored) ? stored : sub.list[0].id;
   }
 
-  // Every Outputs step in swipe order: each view's sub-tabs, then the next view's.
-  function outputSteps() {
+  // Every Outputs step in swipe order: each view's sub-tabs, then the next view's. Strategy's views have no sub-tabs:
+  // one step each.
+  function outputSteps(tab) {
+    if (tab === "strategy") return STRATEGY_VIEWS.map((view) => ({ view, sub: null }));
     return outputViews().flatMap((view) => (OUTPUT_SUBTABS[view] ? OUTPUT_SUBTABS[view].list.map((item) => ({ view, sub: item.id }))
       : [{ view, sub: null }]));
   }
 
   // Where a swipe `direction` (1 forward, -1 back) leads from the shown place: the neighbouring Inputs panel (`chip`,
   // in the bubble's `row`), or on Outputs the neighbouring sub-tab (`sub`), past either end of a view's sub-tabs the
-  // neighbouring view, always at its first sub-tab (`chip` is then the view's chip); null at an end, on Setup and on the
-  // Low page (one page, no panels), so a swipe never changes the bottom tab.
+  // neighbouring view, always at its first sub-tab (`chip` is then the view's chip), and on Strategy the neighbouring
+  // view; null at an end, on Setup and on the Low page (one page, no panels), so a swipe never changes the bottom tab.
   function swipeTarget(direction) {
     if (swipeTab() === "inputs") {
       if (lowOn()) return null;  // the Low page: no panels
       const chip = neighbourChip(direction);
       return chip ? { tab: "inputs", view: state.view, chip, row: $("chips-settings") } : null;
     }
-    if (swipeTab() === "outputs") {
-      const steps = outputSteps();
-      const at = steps.findIndex((step) => step.view === state.view && step.sub === shownSubtab(state.view));
+    const tab = swipeTab();
+    if (tab === "outputs" || tab === "strategy") {
+      const steps = outputSteps(tab);
+      const shown = placeView(tab);
+      const at = steps.findIndex((step) => step.view === shown && step.sub === shownSubtab(shown));
       const next = at < 0 ? null : steps[at + direction];
       if (!next) return null;
-      const row = $("views-outputs");
-      if (next.view === state.view) return { tab: "outputs", view: next.view, sub: next.sub, row, chip: null };
+      const row = $("views-" + tab);
+      if (next.view === shown) return { tab, view: next.view, sub: next.sub, row, chip: null };
       const sub = OUTPUT_SUBTABS[next.view];
-      return { tab: "outputs", view: next.view, sub: sub ? sub.list[0].id : null, row, chip: $("sub-" + next.view) };
+      return { tab, view: next.view, sub: sub ? sub.list[0].id : null, row, chip: $("sub-" + next.view) };
     }
     return null;
   }
@@ -1877,7 +1960,7 @@
   // The swiped tab's panel, and its chips row that wears a bubble (none on Setup).
   const shownPanel = () => $("panel-" + swipeTab());
   const bubbleRow = () => (swipeTab() === "inputs" ? $("chips-settings")
-    : swipeTab() === "outputs" ? $("views-outputs") : null);
+    : swipeTab() === "outputs" || swipeTab() === "strategy" ? $("views-" + swipeTab()) : null);
 
   // After a swipe, scroll every chips row in view so the tab or sub-tab swiped to sits in the middle of the screen.
   function centerSwipedChips() {
@@ -1888,7 +1971,7 @@
   // led by the view's name when the view changed. A new Inputs group or Outputs view opens at the top of the page.
   function openSwipeTarget(target) {
     if (target.tab === "inputs") {
-      const panels = state.schema.panels.filter((item) => item.id !== SETUP_PANEL);
+      const panels = inputsPanels();
       const chosen = panels[[...$("chips-settings").querySelectorAll(".chip")].indexOf(target.chip)];
       state.chips.settings = chosen.id;
       savePrefs();
@@ -1898,24 +1981,25 @@
       return chosen.label;
     }
     const sub = OUTPUT_SUBTABS[target.view];
-    const viewChanged = target.view !== state.view;
+    const viewChanged = target.view !== placeView(target.tab);
     if (sub) {
       state.chips[sub.chip] = target.sub;
       savePrefs();
       if (target.view === "summary") renderResults();
       else renderPlots();
     }
-    if (viewChanged) goTo("outputs", target.view);
-    scrollPlaceTop("outputs");  // another view or sub-tab opens at its top
+    if (viewChanged) goTo(target.tab, target.view);
+    scrollPlaceTop(target.tab);  // another view or sub-tab opens at its top
     centerSwipedChips();
     const subLabel = sub ? sub.list.find((item) => item.id === target.sub).label : "";
     const viewLabel = $("sub-" + target.view).textContent.trim();
     return viewChanged ? [viewLabel, subLabel].filter(Boolean).join(", ") : subLabel;
   }
 
-  // One swipe for the sheet: Inputs panels, and Outputs sub-tabs and views; never across the bottom tabs. In the wide
-  // layout (a touch screen such as an iPad held sideways) a swipe in the Inputs column moves between its panels and
-  // one in the Outputs column between its sub-tabs and views, the column sliding on its own; Setup has none.
+  // One swipe for the sheet: Inputs panels, Outputs sub-tabs and views, and Strategy's views; never across the bottom
+  // tabs. In the wide layout (a touch screen such as an iPad held sideways) a swipe in the Inputs column moves between
+  // its panels and one in the Outputs column between its sub-tabs and views (Strategy's while it holds the column),
+  // the column sliding on its own; Setup has none.
   function wirePanelsSwipe() {
     let busy = false;
     // Listen on the whole sheet, so a swipe in the empty space below a short panel works too; the panel still slides.
@@ -1923,7 +2007,7 @@
     wireSwipe(root, {
       enabled: (down) => {
         if (state.schema == null || walk.open || busy) return false;
-        const column = wide.on ? down.target.closest("#panel-inputs, #panel-outputs") : null;
+        const column = wide.on ? down.target.closest("#panel-inputs, #panel-outputs, #panel-strategy") : null;
         swipeColumn = column ? column.dataset.tab : null;
         if (swipeTab() === "inputs" && lowOn()) return false;  // the Low page is one page: nothing to swipe to
         return !wide.on || column != null;
@@ -2001,9 +2085,10 @@
     $("bandSub").textContent = sub;
   }
 
-  // ---- Pinned tabs: Inputs' group chips, or Outputs' view chips with their sub-tabs, stay under the top bar ----
+  // ---- Pinned tabs: Inputs' group chips, Outputs' view chips with their sub-tabs, or Strategy's view chips, stay
+  // under the top bar ----
   // Pinned (the default), the band sticks with only its chips row showing below the top bar; unpinned, it scrolls
-  // away. A pin button at each row's right end switches both; the choice is kept on this device.
+  // away. A pin button at each row's right end switches them all; the choice is kept on this device.
   const tabsPin = { on: true };
 
   function wireTabsPin() {
@@ -2033,14 +2118,15 @@
     }
   }
 
-  // Stick the band on Inputs or Outputs while pinned: its top sits above the top bar's bottom by the height of everything over
+  // Stick the band on Inputs, Outputs or Strategy while pinned: its top sits above the top bar's bottom by the height of everything over
   // the chips row (title and subtitle), less a small margin, so only the chips show once the page scrolls.
   function placeBand() {
-    const place = state.tab === "inputs" || state.tab === "outputs" ? state.tab : null;
+    const place = ["inputs", "outputs", "strategy"].includes(state.tab) ? state.tab : null;
     // wide: the chips sit over their own column; the Low page has no Inputs chips to pin
     const on = !wide.on && place != null && tabsPin.on && !(place === "inputs" && lowOn());
     $("app").classList.toggle("inputs-pinned", on && place === "inputs");
     $("app").classList.toggle("outputs-pinned", on && place === "outputs");
+    $("app").classList.toggle("strategy-pinned", on && place === "strategy");
     if (!on) return;
     const band = document.querySelector(".band");
     const wrap = band.querySelector(`.chips-wrap[data-place="${place}"]`);
@@ -3002,8 +3088,7 @@
   // The Inputs chip shown now (null at Low, which has no chips).
   function selectedInputsPane() {
     if (!state.schema || lowOn()) return null;
-    const ids = state.schema.panels.filter((panel) => panel.id !== SETUP_PANEL).map((panel) => panel.id);
-    return inputsChip(ids, state.chips.settings);
+    return inputsChip(inputsPanels().map((panel) => panel.id), state.chips.settings);
   }
 
   // A list sheet's fields at the effort: `shown` (the entries of `entries`, sheetFields' layout, that are drawn) and
@@ -3669,11 +3754,12 @@
     return true;
   }
 
-  // Bring input `path` into view on its page (the Inputs chip `chip`, else the first page that draws it): a list
+  // Bring input `path` into view on its page (the Inputs chip `chip`, or Setup or Strategy for their panels, else the
+  // first page that draws it): a list
   // row's sheet is opened when the input is inside one, and the input flashes and takes the focus. False when no page
   // draws it.
   function openInputsField(path, chip) {
-    const place = chip ? { tab: chip === SETUP_PANEL ? "setup" : "inputs", chip } : undonePlaces(path)[0];
+    const place = chip ? { tab: paneTab(chip), chip } : undonePlaces(path)[0];
     if (!path || !place) return false;
     if (sheetOpen) closeSheet(true);
     if (place.tab === "inputs" && state.chips.settings !== place.chip) {
@@ -3681,7 +3767,7 @@
       savePrefs();
       renderSettings();
     }
-    goTo(place.tab, state.view);
+    goToPane(place.tab);
     revealField(path);  // a folded panel opens first
     let found = drawnField(path, document);
     if (found && found.row) {
@@ -4339,7 +4425,7 @@
     return shownExperience().style === "gamer";
   }
 
-  // The Outputs views (Awards is a bottom tab of its own, not a view).
+  // The Outputs views (Awards is a bottom tab of its own, not a view; Strategy's views are STRATEGY_VIEWS).
   function outputViews() {
     return VIEWS;
   }
@@ -6389,7 +6475,7 @@
   const OPTIMIZE_CHECKPOINT_MS = 5000;
 
   function optimizeShown() {
-    return tabShown("outputs") && state.view === "optimize";
+    return tabShown("strategy") && state.strategyView === "optimize";
   }
 
   // The settings changed: a running search is dropped; a finished result stays, marked stale; an interrupted search
@@ -7330,15 +7416,15 @@
     return names;
   }
 
-  // The places (tab, and chip on Inputs) whose panel draws a path, the closest field name first; Setup when its
-  // cards draw the path outside any panel.
+  // The places (tab, and chip on Inputs) whose panel draws a path, the closest field name first (Strategies' fields on
+  // Strategy); Setup when its cards draw the path outside any panel.
   function undonePlaces(path) {
     const places = [];
     for (const panel of state.schema.panels) {
       const match = panelNames(panel).filter((name) => path === name || path.startsWith(name + "."))
         .sort((a, b) => b.length - a.length)[0];
       if (!match) continue;
-      let tab = panel.id === SETUP_PANEL ? "setup" : "inputs";
+      let tab = paneTab(panel.id);
       // At Low, Household's fields are on the Low page (Inputs); the inflation and run fields stay on Setup.
       if (tab === "setup" && lowOn() && ![...INFLATION_CARD_FIELDS, ...RUN_CARD_FIELDS].includes(match)) tab = "inputs";
       places.push({ length: match.length, tab, chip: panel.id });
@@ -7392,7 +7478,7 @@
           savePrefs();
           renderSettings();
         }
-        goTo(place.tab, state.view);
+        goToPane(place.tab);
         revealField(path);  // a folded panel opens first
         let found = drawnField(path, document);
         if (!found) continue;
@@ -8041,7 +8127,12 @@
     }
   }
 
-  // Inputs shows every panel but Household as a chip; that panel's fields are drawn on Setup.
+  // Inputs shows every panel but Household and Strategies as a chip; Household's fields are drawn on Setup and
+  // Strategies' on Strategy's Strategies view (renderStrategyPane).
+  function inputsPanels() {
+    return state.schema.panels.filter((panel) => panel.id !== SETUP_PANEL && panel.id !== STRATEGY_PANEL);
+  }
+
   // The one summary at the bottom of the Expenses chip (`expenseTotals`), per month: each monthly category, Major
   // Spending and Charity paid this year (per year / 12), one Bills - Other row for the costs other tabs already charge
   // (from the settings notes, when there are any) and the one total of all ("n/a" until the notes arrive).
@@ -8117,13 +8208,14 @@
     if (lowOn()) {  // Low: the one Low page; Setup keeps its error banner, the hidden Household card and Advanced
       renderSettingsError();
       renderHousehold();
+      renderStrategyPane();
       renderRunCard();
       renderLowPage();
       renderBand();
       return;
     }
     hideLowPage();
-    const panels = state.schema.panels.filter((panel) => panel.id !== SETUP_PANEL);
+    const panels = inputsPanels();
     const selected = inputsChip(panels.map((panel) => panel.id), state.chips.settings);
     renderChips("chips-settings", panels.map((panel) => ({ id: panel.id, label: panel.label })), selected, (id) => {
       state.chips.settings = id; savePrefs(); renderSettings();
@@ -8139,6 +8231,7 @@
     const detail = paneDetailRow(selected);  // Medium: the pane's Add detail, at the end of its body
     if (detail) $("settings-body").append(detail);
     renderHousehold();
+    renderStrategyPane();
     applyNotes();
     applyBenefits();
     renderDeposits();
@@ -8160,6 +8253,9 @@
   // Strategies the optimizer link; the Add detail row follows it.
   const STRATEGIES_MEDIUM_NOTE = "Strategies such as Roth conversions, backdoor Roth, charitable gifts and relocation "
     + "are shown at High effort. Add detail shows them here.";
+  // At Low (no Add detail) the Strategies view shows only this note and the optimizer link.
+  const STRATEGIES_LOW_NOTE = "Strategies such as Roth conversions, backdoor Roth, charitable gifts and relocation "
+    + "are set at Medium or High effort.";
   function emptyPaneNote(panel) {
     const group = document.createElement("fieldset");
     group.className = "group pane";
@@ -8168,11 +8264,23 @@
       + "</span></span></legend>";
     const note = document.createElement("p");
     note.className = "note detail-empty";
-    note.textContent = panel.id === "strategies" ? STRATEGIES_MEDIUM_NOTE
-      : "This page's inputs are shown at High effort. Add detail shows them here.";
+    note.textContent = panel.id !== "strategies" ? "This page's inputs are shown at High effort. Add detail shows them here."
+      : lowOn() ? STRATEGIES_LOW_NOTE : STRATEGIES_MEDIUM_NOTE;
     group.append(note);
     if (panel.id === "strategies") group.append(optimizeLink());
     return group;
+  }
+
+  // Strategy's Strategies view: the Strategies settings panel, as an Inputs chip draws its panel, with the warnings
+  // after the last strategy and, at Medium, the pane's Add detail. At Low only the note and the optimizer link.
+  function renderStrategyPane() {
+    const panel = state.schema.panels.find((item) => item.id === STRATEGY_PANEL);
+    const body = $("strategy-body");
+    if (!panel) { body.replaceChildren(); return; }
+    const sections = lowOn() ? [] : panelSections(panel);
+    body.replaceChildren(...(sections.length ? sections : [emptyPaneNote(panel)]));
+    const detail = lowOn() ? null : paneDetailRow(STRATEGY_PANEL);
+    if (detail) body.append(detail);
   }
 
   // The Household panel on Setup: the partner switch and the panel's fields (the seed, runs and the
@@ -9022,6 +9130,7 @@
   // ---- Settings notes: surplus split, owner choices, warnings, the model's terminal rate estimate (settingsNotes) ----
   function notesWanted() {
     return state.schema != null && ((tabShown("inputs") && NOTES_PANELS.has(state.chips.settings))
+      || (tabShown("strategy") && state.strategyView === "strategies")  // the strategy warnings
       || (tabShown("outputs") && state.view === "summary"));  // Summary shows the Medicare warning
   }
 
@@ -9044,7 +9153,7 @@
     applyNotes();
   }
 
-  // A quiet button at the top of the strategies that opens Outputs, Optimize.
+  // A quiet button at the top of the strategies that opens Strategy, Optimize.
   function optimizeLink() {
     const row = document.createElement("div");
     row.className = "run-row";
@@ -10191,41 +10300,75 @@
     return wrap;
   }
 
-  // ---- A person's retirement deposit (Benefits > Retirement plan): the total share of pay and the Roth part of it
-  // (the schema's derived fields), each a number box and a slider bound to the one value: typing moves the slider and
-  // dragging fills the box. A move goes to wmti (moveDepositShare), which stores the Traditional and Roth shares; a new
-  // total keeps the Roth part and a new Roth part keeps the total. The total's slider runs from 0 to the share of the
-  // person's pay that reaches their 401k limit (depositCap); the box is held there too. No dollar amounts are shown.
+  // ---- A person's retirement deposit (Benefits > Retirement plan): two linked sliders, the Traditional and the Roth
+  // share of pay (the stored fields), each a number box and a slider bound to the one value: typing moves the slider
+  // and dragging fills the box. Each slider runs from 0 to the share of the person's pay that reaches their 401k limit
+  // (depositCap), and the two together never pass it: raising one past (cap - other) lowers the other so the two add
+  // up to the cap. A move goes to wmti (moveDepositShare), which stores both shares the same way. A share is offered
+  // only when the person owns an account of its kind (a hint says what to add otherwise). No dollar amounts are shown.
   // With deposits set per account the controls are disabled.
-  const DEPOSIT_SHARE_PATH = /^(you|partner)\.retirementDeposit\.(percent|rothSplit)$/;
+  const DEPOSIT_SHARE_PATH = /^(you|partner)\.retirementDeposit\.(traditionalShare|rothShare)$/;
+  const DEPOSIT_SHARE_NAMES = ["traditionalShare", "rothShare"];
+  const DEPOSIT_SHARE_KINDS = {
+    traditionalShare: { flag: "hasTraditional",
+      hint: "Add a Traditional 401k or Traditional IRA account to set a Traditional deposit." },
+    rothShare: { flag: "hasRoth", hint: "Add a Roth 401k or Roth IRA account to set a Roth deposit." },
+  };
   const depositShareMove = { busy: false, pending: null };
+  const depositClamped = { you: false, partner: false };  // a share typed above the cap is held to it, with the note
 
-  // The derived value shown: the stored shares read as their total, or the Roth part of that total.
+  // A stored share of the person's pay.
   function depositShareValue(role, name) {
     const deposit = getPath(state.inputs, role + ".retirementDeposit") || {};
-    const traditional = Number(deposit.traditionalShare) || 0;
-    const roth = Number(deposit.rothShare) || 0;
-    if (name === "percent") return traditional + roth;
-    return traditional + roth > 0 ? roth / (traditional + roth) : 0;
+    return Number(deposit[name]) || 0;
   }
 
-  // The most a person's deposit total can be: the share of their pay that reaches their 401k limit this year
+  function depositOther(name) {
+    return name === "traditionalShare" ? "rothShare" : "traditionalShare";
+  }
+
+  // A person's depositSliders `people` entry, or null until that answer arrives.
+  function depositPerson(role) {
+    const people = (state.deposits && state.deposits.ok && state.deposits.people) || [];
+    return people.find((item) => item.role === role) || null;
+  }
+
+  // The most a person's two shares can add up to: the share of their pay that reaches their 401k limit this year
   // (depositSliders `people` cappedAt: the elective deferral with any catch-up for their age, over their pay), rounded
   // up to the field's step and at most its maximum; null until that answer arrives, "noPay" without pay.
   function depositCap(role, field) {
-    const people = (state.deposits && state.deposits.ok && state.deposits.people) || [];
-    const person = people.find((item) => item.role === role);
+    const person = depositPerson(role);
     if (!person) return null;
     if (person.cappedAt == null) return "noPay";
     const steps = Math.ceil(person.cappedAt / field.step - 1e-9);
     return Math.min(field.maximum, Number((steps * field.step).toFixed(8)));
   }
 
-  // The value a total or Roth part box shows: a stored total above the cap shows the cap (the stored shares stay).
+  // Whether a person owns an account a share goes into (true until the depositSliders answer arrives).
+  function depositKindOwned(role, name) {
+    const person = depositPerson(role);
+    return !person || person[DEPOSIT_SHARE_KINDS[name].flag] !== false;
+  }
+
+  // The value a share's box shows: a stored share above the cap shows the cap (the stored shares stay).
   function depositShownValue(role, name, field) {
     const value = depositShareValue(role, name);
-    const cap = name === "percent" ? depositCap(role, field) : null;
+    const cap = depositCap(role, field);
     return typeof cap === "number" ? Math.min(value, cap) : value;
+  }
+
+  // Show the other share of a pair as a move of `name` to `next` leaves it: lowered so the two stay within the cap.
+  function showLinkedShare(role, name, next, cap) {
+    if (typeof cap !== "number") return;
+    const other = depositOther(name);
+    const path = role + ".retirementDeposit." + other;
+    const field = drawnFields.get(path);
+    const input = $(fieldId(path));
+    const slider = $(fieldId(path) + "-slider");
+    if (!field || !input || !slider) return;
+    const kept = Math.min(depositShownValue(role, other, field), Math.max(0, Number((cap - next).toFixed(8))));
+    if (document.activeElement !== input) input.value = shown(kept, scaleOf(field));
+    if (document.activeElement !== slider) slider.value = String(kept);
   }
 
   function depositsPerAccount() {
@@ -10245,16 +10388,17 @@
       problem.hidden = !error;
       problem.textContent = error || "";
       if (error) return;
-      const cap = name === "percent" ? depositCap(role, field) : null;
-      // A total typed above the cap is held to it, with the note, until a total within it is entered.
-      wrap.dataset.clamped = String(typeof cap === "number" && next > cap);
+      const cap = depositCap(role, field);
+      // A share typed above the cap is held to it, with the note, until a share within it is entered.
+      depositClamped[role] = typeof cap === "number" && next > cap;
       if (typeof cap === "number") next = Math.min(next, cap);
       slider.value = String(next);
-      if (name === "percent") syncDepositCap(role);
-      moveDepositShare(role, name, next);
+      showLinkedShare(role, name, next, cap);
+      syncDepositCap(role);
+      moveDepositShare(role, name, next, cap);
     });
     const input = box.querySelector("input");
-    // Once the typing is done, a held total shows the value kept.
+    // Once the typing is done, a held share shows the value kept.
     input.addEventListener("change", () => {
       input.value = shown(depositShownValue(role, name, field), scaleOf(field));
     });
@@ -10269,27 +10413,35 @@
     slider.setAttribute("aria-label", field.label);
     slider.addEventListener("input", () => {
       const next = Number(slider.value);
+      const cap = depositCap(role, field);
       input.value = shown(next, scaleOf(field));
-      wrap.dataset.clamped = "false";
-      moveDepositShare(role, name, next);
+      depositClamped[role] = false;
+      showLinkedShare(role, name, next, cap);
+      moveDepositShare(role, name, next, cap);
     });
     wrap.append(box, slider);
+    // The box (with its reset button) and the slider, hidden together without an account of this kind.
+    const controls = [input.parentNode, slider];
+    controls.forEach((control) => control.classList.add("deposit-share-control"));
     const atDefault = () => Math.abs(depositShareValue(role, name) - field.default) <= 1e-9;
     input.classList.toggle("is-default", atDefault());
     addResetButton(input, field.label, () => resetValueText(field.default, field, input), () => {
-      const cap = name === "percent" ? depositCap(role, field) : null;
+      const cap = depositCap(role, field);
       const next = typeof cap === "number" ? Math.min(field.default, cap) : field.default;
-      wrap.dataset.clamped = "false";
+      depositClamped[role] = false;
       input.value = shown(next, scaleOf(field));
       slider.value = String(next);
-      moveDepositShare(role, name, next);
+      showLinkedShare(role, name, next, cap);
+      moveDepositShare(role, name, next, cap);
     }, atDefault);
-    if (name === "percent") {
-      const note = document.createElement("p");
-      note.className = "field-help deposit-cap-note";
-      note.hidden = true;
-      wrap.append(note);
-    }
+    const hint = document.createElement("p");
+    hint.className = "field-help deposit-kind-hint";
+    hint.textContent = DEPOSIT_SHARE_KINDS[name].hint;
+    hint.hidden = true;
+    const note = document.createElement("p");
+    note.className = "field-help deposit-cap-note";
+    note.hidden = true;
+    wrap.append(hint, note);
     if (depositsPerAccount()) {
       input.disabled = true;
       slider.disabled = true;
@@ -10298,7 +10450,7 @@
       note.className = "field-help switch-note";
       note.textContent = "Set per account below.";
       wrap.append(note);
-      if (name === "percent") {
+      if (name === "traditionalShare") {
         const back = document.createElement("button");
         back.type = "button";
         back.className = "button button-quiet";
@@ -10310,49 +10462,62 @@
     return wrap;
   }
 
-  // Bring a person's total to the last depositSliders answer: the slider's top at the cap, the box and slider held
-  // there, and the note under them: "IRS limit" when a stored or typed total is above the cap, or why the slider is
-  // off without pay. Called again whenever the answer moves (pay or age changed).
+  // Bring a person's two shares to the last depositSliders answer: each slider's top at the cap, each box and slider
+  // held there, a share without an account of its kind swapped for its hint, and one note under the last share shown:
+  // "IRS limit" when the two together reach the cap (or a typed share was above it), or why the sliders are off without
+  // pay. Called again whenever the answer moves (pay, age or accounts changed).
   function syncDepositCap(role) {
-    const path = role + ".retirementDeposit.percent";
-    const field = drawnFields.get(path);
-    const input = $(fieldId(path));
-    const slider = $(fieldId(path) + "-slider");
-    const wrap = input && input.closest(".deposit-share");
-    const note = wrap && wrap.querySelector(".deposit-cap-note");
-    if (!field || !slider || !note) return;
-    const cap = depositCap(role, field);
     const perAccount = depositsPerAccount();
-    slider.max = String(typeof cap === "number" ? cap : field.maximum);
-    slider.disabled = perAccount || cap === "noPay";
-    const value = depositShownValue(role, "percent", field);
-    if (document.activeElement !== slider) slider.value = String(value);
-    if (document.activeElement !== input) input.value = shown(value, scaleOf(field));
-    let text = "";
-    if (cap === "noPay") text = "No pay this year: enter a salary on Income to set the deposit.";
-    else if (typeof cap === "number"
-      && (wrap.dataset.clamped === "true" || depositShareValue(role, "percent") > cap + 1e-9)) {
-      text = "IRS limit: at most " + percent(cap, 0) + " of pay.";
+    const drawn = [];
+    for (const name of DEPOSIT_SHARE_NAMES) {
+      const path = role + ".retirementDeposit." + name;
+      const field = drawnFields.get(path);
+      const input = $(fieldId(path));
+      const slider = $(fieldId(path) + "-slider");
+      const wrap = input && input.closest(".deposit-share");
+      const note = wrap && wrap.querySelector(".deposit-cap-note");
+      if (!field || !slider || !note) continue;
+      const cap = depositCap(role, field);
+      const owned = depositKindOwned(role, name);
+      slider.max = String(typeof cap === "number" ? cap : field.maximum);
+      slider.disabled = perAccount || cap === "noPay";
+      const value = depositShownValue(role, name, field);
+      if (document.activeElement !== slider) slider.value = String(value);
+      if (document.activeElement !== input) input.value = shown(value, scaleOf(field));
+      wrap.querySelectorAll(".deposit-share-control").forEach((control) => { control.hidden = !owned; });
+      wrap.querySelector(".deposit-kind-hint").hidden = owned;
+      note.hidden = true;
+      drawn.push({ field, note, owned, cap });
     }
-    note.textContent = text;
-    note.hidden = perAccount || !text;
+    const last = drawn.filter((item) => item.owned).pop();
+    if (!last || perAccount) return;
+    const total = DEPOSIT_SHARE_NAMES.reduce((sum, name) => sum + depositShareValue(role, name), 0);
+    let text = "";
+    if (last.cap === "noPay") text = "No pay this year: enter a salary on Income to set the deposit.";
+    else if (typeof last.cap === "number" && (depositClamped[role] || total >= last.cap - 1e-9)) {
+      text = "IRS limit: at most " + percent(last.cap, 0) + " of pay together.";
+    }
+    last.note.textContent = text;
+    last.note.hidden = !text;
   }
 
   function syncDepositCaps() {
     for (const role of ["you", "partner"]) syncDepositCap(role);
   }
 
-  // Send a total or Roth-part move to wmti (moveDepositShare); one move is in flight at a time and only the newest
-  // waiting position is kept. The reply's Traditional and Roth shares are stored, and its sliders redraw the deposits.
-  async function moveDepositShare(role, name, value) {
+  // Send a Traditional or Roth share move to wmti (moveDepositShare) with the slider's top as the cap the two share (null
+  // until it is known: wmti then reads the cap itself); one move is in flight at a time and only the newest waiting
+  // position is kept. The reply's Traditional and Roth shares are stored, and its sliders redraw the deposits.
+  async function moveDepositShare(role, name, value, cap) {
     if (depositShareMove.busy) {
-      depositShareMove.pending = { role, name, value };
+      depositShareMove.pending = { role, name, value, cap };
       return;
     }
     depositShareMove.busy = true;
     let reply = null;
+    const limit = typeof cap === "number" ? cap : null;
     try {
-      reply = await engine.call("moveDepositShare", [JSON.stringify(state.inputs), role, name, value]);
+      reply = await engine.call("moveDepositShare", [JSON.stringify(state.inputs), role, name, value, limit]);
     } catch (error) {
       reply = null;
     }
@@ -10371,10 +10536,10 @@
     }
     const next = depositShareMove.pending;
     depositShareMove.pending = null;
-    if (next) moveDepositShare(next.role, next.name, next.value);
+    if (next) moveDepositShare(next.role, next.name, next.value, next.cap);
   }
 
-  // After a move: each drawn total and Roth part shows the stored shares (the other one of a pair stays as wmti kept
+  // After a move: each drawn Traditional and Roth share shows the stored shares (the other one of a pair as wmti kept
   // it), grey at its default with the reset button hidden.
   function syncDepositShareDefaults() {
     for (const [path, field] of drawnFields) {
@@ -12012,9 +12177,11 @@
     return true;
   }
 
-  // Open the Inputs chip of settings panel `panel` (the Low page has no chips: it opens Inputs), closing any sheet.
+  // Open the Inputs chip of settings panel `panel` (the Low page has no chips: it opens Inputs; Strategies opens on
+  // Strategy), closing any sheet.
   function goToInputsPanel(panel) {
     if (sheetOpen) closeSheet(true);
+    if (panel === STRATEGY_PANEL) { goToPane("strategy"); return; }
     if (!lowOn() && state.chips.settings !== panel) {
       state.chips.settings = panel;
       savePrefs();
@@ -15248,13 +15415,15 @@
     if (walk.saved.current !== "welcome") showWalkScreen("welcome", "back");
   }
 
-  // A hand-off: leave for an Inputs page, with a pill to come back to the same question.
+  // A hand-off: leave for an Inputs page (Strategies: Strategy's Strategies view), with a pill to come back to the
+  // same question.
   function walkHandoff(panel) {
     closeWalk("paused", false);
-    state.chips.settings = panel;
+    const tab = panel === STRATEGY_PANEL ? "strategy" : "inputs";
+    if (tab === "inputs") state.chips.settings = panel;
     renderSettings();
-    goTo("inputs", state.view);
-    scrollPlaceTop("inputs");
+    goToPane(tab);
+    scrollPlaceTop(tab);
     $("walkResume").hidden = false;
   }
 
@@ -15470,9 +15639,9 @@
   // ---- The tour of the controls (the ? button in the top bar) ----
   // One step per control: first the steps on what shows on every page (`fixed`: the bottom bar on a phone or the
   // three columns wide, then the headline strip), so they stay where the tour is; then the main parts, the pages in
-  // bottom-bar order (Setup, Inputs, Outputs), then the supporting tools: the top bar's Undo ("bar"), the menu's items
+  // bottom-bar order (Setup, Inputs, Outputs, Strategy), then the supporting tools: the top bar's Undo ("bar"), the menu's items
   // and the ? button (TOUR_PAGES); on a page top to bottom, left to right (a unit test checks the `fixed` steps come
-  // first, then `page` and where `target`, a selector, sits in index.html). `view` is the Outputs view a step shows,
+  // first, then `page` and where `target`, a selector, sits in index.html). `view` is the Outputs or Strategy view a step shows,
   // `when` (optional) whether the step applies now, `opens` the closed section its control sits in and `place`
   // (optional, "top" or "bottom") where the card goes when the half the ring leaves free is not the right one. Before a step elsewhere
   // the tour goes there one hop at a time, all within the step (tourMove: scroll to the control, ring it with one
@@ -15480,17 +15649,18 @@
   // badge or Next is tapped; then slide the page in as a swipe does, open the menu or the section); only then does the
   // step's text show. A step whose control is not drawn is skipped. Done, the close button and Escape put back the
   // tab, view and scroll the tour started from.
-  const TOUR_PAGES = ["setup", "inputs", "outputs", "bar", "menu", "help"];
+  const TOUR_PAGES = ["setup", "inputs", "outputs", "strategy", "bar", "menu", "help"];
   const TOUR_PULSE_MS = 600;  // the ring's one pulse on the control to tap before it holds there
   const TOUR_SCROLL_SPEED = 900;  // px a second the tour scrolls at, so the eye can follow
   const TOUR_SCROLL_MS = [400, 1500];  // the shortest and longest such scroll
   const TOUR_STEPS = [
     { title: "The three columns", page: "setup", fixed: true, when: () => wide.on, target: "#app",
       place: "bottom",  // the ring is the whole screen; the card at the top would cover the headline figures
-      text: "Setup is on the left, your settings (Inputs) in the middle and your results (Outputs) on the right." },
-    { title: "Setup, Inputs and Outputs", page: "setup", fixed: true, when: () => !wide.on, target: ".tabbar",
-      text: "The bar at the bottom moves between the three parts of the app: Setup (your scenarios and runs), Inputs "
-        + "(your settings) and Outputs (your results)." },
+      text: "Setup is on the left, your settings (Inputs) in the middle and your results (Outputs) on the right. The "
+        + "Strategy chip over the results opens your strategies, Compare and Optimize in their place." },
+    { title: "Setup, Inputs, Outputs and Strategy", page: "setup", fixed: true, when: () => !wide.on, target: ".tabbar",
+      text: "The bar at the bottom moves between the four parts of the app: Setup (your scenarios and runs), Inputs "
+        + "(your settings), Outputs (your results) and Strategy (your strategies, Compare and Optimize)." },
     { title: "Headline figures", page: "setup", fixed: true, target: "#pinned",
       text: "These figures sum up your plan: what you are worth today, a typical final worth, and what you earn or "
         + "take out and spend in an average year. They update after every change." },
@@ -15514,17 +15684,20 @@
       text: "At Low effort your settings are one page: about you, pay, spending, savings, children and the "
         + "retirement and medical plans. Every change reruns the plan." },
     { title: "Outputs views", page: "outputs", view: "summary", target: "#views-outputs",
-      text: "Tap a view to see the results another way: Summary, Plots, Compare or Optimize." },
+      text: "Tap a view to see the results another way: Summary or Plots." },
     { title: "Summary", page: "outputs", view: "summary", target: "#view-summary",
       text: "Summary shows the results over all the runs: final worth before and after tax with its range, plus "
         + "warnings and opportunities for your plan." },
     { title: "Plots", page: "outputs", view: "plots", target: "#view-plots",
       text: "Plots draws the plan year by year: the total balance over the runs, each account's balance, cash flow, "
         + "deposits and withdrawals, taxes and expenses." },
-    { title: "Compare", page: "outputs", view: "compare", target: "#view-compare",
+    { title: "Strategy views", page: "strategy", view: "strategies", target: "#views-strategy",
+      text: "Strategy holds your tax strategies, such as Roth conversions and relocation, and two ways to weigh "
+        + "choices: Compare and Optimize." },
+    { title: "Compare", page: "strategy", view: "compare", target: "#view-compare",
       text: "Compare puts two saved scenarios side by side. With only one so far, go to Setup and tap Duplicate, "
         + "change one thing in the copy, then compare." },
-    { title: "Optimize", page: "outputs", view: "optimize", target: "#view-optimize",
+    { title: "Optimize", page: "strategy", view: "optimize", target: "#view-optimize",
       text: "Optimize tries other choices for you, such as when to claim Social Security or which state to retire "
         + "in, and shows what each would be worth. Tick what you would consider, then tap Find best settings." },
     { title: "Undo", page: "bar", target: "#undoButton",
@@ -15547,17 +15720,21 @@
 
   const tourTarget = (step) => document.querySelector(step.target);
 
-  // Where a step shows: its tab and Outputs view (the menu, ? and a control on every page stay on the page the tour is
-  // on), and whether the menu is open.
+  // Where a step shows: its tab and Outputs or Strategy view (the menu, ? and a control on every page stay on the page
+  // the tour is on), and whether the menu is open.
   function tourPlace(step) {
     if (step.fixed || step.page === "bar" || step.page === "menu" || step.page === "help") {
-      return { tab: state.tab, view: state.view, menu: step.page === "menu" };
+      return { tab: state.tab, view: placeView(state.tab) || state.view, menu: step.page === "menu" };
     }
-    return { tab: step.page, view: step.view || state.view, menu: false };
+    return { tab: step.page, view: step.view || placeView(step.page) || state.view, menu: false };
   }
 
-  // A place's rank along the bottom bar and the Outputs views, for the side a page slides in from.
-  const tourRank = (tab, view) => TABS.indexOf(tab) * 10 + (tab === "outputs" ? VIEWS.indexOf(view) : 0);
+  // A place's rank along the bottom bar and the Outputs and Strategy views, for the side a page slides in from.
+  const tourRank = (tab, view) => TABS.indexOf(tab) * 10
+    + (tab === "outputs" ? VIEWS.indexOf(view) : tab === "strategy" ? STRATEGY_VIEWS.indexOf(view) : 0);
+
+  // The panel holding the wide layout's Outputs column now: Strategy or Garden while selected, else Outputs.
+  const tourOutputsColumn = () => $(outputsColumnTaken() ? "panel-" + state.tab : "panel-outputs");
 
   // Run `then` after `ms`, unless the tour has closed or moved on since (its token changed).
   function tourLater(token, ms, then) {
@@ -15590,12 +15767,15 @@
   // from the other (`direction` 1 forward, -1 back); with reduced motion, or in the wide layout when no column changes,
   // it just opens. Then `done`.
   function tourSlide(to, token, done) {
-    const direction = tourRank(to.tab, to.view) >= tourRank(state.tab, state.view) ? 1 : -1;
+    const direction = tourRank(to.tab, to.view) >= tourRank(state.tab, placeView(state.tab) || state.view) ? 1 : -1;
     const open = () => {
       goTo(to.tab, to.view);
       scrollPlaceTop(to.tab);
     };
-    const moving = wide.on ? (to.view !== state.view ? $("panel-outputs") : null) : shownPanel();
+    // Wide: the Outputs column slides when its view changes or Strategy comes or goes there.
+    const columnMoves = (to.tab === "outputs" || to.tab === "strategy")
+      && (to.view !== placeView(to.tab) || (to.tab === "strategy") !== (state.tab === "strategy"));
+    const moving = wide.on ? (columnMoves ? tourOutputsColumn() : null) : shownPanel();
     if (!moving || reducedMotion() || tourMs(1) === 0) { open(); done(); return; }
     const width = window.innerWidth;
     moving.classList.add("tour-sliding");
@@ -15606,7 +15786,7 @@
       slideTo(moving, null, false);  // back at rest (hidden when the tab changed)
       moving.style.transition = "";
       open();
-      const shown = wide.on ? $("panel-outputs") : shownPanel();
+      const shown = wide.on ? tourOutputsColumn() : shownPanel();
       shown.classList.add("tour-sliding");
       slideTo(shown, direction * width * 0.35, false);
       void shown.offsetWidth;  // start the slide in from the far side
@@ -15637,9 +15817,9 @@
     }
     if (to.tab !== state.tab) {
       return { button: $("tab-" + to.tab), label: $("tab-" + to.tab).textContent.trim(),
-        go: { tab: to.tab, view: state.view } };
+        go: { tab: to.tab, view: placeView(to.tab) || state.view } };
     }
-    if (to.view !== state.view) {
+    if (to.view !== (placeView(to.tab) || state.view)) {
       return { button: $("sub-" + to.view), label: $("sub-" + to.view).textContent.trim(),
         go: { tab: to.tab, view: to.view } };
     }
@@ -15953,7 +16133,8 @@
   function openTour() {
     if (!$("tour").hidden) return;
     tour.steps = TOUR_STEPS.filter((step) => !step.when || step.when());
-    tour.from = { tab: state.tab, view: state.view, scroll: window.scrollY, advanced: $("advancedSettings").open };
+    tour.from = { tab: state.tab, view: state.view, strategyView: state.strategyView, scroll: window.scrollY,
+      advanced: $("advancedSettings").open };
     $("tour").hidden = false;
     $("app").inert = true;
     $("helpButton").setAttribute("aria-expanded", "true");
@@ -15996,7 +16177,14 @@
     $("app").inert = false;
     $("helpButton").setAttribute("aria-expanded", "false");
     const from = tour.from;
-    if (from && (from.tab !== state.tab || from.view !== state.view)) goTo(from.tab, from.view);
+    if (from && (from.tab !== state.tab || from.view !== state.view || from.strategyView !== state.strategyView)) {
+      if (from.tab === "setup") revealSetup();
+      state.tab = from.tab;  // the tab and both views back as they were (goTo sets one view)
+      state.view = from.view;
+      state.strategyView = from.strategyView;
+      showPlace();
+      savePrefs();
+    }
     if (from) centerSwipedChips();  // each chips row back on its selected chip
     if (from) $("advancedSettings").open = from.advanced;  // shut again when the tour opened it
     if (from) window.scrollTo(0, from.scroll);
@@ -16126,8 +16314,11 @@
     }
     $("views-outputs").chipBubble = makeBubble("viewBubbleFill");
     $("views-outputs").append($("views-outputs").chipBubble);
+    $("views-strategy").chipBubble = makeBubble("strategyBubbleFill");
+    $("views-strategy").append($("views-strategy").chipBubble);
     wireTabKeys(document.querySelector(".tabbar"), ".tab:not([hidden])", (tab) => selectTabFresh(tab.dataset.tab));
     wireTabKeys($("views-outputs"), ".view-tab:not([hidden])", (tab) => selectView(tab.dataset.view));
+    wireTabKeys($("views-strategy"), ".view-tab:not([hidden])", (tab) => selectView(tab.dataset.view));
     document.addEventListener("focusin", (event) => $("app").classList.toggle("typing", isTyping(event.target)));
     document.addEventListener("focusout", () => $("app").classList.remove("typing"));
     document.addEventListener("keyup", enterEndsEdit);
@@ -16137,6 +16328,7 @@
       if (button) toggleHelp(button);
     });
     $("settings-body").addEventListener("submit", (event) => event.preventDefault());
+    $("strategy-body").addEventListener("submit", (event) => event.preventDefault());
     $("household-body").addEventListener("submit", (event) => event.preventDefault());
     $("sheetDone").addEventListener("click", saveSheet);
     $("sheetCancel").addEventListener("click", cancelSheet);
@@ -16187,7 +16379,11 @@
     wirePanelsSwipe();
     wireWalkSwipe();
     wireTour();
-    const placeBubbles = () => { placeBubble($("chips-settings"), false); placeBubble($("views-outputs"), false); };
+    const placeBubbles = () => {
+      placeBubble($("chips-settings"), false);
+      placeBubble($("views-outputs"), false);
+      placeBubble($("views-strategy"), false);
+    };
     window.addEventListener("resize", placeBubbles);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBubbles);
     // A face fetched later (the selected chip's bolder label) moves the chips too; so may a page shown again.
