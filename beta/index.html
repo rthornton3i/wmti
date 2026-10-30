@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-F1KUo/DlWIo29m4O3GC3ecB1fgmAah5PWl5Ql7i+eCo=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-L/E0e/BQy+EOw3m9wFZkHvJpoy3goZwXuXdF7z2YzBg=' 'sha256-119M+GX82l58JuJQsz4ugC0uJSjSRHv6PvAiLFO52Ss='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -622,6 +622,9 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .has-reset.reset-shown > select.input { padding-right: 64px; }
 /* A suggested expense row not filled in yet: its $0 on the list card (unfilledSuggestion in shared.js). */
 .item-value.is-default { color: var(--muted); font-weight: 400; }
+/* A car's or home's Monthly payment on its sheet: read-only, grey like a default (placeLoanPayment in app.js). */
+.loan-payment-value { margin: 0; color: var(--muted); font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.loan-payment-note { margin: 0; }
 /* Benefits, Beneficiaries: one card per beneficiary (beneficiaryCards in app.js). */
 .heir-cards { display: grid; gap: 10px; }
 .heir-card { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
@@ -1870,7 +1873,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
   font-size: 14px; text-decoration: underline; }
 
 /* The ownership timeline on the Home and Cars panes: one group per lane, its bar row (owned filled, rented hatched,
-   leased outlined, no car blank, a car's calculated replacements gray), each bar a button whose popover opens under
+   leased outlined, no car blank, a car's calculated replacements hatched), each bar a button whose popover opens under
    its row; and the workflow's fields in the bottom sheet. */
 .timeline-body { display: grid; gap: 10px; }
 .earnings-editor .input { width: 100%; min-width: 6em; }
@@ -1879,7 +1882,25 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .timeline-lane { position: relative; height: 28px; border-radius: 6px; background: var(--surface-2); }
 .timeline-bar { position: absolute; top: 0; bottom: 0; border-radius: 6px; box-sizing: border-box; margin: 0;
   padding: 0; border: 0; background: transparent; -webkit-appearance: none; appearance: none; }
-button.timeline-bar { cursor: pointer; }
+button.timeline-bar { cursor: pointer; container-type: inline-size; }
+/* The open hint at a bar's right end: a finger tap on a touch screen, a mouse pointer with a mouse (85-timeline.js,
+   timelineBarButton), on a small surface-colored disc so it reads on any bar fill, light or dark; hidden on a bar too
+   narrow for it. */
+.timeline-bar-icon { position: absolute; top: 50%; right: 4px; display: grid; place-items: center; width: 18px;
+  height: 18px; margin-top: -9px; border-radius: 50%; background: var(--surface); color: var(--ink);
+  box-shadow: 0 0 0 1px var(--line); pointer-events: none; }
+.timeline-bar-icon svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; }
+.timeline-bar-icon .timeline-bar-tap { display: none; }
+@media (pointer: coarse) {
+  .timeline-bar-icon .timeline-bar-tap { display: block; }
+  .timeline-bar-icon .timeline-bar-click { display: none; }
+}
+@container (max-width: 30px) { .timeline-bar-icon { display: none; } }
+@media (hover: hover) and (pointer: fine) {
+  button.timeline-bar:hover { filter: brightness(1.08); box-shadow: inset 0 0 0 1px var(--ink-2); }
+  button.timeline-bar[aria-expanded=true]:hover { box-shadow: inset 0 0 0 2px var(--ink); }
+}
 /* No z-index: a car's calculated replacements (later siblings) stay on top of its bar, so each stays tappable. */
 button.timeline-bar:focus-visible { outline-offset: -2px; }
 button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink); }
@@ -1891,11 +1912,18 @@ button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink)
 .timeline-bar[data-mode=own][data-primary=true] { background: var(--tl-primary); }
 .timeline-bar[data-mode=rent][data-primary=true] {
   background: repeating-linear-gradient(45deg, var(--tl-primary) 0 4px, transparent 4px 8px); }
-.timeline-bar.timeline-calculated { border-left: 2px solid var(--surface); }
-.timeline-bar.timeline-calculated[data-mode=own] { background: var(--muted); opacity: .45; }
+/* Calculated (a car's replacements by rule, the Relocation strategy's home or rent): hatched the other way over the
+   bar's own color (--tl-hatch), its gaps a tint of it on the surface so the stripes read in light and dark; a
+   calculated rent is cross-hatched, so it stays apart from an entered rent and a calculated home. */
+.timeline-bar.timeline-calculated { --tl-hatch: var(--s0); border-left: 2px solid var(--surface); }
+.timeline-bar.timeline-calculated[data-primary=true] { --tl-hatch: var(--tl-primary); }
+.timeline-bar.timeline-calculated[data-mode=lease] { --tl-hatch: var(--s2); border: 2px dashed var(--s2); }
+.timeline-bar.timeline-calculated[data-mode=own], .timeline-bar.timeline-calculated[data-mode=lease] {
+  background: repeating-linear-gradient(-45deg, var(--tl-hatch) 0 3px,
+    color-mix(in srgb, var(--tl-hatch) 30%, var(--surface)) 3px 6px); }
 .timeline-bar.timeline-calculated[data-mode=rent] {
-  background: repeating-linear-gradient(45deg, var(--muted) 0 4px, transparent 4px 8px); opacity: .7; }
-.timeline-bar.timeline-calculated[data-mode=lease] { background: var(--surface-2); border: 2px dashed var(--muted); }
+  background: repeating-linear-gradient(45deg, var(--tl-hatch) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(-45deg, var(--tl-hatch) 0 2px, transparent 2px 6px); }
 /* A bar's popover: under its row, full width of the row (so it stays on screen at any width), its pointer over the
    bar (--caret, percent of the row). */
 .timeline-popover { position: relative; display: grid; gap: 4px; margin-top: 6px; padding: 10px 12px;
@@ -1919,7 +1947,11 @@ button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink)
 .button-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2;
   stroke-linecap: round; stroke-linejoin: round; }
 .timeline-legend { display: flex; align-items: center; gap: 6px; margin: 0; }
-.timeline-swatch { width: 18px; height: 10px; border-radius: 3px; background: var(--muted); opacity: .45; flex: none; }
+/* The calculated swatch: hatched like a calculated bar. */
+.timeline-swatch { --tl-hatch: var(--s0); width: 18px; height: 10px; border-radius: 3px; flex: none;
+  background: repeating-linear-gradient(-45deg, var(--tl-hatch) 0 3px,
+    color-mix(in srgb, var(--tl-hatch) 30%, var(--surface)) 3px 6px); }
+.timeline-swatch[data-swatch=calculated] { --tl-hatch: var(--tl-primary); }
 /* The Home timeline's legend: one swatch and its words per kind of bar, wrapping on a phone. */
 .timeline-legend-home { list-style: none; padding: 0; flex-wrap: wrap; gap: 6px 14px; }
 .timeline-legend-home li { display: inline-flex; align-items: center; gap: 6px; }
@@ -2062,7 +2094,7 @@ button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink)
   .tour-ring.tour-pulse, .tour-tap { animation: none !important; }
 }
 
-/* Setup's Advanced settings at the bottom: a closed card (open or shut kept per device) holding the Run settings. */
+/* Setup's Advanced settings at the bottom: a closed card (shut on every start) holding the Run settings. */
 /* Advanced settings: padded like every other card, its title set like a card's h2, the hint under it smaller. */
 .disclosure.advanced { padding-block: var(--space-4); }
 .disclosure.advanced > summary { min-height: 0; align-items: flex-start; }
@@ -2542,16 +2574,16 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "a488c20af0bd", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "53c17acb93a0", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.8a5486f9fc.js"></script>
+<script src="shared.9aabac11c7.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.b610d1f57c.js"></script>
 <script src="gamify.c0d6719c49.js"></script>
 <script src="games.7803be786a.js"></script>
 <script src="report.d6efb6f869.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.6d40df83a9.js"></script>
+<script src="app.d1e616dfab.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

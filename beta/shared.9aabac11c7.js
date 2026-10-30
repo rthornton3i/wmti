@@ -322,6 +322,44 @@
     return car.replacementPayMethod || carPayMethodOf(car);
   }
 
+  // A loan's level monthly payment, principal and interest only (wmti.debts.loans.monthlyPayment): P*r / (1 - (1 +
+  // r)**-n) with r the annual rate / 12, or P / n at a 0% rate. null while a figure is missing or out of range (no
+  // amount owed above 0, no whole term of 1 month or more).
+  function loanMonthlyPayment(principal, annualRate, termMonths) {
+    const number = (value) => (value == null || value === "" ? NaN : Number(value));
+    const [amount, rate, months] = [number(principal), number(annualRate), number(termMonths)];
+    if (!(amount > 0) || !isFinite(amount) || !isFinite(rate) || !Number.isInteger(months) || months < 1) return null;
+    const monthlyRate = rate / 12;
+    if (monthlyRate === 0) return amount / months;
+    return amount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
+  }
+
+  // The monthly payment a car or home sheet shows under its loan figures, or null when the item has no loan to show
+  // (a car paid in cash or leased, a home with its Mortgage switch off). The loan is the model's (wmti _carLoan and
+  // homeLoan): owed today, or for an item bought later its price less the down payment (today's dollars), at the
+  // loan's rate over its term. `payment` is null while a figure is incomplete; a home's `withCosts` adds its property
+  // tax (per year, so / 12) and insurance (per month) while either is above 0, else null.
+  function sheetLoanPayment(typeName, item) {
+    if (!item) return null;
+    const financed = (price, down) => Number(price) * (1 - Number(down));
+    if (typeName === "Car") {
+      if (carPaidBy(item) !== "finance") return null;
+      const owed = item.buysLater ? financed(item.purchasePrice, item.downPaymentRate) : item.loanBalance;
+      return { payment: loanMonthlyPayment(owed, item.loanRate, item.loanMonthsLeft), withCosts: null,
+        todaysDollars: Boolean(item.buysLater) };
+    }
+    if (typeName === "Home") {
+      if (!item.hasMortgage) return null;
+      const owed = item.buysLater ? financed(item.purchasePrice, item.downPaymentRate) : item.mortgageBalance;
+      const payment = loanMonthlyPayment(owed, item.mortgageRate, item.mortgageMonthsLeft);
+      const tax = Number(item.propertyTax) || 0;
+      const insurance = Number(item.homeInsurance) || 0;
+      const withCosts = payment != null && (tax > 0 || insurance > 0) ? payment + tax / 12 + insurance : null;
+      return { payment, withCosts, todaysDollars: Boolean(item.buysLater) };
+    }
+    return null;
+  }
+
   // The blank sheet figures that show another figure's value until edited, by item type: each field's source and the
   // value it holds while blank (wmti.cars.cars falls back the same way, so what is shown is what the model uses).
   // `shown` may read the sheet rules (an expense row's sales tax default by its name, `rules.taxableDefaults`).
@@ -347,6 +385,16 @@
       // A blank Taxable shows the row's default (wmti salesTaxClass): its suggested row's, or taxable for a row added
       // by hand; a row taxed by the state's own rule (Groceries, Clothing) shows Default.
       taxable: { blank: null, shown: (item, rules) => taxableDefaultOf(item, rules) },
+    },
+    // An account's blank bases, as wmti.simulation.model reads them: a blank cost basis (Investments) is the starting
+    // value (no embedded gain), a blank Roth basis (Roth IRA, Roth 401k) all of the starting value, and a blank IRA
+    // basis (Traditional IRA) none.
+    Account: {
+      costBasis: { blank: null, shown: (account, rules) => (account.kind === rules.costBasisKind
+        ? Number(account.startingValue) || 0 : null) },
+      iraBasis: { blank: null, shown: (account, rules) => (account.kind === rules.iraBasisKind ? 0 : null) },
+      rothBasis: { blank: null, shown: (account, rules) => ((rules.rothBasisKinds || []).includes(account.kind)
+        ? Number(account.startingValue) || 0 : null) },
     },
   };
 
@@ -426,7 +474,8 @@
   // The blank panel figures that show the value the model uses until edited, by path: the move age of
   // Strategies > Relocation is your Social Security claim age, else with no benefit the age your pay stops (today's
   // age when retired), as wmti moveYear reads it (defaultSpendingStartAge).
-  // A blank Years to simulate runs until you are 100 (yearsToAge100).
+  // A blank Years to simulate runs until you are 100 (yearsToAge100). A blank Last year you were paid this salary is
+  // the year before the law year, or the year before pay stops if earlier (lastSalaryYearDefault).
   const PANEL_DEFAULTS = {
     "strategies.relocation.moveAge": (inputs) => {
       const you = inputs && inputs.you;
@@ -434,7 +483,20 @@
       return defaultSpendingStartAge(you);
     },
     years: (inputs) => (inputs && inputs.you ? yearsToAge100(inputs.you.currentAge) : null),
+    "you.lastSalaryYear": (inputs, lawYear) => lastSalaryYearDefault(inputs && inputs.you, lawYear),
+    "spouse.lastSalaryYear": (inputs, lawYear) => lastSalaryYearDefault(inputs && inputs.spouse, lawYear),
   };
+
+  // The last year paid a blank Last year you were paid this salary stands for, as wmti effectiveSalaryHistory reads
+  // it: the year before the law year, or the year before pay stops (today's age when retired) if that is earlier;
+  // null without the person or the law year.
+  function lastSalaryYearDefault(person, lawYear) {
+    if (!person || lawYear == null || !Number.isFinite(Number(lawYear))) return null;
+    const birthYear = Number(lawYear) - Number(person.currentAge);
+    const stopAge = person.retired ? Number(person.currentAge) : Number(person.salaryEndAge);
+    const year = Math.min(Number(lawYear) - 1, birthYear + stopAge - 1);
+    return Number.isFinite(year) ? year : null;
+  }
 
   // The run length of a blank Years to simulate, as wmti yearsToAge100 reads it: the years until you are
   // PLAN_END_AGE (the last year is the one you are 99), at least 1.
@@ -450,19 +512,19 @@
   }
 
   // What a panel field shows while it is blank: {value, blank: null}, or null when it has no default rule or holds a
-  // value of its own.
-  function panelDefault(path, inputs) {
+  // value of its own. `lawYear` (the law tax year) feeds the rules that count calendar years.
+  function panelDefault(path, inputs, lawYear) {
     const rule = PANEL_DEFAULTS[path];
     if (!rule || getPath(inputs, path) != null) return null;
-    const value = rule(inputs);
+    const value = rule(inputs, lawYear);
     return value == null ? null : { value, blank: null };
   }
 
   // What a panel field's reset button puts back, edited or not: {value, blank: null}, or null as panelDefault.
-  function panelResetTarget(path, inputs) {
+  function panelResetTarget(path, inputs, lawYear) {
     const rule = PANEL_DEFAULTS[path];
     if (!rule) return null;
-    const value = rule(inputs);
+    const value = rule(inputs, lawYear);
     return value == null ? null : { value, blank: null };
   }
 
@@ -713,6 +775,7 @@
   // The fields of an item type whose change redraws an open sheet: the sources of the blank figures and the
   // replacement rules, which decide what the sheet shows.
   function sheetSources(typeName) {
+    if (typeName === "Account") return ["startingValue"];  // its blank cost and Roth bases show the starting value
     return typeName === "Car" ? ["purchasePrice", "loanRate", "loanMonthsLeft", "downPaymentRate", "replaceEveryYears",
       "replaceEveryMiles", "replaceBy", "purchaseYear", "firstYearDrop", "depreciationRate", "valueToday"] : [];
   }
@@ -2407,7 +2470,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,

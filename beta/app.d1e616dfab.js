@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -115,7 +115,7 @@
   const LAW_KEY = STORAGE_PREFIX + "lawState.v1";  // kept by the removed law viewer; listed so Clear all data still removes it
   const SPLIT_KEY = STORAGE_PREFIX + "split.v1";  // the wide layout's Inputs share of the Inputs | Outputs room, "0" to "1"
   const SETUP_FOLD_KEY = STORAGE_PREFIX + "setupFold.v1";  // whether the wide layout's Setup column is folded to a rail: "folded" or "open"
-  const ADVANCED_KEY = STORAGE_PREFIX + "advanced.v1";  // whether Setup's Advanced settings is open: "open" or "closed"
+  const ADVANCED_KEY = STORAGE_PREFIX + "advanced.v1";  // no longer kept; listed so Clear all data still removes it
   const LAW_STATE_PATHS = ["homeState", "strategies.relocation.state"];  // state selects with a "See this state's rules" link
   const STORAGE_KEYS = [DRAFT_KEY, SCENARIOS_KEY, PREFS_KEY, WALK_KEY, TOUR_KEY, TERMS_KEY, THEME_KEY,
     OPTIMIZE_CHECKPOINT_KEY, TABS_PIN_KEY, LAW_KEY, SPLIT_KEY, SETUP_FOLD_KEY, HEIRS_MARK_KEY, ADVANCED_KEY,
@@ -179,8 +179,8 @@
     heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
     tab: "outputs", view: "summary", chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
-    autoSaveOff: [], exampleHidden: false, collapsed: [],  // collapsed: the folded panels (25-collapse.js)
-    openFolds: [],  // the closed-by-default disclosures opened on this device (the claim estimates, 80-settings.js)
+    autoSaveOff: [], exampleHidden: false,
+    openFolds: [],  // the closed-by-default disclosures opened this visit (the claim estimates, 80-settings.js)
     savedJustNow: false, undo: { stack: [], current: null },
     // preview: Low's partial result; seq: the number stamped on each Monte Carlo when it starts (the run diff's order)
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null, preview: null, seq: 0 },
@@ -282,7 +282,7 @@
     const compare = state.compare;
     store(PREFS_KEY, { tab: state.tab, view: state.view, chips: state.chips, plotView: state.plotView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
-      exampleHidden: state.exampleHidden, collapsed: state.collapsed, openFolds: state.openFolds,
+      exampleHidden: state.exampleHidden,
       compare: { seed: compare.seed, pair: compare.pair } });
   }
 
@@ -295,7 +295,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.3badfee4a5.js");
+      worker = new Worker("worker.d46abc079f.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -435,8 +435,6 @@
       if (route && route.chip) state.chips.settings = route.chip;
       if (prefs.plotView === "table") state.plotView = "table";
       if (Array.isArray(prefs.surplusLocks)) state.surplusLocks = prefs.surplusLocks.filter((name) => typeof name === "string");
-      if (Array.isArray(prefs.collapsed)) state.collapsed = prefs.collapsed.filter((key) => typeof key === "string");
-      if (Array.isArray(prefs.openFolds)) state.openFolds = prefs.openFolds.filter((key) => typeof key === "string");
       restoreRunPrefs(prefs);
       // Auto-save is on unless turned off for a scenario; the older one-switch preference (`autoSave`) is not read, since
       // it could not tell a switch turned off from the old default.
@@ -597,6 +595,7 @@
     if (summaryCard) fillExpenseSummary(summaryCard);
     refreshSpending();  // the Spending in retirement amounts follow every edit (a percent, the start or stop age)
     refreshYearsDefault();  // a blank Years to simulate follows your age
+    refreshLastSalaryYearDefaults();  // a blank Last year paid follows the age, stop age and Retired
     refreshDefaultsNotice();  // Using defaults for N inputs follows every edit
     syncInflationRange();  // the inflation range shows only with Inflation-adjusted dollars on
     updateTerminalRate();  // the beneficiaries' caption follows their payouts
@@ -1231,18 +1230,30 @@
   // on its "i" or another control) folds the panel to its header and opens it again; no height animation. Folded, a
   // panel whose first field is an on/off switch (a pane's toggle, Roth conversion, Inflation) shows a copy of that
   // switch in the header that works the real one; turned on there, the panel opens (turned off, it stays folded) and its
-  // header keeps its place on screen. Which panels are folded is kept per device in the prefs
-  // (`state.collapsed`, keys `tab:id-or-heading`); default open. The panels are drawn and redrawn by many parts, so a
+  // header keeps its place on screen. Every panel on Setup and Inputs starts folded on each start of the app, those
+  // drawn later included; Outputs' panels (charts, tables, summary tiles) start open and nothing folds them but their
+  // own chevron or header (COLLAPSE_NEVER_AUTO). Which are open is kept for the visit only (`collapseFolds`, keys `tab:id-or-heading`), so a redraw keeps it. The
+  // tests start them open with WMTI_START_OPEN. The panels are drawn and redrawn by many parts, so a
   // MutationObserver on the three tabs adds the header controls to each new panel. Anything that shows a field opens
   // its panel first (`revealField` and `revealPanels`: a jump to a field, Undo, flashField, the tour); a field marked invalid opens its panel. The
   // header's "i" text still opens while folded.
-  // Sheets, dialogs and the walkthrough sit outside the three tabs and never fold.
+  // Sheets, dialogs and the walkthrough sit outside the three tabs and never fold, nor does a summary with no inputs
+  // (`.summary-only`: Expenses' summary card and the Home and Cars timelines), which has no chevron.
   const COLLAPSE_TABS = ["panel-setup", "panel-inputs", "panel-outputs"];
-  const COLLAPSE_PANELS = ".card:not(details):not(.mc-bar), fieldset.pane:not(.subsection), .files-card, .run-card";
+  const COLLAPSE_PANELS = ".card:not(details):not(.mc-bar):not(.summary-only), "
+    + "fieldset.pane:not(.subsection):not(.summary-only), .files-card, .run-card";
   const COLLAPSE_HEADS = [":scope > legend", ":scope > .card-head", ":scope > .title-help:not(.note-help)",
     ":scope > .files-head", ":scope > h2", ":scope > figure.chart > figcaption"];
   const COLLAPSE_TITLE = "h2, h3, .legend-title, .chart-title";
   let collapseCount = 0;
+  const collapseFolds = new Map();  // panel key to folded (true) or open (false), this visit only
+  const COLLAPSE_START_FOLDED = window.WMTI_START_OPEN !== true;  // a panel not yet folded or opened this visit
+  const COLLAPSE_NEVER_AUTO = ["outputs"];  // tabs whose panels start open and are never folded but by hand
+
+  function isFolded(key) {
+    if (collapseFolds.has(key)) return collapseFolds.get(key);
+    return COLLAPSE_NEVER_AUTO.includes(key.split(":")[0]) ? false : COLLAPSE_START_FOLDED;
+  }
 
   // The header of a panel that can fold (one holding a title), else null.
   function collapseHead(panel) {
@@ -1313,11 +1324,10 @@
         const helpText = help && document.getElementById(help.getAttribute("aria-controls"));
         if (helpText && panel.contains(helpText)) helpText.classList.add("collapse-keep");
         panel.dataset.collapseKey = collapseKey(panel, head);
-        let folded = state.collapsed.includes(panel.dataset.collapseKey);
+        let folded = isFolded(panel.dataset.collapseKey);
         if (folded && panel.querySelector("[aria-invalid=true]")) {  // a field that needs a fix is shown
           folded = false;
-          state.collapsed = state.collapsed.filter((key) => key !== panel.dataset.collapseKey);
-          savePrefs();
+          collapseFolds.set(panel.dataset.collapseKey, false);
         }
         showFolded(panel, folded);
       }
@@ -1377,12 +1387,9 @@
     }
   }
 
-  // Fold or open `panel` and keep the choice in the prefs.
+  // Fold or open `panel` and keep the choice for the visit.
   function foldPanel(panel, folded) {
-    const key = panel.dataset.collapseKey;
-    state.collapsed = state.collapsed.filter((item) => item !== key);
-    if (folded) state.collapsed.push(key);
-    savePrefs();
+    collapseFolds.set(panel.dataset.collapseKey, folded);
     showFolded(panel, folded);
   }
 
@@ -1419,8 +1426,7 @@
   // A view is what one column shows: Setup, an Inputs chip page (or the Low page), an Outputs view (Plots with its
   // sub-tab) or Awards. A view left (a chip, a swipe, a bottom tab, the app hidden) and shown again within
   // LEAVE_RESET_MS comes back at the scroll it was left at (a stray swipe costs nothing); shown again later, every
-  // panel in it folds and it opens at its top. That fold is a fold like any other: kept in the prefs, so a reload
-  // shows the view as it was last seen. Nothing happens on a first visit, while a field in the view is being typed in,
+  // panel in it folds (never an Outputs one, COLLAPSE_NEVER_AUTO) and it opens at its top. That fold is a fold like any other, kept for the visit. Nothing happens on a first visit, while a field in the view is being typed in,
   // while the tour or the walkthrough is open, or when the view was reached to show a field (revealField and
   // revealPanels: a jump to a field, Undo, the tour), which opens that field's panel as before.
   const LEAVE_RESET_MS = 5000;
@@ -1494,11 +1500,12 @@
     });
   }
 
-  // Fold every panel in the view a column shows and scroll it to its top, unless a field in it is being typed in.
+  // Fold every panel in the view a column shows (not on Outputs) and scroll it to its top, unless a field in it is
+  // being typed in.
   function resetView(tab) {
     const holder = tab === "outputs" ? $("view-" + state.view) : $("panel-" + tab);
     if (isTyping(document.activeElement) && holder.contains(document.activeElement)) return;
-    if (COLLAPSE_TABS.includes("panel-" + tab)) {
+    if (COLLAPSE_TABS.includes("panel-" + tab) && !COLLAPSE_NEVER_AUTO.includes(tab)) {
       enhancePanels();
       for (const panel of holder.querySelectorAll("[data-collapse-key]")) {
         if (!panel.classList.contains("is-collapsed") && !panel.querySelector("[aria-invalid=true]")) {
@@ -2160,6 +2167,19 @@
     if (!input || !state.inputs || state.inputs.years != null || document.activeElement === input) return;
     input.value = String(planYears(state.inputs));
     markDefault(input, "years");
+  }
+
+  // A blank Last year you were paid this salary shows, in grey, the year the model uses (PANEL_DEFAULTS): kept in step
+  // with the age, the age pay stops and Retired after every edit, unless its box is being typed in.
+  function refreshLastSalaryYearDefaults() {
+    if (!state.inputs) return;
+    for (const path of ["you.lastSalaryYear", "spouse.lastSalaryYear"]) {
+      const input = $(fieldId(path));
+      if (!input || getPath(state.inputs, path) != null || document.activeElement === input) continue;
+      const fallback = panelDefault(path, state.inputs, state.info.lawTaxYear);
+      input.value = fallback ? String(fallback.value) : "";
+      markDefault(input, path);
+    }
   }
 
   function renderRunCard() {
@@ -7971,7 +7991,7 @@
   // (from the settings notes, when there are any) and the one total of all ("n/a" until the notes arrive).
   function expenseSummaryCard() {
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "card summary-only";  // a summary with no inputs: it never folds (25-collapse.js)
     card.id = "expenseSummary";
     fillExpenseSummary(card);
     return card;
@@ -8801,7 +8821,7 @@
   }
 
   // The claim estimates (the benefit table or the estimate from earnings) sit closed under a "Claim estimates"
-  // disclosure; one opened stays open on this device (`state.openFolds`, kept in the prefs), per person.
+  // disclosure, closed on every start; one opened stays open for the visit (`state.openFolds`, not kept), per person.
   const CLAIM_FOLD_LABEL = "Claim estimates";
 
   function claimFoldKey(role) {
@@ -8823,7 +8843,6 @@
       if (details.open === opened) return;
       state.openFolds = state.openFolds.filter((item) => item !== key);
       if (details.open) state.openFolds.push(key);
-      savePrefs();
     });
   }
 
@@ -10391,7 +10410,8 @@
   // each edit (showsDefault).
   function sheetDefaultOf(path) {
     const at = sheetItemOf(path);
-    return at ? sheetDefault(at.type, at.name, at.item, state.info.sheetRules) : panelDefault(path, state.inputs);
+    return at ? sheetDefault(at.type, at.name, at.item, state.info.sheetRules)
+      : panelDefault(path, state.inputs, state.info.lawTaxYear);
   }
 
   // The schema field drawn at each path (fieldControl), so a field with no blank rule can fall back on its shipped
@@ -10413,8 +10433,12 @@
   function markDefault(element, path) {
     const at = sheetItemOf(path);
     const grey = !hasBlankRule(path) ? atFieldDefault(drawnFields.get(path), getPath(state.inputs, path))
-      : at ? showsDefault(at.type, at.name, at.item, state.info.sheetRules) : panelDefault(path, state.inputs) !== null;
+      : at ? showsDefault(at.type, at.name, at.item, state.info.sheetRules)
+        : panelDefault(path, state.inputs, state.info.lawTaxYear) !== null;
     element.classList.toggle("is-default", grey);
+    // A box cleared while typed in shows the value its blank stands for, never the word Blank.
+    const target = element.tagName === "INPUT" && hasBlankRule(path) ? resetTargetOf(path) : null;
+    if (target && drawnFields.has(path)) element.placeholder = shown(target.value, scaleOf(drawnFields.get(path)));
     syncReset(element);
   }
 
@@ -10423,7 +10447,7 @@
   function resetTargetOf(path) {
     const at = sheetItemOf(path);
     const target = at ? sheetResetTarget(at.type, at.name, at.item, state.info.sheetRules)
-      : panelResetTarget(path, state.inputs);
+      : panelResetTarget(path, state.inputs, state.info.lawTaxYear);
     return target || shippedDefaultOf(path);
   }
 
@@ -10441,7 +10465,7 @@
   function defaultBlankOf(path) {
     const at = sheetItemOf(path);
     if (at) return sheetBlank(at.type, at.name);
-    return panelResetTarget(path, state.inputs) ? null : undefined;
+    return panelResetTarget(path, state.inputs, state.info.lawTaxYear) ? null : undefined;
   }
 
   // ---- Reset to default: a field with a default (`.is-default` while it shows it) gets a small reset button inside
@@ -11910,6 +11934,48 @@
     return note.textContent ? note : null;  // a monthly row needs no line: its amount reads Monthly
   }
 
+  // The loan figures a car's or home's monthly payment line follows on its sheet, the first one drawn: its term, else
+  // its rate, else what it owes.
+  const LOAN_PAYMENT_AFTER = { Car: ["loanMonthsLeft", "loanRate", "loanBalance", "downPaymentRate"],
+    Home: ["mortgageMonthsLeft", "mortgageRate", "mortgageBalance", "downPaymentRate"] };
+
+  // A car paid with a loan or a home with a mortgage: a read-only Monthly payment line (principal and interest, from
+  // sheetLoanPayment) below its loan figures, kept current as they are typed (refreshLoanPayment).
+  function placeLoanPayment(typeName, item, itemPath) {
+    if (!sheetLoanPayment(typeName, item)) return;
+    const anchor = (LOAN_PAYMENT_AFTER[typeName] || []).map((name) => $(fieldId(itemPath + "." + name)))
+      .find(Boolean);
+    const holder = anchor && anchor.closest(".field");
+    if (!holder) return;
+    const line = document.createElement("div");
+    line.className = "field loan-payment";
+    line.id = "sheetLoanPayment";
+    line.innerHTML = "<div class=\"field-head\"><span class=\"field-label\">Monthly payment</span></div>"
+      + "<p class=\"loan-payment-value\" aria-live=\"polite\"></p><p class=\"field-help loan-payment-note\"></p>";
+    holder.after(line);
+    refreshLoanPayment();
+  }
+
+  // The open sheet's Monthly payment line read again from its item: "—" while a loan figure is incomplete, also while
+  // one of its boxes holds text not stored yet (blank or not a number, `aria-invalid`, see numberInput).
+  function refreshLoanPayment() {
+    const line = $("sheetLoanPayment");
+    if (!line || !sheetOpen) return;
+    const item = (getPath(state.inputs, sheetOpen.path) || [])[sheetOpen.position];
+    const loan = sheetLoanPayment(sheetOpen.field.type, item);
+    if (!loan) return;
+    const itemPath = sheetOpen.path + "." + sheetOpen.position;
+    const typing = (LOAN_PAYMENT_AFTER[sheetOpen.field.type] || []).concat("purchasePrice").some((name) => {
+      const box = $(fieldId(itemPath + "." + name));
+      return box && box.getAttribute("aria-invalid") === "true";
+    });
+    line.querySelector(".loan-payment-value").textContent = loan.payment == null || typing ? "—"
+      : fullMoney(loan.payment);
+    line.querySelector(".loan-payment-note").textContent = "Principal and interest"
+      + (loan.todaysDollars ? ", in today's dollars" : "")
+      + (loan.withCosts == null || typing ? "" : "; " + fullMoney(loan.withCosts) + " with property tax and insurance") + ".";
+  }
+
   // The "Returns and basis" group of an account sheet: the returns in a disclosure, closed until opened, whose header
   // reads them ("Return 6.0% · std dev 12.0%"), with the kind's usual values and the button that writes them; the
   // basis fields follow it, always shown. `path` is the account's own path, for the disclosure's open state.
@@ -12075,6 +12141,7 @@
       if (fields.length) parts.push(sheetSection(section, fields));  // a section with every field hidden is not drawn
     }
     body.replaceChildren(...parts);
+    placeLoanPayment(field.type, items[position], path + "." + position);
     tintSections(body);
     const detailRow = paneDetailRow(paneId, detail.info);  // Medium: the pane's Add detail, above Remove
     if (detailRow) body.append(detailRow);
@@ -12330,7 +12397,7 @@
   // The panel's Timeline pane, drawn once at the top of the Home and Cars panels (see panelSections).
   function timelineBlock(kind) {
     const block = document.createElement("fieldset");
-    block.className = "group pane timeline";
+    block.className = "group pane timeline summary-only";  // a summary with no inputs: it never folds (25-collapse.js)
     block.dataset.kind = kind;
     const id = newHelpId();
     block.innerHTML = "<legend class=\"legend-help\"><span class=\"legend-title\"><span>Timeline</span></span>"
@@ -12374,7 +12441,7 @@
           span.dataset.primary = String(bar.primary);
           if (!bar.isCalculated) usedKeys.add(bar.mode === "rent" ? "rent" : bar.primary ? "primary" : "second");
         }
-        if (bar.isCalculated) {  // the Relocation strategy's home or rent: gray, drawn over the stretch it replaces
+        if (bar.isCalculated) {  // the Relocation strategy's home or rent: hatched, drawn over the stretch it replaces
           span.dataset.calculated = "true";
           calculatedShown = true;
         }
@@ -12384,10 +12451,11 @@
         if (bar.mode === "gap") span.setAttribute("aria-hidden", "true");
         else {  // the pointer sits over the part not covered by its calculated replacements
           const shown = bar.calculated.length ? bar.calculated[0].left - bar.left : bar.width;
-          timelineBarButton(span, bar.text, bar.left + shown / 2, () => timelinePopoverParts(kind, bar, words));
+          timelineBarButton(span, bar.text, bar.left + shown / 2, () => timelinePopoverParts(kind, bar, words),
+            !bar.calculated.length);  // a bar whose end its calculated replacements cover shows no open hint
         }
         lane.append(span);
-        for (const mark of bar.calculated) {  // grayed: worked out from the replacement rule, not entered
+        for (const mark of bar.calculated) {  // hatched: worked out from the replacement rule, not entered
           const part = document.createElement("button");
           part.className = "timeline-bar timeline-calculated";
           part.dataset.mode = mark.method === "lease" ? "lease" : "own";
@@ -12395,9 +12463,11 @@
           part.style.width = mark.width + "%";
           part.title = mark.year + " " + mark.label + ": " + words.calculated;
           const name = words.replacementName.replace("{name}", bar.name);
+          // A replacement whose stretch holds the year the commute stops says why the next comes later, or none.
+          if (mark.note) part.title += ". " + mark.note;
           timelineBarButton(part, name + ", " + mark.year + " " + mark.label, mark.left + mark.width / 2,
-            () => ({ name, role: "Car", years: "From " + mark.year + " (" + mark.label + ")", summary: words.calculated,
-              open: null }));
+            () => ({ name, role: "Car", years: "From " + mark.year + " (" + mark.label + ")",
+              summary: words.calculated + (mark.note ? ". " + mark.note : ""), open: null }));
           lane.append(part);
           calculatedShown = true;
         }
@@ -12413,7 +12483,7 @@
       const legend = document.createElement("p");
       legend.className = "field-help timeline-legend";
       legend.innerHTML = "<span class=\"timeline-swatch\" aria-hidden=\"true\"></span>";
-      legend.append(document.createTextNode("Gray: " + words.calculated.toLowerCase()));
+      legend.append(document.createTextNode(words.legendCalculated));
       parts.push(legend);
     }
     // Cars: with none yet, Add car; with one or more, Add another car starts a new lane (its own timeline). The item
@@ -12473,11 +12543,29 @@
     return { name: bar.name, role, years, summary, open, kind, position };
   }
 
-  // Make a timeline bar a button: its accessible name, and a tap (or Enter, Space) toggles its popover under the row,
-  // its pointer at `center` (percent of the row) over the bar. `parts()` gives what the popover says.
-  function timelineBarButton(button, label, center, parts) {
+  // The hint at a bar's right end that it opens: a finger tap on a touch screen, a mouse pointer with a mouse
+  // (styles.css shows the one that fits the pointer and hides both on a bar too narrow for it).
+  const TIMELINE_SVG = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\" class=";
+  const TIMELINE_TAP_ICON = TIMELINE_SVG + "\"timeline-bar-tap\"><path d=\"M9 13V5.5a1.5 1.5 0 0 1 3 0V11\"/>"
+    + "<path d=\"M12 10.5a1.5 1.5 0 0 1 3 0V12\"/><path d=\"M15 11.5a1.5 1.5 0 0 1 3 0V16a5 5 0 0 1-5 5h-1.5"
+    + "a5 5 0 0 1-4-2l-2.6-3.4a1.4 1.4 0 0 1 2.1-1.9L9 15\"/></svg>";
+  const TIMELINE_CLICK_ICON = TIMELINE_SVG + "\"timeline-bar-click\">"
+    + "<path d=\"M6 3l13 7.5-5.5 1.5 3.5 6.5-2.5 1.3-3.5-6.5L6 17.5z\"/></svg>";
+  const timelineTouch = () => Boolean(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+
+  // Make a timeline bar a button: its accessible name (with "tap to open" or "click to open"), the open hint at its
+  // right end, and a tap (or Enter, Space) toggles its popover under the row, its pointer at `center` (percent of the
+  // row) over the bar. `parts()` gives what the popover says; `hint` false leaves the open hint off.
+  function timelineBarButton(button, label, center, parts, hint = true) {
     button.type = "button";
-    button.setAttribute("aria-label", label);
+    button.setAttribute("aria-label", label + (timelineTouch() ? ", tap to open" : ", click to open"));
+    if (hint) {
+      const icon = document.createElement("span");
+      icon.className = "timeline-bar-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = TIMELINE_TAP_ICON + TIMELINE_CLICK_ICON;
+      button.append(icon);
+    }
     button.setAttribute("aria-expanded", "false");
     button.addEventListener("click", () => {
       const shown = timelinePopover && timelinePopover.bar === button;
@@ -15792,6 +15880,7 @@
     $("sheetDone").addEventListener("click", saveSheet);
     $("sheetCancel").addEventListener("click", cancelSheet);
     $("sheetBackdrop").addEventListener("click", cancelSheet);
+    $("sheetBody").addEventListener("input", refreshLoanPayment);  // a car's or home's Monthly payment, live
     wireKeyboardInset();
     wireCollapse();
     document.addEventListener("keydown", (event) => {
@@ -15845,13 +15934,9 @@
     document.addEventListener("visibilitychange", () => { if (!document.hidden) placeBubbles(); });
     $("saveButton").addEventListener("click", saveButtonPressed);
     $("autoSave").addEventListener("click", toggleAutoSave);
-    // Setup's Advanced settings (the Run card): shut until opened; open or shut is kept on this device.
-    const advanced = $("advancedSettings");
-    try { advanced.open = localStorage.getItem(ADVANCED_KEY) === "open"; } catch (error) { /* storage blocked: shut */ }
-    advanced.addEventListener("toggle", () => {
-      if (state.clearing) return;
-      try { localStorage.setItem(ADVANCED_KEY, advanced.open ? "open" : "closed"); } catch (error) { /* this visit only */ }
-    });
+    // Setup's Advanced settings (the Run card): shut on every start (the tests open it with WMTI_ADVANCED_OPEN); open
+    // or shut holds for the visit only.
+    $("advancedSettings").open = window.WMTI_ADVANCED_OPEN === true;
     $("renameButton").addEventListener("click", () => renameDialog(state.scenarioName));
     $("duplicateButton").addEventListener("click", duplicateOpen);
     $("clearButton").addEventListener("click", clearDialog);
