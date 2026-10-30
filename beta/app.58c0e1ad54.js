@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, carLoanNow, homeMortgageNow, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, carLoanNow, homeMortgageNow, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
@@ -295,7 +295,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.24ed1d0785.js");
+      worker = new Worker("worker.05db418d61.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -2169,11 +2169,12 @@
     markDefault(input, "years");
   }
 
-  // A blank Last year you were paid this salary shows, in grey, the year the model uses (PANEL_DEFAULTS): kept in step
-  // with the age, the age pay stops and Retired after every edit, unless its box is being typed in.
+  // A blank Last year you were paid this salary and a blank Last salary show, in grey, the year and salary the model
+  // uses (PANEL_DEFAULTS): kept in step with the age, the age pay stops, Retired and the salary after every edit,
+  // unless its box is being typed in.
   function refreshLastSalaryYearDefaults() {
     if (!state.inputs) return;
-    for (const path of ["you.lastSalaryYear", "spouse.lastSalaryYear"]) {
+    for (const path of ["you.lastSalaryYear", "partner.lastSalaryYear", "you.lastSalary", "partner.lastSalary"]) {
       const input = $(fieldId(path));
       if (!input || getPath(state.inputs, path) != null || document.activeElement === input) continue;
       const fallback = panelDefault(path, state.inputs, state.info.lawTaxYear);
@@ -10327,11 +10328,12 @@
   }
 
   // Whether a person ("you", "partner") has the earnings history the earnings basis reads: entered years, or a last
-  // salary to backtrack from.
+  // salary to backtrack from (a blank one is today's salary while not past the retirement age, lastSalaryDefault).
   function hasEarningsHistory(role) {
     const person = getPath(state.inputs, role) || {};
     const history = person.salaryHistory;
-    return person.earningsHistoryMode === "lastSalary" ? Number(person.lastSalary) > 0
+    const lastSalary = person.lastSalary == null ? lastSalaryDefault(person) : person.lastSalary;
+    return person.earningsHistoryMode === "lastSalary" ? Number(lastSalary) > 0
       : history != null && Object.keys(history).length > 0;
   }
 

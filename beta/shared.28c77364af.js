@@ -554,7 +554,8 @@
   // Strategies > Relocation is your Social Security claim age, else with no benefit the age your pay stops (today's
   // age when retired), as wmti moveYear reads it (defaultSpendingStartAge).
   // A blank Years to simulate runs until you are 100 (yearsToAge100). A blank Last year you were paid this salary is
-  // the year before the law year, or the year before pay stops if earlier (lastSalaryYearDefault).
+  // the year before the law year, or the year before pay stops if earlier (lastSalaryYearDefault). A blank Last salary
+  // is today's salary while not past the retirement age (lastSalaryDefault).
   const PANEL_DEFAULTS = {
     "strategies.relocation.moveAge": (inputs) => {
       const you = inputs && inputs.you;
@@ -563,8 +564,19 @@
     },
     years: (inputs) => (inputs && inputs.you ? yearsToAge100(inputs.you.currentAge) : null),
     "you.lastSalaryYear": (inputs, lawYear) => lastSalaryYearDefault(inputs && inputs.you, lawYear),
-    "spouse.lastSalaryYear": (inputs, lawYear) => lastSalaryYearDefault(inputs && inputs.spouse, lawYear),
+    "partner.lastSalaryYear": (inputs, lawYear) => lastSalaryYearDefault(inputs && inputs.partner, lawYear),
+    "you.lastSalary": (inputs) => lastSalaryDefault(inputs && inputs.you),
+    "partner.lastSalary": (inputs) => lastSalaryDefault(inputs && inputs.partner),
   };
+
+  // The last salary a blank Last salary stands for, as wmti lastSalaryAmount reads it: today's salary while the
+  // person is not retired and not older than the retirement age (salaryEndAge); null (no last salary) once past it,
+  // or without the person.
+  function lastSalaryDefault(person) {
+    if (!person || person.retired || Number(person.currentAge) > Number(person.salaryEndAge)) return null;
+    const salary = Number(person.salary);
+    return Number.isFinite(salary) ? salary : null;
+  }
 
   // The last year paid a blank Last year you were paid this salary stands for, as wmti effectiveSalaryHistory reads
   // it: the year before the law year, or the year before pay stops (today's age when retired) if that is earlier;
@@ -2584,7 +2596,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
