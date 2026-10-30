@@ -12852,8 +12852,13 @@
     $("sheet").hidden = false;
     $("sheetBackdrop").hidden = false;
     $("app").classList.remove("typing");
-    const first = body.querySelector("input, select");
-    if (first && !keepFocus) first.focus({ preventScroll: true });
+    // The focus goes to the sheet's title, not its first field, so a phone's keyboard stays shut until a field is
+    // tapped; a screen reader still lands in the sheet.
+    const title = $("sheetTitle");
+    if (!keepFocus) {
+      title.tabIndex = -1;
+      title.focus({ preventScroll: true });
+    }
     // A sheet opened afresh (also a nested item's, the parent's again and after Move) starts at the top of its body,
     // not where the last sheet was scrolled; a redraw while it is open (keepFocus) keeps the place.
     if (!keepFocus) body.scrollTop = 0;
