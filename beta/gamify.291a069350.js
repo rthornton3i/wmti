@@ -13,7 +13,8 @@
   const EFFORT_RANK = { low: 0, medium: 1, high: 2 };
   const EFFORT_NAMES = { low: "Low", medium: "Medium", high: "High" };
   const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views the explorer award counts
-  const GAME_IDS = ["bracket", "claim", "receipts", "decade", "seesaw", "leaks", "snowball"];  // games.js GAME_IDS
+  const GAME_IDS = ["bracket", "claim", "receipts", "decade", "seesaw", "leaks", "snowball", "sudoku", "grow", "bigger",
+    "wheel"];  // games.js GAME_IDS
   const ORIGINAL_GAME_IDS = ["bracket", "claim", "receipts", "decade"];  // the four games All-rounder asks for
   const MAX_STARS = 3;
 
@@ -53,8 +54,8 @@
     { id: "claim", tier: "medium", xp: 15, title: "Pick a claim age",
       how: "Answer the Social Security claim age question in the walkthrough, or finish Claim Age Showdown.",
       show: "walk" },
-    { id: "play", tier: "low", xp: 15, title: "Play a mini game", how: "Finish any mini game in Awards, Mini games.",
-      show: "view:awards" },
+    { id: "play", tier: "low", xp: 15, title: "Play a mini game", how: "Finish any mini game in Arcade, Games.",
+      show: "view:games" },
   ]);
 
   // Awards (no XP), each earned by one condition: a quest earned, every view of `seen` opened, or a level reached.
@@ -74,6 +75,11 @@
     { id: "decade_survivor", title: "Decade survivor", how: "Finish The Bad Decade.", keys: ["game.decade.done"] },
     { id: "all_rounder", title: "All-rounder", how: "Finish all four mini games.",
       keys: ORIGINAL_GAME_IDS.map((id) => "game." + id + ".done") },
+    { id: "puzzler", title: "Puzzler", how: "Finish Money Sudoku with 3 stars.", keys: ["game.sudoku.stars"] },
+    { id: "growth_guru", title: "Growth guru", how: "Finish Grow It.", keys: ["game.grow.done"] },
+    { id: "sharp_eye", title: "Sharp eye", how: "Finish Bigger Pile with 3 stars.", keys: ["game.bigger.stars"] },
+    { id: "lucky_spin", title: "Lucky spin", how: "Spin the Prize Wheel.", keys: ["game.wheel.done"] },
+    { id: "jackpot", title: "Jackpot", how: "Land the Prize Wheel's jackpot.", keys: ["game.wheel.stars"] },
   ]);
 
   const QUEST_BY_ID = new Map(QUESTS.map((quest) => [quest.id, quest]));

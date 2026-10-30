@@ -30,7 +30,7 @@ self.fetch = (input, init) => {
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize",
   leverSweep: "startLeverSweep", earliestRetire: "startEarliestRetire" };
-const MODEL_FILE = "wmti.c916dd3418.wasm";  // the build gives it a content-hashed name
+const MODEL_FILE = "wmti.479a1d8c32.wasm";  // the build gives it a content-hashed name
 const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;

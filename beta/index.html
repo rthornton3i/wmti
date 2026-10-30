@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-1HTCt3PXAI+WqBHDR+cpJFOvRLAeujxcYO5zkz8/jYg=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-/xZzCo8m5tDqMlfKSPxIHg7rJZZ8W6sLHxqVL1Y0b2M=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1157,7 +1157,7 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
   :root, :root[data-effort], :root[data-style] { --fx-e: 0 !important; --fx-s: 0 !important; }
   .tile-first { animation: none !important; }
 }
-/* Gamer (F101a): the Awards view (level and XP, quests, awards), the progress toast and the walkthrough Trail drawn as
+/* Gamer (F101a): the Arcade tab's Awards and Quests views (level and XP, quests, awards), the progress toast and the walkthrough Trail drawn as
    a quest map, shown only in Gamer style. Surfaces and text use the scheme tokens; only the hero tile gets a violet rim
    and the --fx-glow above. The --gm-* colours are fixed: pink is a border or glow only, never text; --gm-ink and
    --gm-mint are text only on --gm-deep or --gm-panel (the toast), each pair checked at AA by fxcontrast.test.mjs.
@@ -1225,7 +1225,7 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
   .walk-quest::before, .walk-quest li[data-node] .walk-row::before { border-color: CanvasText; }
   .walk-quest > h3::before, .walk-quest li[data-node="done"] .walk-row::before { background: CanvasText; box-shadow: none; }
 }
-/* Gamer games (F101b): the mini games' pop-up (52-games.js) and the game cards of the Awards view. The pop-up is a
+/* Gamer games (F101b): the mini games' pop-up (52-games.js) and the game cards of the Arcade's Games view. The pop-up is a
    fixed dark violet panel in every colour scheme (the Gamer tokens --gm-* of the "Gamer (F101a)" block, whose AA pairs
    fxcontrast.test.mjs checks): --gm-ink text, mint for actions, focus and the climber, pink only as a border or glow,
    never text. Its title and actions stay in view (the .dialog rows); only the body scrolls. Colour is never the only
@@ -1280,18 +1280,39 @@ label.gm-card:has(input:checked) { border-color: var(--gm-mint); box-shadow: ins
 .gm-bars meter::-webkit-meter-optimum-value { background: var(--gm-mint); border-radius: 999px; }
 .gm-bars meter::-moz-meter-bar { background: var(--gm-mint); }
 .gm-bars svg { display: block; width: 100%; height: auto; }
-/* The Mini games section of the Awards view: one card per game with its Play button and best stars. */
+/* The Arcade's Games view: one card per game with its Play button and best stars. */
 .gm-game-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center;
   padding: 12px; border-radius: 12px; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
   box-shadow: var(--fx-glow); overflow-wrap: anywhere; transition: box-shadow 0.2s ease; }
 .gm-game-card > p { grid-column: 1 / -1; color: var(--ink-2); font-size: 14px; }
+/* Money Sudoku: a 4 by 4 grid of squares at least 44 px, a wider gap between the 2 by 2 boxes; a given square is text,
+   an empty one a select (mint rim); after a wrong Check the squares changed to show an answer are dashed. */
+.gm-sudoku { display: grid; grid-template-columns: repeat(4, minmax(50px, 64px)); gap: 4px; justify-content: center; }
+.gm-sudoku > :nth-child(4n + 2) { margin-right: 6px; }
+.gm-sudoku > :nth-child(n + 5):nth-child(-n + 8) { margin-bottom: 6px; }
+.gm-cell { display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 44px; padding: 0 4px;
+  border-radius: 8px; border: 1px solid color-mix(in srgb, var(--gm-violet) 80%, var(--gm-ink)); background: var(--gm-panel);
+  color: var(--gm-ink); font: inherit; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+select.gm-cell { appearance: none; -webkit-appearance: none; background: var(--gm-deep); border-color: var(--gm-mint);
+  text-align: center; text-align-last: center; cursor: pointer; }
+select.gm-cell[data-result="fixed"] { border-style: dashed; }
+/* Prize Wheel: eight segments in two alternating fills, a star label on each, a mint pointer at the top; Spin turns it
+   to its result with one ease-out (none under reduced motion). The labels are decoration: a hidden line names them. */
+.gm-wheel-holder { position: relative; width: 240px; max-width: 100%; margin-inline: auto; padding-top: 14px; }
+.gm-wheel { position: relative; aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--gm-mint);
+  background: repeating-conic-gradient(var(--gm-panel) 0 45deg, var(--gm-deep) 45deg 90deg);
+  transform: rotate(var(--spin, 0turn)); transition: transform 2.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.gm-wheel-label { position: absolute; left: 50%; top: 50%; width: 3.6em; margin: -0.6em 0 0 -1.8em; text-align: center;
+  color: var(--gm-ink); font-size: 13px; line-height: 1.2; transform: rotate(var(--turn)) translateY(-80px); }
+.gm-wheel-pointer { position: absolute; z-index: 1; top: 0; left: 50%; margin-left: -10px; width: 0; height: 0;
+  border: 10px solid transparent; border-top: 16px solid var(--gm-mint); border-bottom: 0; }
 /* Still under reduced motion; system colours in forced colours (borders keep the right and wrong cues). */
 @media (prefers-reduced-motion: reduce) {
-  .gm-climber, .gm-card, .gm-bin, .gm-game-card { transition: none !important; }
+  .gm-climber, .gm-card, .gm-bin, .gm-game-card, .gm-wheel { transition: none !important; }
   .gm-bin:hover, .gm-card:not([data-result]):hover { transform: none; }
 }
 @media (forced-colors: active) {
-  .dialog.gm-dialog, .gm-ladder, .gm-card, .gm-bin, .gm-game-card { background: Canvas; color: CanvasText;
+  .dialog.gm-dialog, .gm-ladder, .gm-card, .gm-bin, .gm-game-card, .gm-cell, .gm-wheel { background: Canvas; color: CanvasText;
     border-color: CanvasText; box-shadow: none; forced-color-adjust: none; }
   .gm-dialog .button, .gm-card[aria-pressed="true"], label.gm-card:has(input:checked) { background: Highlight;
     color: HighlightText; border-color: Highlight; }
@@ -1789,6 +1810,7 @@ a.menu-item { color: inherit; text-decoration: none; }  /* Documentation: a link
 .walk-example { justify-self: start; padding: 4px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--ink-2);
   font-size: 0.85rem; }
 .walk-error { color: var(--bad); font-weight: 600; }
+.walk-basics { color: var(--warn); font-weight: 600; }
 .walk-actions { width: 100%; max-width: 34rem; margin-inline: auto; display: grid; gap: 8px;
   padding: 10px var(--gutter) calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); }
 .walk-primary { min-height: 56px; border-radius: 16px; font-size: 1.05rem; }
@@ -2060,7 +2082,7 @@ button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink)
 .wide .band > .chips-wrap[data-place^="outputs/"] { padding-top: 0; margin-top: -10px; }
 .wide #panel-setup { grid-column: 1; grid-row: 2 / 5; margin-top: 48px; }  /* under its fold bar (36 px and margins) */
 .wide #panel-inputs { grid-column: 3; grid-row: 3 / 5; }
-.wide #panel-outputs, .wide #panel-strategy, .wide #panel-awards { grid-column: 5; grid-row: 4; }
+.wide #panel-outputs, .wide #panel-strategy, .wide #panel-arcade { grid-column: 5; grid-row: 4; }
 .wide .panel { position: relative; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start;
   background: var(--bg); border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--sheet-edge);
   padding: 16px var(--gutter) 24px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
@@ -2112,7 +2134,7 @@ button.timeline-bar[aria-expanded=true] { box-shadow: inset 0 0 0 2px var(--ink)
 .wide .split:focus-visible { outline: 3px solid var(--chip-on); outline-offset: 0; }
 :root.split-dragging, :root.split-dragging * { cursor: col-resize !important; user-select: none; }
 .wide.split-only-outputs #panel-inputs, .wide.split-only-outputs .chips-wrap[data-place="inputs"],
-.wide.split-only-inputs :is(#panel-outputs, #panel-strategy, #panel-awards),
+.wide.split-only-inputs :is(#panel-outputs, #panel-strategy, #panel-arcade),
 .wide.split-only-inputs .chips-wrap:is([data-place^="outputs"], [data-place="strategy"]) { display: none; }
 /* The snap icon above the divider, in the chips row's band (wider than the divider, it would otherwise overlap and
    look cut off at the Outputs panel's left edge); hover, keyboard focus or a tap pops out its three buttons under it. */
@@ -2311,8 +2333,9 @@ html[data-style="glance"] .chart figcaption .chart-note, html[data-style="glance
 .glance-more[open] { display: grid; gap: var(--space-1); }
 
 /* ---- Gamer: a heads-up display. Thin glowing frames in the accent token (its pink and violet cue is off here),
-   readouts and labels in the data font, square corners, a tick meter under each figure and plainer plots. A look only
-   while GAMER_EXTRAS (51-gamer.js) is false: no Garden, quests, awards or games. ---- */
+   readouts and labels in the data font, square corners, a tick meter under each figure and plainer plots. The Arcade
+   tab (Awards, Quests and light Games; GAMER_FEATURES in 51-gamer.js) wears the same frames and data font; the Garden
+   and the heavier games stay off. ---- */
 html:root[data-style="gamer"] { --fx-s: 0; --radius: 3px; }
 html[data-style="gamer"] :is(.card, .tile, .group) { border-radius: 3px; background-image: none;
   box-shadow: 0 0 0 1px var(--accent), 0 0 10px -2px color-mix(in srgb, var(--accent) 55%, transparent), var(--fx-glow); }
@@ -2335,6 +2358,16 @@ html[data-style="gamer"] :is(.progress, .progress span, .walk-progress span) { b
 html[data-style="gamer"] .chart-svg .grid { stroke-dasharray: 2 4; }
 html[data-style="gamer"] .chart-svg .band { opacity: 0.12; }
 html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
+html[data-style="gamer"] :is(.gm-quest, .gm-award, .gm-game-card, .gm-cell, .dialog.gm-dialog) { border-radius: 2px; }
+html[data-style="gamer"] .gm-hero { border-radius: 3px; box-shadow: 0 0 0 1px var(--hero-sub),
+  0 0 12px -2px color-mix(in srgb, var(--accent) 60%, transparent), var(--fx-glow); }
+html[data-style="gamer"] :is(.gm-hero h3, .gm-quest strong, .gm-award strong, .gm-game-card strong, .gm-dialog h2) {
+  font-family: var(--font-data); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+html[data-style="gamer"] :is(.gm-hero p, .gm-readout, .gm-cell) { font-family: var(--font-data);
+  font-variant-numeric: tabular-nums; }
+html[data-style="gamer"] .gm-bar { border-radius: 0; }
+html[data-style="gamer"] .gm-bar::-webkit-progress-value { border-radius: 0; }
+html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 
 </style>
 
@@ -2378,9 +2411,9 @@ html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
       <div class="chips" id="views-outputs" role="tablist" aria-label="Outputs sections">
         <button type="button" role="tab" class="chip view-tab" id="sub-summary" data-view="summary" aria-controls="view-summary">Summary</button>
         <button type="button" role="tab" class="chip view-tab" id="sub-plots" data-view="plots" aria-controls="view-plots">Plots</button>
-        <!-- Wide only (no bottom bar there): the Strategy tab from the Outputs row, as the Garden chip opens Garden. -->
+        <!-- Wide only (no bottom bar there): the Strategy tab from the Outputs row, as the Arcade chip opens Arcade. -->
         <button type="button" role="tab" class="chip view-tab" id="sub-strategy" data-view="strategy" aria-controls="panel-strategy" hidden>Strategy</button>
-        <button type="button" role="tab" class="chip view-tab" id="sub-awards" data-view="awards" aria-controls="panel-awards" hidden>Garden</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-arcade" data-view="arcade" aria-controls="panel-arcade" hidden>Arcade</button>
       </div>
       <button type="button" class="chips-pin" id="chipsPinOut" aria-pressed="true" aria-label="Unpin groups">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
@@ -2403,6 +2436,16 @@ html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
         <button type="button" role="tab" class="chip view-tab" id="sub-optimize" data-view="optimize" aria-controls="view-optimize">Optimize</button>
       </div>
       <button type="button" class="chips-pin" id="chipsPinStrategy" aria-pressed="true" aria-label="Unpin groups">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
+      <div class="chips-track" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="chips-wrap" data-place="arcade">
+      <div class="chips" id="views-arcade" role="tablist" aria-label="Arcade sections">
+        <button type="button" role="tab" class="chip view-tab" id="sub-awards" data-view="awards" aria-controls="view-awards" hidden>Awards</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-quests" data-view="quests" aria-controls="view-quests" hidden>Quests</button>
+        <button type="button" role="tab" class="chip view-tab" id="sub-games" data-view="games" aria-controls="view-games" hidden>Games</button>
+      </div>
+      <button type="button" class="chips-pin" id="chipsPinArcade" aria-pressed="true" aria-label="Unpin groups">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/><path d="M12 14v7"/></svg></button>
       <div class="chips-track" aria-hidden="true"><span></span></div>
     </div>
@@ -2525,7 +2568,7 @@ html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
       </div>
     </section>
     <!-- Strategy: the Strategies settings panel (drawn here, not as an Inputs chip), Compare and Optimize. In the wide
-         layout it takes the Outputs column while selected, as Garden does. -->
+         layout it takes the Outputs column while selected, as Arcade does. -->
     <section class="panel" id="panel-strategy" data-tab="strategy" role="tabpanel" aria-labelledby="tab-strategy" hidden>
       <div class="title-help mc-notice-row"><button type="button" class="help-button" aria-expanded="false" aria-controls="help-strategy-notice" aria-label="About these results: not advice, hypothetical"><span>i</span></button></div>
       <div id="help-strategy-notice" hidden>
@@ -2542,9 +2585,18 @@ html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
         <div id="optimize-body"></div>
       </div>
     </section>
-    <!-- Awards (Gamer style only): a bottom tab of its own; in the wide layout it takes the Outputs column. -->
-    <section class="panel" id="panel-awards" data-tab="awards" role="tabpanel" aria-labelledby="tab-awards" hidden>
-      <div class="subpanel" id="awards-body"></div>
+    <!-- Arcade (Gamer style only): Awards, Quests and Games, a bottom tab of its own; in the wide layout it takes the
+         Outputs column. -->
+    <section class="panel" id="panel-arcade" data-tab="arcade" role="tabpanel" aria-labelledby="tab-arcade" hidden>
+      <div class="subpanel" id="view-awards" data-view="awards" role="tabpanel" aria-labelledby="sub-awards">
+        <div id="awards-body"></div>
+      </div>
+      <div class="subpanel" id="view-quests" data-view="quests" role="tabpanel" aria-labelledby="sub-quests" hidden>
+        <div id="quests-body"></div>
+      </div>
+      <div class="subpanel" id="view-games" data-view="games" role="tabpanel" aria-labelledby="sub-games" hidden>
+        <div id="games-body"></div>
+      </div>
     </section>
   </main>
 
@@ -2557,8 +2609,8 @@ html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Outputs</span></button>
     <button type="button" role="tab" class="tab" id="tab-strategy" data-tab="strategy" aria-controls="panel-strategy">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Strategy</span></button>
-    <button type="button" role="tab" class="tab" id="tab-awards" data-tab="awards" aria-controls="panel-awards" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9M12 12c0-4-3-7-8-7 0 5 3 7 8 7zM12 14c0-4 3-6 8-6 0 4-3 6-8 6z"/></svg><span>Garden</span></button>
+    <button type="button" role="tab" class="tab" id="tab-arcade" data-tab="arcade" aria-controls="panel-arcade" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r="1"/><circle cx="17.5" cy="14" r="1"/></svg><span>Arcade</span></button>
   </nav>
 
   <!-- Every sheet and dialog: its title in a header that stays at the top, a footer that stays at the bottom with its
@@ -2769,16 +2821,16 @@ html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "f8c3618e05d7", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "ca5d705f84cc", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.bc867c6434.js"></script>
+<script src="shared.47c4516f80.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.b610d1f57c.js"></script>
-<script src="gamify.ba629cda7e.js"></script>
-<script src="games.7803be786a.js"></script>
+<script src="gamify.291a069350.js"></script>
+<script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.b68d80098f.js"></script>
+<script src="app.cf52a6c169.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
