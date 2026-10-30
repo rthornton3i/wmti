@@ -13,7 +13,7 @@
 // leaves every request there alone (the beta's own worker, or the network, answers it).
 "use strict";
 
-const BUILD_ID = "f8c3618e05d7";
+const BUILD_ID = "ca5d705f84cc";
 const CHANNEL = "stable";
 const CACHE_FAMILY = CHANNEL === "beta" ? "wmti-beta" : "wmti";
 const CACHE_PREFIX = CACHE_FAMILY + ":" + self.registration.scope + ":";
@@ -24,7 +24,7 @@ const DOCS_PATH = new URL("docs/", self.registration.scope).pathname;
 const OTHER_CHANNEL_PATHS = CHANNEL === "beta" ? [] : [new URL("beta/", self.registration.scope).pathname];
 const FILES = [
  "./",
- "app.5de0d739cc.js",
+ "app.d917f07e6f.js",
  "charts.ae4d661d99.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
@@ -32,8 +32,8 @@ const FILES = [
  "fonts/public-sans-latin-500-normal.woff2",
  "fonts/public-sans-latin-600-normal.woff2",
  "fonts/public-sans-latin-700-normal.woff2",
- "games.7803be786a.js",
- "gamify.ba629cda7e.js",
+ "games.e18966a4ef.js",
+ "gamify.291a069350.js",
  "icons/apple-touch-icon.png",
  "icons/icon-192.png",
  "icons/icon-512.png",
@@ -54,9 +54,9 @@ const FILES = [
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
  "report.09a0bd29a3.js",
- "shared.bc867c6434.js",
- "wmti.c916dd3418.wasm",
- "worker.2eb526ef9d.js"
+ "shared.47c4516f80.js",
+ "wmti.479a1d8c32.wasm",
+ "worker.6c43c3d181.js"
 ];
 
 self.addEventListener("install", (event) => {

@@ -1178,7 +1178,7 @@
     setup: ["setup", null], inputs: ["inputs", null], outputs: ["outputs", null],
     summary: ["outputs", "summary"], plots: ["outputs", "plots"], compare: ["strategy", "compare"],
     optimize: ["strategy", "optimize"], strategy: ["strategy", null], strategies: ["strategy", "strategies"],
-    awards: ["awards", null],
+    arcade: ["arcade", null], awards: ["arcade", "awards"], quests: ["arcade", "quests"], games: ["arcade", "games"],
     results: ["outputs", "summary"], settings: ["setup", null], household: ["setup", null], config: ["inputs", null],
     more: ["setup", null], benefits: ["inputs", null, "savings"], savings: ["inputs", null, "savings"],
     healthcare: ["inputs", null, "healthcare"], retirement: ["inputs", null, "retirement"],
@@ -1717,6 +1717,24 @@
     childAges: "Children's ages" };
   // The list each count question sets the length of: the children, the cars or the homes.
   const WALK_COUNT_LISTS = { count: "children", carCount: "cars", homeCount: "homes" };
+
+  // The areas the walkthrough set only the basics of: an area's count question with a `basics` warning whose list
+  // holds items and whose deeper questions were not opened (`opened`). [question id, panel, warning] each, in tree
+  // order; the panel is the one its hand-off leads to.
+  function walkBasicsOnly(tree, inputs, opened) {
+    const items = [];
+    for (const topic of (tree && tree.topics) || []) {
+      for (const node of topic.questions) {
+        const list = WALK_COUNT_LISTS[node.action];
+        if (!node.basics || !list || !((inputs && inputs[list]) || []).length || (opened || []).includes(node.id)) {
+          continue;
+        }
+        const handoff = (node.deeper || []).find((child) => child.handoff);
+        items.push([node.id, handoff ? handoff.handoff.panel : list, node.basics]);
+      }
+    }
+    return items;
+  }
   function walkLabel(node) {
     if (node.control === "handoff") return node.prompt;
     if (WALK_ACTION_LABELS[node.action]) return WALK_ACTION_LABELS[node.action];
@@ -2661,7 +2679,7 @@
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
     checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetFieldNote, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
-    resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS,
+    resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkBasicsOnly,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
     storagePrefix, channelCachePrefixes, copyStableStorage, isBetaChannel,
     blankInputs, needsSetup, otherScenarioNames, benefitAccounts, freeName, numberedName, importedName,

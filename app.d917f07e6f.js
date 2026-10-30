@@ -9,7 +9,7 @@
     panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, carLoanNow, homeMortgageNow, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
-    WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf,
+    WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkBasicsOnly, walkProgress, walkTrail, walkDirection, walkClean, answerText, carValueToday,
     exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
     storagePrefix, channelCachePrefixes, copyStableStorage, isBetaChannel,
     blankInputs, needsSetup, splitExperience, joinExperience, defaultExperience, storedExperience, carriedExperience,
@@ -102,11 +102,12 @@
     "Use of this app is at your own risk. The app is provided as is, without warranty.",
   ];
   const LEGAL_SUMMARY_CLOSING = "Please read the full Terms below.";
-  const TABS = ["setup", "inputs", "outputs", "strategy", "awards"];  // the bottom bar, left to right (Awards: Gamer only)
+  const TABS = ["setup", "inputs", "outputs", "strategy", "arcade"];  // the bottom bar, left to right (Arcade: Gamer only)
   const VIEWS = ["summary", "plots"];  // the switch inside Outputs
   const STRATEGY_VIEWS = ["strategies", "compare", "optimize"];  // the switch inside Strategy
+  const ARCADE_VIEWS = ["awards", "quests", "games"];  // the switch inside Arcade (Gamer only)
   const VIEW_ICONS = { summary: "chart", plots: "bands", strategies: "receipt", compare: "sliders", optimize: "pig",
-    strategy: "compass", awards: "sprout" };  // its chips' icons
+    strategy: "compass", arcade: "star", awards: "star", quests: "key", games: "bolt" };  // its chips' icons
   // The color scheme, kept per viewer as plain text; index.html applies it before the first paint.
   const THEME_KEY = STORAGE_PREFIX + "theme.v1";
   // Every key this app keeps in localStorage; Clear all data on this device removes them all.
@@ -142,7 +143,9 @@
     "strategy/strategies": ["Strategy", "Strategies", "Tax strategies and end-of-plan settings"],
     "strategy/compare": ["Strategy", "Compare", "Two configs on the same random draws"],
     "strategy/optimize": ["Strategy", "Optimize", "The best strategy settings on the same random draws"],
-    awards: ["Garden", "Garden", "Your garden, level, quests and awards, saved with this scenario"],
+    "arcade/awards": ["Arcade", "Awards", "Your level, XP and awards, saved with this scenario"],
+    "arcade/quests": ["Arcade", "Quests", "Steps that earn XP as you build your plan"],
+    "arcade/games": ["Arcade", "Games", "Short puzzles and a prize wheel, just for fun"],
   };
   // Inline SVG icons (24 px grid, stroked): chips and pane titles.
   const ICONS = {
@@ -182,7 +185,8 @@
     resultInputsText: null,  // the inputs text the single run's result ran on
     notes: null, surplusLocks: [], benefits: null, earnings: null, deposits: null, depositMoveNotes: [],
     heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
-    tab: "outputs", view: "summary", strategyView: "strategies", chips: { plots: null, settings: "income" },
+    tab: "outputs", view: "summary", strategyView: "strategies", arcadeView: "awards",
+    chips: { plots: null, settings: "income" },
     plotView: "chart", scenarios: Object.create(null), perRunMs: null,
     autoSaveOff: [], exampleHidden: false,
     openFolds: [],  // the closed-by-default disclosures opened this visit (the claim estimates, 80-settings.js)
@@ -287,7 +291,8 @@
   }
   function savePrefs() {
     const compare = state.compare;
-    store(PREFS_KEY, { tab: state.tab, view: state.view, strategyView: state.strategyView, chips: state.chips,
+    store(PREFS_KEY, { tab: state.tab, view: state.view, strategyView: state.strategyView,
+      arcadeView: state.arcadeView, chips: state.chips,
       plotView: state.plotView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
       exampleHidden: state.exampleHidden,
@@ -304,7 +309,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.2eb526ef9d.js");
+      worker = new Worker("worker.6c43c3d181.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -438,9 +443,10 @@
       // Prefs of the older five-tab page (tab "settings", "plots", ...) lead to the matching new place.
       const route = tabRoute(prefs.tab);
       if (route) state.tab = route.tab;
-      if (route && route.view) state[route.tab === "strategy" ? "strategyView" : "view"] = route.view;
-      else if (outputViews().includes(prefs.view)) state.view = prefs.view;  // Awards only in Gamer style
+      if (route && route.view) state[viewKey(route.tab)] = route.view;
+      else if (outputViews().includes(prefs.view)) state.view = prefs.view;  // Arcade only in Gamer style
       if (STRATEGY_VIEWS.includes(prefs.strategyView)) state.strategyView = prefs.strategyView;
+      if (ARCADE_VIEWS.includes(prefs.arcadeView)) state.arcadeView = prefs.arcadeView;
       Object.assign(state.chips, prefs.chips || {});
       if (route && route.chip) state.chips.settings = route.chip;
       // Prefs of the page before the Strategy tab: Compare and Optimize were Outputs views, Strategies an Inputs chip.
@@ -469,7 +475,7 @@
     if (hashRoute) state.tab = hashRoute.tab;
     if (hashRoute && hashRoute.tab === "setup") revealSetup();  // a link to Setup
     if (hashRoute && hashRoute.chip) state.chips.settings = hashRoute.chip;
-    if (hashRoute && hashRoute.view) state[hashRoute.tab === "strategy" ? "strategyView" : "view"] = hashRoute.view;
+    if (hashRoute && hashRoute.view) state[viewKey(hashRoute.tab)] = hashRoute.view;
     $("boot").hidden = true;
     $("app").hidden = false;
     try {
@@ -683,16 +689,16 @@
   const wide = { on: false };
 
   // Whether a tab's panel is on screen: always in the wide layout, else when it is the selected tab. Strategy and
-  // Awards (Gamer) show only while selected; in the wide layout they take the Outputs column's place.
+  // Arcade (Gamer) show only while selected; in the wide layout they take the Outputs column's place.
   function tabShown(tab) {
-    if (tab === "awards" || tab === "strategy") return state.tab === tab;
+    if (tab === "arcade" || tab === "strategy") return state.tab === tab;
     if (wide.on) return tab !== "outputs" || !outputsColumnTaken();
     return state.tab === tab;
   }
 
-  // Whether Strategy or Awards holds the wide layout's Outputs column.
+  // Whether Strategy or Arcade holds the wide layout's Outputs column.
   function outputsColumnTaken() {
-    return state.tab === "awards" || state.tab === "strategy";
+    return state.tab === "arcade" || state.tab === "strategy";
   }
 
   function wireWide() {
@@ -769,7 +775,7 @@
   // A column the split shuts: a move there (a link into Inputs while only Outputs shows) opens both again.
   function splitShuts(tab) {
     return wide.on && ((tab === "inputs" && document.documentElement.classList.contains("split-only-outputs"))
-      || ((tab === "outputs" || tab === "strategy" || tab === "awards")
+      || ((tab === "outputs" || tab === "strategy" || tab === "arcade")
         && document.documentElement.classList.contains("split-only-inputs")));
   }
 
@@ -891,14 +897,21 @@
     return tabShown("strategy") && state.strategyView === "compare";
   }
 
-  // The view a tab shows: Outputs' (state.view) or Strategy's (state.strategyView); null for a tab without views.
+  // The view a tab shows: Outputs' (state.view), Strategy's (state.strategyView) or Arcade's (state.arcadeView); null
+  // for a tab without views.
   function placeView(tab) {
     if (tab === "outputs") return state.view;
-    return tab === "strategy" ? state.strategyView : null;
+    return tab === "strategy" || tab === "arcade" ? state[viewKey(tab)] : null;
   }
 
-  // The tab a view belongs to: Strategy for its three views, else Outputs.
+  // The state key that holds a tab's view: strategyView, arcadeView, or view (Outputs').
+  function viewKey(tab) {
+    return tab === "strategy" ? "strategyView" : tab === "arcade" ? "arcadeView" : "view";
+  }
+
+  // The tab a view belongs to: Strategy or Arcade for their three views, else Outputs.
   function viewTab(view) {
+    if (ARCADE_VIEWS.includes(view)) return "arcade";
     return STRATEGY_VIEWS.includes(view) ? "strategy" : "outputs";
   }
 
@@ -922,7 +935,7 @@
   // Show the current tab and view: panels and sub-panels hidden or shown, tab roles and roving tabindex set.
   function showPlace() {
     noteViewSoon();  // a view left or shown (25-collapse.js)
-    syncAwardsTab();  // the Awards tab shows only in Gamer style
+    syncAwardsTab();  // the Arcade tab shows only in Gamer style
     for (const name of TABS) {
       $("panel-" + name).hidden = !tabShown(name);
       $("tab-" + name).setAttribute("aria-selected", String(name === state.tab));
@@ -941,14 +954,20 @@
       $("sub-" + name).setAttribute("aria-selected", String(name === state.strategyView));
       $("sub-" + name).tabIndex = name === state.strategyView ? 0 : -1;
     }
-    for (const tab of ["awards", "strategy"]) {  // wide only: Awards and Strategy from the Outputs row
+    if (!ARCADE_VIEWS.includes(state.arcadeView)) state.arcadeView = ARCADE_VIEWS[0];
+    for (const name of ARCADE_VIEWS) {
+      $("view-" + name).hidden = name !== state.arcadeView;
+      $("sub-" + name).setAttribute("aria-selected", String(name === state.arcadeView));
+      $("sub-" + name).tabIndex = name === state.arcadeView ? 0 : -1;
+    }
+    for (const tab of ["arcade", "strategy"]) {  // wide only: Arcade and Strategy from the Outputs row
       $("sub-" + tab).setAttribute("aria-selected", String(state.tab === tab));
       $("sub-" + tab).tabIndex = state.tab === tab ? 0 : -1;
     }
     $("sub-strategy").hidden = !wide.on;
     // Wide: Inputs' chips, the Outputs view row and the open view's sub-tabs all show, each over its column; with
-    // Strategy open, its view row takes the sub-tabs' place under the Outputs row.
-    const widePlaces = ["inputs", "outputs", state.tab === "strategy" ? "strategy" : "outputs/" + state.view];
+    // Strategy or Arcade open, its view row takes the sub-tabs' place under the Outputs row.
+    const widePlaces = ["inputs", "outputs", outputsColumnTaken() ? state.tab : "outputs/" + state.view];
     for (const element of document.querySelectorAll(".band [data-place]")) {
       element.hidden = wide.on ? !widePlaces.includes(element.dataset.place)
         : element.dataset.place !== scrollKey() && element.dataset.place !== state.tab;
@@ -957,6 +976,7 @@
     if (tabShown("inputs")) { placeBubble($("chips-settings"), false); centerChip($("chips-settings"), false); }
     placeViewBubble();
     placeStrategyBubble();
+    placeArcadeBubble();
     renderBand();
     placeBand();
     if (tabShown("inputs")) { requestNotes(); requestBenefits(); requestEarnings(); requestDeposits(); }
@@ -975,8 +995,8 @@
   // Outputs view other callers pass along) keeps the tab's own.
   function goTo(tab, view, remember) {
     if (tab === "setup" && remember !== false) revealSetup();
-    const key = tab === "strategy" ? "strategyView" : "view";
-    if (view == null || viewTab(view) !== (tab === "strategy" ? "strategy" : "outputs")) view = state[key];
+    const key = viewKey(tab);
+    if (view == null || viewTab(view) !== (tab === "strategy" || tab === "arcade" ? tab : "outputs")) view = state[key];
     if (remember === false) {
       state.tab = tab;
       state[key] = view;
@@ -992,7 +1012,7 @@
       state[key] = view;
       showPlace();
       savePrefs();
-      if (viewChanged) $(tab === "strategy" ? "panel-strategy" : "panel-outputs").scrollTop = 0;
+      if (viewChanged) $(tab === "strategy" || tab === "arcade" ? "panel-" + tab : "panel-outputs").scrollTop = 0;
       return;
     }
     if (tab === state.tab && view === state[key]) { window.scrollTo(0, 0); return; }
@@ -1003,7 +1023,7 @@
     window.scrollTo(0, 0);
   }
 
-  // The Outputs view row's bubble: over the selected view (wide, the Garden or Strategy chip while that tab holds the
+  // The Outputs view row's bubble: over the selected view (wide, the Arcade or Strategy chip while that tab holds the
   // column), gliding there when the view changed while Outputs showed.
   function placeViewBubble() {
     const row = $("views-outputs");
@@ -1025,6 +1045,16 @@
     if (shown) placeBubble(row, moved);
   }
 
+  // The Arcade view row's bubble, the same way.
+  function placeArcadeBubble() {
+    const row = $("views-arcade");
+    const shown = tabShown("arcade");
+    const moved = row.dataset.tab === "arcade" && row.dataset.selected !== state.arcadeView;
+    row.dataset.tab = shown ? "arcade" : state.tab;
+    row.dataset.selected = state.arcadeView;
+    if (shown) placeBubble(row, moved);
+  }
+
   function selectTab(tab, remember) {
     goTo(tab, placeView(tab) || state.view, remember);
   }
@@ -1043,6 +1073,8 @@
       state.chips.plots = PLOT_VIEWS[0].id;
     } else if (tab === "strategy") {
       view = STRATEGY_VIEWS[0];
+    } else if (tab === "arcade") {
+      view = arcadeViews()[0] || ARCADE_VIEWS[0];
     }
     goTo(tab, view);
     if (tab === "inputs" || tab === "strategy") renderSettings();
@@ -1051,10 +1083,10 @@
     centerSwipedChips();
   }
 
-  // An Outputs or Strategy view; "awards" and "strategy" (the wide layout's Garden and Strategy chips, or a Show me)
-  // open that tab.
+  // An Outputs, Strategy or Arcade view; "arcade" and "strategy" (the wide layout's Arcade and Strategy chips) open
+  // that tab.
   function selectView(view, remember) {
-    if (view === "awards" || view === "strategy") { if (state.tab !== view) selectTabFresh(view); return; }
+    if (view === "arcade" || view === "strategy") { if (state.tab !== view) selectTabFresh(view); return; }
     goTo(viewTab(view), view, remember);
   }
 
@@ -1528,6 +1560,7 @@
     if (tab === "inputs") return "inputs/" + (lowOn() ? "low" : state.chips.settings);
     if (tab === "outputs") return "outputs/" + state.view + (state.view === "plots" ? "/" + shownSubtab("plots") : "");
     if (tab === "strategy") return "strategy/" + state.strategyView;
+    if (tab === "arcade") return "arcade/" + state.arcadeView;
     return tab;
   }
 
@@ -1935,6 +1968,7 @@
   // one step each.
   function outputSteps(tab) {
     if (tab === "strategy") return STRATEGY_VIEWS.map((view) => ({ view, sub: null }));
+    if (tab === "arcade") return arcadeViews().map((view) => ({ view, sub: null }));
     return outputViews().flatMap((view) => (OUTPUT_SUBTABS[view] ? OUTPUT_SUBTABS[view].list.map((item) => ({ view, sub: item.id }))
       : [{ view, sub: null }]));
   }
@@ -1950,7 +1984,7 @@
       return chip ? { tab: "inputs", view: state.view, chip, row: $("chips-settings") } : null;
     }
     const tab = swipeTab();
-    if (tab === "outputs" || tab === "strategy") {
+    if (tab === "outputs" || tab === "strategy" || tab === "arcade") {
       const steps = outputSteps(tab);
       const shown = placeView(tab);
       const at = steps.findIndex((step) => step.view === shown && step.sub === shownSubtab(shown));
@@ -1971,7 +2005,7 @@
   // The swiped tab's panel, and its chips row that wears a bubble (none on Setup).
   const shownPanel = () => $("panel-" + swipeTab());
   const bubbleRow = () => (swipeTab() === "inputs" ? $("chips-settings")
-    : swipeTab() === "outputs" || swipeTab() === "strategy" ? $("views-" + swipeTab()) : null);
+    : ["outputs", "strategy", "arcade"].includes(swipeTab()) ? $("views-" + swipeTab()) : null);
 
   // After a swipe, scroll every chips row in view so the tab or sub-tab swiped to sits in the middle of the screen.
   function centerSwipedChips() {
@@ -4436,28 +4470,49 @@
   // The rules are gamify.js (WmtiGamify); this part keeps the ledger in the open scenario's experience block
   // (experience.progress.game, so it is saved, exported and imported with the scenario, and the model never reads it),
   // works out the facts from the state, grants on a short debounce after results, edits and walkthrough steps
-  // (gamerTick), shows one polite toast line and draws the Awards tab, built only while it is open. Nothing here reads
-  // or changes an input or a result beyond looking at them.
+  // (gamerTick), shows one polite toast line and draws the Arcade tab (Awards, Quests and Games), built only while it is
+  // open. Nothing here reads or changes an input or a result beyond looking at them.
   const gamify = window.WmtiGamify;
   const GAMER_TICK_MS = 300;  // the debounce of gamerTick
   const GAMER_TOAST_MS = 3500;  // how long the toast line shows
-  // Gamer is a look only for now (owner, 2026-10-30): the HUD styling of styles.css "Gamer HUD look". false keeps the
-  // Awards tab, Garden, XP, quests, quest map, mini games and toasts off; true brings them back unchanged.
-  const GAMER_EXTRAS = false;
+  // Gamer's extras, one switch each (owner, 2026-10-30), over the HUD look of styles.css "Style looks": the Arcade tab
+  // keeps Awards (with the level and XP), Quests (and the walkthrough's quest map) and a few light mini games
+  // (LIGHT_GAMES); the Glass Garden (its beds, level-up card and tools) and the heavier games stay off, and a toast names
+  // only a new award. The off code is kept: true brings each back unchanged.
+  const GAMER_FEATURES = Object.freeze({ awards: true, quests: true, lightGames: true, heavyGames: false, garden: false,
+    toasts: true });
+  const LIGHT_GAMES = ["sudoku", "grow", "bigger", "wheel", "receipts"];  // short one-screen games; the rest are heavy
   const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views a visit marks seen
   // `pending`: a level-up card waiting for the Garden tab (memory only); `year`: the Garden's Plan year slider;
   // `detail`: the bed or chip the Garden's detail area explains.
   const gamer = { timer: null, toastTimer: null, migrated: false, pending: null, year: 0, detail: null };
   window.wmtiGamer = { state: () => state.game, tick: gamerTickNow, tree: () => state.walkTree };  // for the tests
 
-  // Whether the Gamer extras show: Gamer style with GAMER_EXTRAS on; never with the gamify features off (gamifyOn), so
-  // no Awards view, XP, quest map, Quick game or mini game shows then.
+  // Whether the Gamer extras show: Gamer style with at least one of GAMER_FEATURES on; never with the gamify features
+  // off (gamifyOn), so no Arcade, XP, quest map, Quick game or mini game shows then.
   function gamerOn() {
     if (!gamifyOn() || !state.info || !state.info.experience || !state.experience) return false;
-    return GAMER_EXTRAS && shownExperience().style === "gamer";
+    return Object.values(GAMER_FEATURES).some(Boolean) && shownExperience().style === "gamer";
   }
 
-  // The Outputs views (Awards is a bottom tab of its own, not a view; Strategy's views are STRATEGY_VIEWS).
+  // Whether one of GAMER_FEATURES shows now: Gamer style with that switch on.
+  const gamerFeature = (name) => GAMER_FEATURES[name] === true && gamerOn();
+
+  // Whether mini game `id` can be played now: a light game with lightGames on, a heavier one with heavyGames on, and a
+  // Garden tool's game only with the Garden on too.
+  function gameOn(id) {
+    if (!gamerOn() || !GAME_TITLES[id]) return false;
+    if (gamify.toolOf(id) && !GAMER_FEATURES.garden) return false;
+    return GAMER_FEATURES[LIGHT_GAMES.includes(id) ? "lightGames" : "heavyGames"] === true;
+  }
+
+  // The Arcade views shown now, each while its switch is on: Awards (also with only the Garden on), Quests and Games.
+  function arcadeViews() {
+    return ARCADE_VIEWS.filter((view) => (view === "awards" ? gamerFeature("awards") || gamerFeature("garden")
+      : view === "quests" ? gamerFeature("quests") : gameRules.GAMES.some((game) => gameOn(game.id))));
+  }
+
+  // The Outputs views (Arcade is a bottom tab of its own; Strategy's views are STRATEGY_VIEWS).
   function outputViews() {
     return VIEWS;
   }
@@ -4521,10 +4576,12 @@
       { effort: shownExperience().effort, today: gameToday() });
     if (!grants.length && JSON.stringify(ledger) === JSON.stringify(state.game.ledger)) return;
     saveLedger(ledger);
-    const card = gamify.levelUpCard(grants, gardenNameOf, before);
+    const card = GAMER_FEATURES.garden ? gamify.levelUpCard(grants, gardenNameOf, before) : null;
     if (card) gamer.pending = card;  // shown by the Garden's next render with nothing else open
-    if (grants.length) {
-      gamerToast(gamify.grantsText(grants) + (card && !gardenCanReveal() ? " The garden has news." : ""));
+    if (grants.length && GAMER_FEATURES.toasts) {
+      gamerToast(GAMER_FEATURES.garden
+        ? gamify.grantsText(grants) + (card && !gardenCanReveal() ? " The garden has news." : "")
+        : gamify.grantsText(grants.filter((grant) => grant.kind === "award")));  // subtle: a new award only
     }
     if (awardsShown()) renderAwards();
   }
@@ -4548,23 +4605,27 @@
     gamerTick();
   }
 
-  const awardsShown = () => state.tab === "awards" && gamerOn();
+  const awardsShown = () => state.tab === "arcade" && gamerOn();
 
-  // Show the Awards bottom tab only in Gamer style (and, wide, its chip in the Outputs row, since the wide layout has
-  // no bottom bar); a user on Awards when it goes moves to Outputs, Summary. True when the tab's visibility changed.
+  // Show the Arcade bottom tab only in Gamer style (and, wide, its chip in the Outputs row, since the wide layout has
+  // no bottom bar), with a chip for each view that is on; a user on Arcade when it goes moves to Outputs, Summary. True
+  // when the tab's visibility changed.
   function syncAwardsTab() {
     const on = gamerOn();
-    const changed = $("tab-awards").hidden === on;
-    $("tab-awards").hidden = !on;
-    $("sub-awards").hidden = !(on && wide.on);
-    if (!on && state.tab === "awards") {
+    const changed = $("tab-arcade").hidden === on;
+    $("tab-arcade").hidden = !on;
+    $("sub-arcade").hidden = !(on && wide.on);
+    const views = arcadeViews();
+    for (const view of ARCADE_VIEWS) $("sub-" + view).hidden = !views.includes(view);
+    if (views.length && !views.includes(state.arcadeView)) state.arcadeView = views[0];
+    if (!on && state.tab === "arcade") {
       state.tab = "outputs";
       state.view = "summary";
     }
     return changed;
   }
 
-  // The style changed or another scenario opened: the Awards tab follows the style and shows that scenario's progress.
+  // The style changed or another scenario opened: the Arcade tab follows the style and shows that scenario's progress.
   function gamerStyleChanged() {
     const on = gamerOn();
     const changed = syncAwardsTab();
@@ -4573,7 +4634,7 @@
       $("gamerToast").hidden = true;
       gamer.pending = null;
       closeLevelUp();
-      $("awards-body").replaceChildren();  // no garden is kept while away
+      for (const id of ["awards-body", "quests-body", "games-body"]) $(id).replaceChildren();  // nothing kept while away
     }
     if (state.schema) {
       if (changed) { showPlace(); savePrefs(); } else renderAwards();
@@ -4588,28 +4649,47 @@
   const QUEST_ORDER = { open: 0, pending: 0, locked: 1, done: 2 };  // open quests first, done ones last
   const QUEST_STATE_TEXT = { open: "To do", pending: "Done, adding it now", done: "Done" };
 
-  // The Garden tab: the Glass Garden, level and XP with the Next step, the garden's detail area, the quests (each open
-  // one with Show me), the awards, the Greenhouse of mini games, and Reset progress.
+  // The Arcade's Awards view: the Glass Garden and its detail area when the Garden is on, level and XP with the Next
+  // step, the awards (a game's award only while that game can be played, or once earned) and Reset progress.
   function awardsHtml() {
     const ledger = state.game.ledger;
-    const facts = gamerFacts();
     const model = gardenModel();
     const xp = model.xp;
     const level = model.level;
+    const garden = GAMER_FEATURES.garden;
     const toNext = level.next == null ? "The top level." : (level.next - level.into) + " XP to level "
       + (level.level + 1) + ".";
-    let html = gardenHtml(model);
+    const next = garden || level.next != null ? gardenNextStep(model) : "You are at the top level.";
+    let html = garden ? gardenHtml(model) : "";
     html += "<section class=\"gm-hero\" aria-labelledby=\"gmLevel\"><h3 id=\"gmLevel\" tabindex=\"-1\">Level "
       + level.level + ": " + escapeText(level.name) + "</h3><progress class=\"gm-bar\" max=\"" + (level.next || 1)
       + "\" value=\"" + (level.next == null ? 1 : level.into) + "\" aria-labelledby=\"gmLevel gmXp\"></progress><p "
-      + "id=\"gmXp\">" + xp + " XP. " + toNext + "</p><p class=\"gd-next\">" + escapeText(gardenNextStep(model))
-      + "</p></section>";
-    html += gardenDetailBox(model);
-    const quests = gamify.questStatus(facts, ledger, shownExperience().effort)
+      + "id=\"gmXp\">" + xp + " XP. " + toNext + "</p><p class=\"gd-next\">" + escapeText(next) + "</p></section>";
+    if (garden) html += gardenDetailBox(model);
+    if (GAMER_FEATURES.awards) {
+      html += "<div class=\"card\"><div class=\"card-head\"><h2>Awards</h2></div><ul class=\"gm-list\" id=\"gmAwards\">"
+        + gamify.AWARDS.filter((award) => award.id in ledger.awards || !award.keys
+          || award.keys.every((key) => gameOn(key.split(".")[1]))).map((award) => {
+        const day = ledger.awards[award.id];
+        const earned = day != null;
+        return "<li class=\"gm-award\" data-award=\"" + escapeText(award.id) + "\" data-earned=\"" + earned
+          + "\"><strong>" + escapeText(award.title) + "</strong><p>" + (earned ? "Earned " + escapeText(gameDate(day))
+          + "." : escapeText(award.how)) + "</p></li>";
+      }).join("") + "</ul></div>";
+    }
+    html += "<div class=\"card\"><p class=\"field-help\">Progress is saved with this scenario and goes with its file. "
+      + "XP counts what you do and compare, never how a plan turns out.</p><button type=\"button\" "
+      + "class=\"button button-danger\" id=\"gamerReset\">Reset progress</button></div>";
+    return html;
+  }
+
+  // The Arcade's Quests view: every quest, open ones first and done ones last, each open one with Show me.
+  function questsHtml() {
+    const quests = gamify.questStatus(gamerFacts(), state.game.ledger, shownExperience().effort)
       .map((quest, position) => ({ quest, position }))
       .sort((one, two) => QUEST_ORDER[one.quest.state] - QUEST_ORDER[two.quest.state] || one.position - two.position)
       .map(({ quest }) => quest);
-    html += "<div class=\"card\"><div class=\"card-head\"><h2>Quests</h2></div><ul class=\"gm-list\" id=\"gmQuests\">"
+    return "<div class=\"card\"><div class=\"card-head\"><h2>Quests</h2></div><ul class=\"gm-list\" id=\"gmQuests\">"
       + quests.map((quest) => {
       const status = quest.state === "locked" ? quest.lockText
         : quest.state === "done" ? "Done " + gameDate(quest.day) : QUEST_STATE_TEXT[quest.state];
@@ -4619,28 +4699,17 @@
         + "<strong>" + escapeText(quest.title) + "</strong>" + show + "<p>" + escapeText(quest.how) + " " + quest.xp
         + " XP. " + escapeText(status) + ".</p></li>";
     }).join("") + "</ul></div>";
-    html += "<div class=\"card\"><div class=\"card-head\"><h2>Awards</h2></div><ul class=\"gm-list\" id=\"gmAwards\">"
-      + gamify.AWARDS.map((award) => {
-      const day = ledger.awards[award.id];
-      const earned = day != null;
-      return "<li class=\"gm-award\" data-award=\"" + escapeText(award.id) + "\" data-earned=\"" + earned + "\"><strong>"
-        + escapeText(award.title) + "</strong><p>" + (earned ? "Earned " + escapeText(gameDate(day)) + "."
-        : escapeText(award.how)) + "</p></li>";
-    }).join("") + "</ul></div>";
-    html += miniGamesHtml(ledger);
-    html += "<div class=\"card\"><p class=\"field-help\">Progress is saved with this scenario and goes with its file. "
-      + "XP counts what you do and compare, never how a plan turns out.</p><button type=\"button\" "
-      + "class=\"button button-danger\" id=\"gamerReset\">Reset progress</button></div>";
-    return html;
   }
 
-  // The Greenhouse: one card per mini game with its best stars and Play (Claim Age Showdown once per person); a tool's
-  // game says which tool and level open it, with no Play button, until then.
+  // The Arcade's Games view (the Greenhouse with the Garden on): one card per game that is on, with its best stars and
+  // Play (Claim Age Showdown once per person); a tool's game says which tool and level open it, with no Play button,
+  // until then.
   function miniGamesHtml(ledger) {
     const partner = Boolean(state.inputs && state.inputs.partner);
     const level = gamify.levelOf(gamify.xpOf(ledger)).level;
-    return "<div class=\"card\"><div class=\"card-head\"><h2>Greenhouse: mini games</h2></div><div class=\"gm-list\" id=\"gmGames\">"
-      + gameRules.GAMES.map((game) => {
+    return "<div class=\"card\"><div class=\"card-head\"><h2>" + (GAMER_FEATURES.garden ? "Greenhouse: mini games"
+      : "Mini games") + "</h2></div><div class=\"gm-list\" id=\"gmGames\">"
+      + gameRules.GAMES.filter((game) => gameOn(game.id)).map((game) => {
       const entry = ledger.games[game.id];
       const tool = gamify.toolOf(game.id);
       if (tool && level < tool.level) {
@@ -4656,14 +4725,16 @@
         + escapeText(label) + "</button>").join(" ");
       return "<div class=\"gm-game-card\" data-game-card=\"" + game.id + "\"><strong>" + escapeText(game.title)
         + "</strong><span class=\"row-buttons\">" + buttons + "</span><p>" + escapeText(best) + "</p></div>";
-    }).join("") + "</div><p class=\"field-help\">Three short rounds each, no clock; close any time. Illustrative, not "
-      + "advice.</p></div>";
+    }).join("") + "</div><p class=\"field-help\">A few short rounds each, no clock; close any time. Illustrative, "
+      + "not advice.</p></div>";
   }
 
   function renderAwards() {
     if (!awardsShown()) return;
     migrateDeviceLedger();
     $("awards-body").innerHTML = awardsHtml();
+    $("quests-body").innerHTML = GAMER_FEATURES.quests ? questsHtml() : "";
+    $("games-body").innerHTML = miniGamesHtml(state.game.ledger);
     maybeShowPending();
   }
 
@@ -4710,7 +4781,7 @@
   }
 
   function wireGamer() {
-    $("awards-body").addEventListener("click", (event) => {
+    $("panel-arcade").addEventListener("click", (event) => {
       const show = event.target.closest(".gm-show");
       if (show) { gamerShowMe(show.dataset.show); return; }
       const playButton = event.target.closest(".gm-play");
@@ -4720,9 +4791,10 @@
     wireGarden();
   }
   // ---- Gamer mini games (Gamer style only) ----
-  // Seven short, original games (rules in games.js, WmtiGames) in one pop-up (#gameDialog), opened from the Garden
-  // tab's Greenhouse and tools (the three tool games, 54-tool-games.js, once their level is reached) and from the
-  // walkthrough's "Quick game" buttons. Three rounds, no clock; Close or Escape any
+  // Short, original games (rules in games.js, WmtiGames) in one pop-up (#gameDialog), opened from the Arcade's Games
+  // view, the Garden's tools (the three tool games, 54-tool-games.js, once their level is reached) and the walkthrough's
+  // "Quick game" buttons, each only while gameOn (51-gamer.js) lets it: the light ones (Money Sudoku, Grow It, Bigger
+  // Pile, Prize Wheel and Receipt Sort) are on, the heavier ones off. Three rounds, no clock; Close or Escape any
   // time (an unfinished run grants nothing). Finishing records the play with gamerRecordPlay (51-gamer.js). The games
   // read fixed law data (state.info.law), the person's benefitTables rows (Claim Age Showdown) or generic numbers and
   // change nothing, except Claim Age Showdown's confirmed "Set my claim age" (one Undo step, never at Low).
@@ -4794,7 +4866,7 @@
 
   // Open game `id`; `who` picks the person for Claim Age Showdown, `returnFocus` gets the focus back on Close.
   async function openGame(id, { who = "you", returnFocus = null } = {}) {
-    if (!GAME_TITLES[id] || !gamerOn() || !state.inputs || !toolGameOpen(id)) return;
+    if (!GAME_TITLES[id] || !gameOn(id) || !state.inputs || !toolGameOpen(id)) return;
     const turn = ++play.turn;
     Object.assign(play, { id, who: who === "partner" && state.inputs.partner ? "partner" : "you", round: 0,
       rounds: null, results: [], answer: undefined, checked: false, finished: false, stars: 0, data: null,
@@ -4837,6 +4909,14 @@
       play.rounds = gameRules.leakRounds(seed);
     } else if (id === "snowball") {
       play.rounds = gameRules.snowballRounds(seed);
+    } else if (id === "sudoku") {
+      play.rounds = gameRules.sudokuRounds(seed);
+    } else if (id === "grow") {
+      play.rounds = gameRules.growRounds(seed);
+    } else if (id === "bigger") {
+      play.rounds = gameRules.biggerRounds(seed);
+    } else if (id === "wheel") {
+      play.rounds = gameRules.wheelRounds(seed);
     } else {
       play.rounds = gameRules.decadeRounds(seed);
     }
@@ -4870,20 +4950,21 @@
   }
 
   const GAME_SCREENS = { bracket: bracketScreen, claim: claimScreen, receipts: receiptScreen, decade: decadeScreen,
-    seesaw: seesawScreen, leaks: leaksScreen, snowball: snowballScreen };
+    seesaw: seesawScreen, leaks: leaksScreen, snowball: snowballScreen, sudoku: sudokuScreen, grow: growScreen,
+    bigger: biggerScreen, wheel: wheelScreen };
 
   function renderGameRound() {
     play.answer = undefined;
     play.checked = false;
     play.reveal = null;
     const round = play.rounds[play.round];
-    $("gameRound").textContent = "Round " + (play.round + 1) + " of " + gameRules.ROUNDS;
+    $("gameRound").textContent = play.rounds.length > 1 ? "Round " + (play.round + 1) + " of " + play.rounds.length : "";
     const { nodes, reveal } = GAME_SCREENS[play.id](round);
     play.reveal = reveal;
     $("gameBody").replaceChildren(...nodes);
     $("gameBody").scrollTop = 0;
-    gameActions([gameButton("Check", "button", gameCheck, "gameCheck")]);
-    const first = $("gameBody").querySelector("input, button");
+    gameActions([gameButton(round.kind === "spin" ? "Spin" : "Check", "button", gameCheck, "gameCheck")]);
+    const first = $("gameBody").querySelector("input, select, button");
     (first || $("gameCheck")).focus();
   }
 
@@ -4892,20 +4973,22 @@
     if (play.checked) return;
     const round = play.rounds[play.round];
     if (play.answer === undefined) {
-      gameStatus(play.id === "receipts" ? "Sort every receipt first." : "Choose an answer first.");
+      gameStatus(play.id === "receipts" ? "Sort every receipt first." : play.id === "sudoku"
+        ? "Fill every empty square first." : "Choose an answer first.");
       return;
     }
     const graders = { bracket: gameRules.gradeBracket, claim: gameRules.gradeClaim, receipts: gameRules.gradeReceipts,
       decade: gameRules.gradeDecade, seesaw: gameRules.gradeSeesaw, leaks: gameRules.gradeLeaks,
-      snowball: gameRules.gradeSnowball };
+      snowball: gameRules.gradeSnowball, sudoku: gameRules.gradeSudoku, grow: gameRules.gradeGrow,
+      bigger: gameRules.gradeBigger, wheel: gameRules.gradeWheel };
     const answer = play.answer === "never" ? null : play.answer;
     const right = graders[play.id](round, answer);
     play.checked = true;
     play.results.push(right);
-    for (const input of $("gameBody").querySelectorAll("input[type=radio]")) input.disabled = true;
+    for (const input of $("gameBody").querySelectorAll("input[type=radio], select")) input.disabled = true;
     const said = play.reveal ? play.reveal(right) : "";
-    const verdict = round.kind === "pick" ? "Noted." : right ? "Right." : "Not quite.";
-    gameStatus(verdict + (said ? " " + said : ""));
+    const verdict = round.kind === "spin" ? "" : round.kind === "pick" ? "Noted." : right ? "Right." : "Not quite.";
+    gameStatus([verdict, said].filter(Boolean).join(" "));
     const last = play.round + 1 >= play.rounds.length;
     const next = gameButton(last ? "See result" : "Next", "button", last ? finishGame : gameNext, "gameNext");
     gameActions([next]);
@@ -4924,7 +5007,7 @@
     if (!play.checked) return;
     if (!play.finished) {
       play.finished = true;
-      play.stars = gameRules.starsOf(play.results);
+      play.stars = play.id === "wheel" ? play.rounds[0].prize.stars : gameRules.starsOf(play.results);
       gamerRecordPlay(play.id, play.stars);
     }
     const game = gameRules.GAMES.find((item) => item.id === play.id);
@@ -5324,6 +5407,92 @@
       return "With the trim A ends " + fullMoney(trimmed.ends.first - plain.ends.first) + " higher and B "
         + fullMoney(trimmed.ends.second - plain.ends.second) + " higher: cutting back early helps most when the "
         + "down years come first.";
+    } };
+  }
+
+  // ---- Money Sudoku ----
+  // A 4 by 4 grid: a given square shows its bill, an empty one is a select of the four bills. The answer is set once
+  // every empty square has a bill; a wrong grid shows one right answer after Check.
+  function sudokuScreen(round) {
+    const bills = gameRules.SUDOKU_BILLS;
+    const picks = {};
+    const grid = gameEl("div", "gm-sudoku");
+    grid.setAttribute("role", "group");
+    grid.setAttribute("aria-label", "Money Sudoku grid, 4 rows of 4");
+    const selects = {};
+    round.solution.forEach((cell, at) => {
+      const where = "Row " + (Math.floor(at / 4) + 1) + ", column " + (at % 4 + 1);
+      if (!round.blanks.includes(at)) {
+        const given = gameEl("span", "gm-cell", bills[cell]);
+        given.setAttribute("aria-label", where + ": " + bills[cell]);
+        grid.append(given);
+        return;
+      }
+      const select = gameEl("select", "gm-cell gm-cell-open");
+      select.setAttribute("aria-label", where);
+      select.append(new Option("?", ""), ...bills.map((bill, index) => new Option(bill, String(index))));
+      select.addEventListener("change", () => {
+        if (play.checked) return;
+        if (select.value === "") delete picks[at];
+        else picks[at] = Number(select.value);
+        play.answer = round.blanks.every((blank) => blank in picks) ? { ...picks } : undefined;
+      });
+      selects[at] = select;
+      grid.append(select);
+    });
+    return { nodes: [gameEl("p", "", "Fill the empty squares so each row, each column and each 2 by 2 box holds "
+      + bills.join(", ") + " once."), grid], reveal: (right) => {
+      if (right) return "Every row, column and box holds each bill once.";
+      for (const at of round.blanks) {
+        const select = selects[at];
+        if (Number(select.value) !== round.solution[at]) select.dataset.result = "fixed";
+        select.value = String(round.solution[at]);
+      }
+      return "A bill repeats somewhere; the marked squares show one answer that works.";
+    } };
+  }
+
+  // ---- Grow It ----
+  function growScreen(round) {
+    const rate = percent(round.rate, 0);
+    return { nodes: [gameEl("p", "", fullMoney(round.start) + " grows " + rate + " a year for " + round.years
+      + " years, with the growth left in. About how much is there at the end?"),
+    gameChoices("About how much", round.choices.map((value) => [value, "About " + fullMoney(value)]))],
+    reveal: () => "It grows to about " + fullMoney(round.exact) + ": each year's growth earns growth too. At " + rate
+      + " money doubles about every " + Math.round(72 / (round.rate * 100)) + " years." };
+  }
+
+  // ---- Bigger Pile ----
+  function biggerScreen(round) {
+    return { nodes: [gameEl("p", "", "Which pile of money is bigger? Illustrative numbers; no taxes or inflation."),
+      gameChoices("Bigger pile", [["a", round.a.text], ["b", round.b.text]])],
+    reveal: () => "The first comes to about " + fullMoney(round.a.value) + ", the second to about "
+      + fullMoney(round.b.value) + "." };
+  }
+
+  // ---- Prize Wheel ----
+  // One spin: the wheel turns to its segment (no turn under reduced motion) and the segment's stars are the result.
+  function wheelScreen(round) {
+    const prizes = gameRules.WHEEL_PRIZES;
+    const holder = gameEl("div", "gm-wheel-holder");
+    const wheel = gameEl("div", "gm-wheel");
+    wheel.setAttribute("aria-hidden", "true");
+    prizes.forEach((prize, index) => {
+      const label = gameEl("span", "gm-wheel-label", prize.stars === 3 ? "★★★" : "★".repeat(prize.stars));
+      label.style.setProperty("--turn", (index + 0.5) / prizes.length + "turn");
+      wheel.append(label);
+    });
+    const pointer = gameEl("span", "gm-wheel-pointer");
+    pointer.setAttribute("aria-hidden", "true");
+    holder.append(pointer, wheel);
+    play.answer = "spin";
+    return { nodes: [gameEl("p", "", "Spin once for 1 to 3 stars; the jackpot is 3. Just luck, just for fun."), holder,
+      gameEl("p", "sr-only", "The wheel holds " + prizes.map((prize) => prize.label).join(", ") + ".")],
+    reveal: () => {
+      const stop = (round.index + 0.5) / prizes.length;
+      wheel.style.setProperty("--spin", (round.turns - stop) + "turn");
+      wheel.dataset.spun = "true";
+      return "The wheel stops on " + round.prize.label + ".";
     } };
   }
 
@@ -15334,15 +15503,54 @@
     return wrap;
   }
 
-  // The cars' value and loans, all together (the backend spreads each over the cars).
+  // Per car: the price paid and the year bought, and a Yes/No car loan with its amount borrowed, rate and term (the
+  // node's `carFields`); the app works out the worth today and the loan still owed, shown as a note under each car.
   function walkCarCosts(node) {
-    const facts = walk.plan.facts || {};
-    const answer = { value: Math.round(facts.carValue || 0), loan: Math.round(facts.carLoan || 0) };
-    walk.pending.values = { ...answer };
-    const money = { kind: "number", unit: "money", minimum: 0, maximum: null };
-    const keys = ["value", "loan"];
-    return walkBoxes(node, [["Car value", answer.value, money], ["Car loans still owed", answer.loan, money]],
-      (index, next) => walkSet(keys[index], next));
+    const rules = state.info.sheetRules;
+    const fields = Object.fromEntries(node.carFields.map((field) => [field.path.split(".")[1], field]));
+    const cars = state.inputs.cars || [];
+    const answers = cars.map((car) => ({ purchasePrice: Number(car.purchasePrice) || 0,
+      purchaseYear: car.purchaseYear ?? fields.purchaseYear.maximum, hasLoan: Boolean(car.hasLoan),
+      loanOriginal: Number(car.loanOriginal) || 0, loanRate: car.loanRate, loanTermMonths: car.loanTermMonths }));
+    walk.pending.values.cars = clone(answers);
+    const wrap = document.createElement("div");
+    cars.forEach((car, carIndex) => {
+      const answer = answers[carIndex];
+      const section = document.createElement("div");
+      section.className = "walk-field";
+      const note = walkParagraph("", "walk-lede");
+      const showNote = () => {  // as the model reads the answers: estimated worth, loan defined at purchase
+        const draft = { ...car, ...answer, valueToday: 0, loanBasis: "purchase", loanStartYear: answer.purchaseYear };
+        note.textContent = "Worth about " + fullMoney(carValueToday(draft, rules)) + " today"
+          + (answer.hasLoan ? "; the loan still owes about " + fullMoney(carLoanNow(draft, rules).balance) : "") + ".";
+      };
+      const set = (key, value) => {
+        answer[key] = value;
+        walkSet("cars", clone(answers));
+        showNote();
+      };
+      const box = (key, position) => {
+        const label = walkParagraph(fields[key].label, "walk-label");
+        label.id = "walkLabel-" + carIndex + "-" + position;
+        return [label, walkNumberBox(node, fields[key], null, answer[key], "walkTitle " + label.id,
+          carIndex + "-" + position, (next) => set(key, next))];
+      };
+      const loanLabel = walkParagraph("Car loan?", "walk-label");
+      loanLabel.id = "walkLabel-" + carIndex + "-loan";
+      const loanBoxes = document.createElement("div");
+      loanBoxes.className = "walk-field";
+      loanBoxes.hidden = !answer.hasLoan;
+      loanBoxes.append(...box("loanOriginal", 2), ...box("loanRate", 3), ...box("loanTermMonths", 4));
+      section.append(walkParagraph(car.name || "Car " + (carIndex + 1), "walk-label"), ...box("purchasePrice", 0),
+        ...box("purchaseYear", 1), loanLabel,
+        walkChoices("walkTitle " + loanLabel.id, [[true, "Yes"], [false, "No"]], answer.hasLoan, (value) => {
+          loanBoxes.hidden = !value;
+          set("hasLoan", value);
+        }), loanBoxes, note);
+      showNote();
+      wrap.append(section);
+    });
+    return wrap;
   }
 
   // One age box per child, from your age at each birth; a child you expect has a negative age.
@@ -15361,7 +15569,12 @@
   // Whether the inputs hold the example household's answer to a question.
   function walkIsExample(node) {
     if (node.action === "partner") return (state.inputs.partner != null) === node.example;
-    if (node.action === "carCosts") return sameValue(carTotalsOf(state.inputs, state.info.sheetRules), node.example);
+    if (node.action === "carCosts") {
+      return sameValue((state.inputs.cars || []).map((car) => Object.fromEntries(node.carFields.map((field) => {
+        const name = field.path.split(".")[1];
+        return [name, car[name] ?? null];
+      }))), node.example);
+    }
     if (node.action === "childAges") {
       return sameValue((state.inputs.children || []).map((child) => child.yourAgeAtBirth), node.example);
     }
@@ -15434,6 +15647,10 @@
       const panel = node.handoff;
       element.append(walkParagraph("This is set on the " + panel.label + " page, where you can see and change every "
         + "row. Your answers so far are kept.", "walk-lede"));
+      const parent = walk.index[id].parent && walk.index[walk.index[id].parent].node;
+      if (parent && parent.basics) {  // Continue keeps only the basics of a many-settings area
+        element.append(walkParagraph(parent.basics, "walk-lede walk-basics"));
+      }
       // Open the page sits beside Continue, as large as Go deeper.
       const pair = document.createElement("div");
       pair.className = "walk-continue-row";
@@ -15524,7 +15741,7 @@
   function walkGameButton(id) {
     const hooks = state.info.experience.gameHooks || {};
     const gameId = hooks[id];
-    if (!gameId || !gamerOn() || !GAME_TITLES[gameId]) return null;
+    if (!gameId || !gameOn(gameId)) return null;
     const button = walkButton("Quick game: " + GAME_TITLES[gameId], "button button-quiet walk-game-button", () =>
       openGame(gameId, { who: id === "partnerSsAge" ? "partner" : "you", returnFocus: button }));
     button.id = "walkGame";
@@ -15736,7 +15953,7 @@
   function trailHtml(review) {
     const rows = walkRows();
     const facts = walk.plan.facts;
-    const questMap = !review && gamerOn();  // Gamer: the Trail reads as a quest map (51-gamer.js)
+    const questMap = !review && gamerFeature("quests");  // Gamer: the Trail reads as a quest map (51-gamer.js)
     return walkTrail(state.walkTree, walk.index, rows, walk.saved, review ? null : walk.saved.current)
       .map((group) => {
         const stage = questMap ? questMapHtml(group) : { className: "", heading: escapeText(group.title) };
@@ -15796,6 +16013,20 @@
         + "\" aria-label=\"Open " + label + "\">Open</button></li>").join("") + "</ol></li>";
   }
 
+  // The Review screen's group of the areas set only in their basics (walkBasicsOnly) whose question is asked with
+  // deeper questions to open at this effort, each warning with its page.
+  function basicsOnly() {
+    const items = walkBasicsOnly(state.walkTree, state.inputs, walk.saved.opened).filter(([id]) => {
+      const row = walkRow(id);
+      return row && row.hasDeeper;
+    });
+    if (!items.length) return "";
+    return "<li class=\"walk-topic-group\"><h3 class=\"eyebrow\">Only the basics set</h3>"
+      + "<ol class=\"walk-trail-list\">" + items.map(([, panel, text]) => "<li class=\"walk-review-row\">"
+        + "<span class=\"walk-row-text walk-basics\">" + escapeText(text) + "</span><button type=\"button\" "
+        + "class=\"walk-change\" data-panel=\"" + escapeText(panel) + "\">Open</button></li>").join("") + "</ol></li>";
+  }
+
   function reviewScreen() {
     const element = document.createElement("div");
     element.className = "walk-screen walk-review";
@@ -15804,7 +16035,7 @@
         + "Finish shows your results.", "walk-lede"));
     const list = document.createElement("ol");
     list.className = "walk-trail";
-    list.innerHTML = trailHtml(true) + exampleLeftovers();
+    list.innerHTML = trailHtml(true) + basicsOnly() + exampleLeftovers();
     element.append(list);
     if (shownExperience().effort !== "high") {  // below High a raised effort asks more questions
       const raise = walkButton("Change effort", "button button-quiet", walkChangeEffort);
@@ -16016,7 +16247,7 @@
   const tourRank = (tab, view) => TABS.indexOf(tab) * 10
     + (tab === "outputs" ? VIEWS.indexOf(view) : tab === "strategy" ? STRATEGY_VIEWS.indexOf(view) : 0);
 
-  // The panel holding the wide layout's Outputs column now: Strategy or Garden while selected, else Outputs.
+  // The panel holding the wide layout's Outputs column now: Strategy or Arcade while selected, else Outputs.
   const tourOutputsColumn = () => $(outputsColumnTaken() ? "panel-" + state.tab : "panel-outputs");
 
   // Run `then` after `ms`, unless the tour has closed or moved on since (its token changed).
@@ -16599,9 +16830,12 @@
     $("views-outputs").append($("views-outputs").chipBubble);
     $("views-strategy").chipBubble = makeBubble("strategyBubbleFill");
     $("views-strategy").append($("views-strategy").chipBubble);
+    $("views-arcade").chipBubble = makeBubble("arcadeBubbleFill");
+    $("views-arcade").append($("views-arcade").chipBubble);
     wireTabKeys(document.querySelector(".tabbar"), ".tab:not([hidden])", (tab) => selectTabFresh(tab.dataset.tab));
     wireTabKeys($("views-outputs"), ".view-tab:not([hidden])", (tab) => selectView(tab.dataset.view));
     wireTabKeys($("views-strategy"), ".view-tab:not([hidden])", (tab) => selectView(tab.dataset.view));
+    wireTabKeys($("views-arcade"), ".view-tab:not([hidden])", (tab) => selectView(tab.dataset.view));
     document.addEventListener("focusin", (event) => $("app").classList.toggle("typing", isTyping(event.target)));
     document.addEventListener("focusout", () => $("app").classList.remove("typing"));
     document.addEventListener("keyup", enterEndsEdit);
@@ -16666,6 +16900,7 @@
       placeBubble($("chips-settings"), false);
       placeBubble($("views-outputs"), false);
       placeBubble($("views-strategy"), false);
+      placeBubble($("views-arcade"), false);
     };
     window.addEventListener("resize", placeBubbles);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBubbles);

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 [BRAND NAME], Walk Me Through It (WMTI) ([PUBLIC REPOSITORY URL]). PolyForm Noncommercial License 1.0.0; see LICENSE.
-// Gamer mini games (F101b): the pure rules of the four short games, original designs. No DOM and no clock; the app
+// Gamer mini games (F101b): the pure rules of the short games, original designs (the Arcade's light games, Money
+// Sudoku, Grow It, Bigger Pile and Prize Wheel, are at the end). No DOM and no clock; the app
 // (52-games.js) draws the screens and passes a seed. Every game is three rounds; stars are the rounds answered right,
 // at least 1 for finishing. Numbers come from the fixed law data in appInfo (`law`), from the person's benefitTables
 // rows, or are generic and static here; no other user data enters a game. Runs in Node for the tests.
@@ -23,6 +24,14 @@
       remember: "A small yearly fee is a large share of what you keep after decades; the biggest drips matter most." },
     { id: "snowball", title: "Early Bird Snowball",
       remember: "Time in the market does more than the amount: starting earlier can beat saving double later." },
+    { id: "sudoku", title: "Money Sudoku",
+      remember: "Like a budget, every bill has one place: fill the sure squares first and the rest follow." },
+    { id: "grow", title: "Grow It",
+      remember: "Growth compounds: at 7% a year money roughly doubles every 10 years (72 divided by the rate)." },
+    { id: "bigger", title: "Bigger Pile",
+      remember: "Compare money at the same point in time: growth and timing can beat a bigger headline number." },
+    { id: "wheel", title: "Prize Wheel",
+      remember: "A spin is luck; a plan is not. The stars here are just for fun." },
   ];
   const GAME_IDS = GAMES.map((game) => game.id);
 
@@ -508,6 +517,122 @@
     return Number(answer) === round.answer;
   }
 
+  // ---- Money Sudoku (the Arcade's light puzzle) ----
+  // A 4 by 4 grid of four bills: each row, column and 2 by 2 box holds each bill once. A cell holds 0 to 3, the index
+  // of its bill in SUDOKU_BILLS; a grid is 16 cells, row by row. Each round blanks more cells; any grid that keeps the
+  // given cells and the rule counts, so a puzzle with more than one answer is never marked wrong.
+  const SUDOKU_BILLS = ["$1", "$5", "$10", "$20"];
+  const SUDOKU_BLANKS = [5, 7, 9];  // the blank cells of rounds 1 to 3
+  const SUDOKU_BASE = [0, 1, 2, 3, 2, 3, 0, 1, 1, 0, 3, 2, 3, 2, 1, 0];  // a valid grid the rounds shuffle
+
+  // Whether a 16-cell grid of 0 to 3 keeps the rule in every row, column and box.
+  function sudokuValid(grid) {
+    if (!Array.isArray(grid) || grid.length !== 16 || !grid.every((cell) => [0, 1, 2, 3].includes(cell))) return false;
+    const groups = [];
+    for (let line = 0; line < 4; line += 1) {
+      groups.push([0, 1, 2, 3].map((at) => line * 4 + at), [0, 1, 2, 3].map((at) => at * 4 + line));
+      const top = Math.floor(line / 2) * 8 + (line % 2) * 2;
+      groups.push([top, top + 1, top + 4, top + 5]);
+    }
+    return groups.every((cells) => new Set(cells.map((at) => grid[at])).size === 4);
+  }
+
+  // A shuffled valid grid: the bills renamed, rows swapped within each band and the bands swapped, the same for columns.
+  function sudokuSolution(random) {
+    const names = shuffled(random, [0, 1, 2, 3]);
+    const order = () => shuffled(random, [0, 1]).flatMap((band) => shuffled(random, [0, 1]).map((at) => band * 2 + at));
+    const rows = order();
+    const columns = order();
+    return rows.flatMap((row) => columns.map((column) => names[SUDOKU_BASE[row * 4 + column]]));
+  }
+
+  function sudokuRounds(seed) {
+    const random = rng(seed);
+    return SUDOKU_BLANKS.map((count) => {
+      const solution = sudokuSolution(random);
+      const blanks = shuffled(random, solution.map((cell, at) => at)).slice(0, count).sort((one, two) => one - two);
+      return { kind: "sudoku", solution, blanks };
+    });
+  }
+
+  // `answer` maps each blank cell's index to the bill chosen there (0 to 3).
+  function gradeSudoku(round, answer) {
+    if (!answer || typeof answer !== "object") return false;
+    const grid = round.solution.slice();
+    for (const at of round.blanks) grid[at] = Number(answer[at]);
+    return sudokuValid(grid);
+  }
+
+  // ---- Grow It (compound growth) ----
+  // What a sum grows to: about the compound value, against simple interest, double and half of it.
+  const GROW_PRESETS = Object.freeze([
+    { start: 10000, rate: 0.07, years: 30 }, { start: 5000, rate: 0.06, years: 24 },
+    { start: 20000, rate: 0.08, years: 18 }, { start: 1000, rate: 0.1, years: 36 },
+    { start: 50000, rate: 0.05, years: 14 },
+  ]);
+
+  const growValue = (start, rate, years) => start * (1 + rate) ** years;
+
+  function growRounds(seed) {
+    const random = rng(seed);
+    return shuffled(random, GROW_PRESETS).slice(0, ROUNDS).map((preset) => {
+      const exact = growValue(preset.start, preset.rate, preset.years);
+      const answer = roundTo(exact, 100);
+      const simple = roundTo(preset.start * (1 + preset.rate * preset.years), 100);
+      return { kind: "grow", ...preset, exact, answer,
+        choices: shuffled(random, [answer, simple, roundTo(exact * 2, 100), roundTo(exact / 2, 100)]) };
+    });
+  }
+
+  function gradeGrow(round, answer) {
+    return Number(answer) === round.answer;
+  }
+
+  // ---- Bigger Pile (which is bigger) ----
+  // Two sums of money; each preset's values are worked out here, and the two sides swap at random.
+  const saveValue = (amount, rate, years) => amount * ((1 + rate) ** years - 1) / rate;  // saved at each year's end
+  const BIGGER_PRESETS = Object.freeze([
+    [["$10,000 today, grown 7% a year for 10 years", growValue(10000, 0.07, 10)],
+      ["$18,000 paid to you in 10 years", 18000]],
+    [["$200 a month for 10 years, kept in cash", 200 * 12 * 10],
+      ["$15,000 today, grown 6% a year for 10 years", growValue(15000, 0.06, 10)]],
+    [["$1,000 a year for 30 years, growing 7% a year", saveValue(1000, 0.07, 30)],
+      ["$100,000 in 30 years", 100000]],
+    [["$100,000 grown 6% a year for 20 years", growValue(100000, 0.06, 20)],
+      ["$100,000 grown 7% a year for 20 years, less a 0.5% yearly fee", growValue(100000, 0.065, 20)]],
+    [["$5,000 a year from age 25 to 35, then left to grow 7% a year until 65",
+      saveValue(5000, 0.07, 10) * 1.07 ** 30],
+      ["$5,000 a year from age 35 to 65, growing 7% a year", saveValue(5000, 0.07, 30)]],
+    [["$50 a week for a year", 50 * 52], ["$2,500 once", 2500]],
+  ].map((pair) => Object.freeze(pair.map(([text, value]) => Object.freeze({ text, value })))));
+
+  function biggerRounds(seed) {
+    const random = rng(seed);
+    return shuffled(random, BIGGER_PRESETS).slice(0, ROUNDS).map((pair) => {
+      const [a, b] = random() < 0.5 ? pair : [pair[1], pair[0]];
+      return { kind: "bigger", a, b, answer: a.value > b.value ? "a" : "b" };
+    });
+  }
+
+  function gradeBigger(round, answer) {
+    return answer === round.answer;
+  }
+
+  // ---- Prize Wheel (one spin for a few stars) ----
+  // Eight segments; the spin's stars are its segment's. Luck only: no question, nothing to get wrong.
+  const WHEEL_PRIZES = Object.freeze([1, 2, 1, 3, 1, 2, 1, 2].map((stars) => Object.freeze({ stars,
+    label: stars === 3 ? "Jackpot: 3 stars" : stars + (stars === 1 ? " star" : " stars") })));
+
+  function wheelRounds(seed) {
+    const random = rng(seed);
+    const index = Math.floor(random() * WHEEL_PRIZES.length);
+    return [{ kind: "spin", index, prize: WHEEL_PRIZES[index], turns: 3 + Math.floor(random() * 3) }];
+  }
+
+  function gradeWheel() {
+    return true;
+  }
+
   const api = { ROUNDS, NOT_ADVICE, GAMES, GAME_IDS, rng, starsOf,
     bracketAt, bracketRounds, gradeBracket,
     FULL_AGE, LIFESPANS, claimRows, claimants, cumulative, breakEvenAge, leaderAt, claimRounds, gradeClaim, claimSentence,
@@ -515,7 +640,9 @@
     RETURNS, START, SPEND, TRIM, SPEND_STEP, SPEND_MAX, decadePair, trimmedPair, higherOf, decadeRounds, gradeDecade,
     SEESAW, SEESAW_SETS, SEESAW_FALLBACK, seesawFair, driftPath, monthsInBand, seesawOptions, seesawRounds, gradeSeesaw,
     leakPool, leakFee, leakValue, leakRounds, gradeLeaks,
-    SNOW_MIN, SNOW_MAX, SNOW_PRESETS, snowballValue, latestWinningStart, snowballRounds, gradeSnowball };
+    SNOW_MIN, SNOW_MAX, SNOW_PRESETS, snowballValue, latestWinningStart, snowballRounds, gradeSnowball,
+    SUDOKU_BILLS, sudokuValid, sudokuRounds, gradeSudoku, GROW_PRESETS, growValue, growRounds, gradeGrow,
+    BIGGER_PRESETS, biggerRounds, gradeBigger, WHEEL_PRIZES, wheelRounds, gradeWheel };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiGames = api;
 })(typeof self !== "undefined" ? self : this);
