@@ -295,7 +295,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.05db418d61.js");
+      worker = new Worker("worker.90e3482d51.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
