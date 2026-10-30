@@ -301,7 +301,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.ae169f65da.js");
+      worker = new Worker("worker.6ea75c48bf.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -8190,17 +8190,29 @@
     const about = titleHelp("h2", "Already counted from other tabs", counted.help);
     const head = COUNTED_COLUMNS.map(([key, label]) => "<th scope=\"col\" title=\"" + escapeText(counted.columnHelp[key])
       + "\">" + escapeText(label) + "</th>").join("");
+    // A row of $0 this year that the run charges later (`later`) shows in italics with that first later year's amount,
+    // starred, and its age and year after the tab; the footnote (`laterNote`) says it is for reference only.
+    const counts = (row) => {
+      const later = row.later;
+      const amount = (value) => later ? fullMoney(value) + "*" : fullMoney(value);
+      const where = later ? row.where + " (age " + later.age + ", " + later.year + ")" : row.where;
+      return "<tr" + (later ? " class=\"counted-later\"" : "") + "><th scope=\"row\">" + escapeText(row.item)
+        + "</th><td>" + amount(later ? later.monthly : row.monthly) + "</td><td>"
+        + amount(later ? later.yearly : row.yearly) + "</td><td class=\"text source\" title=\"" + escapeText(where)
+        + "\">" + escapeText(where) + "</td></tr>";
+    };
+    const anyLater = counted.groups.some((group) => group.rows.some((row) => row.later));
     const groups = counted.groups.map((group) => {
       const title = titleHelp("h3", group.category, group.help, "sub-heading");
-      const rows = group.rows.map((row) => "<tr><th scope=\"row\">" + escapeText(row.item) + "</th><td>"
-        + fullMoney(row.monthly) + "</td><td>" + fullMoney(row.yearly) + "</td><td class=\"text source\" title=\""
-        + escapeText(row.where) + "\">" + escapeText(row.where) + "</td></tr>").join("");
+      const rows = group.rows.map(counts).join("");
       return "<div class=\"counted-group\" data-category=\"" + escapeText(group.category) + "\">" + title.head + title.text
         + "<div class=\"table-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"" + escapeText(group.category)
         + "\"><table class=\"data-table wrap-first counted-table\"><thead><tr>" + head + "</tr></thead><tbody>" + rows
         + "</tbody></table></div></div>";
     }).join("");
-    card.innerHTML = about.head + about.text + groups + "<p class=\"note\">" + escapeText(counted.note) + "</p>";
+    card.innerHTML = about.head + about.text + groups
+      + (anyLater && counted.laterNote ? "<p class=\"note counted-later-note\">" + escapeText(counted.laterNote) + "</p>" : "")
+      + "<p class=\"note\">" + escapeText(counted.note) + "</p>";
   }
 
   function renderSettings() {
@@ -9197,6 +9209,17 @@
     if (summaryCard) fillExpenseSummary(summaryCard);
     renderSurplus();
     updateTerminalRate();
+    syncGapSwitch(notes.gapMedical);
+  }
+
+  // An untouched gap medical plan switch follows the inputs (wmti gapExists): the stored switch is set to the
+  // engine's value for display only, with no new run (the run already used the effective value, gapPlanOn).
+  function syncGapSwitch(gap) {
+    const plan = state.inputs && state.inputs.gapMedical;
+    if (!gap || !plan || plan.touched || plan.enabled === gap.derived) return;
+    setPath(state.inputs, "gapMedical.enabled", gap.derived);
+    saveDraft();
+    renderSettings();
   }
 
   // ---- Linked share sliders: a slider and a lock per item, always totalling 100%. Where surplus cash goes (Accounts:
@@ -9767,6 +9790,8 @@
   function setValue(path, value) {
     const account = /^accounts\.(\d+)\.(\w+)$/.exec(path);
     const before = getPath(state.inputs, path);
+    // The owner set the gap medical plan's switch: it stops following the inputs (wmti gapPlanOn).
+    if (path === "gapMedical.enabled") setPath(state.inputs, "gapMedical.touched", true);
     // A block's switch turned off: wmti applySettings puts its other fields back to their defaults (resetDisabledBlock).
     const previous = /\.enabled$/.test(path) && before && !value ? clone(state.inputs) : null;
     setPath(state.inputs, path, value);
