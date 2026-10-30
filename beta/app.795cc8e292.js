@@ -102,7 +102,7 @@
     "Use of this app is at your own risk. The app is provided as is, without warranty.",
   ];
   const LEGAL_SUMMARY_CLOSING = "Please read the full Terms below.";
-  const TABS = ["setup", "inputs", "outputs", "strategy", "arcade"];  // the bottom bar, left to right (Arcade: Gamer only)
+  const TABS = ["setup", "inputs", "strategy", "outputs", "arcade"];  // the bottom bar, left to right (Arcade: Gamer only)
   const VIEWS = ["summary", "plots"];  // the switch inside Outputs
   const STRATEGY_VIEWS = ["strategies", "compare", "optimize"];  // the switch inside Strategy
   const ARCADE_VIEWS = ["awards", "quests", "games"];  // the switch inside Arcade (Gamer only)
@@ -198,7 +198,7 @@
     optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
       options: { effort: null, preset: null, dimensions: {}, states: [] },
       // The Earliest retirement card (59-earliest.js): its options (kept in the prefs), last result and message.
-      earliest: { options: { effort: null, failurePercent: null }, entry: null, message: null } },
+      earliest: { options: { failurePercent: null }, entry: null, message: null } },
     // The Next steps card (49-coach.js): the gaps and the inputs text they are for, the running check, each gap's kept
     // check and last message, and the scenario they belong to.
     coach: { gaps: null, gapsKey: null, pendingKey: null, job: null, entries: {}, messages: {}, scenarioName: null },
@@ -309,7 +309,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.858bcad414.js");
+      worker = new Worker("worker.bf2f0d3543.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -515,7 +515,6 @@
     const earliest = isObject(prefs.earliest) ? prefs.earliest : {};
     const options = state.optimize.earliest.options;
     if (Number.isInteger(earliest.failurePercent)) options.failurePercent = earliest.failurePercent;
-    if (typeof earliest.effort === "string") options.effort = earliest.effort;
   }
 
   const isObject = (value) => value != null && typeof value === "object" && !Array.isArray(value);
@@ -6998,7 +6997,8 @@
       state.optimize.statesOpen = !state.optimize.statesOpen;
       syncFold();
     });
-    wrap.querySelector(".field-head").append(chevron);
+    const head = wrap.querySelector(".field-head");
+    head.insertBefore(chevron, head.querySelector(".switch"));  // before the switch, so the switches line up
     wrap.append(fold, estimate);
     function syncFold() {
       const on = statesOn();
@@ -7575,7 +7575,6 @@
     const info = state.optimize.info.earliest;
     const options = state.optimize.earliest.options;
     if (!info.tolerances.includes(options.failurePercent)) options.failurePercent = info.defaultTolerance;
-    if (!info.efforts.some((effort) => effort.id === options.effort)) options.effort = info.defaultEffort.phone;
     return options;
   }
 
@@ -7591,7 +7590,6 @@
     card.id = "earliestCard";
     const about = titleHelp("h2", "Earliest retirement", info.help);
     const tolerances = info.tolerances.map((value) => [String(value), value + "%"]);
-    const efforts = info.efforts.map((effort) => [effort.id, effort.label + " (" + effort.text + ")"]);
     const failureHelp = noteHelp("What counts as a failing run", info.failureHelp, "field-help");
     const starts = [["you", "you"], ["partner", "partner"]].filter(([role]) => state.inputs && state.inputs[role])
       .map(([role, label]) => label + " " + state.inputs[role].salaryEndAge);
@@ -7599,7 +7597,7 @@
     card.innerHTML = "<div class=\"card-head\">" + about.head + "</div>" + about.text
       + "<div class=\"pair\">" + selectHtml("earliestFailures", "Failures allowed", tolerances,
         String(options.failurePercent))
-      + selectHtml("earliestEffort", "Effort (runs per age)", efforts, options.effort) + "</div>"
+      + "</div><p class=\"field-help\" id=\"earliestRuns\">" + state.mc.runs + " runs per age (Run settings)</p>"
       + failureHelp.head + failureHelp.text
       + "<p class=\"field-help\" id=\"earliestStart\">Starting from: " + escapeText(starts.join(", ")) + "</p>"
       + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"earliestRun\""
@@ -7608,10 +7606,6 @@
       + (running ? earliestProgressHtml() : "") + messageHtml(optimize.earliest.message);
     card.querySelector("#earliestFailures").addEventListener("change", (event) => {
       options.failurePercent = Number(event.target.value);
-      savePrefs();
-    });
-    card.querySelector("#earliestEffort").addEventListener("change", (event) => {
-      options.effort = event.target.value;
       savePrefs();
     });
     card.querySelector("#earliestRun").addEventListener("click", () => runEarliest());
@@ -7656,7 +7650,7 @@
     const options = earliestOptions();
     if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
     clearTimeout(mcTimer);
-    const job = engine.job("earliestRetire", [inputsText, JSON.stringify({ effort: options.effort,
+    const job = engine.job("earliestRetire", [inputsText, JSON.stringify({ runs: state.mc.runs,
       failurePercent: options.failurePercent }), state.seed], null, (message) => {
       if (!optimize.job) return;
       optimize.job.detail = message.detail;
@@ -16248,7 +16242,7 @@
   // badge or Next is tapped; then slide the page in as a swipe does, open the menu or the section); only then does the
   // step's text show. A step whose control is not drawn is skipped. Done, the close button and Escape put back the
   // tab, view and scroll the tour started from.
-  const TOUR_PAGES = ["setup", "inputs", "outputs", "strategy", "bar", "menu", "help"];
+  const TOUR_PAGES = ["setup", "inputs", "strategy", "outputs", "bar", "menu", "help"];
   const TOUR_PULSE_MS = 600;  // the ring's one pulse on the control to tap before it holds there
   const TOUR_SCROLL_SPEED = 900;  // px a second the tour scrolls at, so the eye can follow
   const TOUR_SCROLL_MS = [400, 1500];  // the shortest and longest such scroll
@@ -16257,9 +16251,9 @@
       place: "bottom",  // the ring is the whole screen; the card at the top would cover the headline figures
       text: "Setup is on the left, your settings (Inputs) in the middle and your results (Outputs) on the right. The "
         + "Strategy chip over the results opens your strategies, Compare and Optimize in their place." },
-    { title: "Setup, Inputs, Outputs and Strategy", page: "setup", fixed: true, when: () => !wide.on, target: ".tabbar",
+    { title: "Setup, Inputs, Strategy and Outputs", page: "setup", fixed: true, when: () => !wide.on, target: ".tabbar",
       text: "The bar at the bottom moves between the four parts of the app: Setup (your scenarios and runs), Inputs "
-        + "(your settings), Outputs (your results) and Strategy (your strategies, Compare and Optimize)." },
+        + "(your settings), Strategy (your strategies, Compare and Optimize) and Outputs (your results)." },
     { title: "Headline figures", page: "setup", fixed: true, target: "#pinned",
       text: "These figures sum up your plan: what you are worth today, a typical final worth, and what you earn or "
         + "take out and spend in an average year. They update after every change." },
@@ -16282,14 +16276,6 @@
     { title: "Your plan page", page: "inputs", when: () => gamifyOn() && lowOn(), target: "#lowPage",
       text: "At Low effort your settings are one page: about you, pay, spending, savings, children and the "
         + "retirement and medical plans. Every change reruns the plan." },
-    { title: "Outputs views", page: "outputs", view: "summary", target: "#views-outputs",
-      text: "Tap a view to see the results another way: Summary or Plots." },
-    { title: "Summary", page: "outputs", view: "summary", target: "#view-summary",
-      text: "Summary shows the results over all the runs: final worth before and after tax with its range, plus "
-        + "warnings and opportunities for your plan." },
-    { title: "Plots", page: "outputs", view: "plots", target: "#view-plots",
-      text: "Plots draws the plan year by year: the total balance over the runs, each account's balance, cash flow, "
-        + "deposits and withdrawals, taxes and expenses." },
     { title: "Strategy views", page: "strategy", view: "strategies", target: "#views-strategy",
       text: "Strategy holds your tax strategies, such as Roth conversions and relocation, and two ways to weigh "
         + "choices: Compare and Optimize." },
@@ -16299,6 +16285,14 @@
     { title: "Optimize", page: "strategy", view: "optimize", target: "#view-optimize",
       text: "Optimize tries other choices for you, such as when to claim Social Security or which state to retire "
         + "in, and shows what each would be worth. Tick what you would consider, then tap Find best settings." },
+    { title: "Outputs views", page: "outputs", view: "summary", target: "#views-outputs",
+      text: "Tap a view to see the results another way: Summary or Plots." },
+    { title: "Summary", page: "outputs", view: "summary", target: "#view-summary",
+      text: "Summary shows the results over all the runs: final worth before and after tax with its range, plus "
+        + "warnings and opportunities for your plan." },
+    { title: "Plots", page: "outputs", view: "plots", target: "#view-plots",
+      text: "Plots draws the plan year by year: the total balance over the runs, each account's balance, cash flow, "
+        + "deposits and withdrawals, taxes and expenses." },
     { title: "Undo", page: "bar", target: "#undoButton",
       text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
     { title: "Walk me through it", page: "menu", target: "#menuWalk",
