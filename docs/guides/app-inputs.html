@@ -295,6 +295,7 @@
 <li><p>A warnings box flags a Mortgage loan with no home, and Expenses rows that repeat what Home charges.</p></li>
 </ul>
 <p>A home’s sheet has the groups Basics, Mortgage, Property tax and insurance, and Other loans on this home. <em>Add loan on this home</em> adds a Second mortgage, Home equity loan, Home equity line or Mortgage. It has the Loans figures plus <em>Used on this home</em> (off: its interest is not deducted). A home bought later hides its value today and mortgage balance, and labels the months <em>Mortgage term (months)</em>.</p>
+<p>The Mortgage group of a home owned today opens with <em>Define loan by</em>: <em>At purchase</em> or <em>Current</em> (the default). Current asks what is owed today and the months left. At purchase asks the <em>Original mortgage amount</em>, <em>Mortgage start year</em> and <em>Mortgage term</em>, and a gray line under them reads today’s balance and the time left (“Today’s balance $268,000, 25 years left”), “Paid off”, or “Enter the original amount and start year”. The Monthly payment follows that balance. Switching keeps both sets of figures. A home bought later has no toggle: its mortgage is the price less the down payment.</p>
 </section>
 <section id="cars">
 <h3>Cars<a class="headerlink" href="#cars" title="Link to this heading"></a></h3>
@@ -319,7 +320,7 @@
 <td><p><em>Purchase price (as paid)</em>, <em>Year bought</em>, <em>Depreciation first year</em>, <em>Depreciation per year</em> and <em>Value today</em>. Blank or 0 shows a gray estimate. A typed value wins; its reset button restores the estimate.</p></td>
 </tr>
 <tr class="row-even"><td><p>How it is paid</p></td>
-<td><p>A toggle: Cash, Finance or Lease. Finance shows the loan figures. Lease shows the lease payment and hides the value, loan and replacement figures.</p></td>
+<td><p>A toggle: Cash, Finance or Lease. Finance shows the loan figures. Lease shows the lease payment and hides the value, loan and replacement figures. A car owned today and financed has <em>Define loan by</em>: <em>Current</em> (balance and months left) or <em>At purchase</em> (<em>Original loan amount</em>, <em>Loan start year</em>, <em>Loan term</em>, with today’s balance and the time left in gray), as on Home.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Replacement</p></td>
 <td><p><em>Replace by</em> (Years, Miles or Both; with Both the first rule reached triggers). Each rule has its own figures. Then <em>Replacement paid by</em> with loan or lease figures.</p></td>
@@ -344,6 +345,7 @@
 <li><p>Loans lists the Student, Auto and Other loans and any Mortgage loan a saved file left there. A new loan starts as Student.</p></li>
 <li><p>Each home’s mortgage and other loans appear as read-only rows titled with the home’s name, with an “Edit home loans on Home” button.</p></li>
 <li><p>Each car loan appears as a read-only row with an “Edit car loans on Cars” button. A car loan cannot be edited on Loans.</p></li>
+<li><p>A car loan or mortgage defined at purchase shows its balance and months left today, as worked out. Loans on this chip and a home’s other loans have no <em>Define loan by</em>: they are entered by what is owed today.</p></li>
 <li><p>A loan’s sheet ends with <em>Starts later</em> (<em>Starts in year</em>) and <em>Pay off early</em> (<em>Payoff age</em>, <em>Prepayment penalty</em>). Its card adds “starts at 53” or “paid off at 58”.</p></li>
 <li><p>A loan added on Home starts as a Mortgage; one added on Loans starts as Student. The Kind select offers only that panel’s kinds.</p></li>
 </ul>
@@ -354,9 +356,11 @@
 <p>While the HSA counts (it and the medical plan on) or the dependent care FSA is on, a read-only “Benefit accounts” block shows them, with an “Edit on Benefits” button. They take no part in the withdrawal order or the surplus sliders.</p>
 <p>An account’s sheet shows the name, kind, owner and starting value, then “Returns and basis”:</p>
 <ul class="simple">
+<li><p>A cash, Investments or 529 account also shows <em>Monthly deposit</em> (today’s dollars; blank shows 0 in grey) and <em>Deposit to age (inclusive)</em> (blank: while the owner is paid), right after the starting value. The deposit comes first out of the year’s net earnings, before the surplus shares.</p></li>
+<li><p>A Traditional or Roth IRA shows the Benefits deposit slider for that account (<em>Deposit per year</em>, 0 to the owner’s limit), below the other fields. It moves the same stored deposit as Benefits’ <em>Deposit per account</em>, so the two always agree; on the household plan, moving it switches to amounts per account.</p></li>
 <li><p>The returns disclosure holds the mean return, the standard deviation and a “Use the usual returns” button.</p></li>
 <li><p>Cost basis shows only for Investments, IRA basis and State IRA basis (NJ) only for a Traditional IRA (a blank state basis is the IRA basis), and Roth basis only for a Roth IRA or Roth 401k (blank: the whole starting value is contributions).</p></li>
-<li><p>Changing the kind clears a basis or deposit the new kind cannot hold. It replaces each return that is blank or still the old kind’s usual value.</p></li>
+<li><p>Changing the kind clears a basis, deposit or monthly deposit the new kind cannot hold. It replaces each return that is blank or still the old kind’s usual value.</p></li>
 </ul>
 </section>
 <section id="benefits">
