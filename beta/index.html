@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-KHXThzYpnoO0z5xAWqx0oRdjxhoNclSOMTgLTnKmsu8=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-5AAHAcDEF1CkR/7eydTnM6YxDgBbOplb/d7pPMyHJu0=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -556,11 +556,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .pane-svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   stroke-linejoin: round; }
 .pane:has(> .pane-switch) > legend { padding-right: 64px; }
-/* Every top-level pane keeps the switch's slot at the title's right, switch or not, open or folded, so each pane's
-   "i", chevron and switch line up down the page; a folded pane's copy of its switch (25-collapse.js) sits in that same
-   slot. A pane with no chevron (the Timeline) also keeps the chevron's room. */
-.pane:not(.subsection) > legend { padding-right: 64px; }
-.pane.summary-only > legend { padding-right: calc(64px + 36px + var(--space-2)); }
+/* Only a pane with a switch keeps the switch's slot at the title's right (a folded pane's copy of its switch,
+   25-collapse.js, sits in it); otherwise the "i" and chevron sit at the far right. */
 .pane > legend > .help-button { margin-right: 0; }
 .pane:not(.subsection) > legend .collapse-switch { position: absolute; top: 15px; right: 16px; }
 .pane > .pane-switch .switch { position: absolute; top: 15px; right: 16px; }
@@ -2772,7 +2769,7 @@ html[data-style="gamer"] .chart-svg .line { stroke-width: 1.5; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "5e5de4d9d7b8", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "4fc98131a88a", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.bc867c6434.js"></script>
 <script src="charts.ae4d661d99.js"></script>
