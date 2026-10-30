@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-KU7hHgWsM2rFsMY33GEyPzvXuDVGej/nfaup0NMTLt8=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-7XLLsCl00Q9slnR6sjd47Q/j8zKClhfOkIWilqg8OfY=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -561,7 +561,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .pane-svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   stroke-linejoin: round; }
 .pane:has(> .pane-switch):not(:has(> legend .collapse-switch)) > legend { padding-right: 64px; }
-/* A collapsible pane's header tools (25-collapse.js) read [switch] [i] [chevron], the chevron at the far right, so the
+/* A collapsible pane's header tools (25-collapse.js) read [i] [chevron] [switch], the switch at the far right; the
    "i" and chevron line up down the page; the pane's own toggle is shown there and its original is hidden. */
 .pane:has(> legend .collapse-switch) > .pane-switch .switch { display: none; }
 .pane > legend > .help-button { margin-right: 0; }
@@ -749,7 +749,6 @@ details[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 h2.collapse-head { display: flex; align-items: center; gap: var(--space-2); }
 .collapse-tools { display: inline-flex; align-items: center; gap: var(--space-2); margin-left: auto; flex: none; }
 .collapse-tools > .help-button { margin: -8px -4px; }
-.collapse-tools:not(:has(> .help-button)) > .collapse-switch { margin-right: 44px; }  /* keeps the i's slot */
 .collapse-button { display: grid; place-items: center; width: 36px; height: 36px; margin: calc(-1 * var(--space-1)) 0;
   padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
 .collapse-button.collapse-off { visibility: hidden; }  /* keeps its slot so the i stays aligned */
@@ -2835,7 +2834,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "918e35f4e969", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
+<script>window.WMTI_BUILD = { id: "fde790dacd8a", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.47c4516f80.js"></script>
 <script src="charts.ae4d661d99.js"></script>
@@ -2844,7 +2843,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.6202e05b22.js"></script>
+<script src="app.42b07b153c.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

@@ -1436,8 +1436,8 @@
             foldPanel(panel, !panel.classList.contains("is-collapsed"));
           });
         }
-        // The header reads title ... [switch] [i] [chevron]: the "i" moves into the tools, just before the chevron,
-        // so every pane's "i" and chevron line up at the far right whether or not it has a switch.
+        // The header reads title ... [i] [chevron] [switch]: the "i" moves into the tools, just before the chevron,
+        // and a switch (when the panel has one) sits last, at the far right.
         const ownHelp = head.querySelector(":scope > .help-button");
         if (ownHelp) tools.insertBefore(ownHelp, tools.querySelector(":scope > .collapse-button"));
         const help = head.querySelector(".help-button");  // the header's "i" text still opens while folded
@@ -1502,7 +1502,7 @@
           : collapseSwitch(now);
         if (again) again.focus({ preventScroll: true });
       });
-      tools.prepend(copy);
+      tools.append(copy);  // last: the switch sits at the far right
     }
     const input = copy.querySelector("input");
     input.checked = real.checked;
@@ -2342,7 +2342,25 @@
   function syncInflationRange() {
     const range = document.querySelector("#inflation-body [data-inflation-field=\"inflation\"]");
     const switchDrawn = document.querySelector("#inflation-body [data-inflation-field=\"useInflation\"]");
-    if (range) range.hidden = Boolean(switchDrawn) && !(state.inputs && state.inputs.useInflation);
+    const off = Boolean(switchDrawn) && !(state.inputs && state.inputs.useInflation);
+    if (range) range.hidden = off;
+    // Off, a read-only note says which average inflation is assumed and taken off every rate.
+    let note = document.getElementById("inflationOffNote");
+    const spread = state.inputs && state.inputs.inflation;
+    if (off && spread && switchDrawn) {
+      if (!note) {
+        note = document.createElement("p");
+        note.className = "field-help";
+        note.id = "inflationOffNote";
+        switchDrawn.after(note);
+      }
+      const mean = (spread.minimum + spread.mode + spread.maximum) / 3;
+      note.textContent = "Results are in today's dollars: an average inflation of " + (mean * 100).toFixed(1)
+        + "% a year (the mean of the inflation range) is assumed and subtracted from every raise, return and "
+        + "interest rate.";
+    } else if (note) {
+      note.remove();
+    }
   }
 
   // The Monte Carlo's number of runs: a segmented choice under the seed, kept in the prefs.
