@@ -8555,11 +8555,12 @@
     return button;
   }
 
-  // A section's switch, such as whether the household has a medical plan; turning it redraws the section.
+  // A section's switch, such as whether the household has a medical plan; turning it redraws the section. It has no
+  // "i": the pane being on or off says it all.
   function sectionSwitch(path) {
     const field = panelField(state.schema, path);
     const id = fieldId(path);
-    const element = switchField(field.label, field.help, id, Boolean(getPath(state.inputs, path)), (checked) => {
+    const element = switchField(field.label, null, id, Boolean(getPath(state.inputs, path)), (checked) => {
       setValue(path, checked);
       refreshForm();
       const redrawn = $(id);
