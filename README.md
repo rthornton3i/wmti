@@ -16,4 +16,4 @@ non-commercial use only.
 Report security problems as `SECURITY.md` describes.
 
 This repository holds only the built site, published by `frontend/publish_pages.py` of Walk Me Through It.
-Build `69aeb94f4e21` (shown in the app under Menu, About).
+Build `6af54de92ff0` (shown in the app under Menu, About).
