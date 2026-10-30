@@ -13,7 +13,7 @@
 // leaves every request there alone (the beta's own worker, or the network, answers it).
 "use strict";
 
-const BUILD_ID = "4fc98131a88a";
+const BUILD_ID = "f8c3618e05d7";
 const CHANNEL = "beta";
 const CACHE_FAMILY = CHANNEL === "beta" ? "wmti-beta" : "wmti";
 const CACHE_PREFIX = CACHE_FAMILY + ":" + self.registration.scope + ":";
@@ -60,7 +60,10 @@ const FILES = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES)));
+  // Fetched past the browser's HTTP cache (cache: "reload"): a stale index.html stored here would name an older
+  // build's script files, which the host no longer serves, and the page would never start.
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES.map((file) =>
+    new Request(file, { cache: "reload" })))));
 });
 
 self.addEventListener("activate", (event) => {
