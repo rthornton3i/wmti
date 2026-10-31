@@ -13,7 +13,7 @@
 // leaves every request there alone (the beta's own worker, or the network, answers it).
 "use strict";
 
-const BUILD_ID = "b8cb7a5220c3";
+const BUILD_ID = "23b5372068c0";
 const CHANNEL = "stable";
 const CACHE_FAMILY = CHANNEL === "beta" ? "wmti-beta" : "wmti";
 const CACHE_PREFIX = CACHE_FAMILY + ":" + self.registration.scope + ":";
@@ -54,7 +54,7 @@ const FILES = [
  "pyodide/pytz-2025.2-py2.py3-none-any_whl.wasm",
  "pyodide/six-1.17.0-py2.py3-none-any_whl.wasm",
  "report.09a0bd29a3.js",
- "shared.32bd461993.js",
+ "shared.3d732f03f9.js",
  "wmti.d715d66eac.wasm",
  "worker.bf8763e914.js"
 ];

@@ -2026,6 +2026,8 @@
     return value;
   }
 
+  const RAISE_FIELDS = ["raiseRate", "promotionChance", "promotionRaise"];
+
   function blankInputs(schema) {
     const inputs = { schemaVersion: schema.inputsSchemaVersion, ...blankObject(schema, schema.root) };
     inputs.filingStatus = "SINGLE";
@@ -2042,6 +2044,12 @@
     // Inflation keeps its shipped range (1%, 3%, 6%): a blank 0 would assume prices never rise.
     const inflation = (schema.types[schema.root] || []).find((field) => field.name === "inflation");
     if (inflation && inflation.default && typeof inflation.default === "object") inputs.inflation = { ...inflation.default };
+    // Raises and promotions keep their shipped defaults (raise about inflation, 25% chance of a 10% promotion).
+    for (const field of schema.types.Person || []) {
+      if (RAISE_FIELDS.includes(field.name) && field.default != null) {
+        inputs.you[field.name] = typeof field.default === "object" ? { ...field.default } : field.default;
+      }
+    }
     return inputs;
   }
 
