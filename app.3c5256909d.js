@@ -13277,7 +13277,7 @@
 
   // The Expenses Add picker: the common expenses of this list's categories not in the list yet (settings schema
   // `suggestedExpenses`) and not already counted on another tab (`countedElsewhere`), each added with its sales tax
-  // status and flags set, and Other for a row of your own (in the list's first category); nothing is listed until
+  // status and flags set, and Other for a row of your own (in the list's first category, listed first); nothing is listed until
   // picked.
   function expensePicker(items, filter, disabled, addItem) {
     const presets = expensePresetChoices(state.schema.suggestedExpenses, items, filter, state.schema.countedElsewhere);
@@ -13299,7 +13299,7 @@
     const other = document.createElement("option");
     other.value = "other";
     other.textContent = "Other (your own)";
-    select.append(prompt, ...(presets.length ? [common] : []), other);
+    select.append(prompt, other, ...(presets.length ? [common] : []));  // your own first: no scroll to reach it
     select.addEventListener("change", () => {
       const choice = select.value;
       select.value = "";
