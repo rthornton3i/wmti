@@ -310,7 +310,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.69683ebad4.js");
+      worker = new Worker("worker.9d872c7658.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -4376,13 +4376,6 @@
   }
 
   // A card's own seed box beside the number of runs it uses, the one Runs setting under Setup.
-  function seedControl(prefix, seed) {
-    return "<div class=\"run-controls\"><p class=\"muted\" id=\"" + prefix + "Runs\">" + state.mc.runs
-      + " runs per config, set by Runs under Setup</p><div><label class=\"field-label\" "
-      + "for=\"" + prefix + "Seed\">Seed</label><input class=\"input\" id=\"" + prefix + "Seed\" type=\"text\" "
-      + "inputmode=\"numeric\" autocomplete=\"off\" value=\"" + escapeText(seed) + "\"></div></div>";
-  }
-
   function wireSeedControl(holder, prefix, onSeed) {
     const seed = holder.querySelector("#" + prefix + "Seed");
     seed.addEventListener("input", () => {
@@ -6084,9 +6077,11 @@
     let html = (state.error ? errorBanner(state.error) : "") + "<div class=\"card-head\">" + about.head
       + "<span class=\"phone-note\">" + info.compared + " × " + state.mc.runs + " runs</span></div>" + about.text;
     html += pairSelects();
-    html += seedControl("compare", compare.seed)
-      + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"compareRun\" disabled>Run comparison"
-      + "</button></div><div id=\"compareCheck\"></div>" + progressHtml("compare", compare.job)
+    html += "<p class=\"muted\" id=\"compareRuns\">" + state.mc.runs + " runs per config, set by Runs under Setup</p>"
+      + "<div class=\"seed-run\"><div><label class=\"field-label\" for=\"compareSeed\">Seed</label><input class=\"input\" "
+      + "id=\"compareSeed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"" + escapeText(compare.seed)
+      + "\"></div><button type=\"button\" class=\"button\" id=\"compareRun\" disabled>Run comparison</button></div>"
+      + "<div id=\"compareCheck\"></div>" + progressHtml("compare", compare.job)
       + messageHtml(compare.message);
     intro.innerHTML = html;
     body.replaceChildren(intro);
@@ -6134,7 +6129,14 @@
       });
     });
     wireSeedControl(card, "compare", (seed) => { compare.seed = seed; changed(); });
-    card.querySelector("#compareRun").addEventListener("click", runCompare);
+    card.querySelector("#compareRun").addEventListener("click", () => {
+      // Each press draws fresh markets: a random 6-digit seed, shown in the Seed box.
+      if (!compare.job && compare.check && compare.check.ok) {
+        compare.seed = 100000 + Math.floor(Math.random() * 900000);
+        savePrefs();
+      }
+      runCompare();
+    });
     card.querySelector("#compareCancel").addEventListener("click", () => { if (compare.job) engine.cancel(compare.job.id); });
   }
 
@@ -6175,6 +6177,40 @@
     scheduleMc();  // an automatic Monte Carlo waits for the comparison
   }
 
+  // The measures that say which config did better: [table column, label, unit, which way is better (1 higher, -1
+  // lower)]. Gain and Runs ahead are B against A, so A has none.
+  const KEY_MEASURES = [
+    ["Median what beneficiaries keep (today's $)", "What beneficiaries keep (median)", "money", 1],
+    ["Median paired gain, after tax (today's $)", "Gain against A, after tax (median)", "change", 1],
+    ["Share of runs ahead", "Runs ahead of A", "percent", 1],
+    ["Runs ending at $0", "Chance of running out", "percent", -1],
+    ["Median final", "Final accounts (median)", "money", 1],
+    ["Median lifetime taxes (today's $)", "Lifetime taxes (median)", "money", -1],
+  ];
+
+  // A short table of the key measures, one row each and a column per config, the better value in bold.
+  function keyMeasuresTable(table) {
+    const nameAt = table.columns.indexOf("Scenario");
+    const names = table.data.map((row) => row[nameAt]);
+    const head = "<th scope=\"col\">Measure</th>" + names.map((name) => "<th scope=\"col\">" + escapeText(name)
+      + "</th>").join("");
+    const rows = KEY_MEASURES.filter(([column]) => table.columns.includes(column)).map(([column, label, unit, way]) => {
+      const at = table.columns.indexOf(column);
+      const values = table.data.map((row) => row[at]);
+      const numbers = values.filter((value) => typeof value === "number");
+      const best = numbers.length > 1 && new Set(numbers).size > 1
+        ? (way > 0 ? Math.max(...numbers) : Math.min(...numbers)) : null;
+      const isAgainstA = column === "Median paired gain, after tax (today's $)" || column === "Share of runs ahead";
+      return "<tr><th scope=\"row\">" + escapeText(label) + "</th>" + values.map((value, position) => {
+        const text = isAgainstA && position === 0 ? "" : escapeText(charts.unitCell(value, unit));
+        return "<td>" + (best != null && value === best && !isAgainstA ? "<strong>" + text + "</strong>" : text) + "</td>";
+      }).join("") + "</tr>";
+    }).join("");
+    return "<div class=\"table-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"Comparison\"><table "
+      + "class=\"data-table wrap-first key-measures\"><caption class=\"sr-only\">Comparison</caption><thead><tr>" + head
+      + "</tr></thead><tbody>" + rows + "</tbody></table></div>";
+  }
+
   function compareResult(entry, stale) {
     const result = entry.value;
     const top = document.createElement("div");
@@ -6192,7 +6228,7 @@
       + "changed since this comparison. Press Run to update it; the figures below are from the earlier run.</p>" : "")
       + "<div class=\"card-head\">" + about.head + "<span class=\"chart-note\">" + result.runs + " runs each · seed "
       + escapeText(result.seed) + " · " + secondsText(entry.ms) + "</span></div>" + about.text
-      + charts.renderUnitsTable(result.table, result.columnUnits, { title: "Comparison", wrapFirst: true })
+      + keyMeasuresTable(result.table)
       + rateNote.head + rateNote.text
       + result.warnings.map((warning) => "<p class=\"banner banner-warn\" role=\"note\">" + escapeText(warning)
         + "</p>").join("");
