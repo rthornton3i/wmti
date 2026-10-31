@@ -9852,6 +9852,7 @@
         split.motion.dragging = position;
         const share = Number(slider.value) / 100;
         row.querySelector(".surplus-value").textContent = percent(share, 1);
+        slider.setAttribute("aria-valuetext", percent(share, 1));  // the lifted handle's bubble reads this
         moveSplit(split, position, share);
       });
       const release = () => {
