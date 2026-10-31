@@ -314,7 +314,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.f65533801a.js");
+      worker = new Worker("worker.15716adc80.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -8152,7 +8152,7 @@
     quickOrbShown, quickPlotSvg } = window.WmtiShared;
   const QUICK_LIST_MAX = 60;  // most inputs the field list draws at once
   window.wmtiQuick = { open: openQuick, state: () => state.quick };  // for the tests
-  const QUICK_INTRO_MS = 1400;  // how long "Select a field on screen" stays large in the middle before it moves up
+  const QUICK_BANNER_MS = 2500;  // how long the banner beside the sphere stays out before it slides back in
 
   // Show the sphere only on a set-up plan (sheets and dialogs hide it in CSS); while a pick is under way it glows.
   function refreshQuickOrb() {
@@ -8712,23 +8712,57 @@
     const quick = state.quick;
     closeQuick();
     quick.picking = true;
-    $("quickPickText").textContent = "Select a field on screen";
-    // The message opens large in the middle of the screen, then shrinks to its place at the top.
-    const banner = $("quickPick");
-    clearTimeout(quick.introTimer);
-    banner.classList.add("is-intro");
-    banner.hidden = false;
-    quick.introTimer = setTimeout(() => banner.classList.remove("is-intro"), QUICK_INTRO_MS);
+    showQuickBanner("Select a field on screen");
     refreshQuickOrb();
     goToPane("inputs");
+    document.body.classList.add("quick-picking");
+    markQuickFields();
+    // Panels open and redraw while picking: mark the new fields too.
+    quick.marker = new MutationObserver(() => {
+      if (quick.markFrame) return;
+      quick.markFrame = requestAnimationFrame(() => { quick.markFrame = 0; markQuickFields(); });
+    });
+    quick.marker.observe(document.body, { childList: true, subtree: true });
   }
 
   function endQuickPick() {
-    clearTimeout(state.quick.introTimer);
-    $("quickPick").classList.remove("is-intro");
-    state.quick.picking = false;
+    const quick = state.quick;
+    clearTimeout(quick.introTimer);
+    $("quickPick").classList.remove("is-out");
+    quick.picking = false;
     $("quickPick").hidden = true;
+    if (quick.marker) quick.marker.disconnect();
+    quick.marker = null;
+    cancelAnimationFrame(quick.markFrame || 0);
+    quick.markFrame = 0;
+    document.body.classList.remove("quick-picking");
+    document.querySelectorAll(".quick-can").forEach((element) => element.classList.remove("quick-can"));
     refreshQuickOrb();
+  }
+
+  // A banner slides out to the left of the sphere, then back in after a moment; the glowing sphere stays.
+  function showQuickBanner(text) {
+    const quick = state.quick;
+    const banner = $("quickPick");
+    $("quickPickText").textContent = text;
+    clearTimeout(quick.introTimer);
+    banner.hidden = false;
+    requestAnimationFrame(() => banner.classList.add("is-out"));
+    quick.introTimer = setTimeout(() => {
+      banner.classList.remove("is-out");
+      quick.introTimer = setTimeout(() => { banner.hidden = true; }, 400);
+    }, QUICK_BANNER_MS);
+  }
+
+  // Highlight the inputs quick optimize can try (its field, or a header switch on its own).
+  function markQuickFields() {
+    if (!state.quick.picking) return;
+    for (const entry of quickCatalog()) {
+      const element = document.getElementById(fieldId(entry.path));
+      if (!element) continue;
+      const target = element.closest(".field") || element.closest(".switch") || element;
+      if (!target.classList.contains("quick-can")) target.classList.add("quick-can");
+    }
   }
 
   // The catalog path of the input a tap landed on, or "" for an input it cannot try, or null for no input.
@@ -8752,7 +8786,7 @@
     const path = quickTappedPath(event.target);
     if (path === null) return;
     if (!path) {
-      $("quickPickText").textContent = "That input cannot be tried. Tap a number, choice or switch.";
+      showQuickBanner("Not a choice. Tap a highlighted field.");
       return;
     }
     event.preventDefault();
@@ -8770,7 +8804,6 @@
       else startQuickPick();
     });
     $("quickBackdrop").addEventListener("click", closeQuick);
-    $("quickPickCancel").addEventListener("click", endQuickPick);
     document.addEventListener("click", quickPickClick, true);
     // The browser drops a wake lock when the page is hidden; take it again on coming back.
     document.addEventListener("visibilitychange", () => {
