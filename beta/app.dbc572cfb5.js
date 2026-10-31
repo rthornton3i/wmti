@@ -9477,7 +9477,7 @@
       if (subsection) {
         if (name === subsection.fields.find((item) => entryShown(panel, item))) {
           group.append(...panelSections({ ...panel, label: subsection.label, fields: subsection.fields, note: null,
-            switch: subsection.switch, subsections: null, subsection: true, help: subsection.help }));
+            switch: subsection.switch, subsections: null, subsection: true, help: subsection.help, lead: null }));
         }
         continue;
       }
