@@ -1483,7 +1483,10 @@
     const gateSwitch = collapseSwitch(panel);
     const real = gateSwitch || null;
     const gateRow = real && !real.closest(".pane-switch") ? real.closest(".field") : null;
-    for (const row of panel.querySelectorAll(".gate-in-head")) if (row !== gateRow) row.classList.remove("gate-in-head");
+    // Only this panel's own rows: a sub-section inside it (Medicare supplement) keeps its own.
+    for (const row of panel.querySelectorAll(".gate-in-head")) {
+      if (row !== gateRow && row.closest(COLLAPSE_PANELS) === panel) row.classList.remove("gate-in-head");
+    }
     if (gateRow) {
       gateRow.classList.add("gate-in-head");
       // The object the switch opens (Dependent care FSA) drops its own title and frame: the pane's header names it.
