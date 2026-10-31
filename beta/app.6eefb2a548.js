@@ -9104,6 +9104,7 @@
     }
     putScenario(name, state.inputs);
     storeScenarios();
+    folderWrite(name);  // and its file into the save folder, when one is set (60c-save-folder.js)
     return null;
   }
 
@@ -9752,6 +9753,131 @@
     }));
   }
 
+  // ---- Save folder (Setup > Scenario files): where the browser allows it (desktop Chrome and Edge, the File System
+  // Access API), every save of a scenario also writes its scenario file (as Export makes it) into a folder the user
+  // picks, such as a Google Drive or OneDrive folder that syncs to other devices. The folder's handle is kept in
+  // IndexedDB on this device; phones never show the option (they import the files instead).
+  const FOLDER_DB = STORAGE_PREFIX + "folder";
+  const FOLDER_KEY = "saveFolder";
+  const saveFolder = { handle: null, granted: false, busy: Promise.resolve() };
+
+  const folderSupported = () => typeof window.showDirectoryPicker === "function";
+
+  // Open the small IndexedDB store holding the folder's handle; null where IndexedDB is blocked.
+  function folderDb() {
+    return new Promise((resolve) => {
+      try {
+        const request = indexedDB.open(FOLDER_DB, 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("handles");
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+      } catch (error) { resolve(null); }
+    });
+  }
+
+  async function folderStore(handle) {
+    const db = await folderDb();
+    if (!db) return;
+    await new Promise((resolve) => {
+      const tx = db.transaction("handles", "readwrite");
+      if (handle) tx.objectStore("handles").put(handle, FOLDER_KEY);
+      else tx.objectStore("handles").delete(FOLDER_KEY);
+      tx.oncomplete = tx.onerror = () => resolve();
+    });
+  }
+
+  async function folderLoad() {
+    const db = await folderDb();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      const request = db.transaction("handles").objectStore("handles").get(FOLDER_KEY);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => resolve(null);
+    });
+  }
+
+  // Whether the folder may be written now; `ask` (only from a tap) asks the browser when it needs to.
+  async function folderPermission(ask) {
+    const handle = saveFolder.handle;
+    if (!handle) return false;
+    try {
+      let status = await handle.queryPermission({ mode: "readwrite" });
+      if (status !== "granted" && ask) status = await handle.requestPermission({ mode: "readwrite" });
+      saveFolder.granted = status === "granted";
+    } catch (error) { saveFolder.granted = false; }
+    return saveFolder.granted;
+  }
+
+  function renderSaveFolder() {
+    const row = $("saveFolder");
+    if (!row) return;
+    row.hidden = !folderSupported();
+    if (row.hidden) return;
+    const handle = saveFolder.handle;
+    $("saveFolderText").textContent = !handle ? "Save folder: none (saves stay on this device)"
+      : "Save folder: " + handle.name + (saveFolder.granted ? "" : " (tap Reconnect to allow saving there)");
+    $("saveFolderPick").textContent = !handle ? "Choose folder" : saveFolder.granted ? "Change" : "Reconnect";
+    $("saveFolderStop").hidden = !handle;
+  }
+
+  // Write the scenario `name`'s file into the folder (after a save); a failure shows under the card, nothing else.
+  function folderWrite(name) {
+    if (!saveFolder.handle || !saveFolder.granted || !hasOwn(state.scenarios, name)) return;
+    const inputs = state.scenarios[name];
+    saveFolder.busy = saveFolder.busy.then(async () => {
+      try {
+        const file = await ask("exportScenario", [JSON.stringify(inputs), name]);
+        if (!file || !file.ok) return;
+        const handle = await saveFolder.handle.getFileHandle(file.filename, { create: true });
+        const writer = await handle.createWritable();
+        await writer.write(file.text);
+        await writer.close();
+      } catch (error) {
+        saveFolder.granted = false;
+        renderSaveFolder();
+        savedMessage("Could not save to the folder: " + (error && error.message ? error.message : error), true);
+      }
+    });
+  }
+
+  async function pickSaveFolder() {
+    if (saveFolder.handle && !saveFolder.granted) {  // Reconnect: ask again for the folder already chosen
+      if (await folderPermission(true)) folderWrite(state.scenarioName);
+      renderSaveFolder();
+      return;
+    }
+    let handle;
+    try {
+      handle = await window.showDirectoryPicker({ id: "wmti-scenarios", mode: "readwrite" });
+    } catch (error) { return; }  // cancelled
+    saveFolder.handle = handle;
+    await folderStore(handle);
+    await folderPermission(true);
+    renderSaveFolder();
+    if (saveFolder.granted) {
+      savedMessage("Saves also go to the folder " + handle.name + ".", false);
+      folderWrite(state.scenarioName);
+    }
+  }
+
+  async function stopSaveFolder() {
+    saveFolder.handle = null;
+    saveFolder.granted = false;
+    await folderStore(null);
+    renderSaveFolder();
+    savedMessage("Saves stay on this device only.", false);
+  }
+
+  async function wireSaveFolder() {
+    if (!$("saveFolder")) return;
+    $("saveFolderPick").addEventListener("click", pickSaveFolder);
+    $("saveFolderStop").addEventListener("click", stopSaveFolder);
+    if (folderSupported()) {
+      saveFolder.handle = await folderLoad();
+      await folderPermission(false);
+    }
+    renderSaveFolder();
+  }
   // ---- Plots ----
   const FULL_SCREEN_BUTTON = "<button type=\"button\" class=\"chart-full\" aria-label=\"Full screen\" "
     + "title=\"Full screen\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 9V4h5M15 4h5v5M20 15v5h-5"
@@ -18429,6 +18555,7 @@
     document.addEventListener("visibilitychange", () => { if (!document.hidden) placeBubbles(); });
     $("saveButton").addEventListener("click", saveButtonPressed);
     $("autoSave").addEventListener("click", toggleAutoSave);
+    wireSaveFolder();
     // Setup's Advanced settings (the Run card): shut on every start (the tests open it with WMTI_ADVANCED_OPEN); open
     // or shut holds for the visit only.
     $("advancedSettings").open = window.WMTI_ADVANCED_OPEN === true;
