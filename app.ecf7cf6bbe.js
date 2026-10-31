@@ -8442,8 +8442,9 @@
         + "<fieldset class=\"quick-choices\"><legend class=\"field-label\">Optimize for</legend>"
         + radio("quickOrder", "smallest", "Min: the smallest value that meets the goal", quick.order !== "largest")
         + radio("quickOrder", "largest", "Max: the largest value that meets the goal", quick.order === "largest")
-        + "</fieldset><p class=\"field-help\">For example, Max on the Medicare age finds the oldest age that still "
-        + "keeps your net worth positive.</p>";
+        + "</fieldset><p class=\"field-help\">For example, Min on your retirement age finds the youngest age you can "
+        + "retire; Max on your Social Security claim age finds the oldest age you can wait to claim without your "
+        + "savings running out.</p>";
     }
     const found = quickValues(entry.field);
     const values = found.values ? found.values.length : 0;
