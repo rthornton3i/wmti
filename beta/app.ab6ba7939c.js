@@ -310,7 +310,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.bf8763e914.js");
+      worker = new Worker("worker.778f618ede.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -1357,7 +1357,7 @@
   // (`.summary-only`: Expenses' summary card and the Home and Cars timelines), which has no chevron.
   const COLLAPSE_TABS = ["panel-setup", "panel-inputs", "panel-outputs", "panel-strategy"];
   const COLLAPSE_PANELS = ".card:not(details):not(.mc-bar):not(.summary-only), "
-    + "fieldset.pane:not(.subsection):not(.summary-only), .files-card, .run-card";
+    + "fieldset.pane:not(.subsection):not(.summary-only), fieldset.subsection.foldable, .files-card, .run-card";
   const COLLAPSE_HEADS = [":scope > legend", ":scope > .card-head", ":scope > .title-help:not(.note-help)",
     ":scope > .files-head", ":scope > h2", ":scope > figure.chart > figcaption"];
   const COLLAPSE_TITLE = "h2, h3, .legend-title, .chart-title";
@@ -1400,7 +1400,7 @@
   function collapseSwitch(panel) {
     const own = panel.querySelector(":scope > .pane-switch input[role=switch]");
     if (own) return own;
-    const first = Array.from(panel.querySelectorAll(".field")).find((field) => !field.closest(".subsection")
+    const first = Array.from(panel.querySelectorAll(".field")).find((field) => [null, panel].includes(field.closest(".subsection"))
       && field.closest(COLLAPSE_PANELS) === panel);
     const input = first ? first.querySelector(":scope > .switch-row input[role=switch]") : null;
     return input && (input.id.endsWith("-enabled") || COLLAPSE_FEATURE_SWITCHES.includes(input.id)) ? input : null;
@@ -1448,6 +1448,11 @@
         if (helpText && panel.contains(helpText)) helpText.classList.add("collapse-keep");
         panel.dataset.collapseKey = collapseKey(panel, head);
         let folded = isFolded(panel.dataset.collapseKey);
+        // A foldable sub-section (Healthcare plans) starts open only while its switch is on.
+        if (panel.classList.contains("foldable") && !collapseFolds.has(panel.dataset.collapseKey)) {
+          const gate = collapseSwitch(panel);
+          folded = !(gate && gate.checked);
+        }
         if (folded && panel.querySelector("[aria-invalid=true]")) {  // a field that needs a fix is shown
           folded = false;
           collapseFolds.set(panel.dataset.collapseKey, false);
@@ -9410,7 +9415,9 @@
           subsections: section.subsections || null, help: section.help, lead: section.lead || null }));
     }
     const group = document.createElement("fieldset");
-    group.className = panel.subsection ? "group pane subsection" : "group pane";
+    // The Retirement pane's sub-sections (Healthcare plans) fold on their own, each a separate card.
+    group.className = panel.subsection ? "group pane subsection" + (panel.id === "retirement" ? " foldable" : "")
+      : "group pane";
     // The pane's title: an icon tile and the label (the icon adds no text, so the legend reads as the label); a
     // sub-section's title has no icon.
     const title = "<span class=\"legend-title\">" + (panel.subsection ? "" : "<span class=\"pane-icon\">"
