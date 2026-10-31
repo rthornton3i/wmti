@@ -2782,8 +2782,42 @@
   // ---- Quick optimize (58b-quick-optimize.js); the range rules match wmti.dashboard.quickoptimize ----
   const QUICK_LEAF_KINDS = ["number", "integer", "select", "toggle"];
   const QUICK_WHOLE_UNITS = ["age", "count", "years", "months", "year"];
+  // The inputs that are choices a household makes (ages, amounts it sets aside or spends, switches, plans). Inputs
+  // that are facts or forecasts (salary, returns, balances, prices, tax rates) are left out: more of them is
+  // simply better, so the search would always land on the end of the range.
+  const QUICK_CHOICES = new Set([
+    "RetirementInputs.withdrawalStrategy", "RetirementInputs.homeState",
+    "Person.salaryEndAge", "Person.socialSecurityAge",
+    "Child.collegeCost", "Child.account529",
+    "Account.surplusShare", "Account.deposit", "Account.monthlyDeposit", "Account.depositToAge",
+    "ExpenseItem.amount", "ExpenseItem.year", "ExpenseItem.toAge", "ExpenseItem.retirementChange",
+    "ContributionPlan.enabled",
+    "PremiumPlan.medicareAge", "PremiumPlan.medicareType", "PremiumPlan.partB",
+    "MedicareSupplement.enabled", "GapMedicalPlan.enabled",
+    "HsaPlan.enabled", "HsaPlan.sizing", "HsaPlan.cap", "HsaPlan.payroll",
+    "DependentCareFsa.enabled", "DependentCareFsa.cap",
+    "Loan.extraMonthly", "Loan.paysOffEarly", "Loan.payoffAge",
+    "StrategyPlan.penaltyFreeFirst",
+    "Home.mortgageExtraMonthly", "Home.buysLater", "Home.purchaseAge", "Home.purchasePrice", "Home.downPaymentRate",
+    "Home.sellsLater", "Home.saleAge",
+    "RentPeriod.monthlyRent", "RentPeriod.startAge", "RentPeriod.endAge", "RentPeriod.state",
+    "Car.loanExtraMonthly", "Car.replaceBy", "Car.replaceEveryYears", "Car.replaceInYears", "Car.replacementPrice",
+    "Car.replaceEveryMiles", "Car.buysLater", "Car.purchaseAge", "Car.purchasePrice", "Car.downPaymentRate",
+    "Car.sellsLater", "Car.saleAge", "Car.leases", "Car.payMethod", "Car.replacementPayMethod",
+    "Car.replacementDownPaymentRate", "Car.replacementLoanMonths", "Car.replacementLeaseMonths",
+    "RetirementSpending.enabled", "RetirementSpending.mode", "RetirementSpending.equalChange",
+    "RetirementSpending.startAge",
+    "RetirementDeposit.traditionalShare", "RetirementDeposit.rothShare",
+    "Refinance.month", "Refinance.termMonths",
+    "RothConversionPlan.enabled", "RothConversionPlan.startAge", "RothConversionPlan.endAge",
+    "RothConversionPlan.amount", "RothConversionPlan.socialSecurityLimit", "RothConversionPlan.gainsBracketTop",
+    "RothConversionPlan.bracketRate", "RothConversionPlan.irmaaTier", "RothConversionPlan.customCeiling",
+    "BackdoorPlan.enabled", "BackdoorPlan.amount", "QcdPlan.enabled", "QcdPlan.amount",
+    "Heir.share", "Heir.payout",
+    "RelocationPlan.enabled", "RelocationPlan.state", "RelocationPlan.moveAge", "RelocationPlan.homesFollow",
+  ]);
 
-  // Every input quick optimize can try, in schema order: {path, label, field}. Person fields come once per person,
+  // Every choice input quick optimize can try (QUICK_CHOICES), in schema order: {path, label, field}. Person fields come once per person,
   // list fields once per item (named by the item's name); app-only (notEditable) fields are left out.
   function quickFieldCatalog(schema, inputs) {
     const found = [];
@@ -2803,7 +2837,8 @@
               : (field.label || field.name) + " " + (index + 1);
             walk(field.type, item, path + "." + index + ".", labels.concat([name]));
           });
-        } else if (QUICK_LEAF_KINDS.includes(field.kind) && value !== undefined) {
+        } else if (QUICK_LEAF_KINDS.includes(field.kind) && value !== undefined
+          && QUICK_CHOICES.has(typeName + "." + field.name)) {
           found.push({ path, label: label.join(" › "), field });
         }
       }

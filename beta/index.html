@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-pFgl8nH+4jgsiY4AJTMtK+Pi5McQHSKmyqnw9vQHp6g=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-14yrxFMzd/MXLVQVihBCG/aTIwB537DILr4hj3zwXIs=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -2409,16 +2409,13 @@ body:has(.sheet:not([hidden]), .dialog:not([hidden]), .menu:not([hidden]), .walk
 @media (prefers-reduced-motion: reduce) { .quick-plot-new { animation: none; } }
 .quick-plot-zero { stroke: var(--ink); stroke-width: 1; stroke-opacity: 0.6; }
 .quick-plot-mark { stroke: var(--bad); stroke-width: 1.5; stroke-dasharray: 3 3; }
-.quick-pick { position: fixed; z-index: 76; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
-  top: calc(env(safe-area-inset-top, 0px) + 8px); display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-3); padding: 8px 8px 8px 16px; border-radius: 14px; background: var(--hero); color: var(--hero-ink);
-  box-shadow: 0 6px 20px var(--edge-shadow); font-weight: 600;
-  transition: top 0.45s ease, transform 0.45s ease, box-shadow 0.45s ease, font-size 0.45s ease, padding 0.45s ease; }
-/* First shown large in the middle of the screen, then moved up to the top (is-intro removed after a moment). */
-.quick-pick.is-intro { top: 50%; transform: translateY(-50%); flex-direction: column; padding: 24px 16px 16px;
-  font-size: 22px; text-align: center;
-  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.25), 0 10px 30px var(--edge-shadow); }
-.quick-pick .button { color: var(--hero-ink); border-color: currentColor; }
+/* While picking, a banner slides out to the left of the sphere (from behind it), then back in (is-out). */
+.quick-pick { position: fixed; z-index: 33; right: calc(var(--gutter) + 24px);
+  bottom: calc(var(--tabbar) + 16px + env(safe-area-inset-bottom, 0px)); min-height: 48px; padding-block: 6px;
+  max-width: calc(100vw - 2 * var(--gutter) - 24px); display: flex; align-items: center;
+  padding-inline: 16px 36px; border-radius: 24px 0 0 24px; background: var(--hero); color: var(--hero-ink);
+  box-shadow: 0 4px 14px var(--edge-shadow); font-weight: 600; line-height: 1.25; clip-path: inset(0 0 0 100%); transition: clip-path 0.35s ease; }
+.quick-pick.is-out { clip-path: inset(0 0 0 0); }
 /* While a field is being picked the sphere looks switched on (a switch's on colour, a white ring, pressed in) and
    pulses with a glow. */
 .quick-orb.is-picking { background: var(--toggle); outline: 3px solid #fff; outline-offset: -3px; transform: scale(0.96);
@@ -2427,6 +2424,10 @@ body:has(.sheet:not([hidden]), .dialog:not([hidden]), .menu:not([hidden]), .walk
   0%, 100% { box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent), 0 3px 8px var(--edge-shadow); }
   50% { box-shadow: 0 0 22px 6px color-mix(in srgb, var(--accent) 70%, transparent), 0 3px 8px var(--edge-shadow); }
 }
+/* While picking, the inputs quick optimize can try are ringed in the accent colour; the others fade back. */
+.quick-picking .field:not(.quick-can) { opacity: 0.45; }
+.quick-picking .quick-can { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent); }
 @media (prefers-reduced-motion: reduce) {
   .quick-pick { transition: none; }
   .quick-orb.is-picking { animation: none; box-shadow: 0 0 0 3px var(--accent); }
@@ -2907,7 +2908,6 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
   </div>
   <div class="quick-pick" id="quickPick" role="status" hidden>
     <span id="quickPickText">Select a field on screen</span>
-    <button type="button" class="button button-quiet" id="quickPickCancel">Cancel</button>
   </div>
 
   <!-- A Gamer mini game (app.js openGame): over the page or the walkthrough, under the scenario dialog (its confirm). -->
@@ -3069,16 +3069,16 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "c7b128cfef7c", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "8e5324c66277", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.a46abef1c9.js"></script>
+<script src="shared.1c36071e08.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.08f4d99a5c.js"></script>
 <script src="gamify.3870f3326f.js"></script>
 <script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.d8955d5b33.js"></script>
+<script src="app.c480c046d4.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
