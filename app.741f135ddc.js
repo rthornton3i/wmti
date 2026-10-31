@@ -17489,6 +17489,10 @@
         + "deposits and withdrawals, taxes and expenses." },
     { title: "Undo", page: "bar", target: "#undoButton",
       text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
+    { title: "Quick optimize", page: "bar", when: () => !$("quickOrb").hidden, target: "#quickOrb",
+      text: "The sparkle button in the corner is Quick optimize: pick any input, give it a range of values to try, "
+        + "and it finds the best one or the first that keeps your money (or one account) above zero. Nothing changes "
+        + "until you tap Apply." },
     { title: "Walk me through it", page: "menu", target: "#menuWalk",
       text: "Walk me through it asks one question at a time and fills in your settings. Where a topic has more "
         + "detail, Go deeper adds its extra questions." },
