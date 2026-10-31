@@ -1478,10 +1478,18 @@
     button.classList.toggle("collapse-off", Boolean(gate && !gate.checked));  // a switched-off panel shows no fold arrow until it is turned on
     const tools = button.parentElement;
     let copy = tools.querySelector(".collapse-switch");
-    // The header shows the panel's switch: always for a pane's own toggle (its original is hidden, styles.css), and
-    // for a first-field feature switch only while folded (open, the field row shows it).
+    // The header always shows the panel's switch, folded or open; the original is hidden (a pane's own toggle by
+    // styles.css, a first-field feature switch's whole row by `.gate-in-head`).
     const gateSwitch = collapseSwitch(panel);
-    const real = gateSwitch && (folded || gateSwitch.closest(".pane-switch")) ? gateSwitch : null;
+    const real = gateSwitch || null;
+    const gateRow = real && !real.closest(".pane-switch") ? real.closest(".field") : null;
+    for (const row of panel.querySelectorAll(".gate-in-head")) if (row !== gateRow) row.classList.remove("gate-in-head");
+    if (gateRow) {
+      gateRow.classList.add("gate-in-head");
+      // The object the switch opens (Dependent care FSA) drops its own title and frame: the pane's header names it.
+      const object = gateRow.parentElement.closest("fieldset.group");
+      if (object && object !== panel && !object.classList.contains("pane")) object.classList.add("flat-object");
+    }
     if (!real) {
       if (copy) copy.remove();
       return;
@@ -1506,8 +1514,7 @@
         const moved = now.querySelector(".collapse-head").getBoundingClientRect().top - top;
         const tab = now.closest(".panel").dataset.tab;
         if (Math.abs(moved) >= 1) leaveScrollTo(tab, leaveScroll(tab) + moved);
-        const again = now.classList.contains("is-collapsed") ? now.querySelector(".collapse-switch input")
-          : collapseSwitch(now);
+        const again = now.querySelector(".collapse-switch input");
         if (again) again.focus({ preventScroll: true });
       });
       tools.append(copy);  // last: the switch sits at the far right
@@ -10834,8 +10841,7 @@
     input.checked = checked;
     input.setAttribute("aria-label", label);
     input.addEventListener("change", () => onChange(input.checked));
-    const help_ = head.querySelector(".help-button");
-    head.insertBefore(holder, help_ || null);
+    head.append(holder);  // label ... [i] [switch]: the switch last, as in a pane's header
     head.querySelector(".field-label").style.flex = "1";
     if (disabled) {
       input.disabled = true;
