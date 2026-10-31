@@ -314,7 +314,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.99e6f84c86.js");
+      worker = new Worker("worker.f65533801a.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -8152,11 +8152,15 @@
     quickOrbShown, quickPlotSvg } = window.WmtiShared;
   const QUICK_LIST_MAX = 60;  // most inputs the field list draws at once
   window.wmtiQuick = { open: openQuick, state: () => state.quick };  // for the tests
+  const QUICK_INTRO_MS = 1400;  // how long "Select a field on screen" stays large in the middle before it moves up
 
-  // Show the sphere only on a set-up plan and while no pick is under way (sheets and dialogs hide it in CSS).
+  // Show the sphere only on a set-up plan (sheets and dialogs hide it in CSS); while a pick is under way it glows.
   function refreshQuickOrb() {
     const orb = $("quickOrb");
-    if (orb) orb.hidden = !quickOrbShown(state.inputs, !state.schema || state.quick.picking);
+    if (!orb) return;
+    orb.hidden = !quickOrbShown(state.inputs, !state.schema);
+    orb.classList.toggle("is-picking", Boolean(state.quick.picking));
+    orb.setAttribute("aria-pressed", String(Boolean(state.quick.picking)));
   }
 
   function quickCatalog() {
@@ -8430,10 +8434,7 @@
         const names = (state.inputs.accounts || []).map((account) => account.name);
         if (!names.includes(quick.account)) quick.account = names[0] || null;
         html += selectHtml("quickAccount", "Account", names.map((name) => [name, name]), quick.account)
-          + "<label class=\"pair-field\" for=\"quickThrough\"><span class=\"field-label\">Up to your age</span>"
-          + "<input class=\"input\" id=\"quickThrough\" type=\"text\" inputmode=\"numeric\" placeholder=\"End of run\" "
-          + "value=\"" + escapeText(quick.throughAge == null ? "" : quick.throughAge) + "\"></label>"
-          + "<p class=\"field-help\">Blank checks every year to the end of the run.</p>";
+          + "<div id=\"quickAgesHolder\"></div>";
       }
       html += "<div class=\"quick-pass\"><div class=\"deposit-head\"><label class=\"field-label\" for=\"quickPass\">"
         + "Runs that must pass</label><output class=\"surplus-value\" id=\"quickPassValue\" for=\"quickPass\">"
@@ -8455,6 +8456,8 @@
     const busy = quickBusy();
     if (busy) html += "<p class=\"field-help\" id=\"quickBusy\">" + escapeText(busy) + "</p>";
     body.insertAdjacentHTML("beforeend", html);
+    const holder = body.querySelector("#quickAgesHolder");
+    if (holder) holder.replaceWith(quickAgesField());
     for (const input of body.querySelectorAll("input[name=quickGoal]")) {
       input.addEventListener("change", () => { quick.goal = input.value; renderQuick(); });
     }
@@ -8475,13 +8478,6 @@
       $("quickPassValue").textContent = element.value + "%";
     });
     const run = quickButton("Run", "quickRun", false, runQuick, Boolean(busy || found.error));
-    listen("quickThrough", "input", (element) => {
-      const text = element.value.trim();
-      const ok = text === "" || /^\d{1,3}$/.test(text);
-      element.setAttribute("aria-invalid", String(!ok));
-      quick.throughAge = text === "" || !ok ? null : Number(text);
-      run.disabled = Boolean(busy || found.error || !ok);
-    });
     actions.append(quickButton("Back", "quickBack", true, () => { quick.step = "values"; renderQuick(); }), run);
   }
 
@@ -8533,10 +8529,20 @@
     if (job.drawn && job.drawn.value !== plot.value) job.previous = (job.previous || []).concat([job.drawn]);
     job.drawn = plot;
     box.innerHTML = quickPlotSvg(plot, job.previous);
+    const ages = plot.fromAge != null || plot.throughAge != null
+      ? ", ages " + (plot.fromAge != null ? plot.fromAge : "start") + " to " + (plot.throughAge != null ? plot.throughAge
+        : "end") + " marked" : "";
     $("quickPlotNote").textContent = plot.label + " for " + named(plot) + ": median line and 10th to 90th "
-      + "percentile band of " + plot.runs + (plot.runs === 1 ? " run" : " runs") + "; $0 line"
-      + (plot.throughAge != null ? ", age " + plot.throughAge + " marked" : "")
+      + "percentile band of " + plot.runs + (plot.runs === 1 ? " run" : " runs") + "; $0 line" + ages
+      + (plot.accounts ? "; thin lines: each account" : "")
       + (job.previous && job.previous.length ? "; grey lines: earlier values, fainter the older" : "") + ".";
+    // A key to the account lines, each name in its line's colour.
+    const key = $("quickPlotKey") || $("quickPlotNote").insertAdjacentElement("afterend", document.createElement("p"));
+    key.id = "quickPlotKey";
+    key.className = "quick-plot-key";
+    key.hidden = !plot.accounts;
+    key.innerHTML = (plot.accounts || []).map((item, index) => "<span><i style=\"background:var(--s" + ((index % 6) + 1)
+      + ")\"></i>" + escapeText(item.name) + "</span>").join("");
   }
 
   async function runQuick() {
@@ -8557,7 +8563,9 @@
     else {
       Object.assign(options, { rule: quick.rule, passPercent: quick.passPercent,
         order: quick.order === "largest" ? "largest" : "smallest" });
-      if (quick.rule === "account") Object.assign(options, { account: quick.account, throughAge: quick.throughAge });
+      if (quick.rule === "account") {
+        Object.assign(options, { account: quick.account, fromAge: quick.fromAge, throughAge: quick.throughAge });
+      }
     }
     const inputsText = JSON.stringify(state.inputs);
     clearTimeout(mcTimer);
@@ -8568,7 +8576,8 @@
       showQuickProgress();
     });
     quick.job = { id: job.id, inputsText, done: 0, total: 0, detail: null, stopped: null, drawn: null,
-      previous: null };
+      previous: null, wakeLock: null };
+    quickScreenOn();
     quick.entry = null;
     quick.message = null;
     quick.step = "run";
@@ -8581,6 +8590,7 @@
       failure = String(error.message || error);
     }
     const { stopped } = quick.job;
+    quickScreenOff(quick.job);
     quick.job = null;
     quick.step = "goal";
     if (failure) quick.message = { error: true, text: failure };
@@ -8657,18 +8667,65 @@
     refreshQuickOrb();
   }
 
+  // The ages the one-account rule checks: a two-knob slider from your age today to the run's last year. A knob at an
+  // end means no limit there (null is sent), so the whole run is checked by default.
+  function quickAgesField() {
+    const quick = state.quick;
+    const low = Number(state.inputs.you.currentAge);
+    const high = Math.max(low, low + planYears(state.inputs) - 1);
+    const clamp = (age, fallback) => (age == null ? fallback : Math.min(high, Math.max(low, age)));
+    const values = { from: clamp(quick.fromAge, low), to: clamp(quick.throughAge, high) };
+    return ageRangeField({ label: "Stays positive between ages", help: "The account must hold money every year "
+      + "from the first age to the last, both included. Ends of the slider mean the whole run." }, {
+      low, high, set: true, values, ids: { from: "quickFromAge", to: "quickThroughAge" },
+      names: { from: "From age", to: "To age" },
+      text: () => values.from + " to " + values.to,
+      store: (name, age) => {
+        values[name] = age;
+        if (name === "from") quick.fromAge = age === low ? null : age;
+        else quick.throughAge = age === high ? null : age;
+      },
+    });
+  }
+
+  // Keep the screen on while a run is under way (Screen Wake Lock, where the browser has it), as Optimize does.
+  async function quickScreenOn() {
+    const job = state.quick.job;
+    if (!job || job.wakeLock || document.visibilityState !== "visible") return;
+    try {
+      if (!navigator.wakeLock || !navigator.wakeLock.request) return;
+      const lock = await navigator.wakeLock.request("screen");
+      if (state.quick.job === job && !job.wakeLock) job.wakeLock = lock;
+      else lock.release().catch(() => {});
+    } catch (error) { /* no wake lock here, or refused: the run goes on without it */ }
+  }
+
+  function quickScreenOff(job) {
+    const lock = job && job.wakeLock;
+    if (!lock) return;
+    job.wakeLock = null;
+    try { Promise.resolve(lock.release()).catch(() => {}); } catch (error) { /* already let go */ }
+  }
+
   // ---- Pick on screen: the sheet closes, the next tap on an input picks it ----
   function startQuickPick() {
     const quick = state.quick;
     closeQuick();
     quick.picking = true;
     $("quickPickText").textContent = "Select a field on screen";
-    $("quickPick").hidden = false;
+    // The message opens large in the middle of the screen, then shrinks to its place at the top.
+    const banner = $("quickPick");
+    clearTimeout(quick.introTimer);
+    banner.classList.add("is-intro");
+    banner.hidden = false;
+    quick.introTimer = setTimeout(() => banner.classList.remove("is-intro"), QUICK_INTRO_MS);
     refreshQuickOrb();
     goToPane("inputs");
   }
 
   function endQuickPick() {
+    clearTimeout(state.quick.introTimer);
+    $("quickPick").classList.remove("is-intro");
     state.quick.picking = false;
     $("quickPick").hidden = true;
     refreshQuickOrb();
@@ -8707,10 +8764,21 @@
 
   function wireQuick() {
     // The sphere starts a pick on screen; while a run is under way it shows the run.
-    $("quickOrb").addEventListener("click", () => (state.quick.job ? openQuick() : startQuickPick()));
+    $("quickOrb").addEventListener("click", () => {  // a second tap while picking ends the pick
+      if (state.quick.job) openQuick();
+      else if (state.quick.picking) endQuickPick();
+      else startQuickPick();
+    });
     $("quickBackdrop").addEventListener("click", closeQuick);
     $("quickPickCancel").addEventListener("click", endQuickPick);
     document.addEventListener("click", quickPickClick, true);
+    // The browser drops a wake lock when the page is hidden; take it again on coming back.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && state.quick.job) {
+        state.quick.job.wakeLock = null;
+        quickScreenOn();
+      }
+    });
     document.addEventListener("pointerdown", (event) => {  // a tap on a select or text box picks before it opens
       if (state.quick.picking && quickTappedPath(event.target)) event.preventDefault();
     }, true);
