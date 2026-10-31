@@ -8439,10 +8439,11 @@
         + "Runs that must pass</label><output class=\"surplus-value\" id=\"quickPassValue\" for=\"quickPass\">"
         + quick.passPercent + "%</output></div><input type=\"range\" class=\"range\" id=\"quickPass\" min=\"0\" "
         + "max=\"100\" step=\"1\" value=\"" + quick.passPercent + "\"></div>"
-        + "<fieldset class=\"quick-choices\"><legend class=\"field-label\">Try first</legend>"
-        + radio("quickOrder", "smallest", "Smallest value", quick.order !== "largest")
-        + radio("quickOrder", "largest", "Largest value", quick.order === "largest") + "</fieldset>"
-        + "<p class=\"field-help\">Values are tried in order from that end: the first that passes wins.</p>";
+        + "<fieldset class=\"quick-choices\"><legend class=\"field-label\">Optimize for</legend>"
+        + radio("quickOrder", "smallest", "Min: the smallest value that meets the goal", quick.order !== "largest")
+        + radio("quickOrder", "largest", "Max: the largest value that meets the goal", quick.order === "largest")
+        + "</fieldset><p class=\"field-help\">For example, Max on the Medicare age finds the oldest age that still "
+        + "keeps your net worth positive.</p>";
     }
     const found = quickValues(entry.field);
     const values = found.values ? found.values.length : 0;
