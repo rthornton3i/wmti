@@ -12,7 +12,13 @@
   const KEY_PATTERN = /^[A-Za-z][A-Za-z0-9_]{0,40}$/;  // a question, quest, award or view id
   const EFFORT_RANK = { low: 0, medium: 1, high: 2 };
   const EFFORT_NAMES = { low: "Low", medium: "Medium", high: "High" };
-  const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views the explorer award counts
+  const SEEN_VIEWS = ["summary", "plots", "compare", "optimize"];  // the result views the explorer quest counts
+  const PLOT_IDS = ["total", "balances", "cashFlow", "flows", "taxes", "expenses"];  // the app's PLOT_VIEWS ids
+  // Marks the app keeps in the ledger's `seen` table beside the views (gamerMark): `plot_<id>` a Plots view shown,
+  // `run_average` the average run view shown, `applied` an Optimize result applied, `earliest_opt` an Earliest
+  // retirement result found after an apply.
+  const DEFAULT_SEED = 1;  // the app's first seed; another one is a seed tried
+  const DEFAULT_WITHDRAWAL = "PRIORITY";
   const GAME_IDS = ["bracket", "claim", "receipts", "decade", "seesaw", "leaks", "snowball", "sudoku", "grow", "bigger",
     "wheel"];  // games.js GAME_IDS
   const ORIGINAL_GAME_IDS = ["bracket", "claim", "receipts", "decade"];  // the four games All-rounder asks for
@@ -30,44 +36,92 @@
   // Awards give none.
   const XP = deepFreeze({ walkAnswer: 2, gameDone: 15, gameStars: 10 });
 
-  // Quests in the order the Awards view lists them. `tier`: the lowest effort that offers it. `show`: where Show me
-  // goes (`walk`, `view:<id>` or `field:<dotted input path>`).
+  // Quests: exploring the results and trying strategies, in the order the Quests view lists them. `tier`: the lowest
+  // effort that offers it. `why`: one short reason. `show`: where Go goes (`view:<id>`, `plot:<Plots view id>` or
+  // `field:<dotted input path>`). `capstone`: the last, biggest quest.
   const QUESTS = deepFreeze([
-    { id: "basics", tier: "low", xp: 25, title: "Fill in the basics",
-      how: "Enter your age, monthly spending, savings and pay (or mark yourself retired).", show: "field:you.salary" },
-    { id: "walk", tier: "low", xp: 25, title: "Finish the walkthrough",
-      how: "Answer or skip every question of Walk me through it.", show: "walk" },
-    { id: "work_savings", tier: "low", xp: 10, title: "Look at saving at work",
-      how: "Turn on the 401k plan, or answer the 401k question in the walkthrough.", show: "field:contributions.enabled" },
-    { id: "medical", tier: "low", xp: 10, title: "Look at your medical plan",
-      how: "Turn on the medical plan, or answer its question in the walkthrough.",
-      show: "field:premiums.medicalPlanEnabled" },
-    { id: "first_run", tier: "low", xp: 15, title: "Run the simulation",
-      how: "Run a Monte Carlo simulation of this plan.", show: "view:summary" },
-    { id: "plots", tier: "low", xp: 10, title: "Open the plots", how: "Open Outputs, then Plots.", show: "view:plots" },
+    { id: "first_run", tier: "low", xp: 15, title: "Run the simulation", how: "Run a Monte Carlo of this plan.",
+      why: "See how the plan holds up over many markets.", show: "view:summary" },
+    { id: "plots", tier: "low", xp: 10, title: "Open the plots", how: "Open Outputs, then Plots.",
+      why: "See the plan year by year.", show: "view:plots" },
+    { id: "plot_tour", tier: "low", xp: 15, title: "Tour every plot", how: "Open each Plots view once.",
+      why: "Each view shows a different side of the plan.", show: "plot:balances" },
+    { id: "run_view", tier: "low", xp: 10, title: "Switch the run view",
+      how: "Show Average of runs on a per-year plot.", why: "One typical run and the average can differ.",
+      show: "plot:balances" },
+    { id: "explorer", tier: "low", xp: 10, title: "Explore the results", how: "Open Summary, Plots, Compare and Optimize.",
+      why: "Know where every answer lives.", show: "view:summary" },
+    { id: "seed", tier: "low", xp: 10, title: "Try a different seed", how: "Run the simulation again with a new seed.",
+      why: "Fresh markets show how steady the result is.", show: "view:summary" },
     { id: "compare", tier: "low", xp: 20, title: "Compare two plans", how: "Run a comparison in Strategy, Compare.",
-      show: "view:compare" },
+      why: "See what one change is worth.", show: "view:compare" },
     { id: "optimize", tier: "low", xp: 20, title: "Search for a strategy",
-      how: "Run a strategy search in Strategy, Optimize.", show: "view:optimize" },
-    { id: "match", tier: "medium", xp: 15, title: "Count an employer match",
-      how: "Turn on the employer match for someone whose employer pays one.", show: "field:you.employerMatch.enabled" },
-    { id: "claim", tier: "medium", xp: 15, title: "Pick a claim age",
-      how: "Answer the Social Security claim age question in the walkthrough, or finish Claim Age Showdown.",
-      show: "walk" },
+      how: "Run a strategy search in Strategy, Optimize.", why: "Let the app try settings for you.",
+      show: "view:optimize" },
+    { id: "apply", tier: "low", xp: 20, title: "Apply a search result", how: "Apply an Optimize result to a plan.",
+      why: "Start from the best settings found.", show: "view:optimize" },
+    { id: "withdrawal", tier: "high", xp: 15, title: "Try a withdrawal strategy",
+      how: "Switch the withdrawal strategy from priority order.", why: "The order you draw money changes taxes.",
+      show: "field:withdrawalStrategy" },
+    { id: "roth", tier: "high", xp: 15, title: "Try Roth conversions", how: "Turn on Roth conversions.",
+      why: "Paying some tax early can lower it later.", show: "field:strategies.rothConversion.enabled" },
     { id: "play", tier: "low", xp: 15, title: "Play a mini game", how: "Finish any mini game in Arcade, Games.",
-      show: "view:games" },
+      why: "Practice money ideas in a few minutes.", show: "view:games" },
+    { id: "best_age", tier: "low", xp: 40, title: "Retire as soon as you can",
+      how: "Apply an Optimize result, then run Earliest retirement.",
+      why: "The soonest you can retire with your setup tuned.", show: "view:optimize", capstone: true },
   ]);
 
-  // Awards (no XP), each earned by one condition: a quest earned, every view of `seen` opened, or a level reached.
+  // Award groups in the order the Awards view shows them.
+  const AWARD_GROUPS = deepFreeze([["basics", "Basics"], ["savings", "Savings"], ["life", "Life"],
+    ["later", "Later in life"], ["games", "Game badges"]]);
+
+  // Awards (no XP). A plan award (`fact`) is earned by adding plan detail: `how` says what to add, `show` where (Show
+  // me), `tier` the lowest effort that shows the field. A game badge (`keys`) by its mini game rule keys.
   const AWARDS = deepFreeze([
-    { id: "first_steps", title: "First steps", how: "Finish the quest Fill in the basics.", quest: "basics" },
-    { id: "navigator", title: "Navigator", how: "Finish the walkthrough.", quest: "walk" },
-    { id: "simulator", title: "Simulator", how: "Run the simulation.", quest: "first_run" },
-    { id: "match_maker", title: "Match maker", how: "Count an employer match.", quest: "match" },
-    { id: "comparer", title: "Comparer", how: "Compare two plans.", quest: "compare" },
-    { id: "explorer", title: "Explorer", how: "Open Summary, Plots, Compare and Optimize.", seen: SEEN_VIEWS },
-    { id: "level_4", title: "Level 4", how: "Reach level 4, Strategist.", level: 4 },
-    { id: "level_8", title: "Level 8", how: "Reach level 8, Legend.", level: 8 },
+    { id: "age_set", group: "basics", tier: "low", fact: "age_set", title: "Age set", how: "Enter your age.",
+      show: "field:you.currentAge" },
+    { id: "pay_day", group: "basics", tier: "low", fact: "pay_day", title: "Pay day",
+      how: "Enter your pay, or mark yourself retired.", show: "field:you.salary" },
+    { id: "spending", group: "basics", tier: "low", fact: "spending", title: "Spending plan",
+      how: "Add your monthly spending.", show: "field:expenses" },
+    { id: "partner", group: "basics", tier: "low", fact: "partner", title: "Partner",
+      how: "Add a partner, or answer the partner question.", show: "field:partner" },
+    { id: "first_steps", group: "basics", tier: "low", fact: "basics", title: "First steps",
+      how: "Fill in age, spending, savings and pay.", show: "field:you.salary" },
+    { id: "navigator", group: "basics", tier: "low", fact: "walk", title: "Navigator",
+      how: "Finish Walk me through it.", show: "walk" },
+    { id: "cash", group: "savings", tier: "low", fact: "cash", title: "Cash on hand",
+      how: "Add a checking, savings or CD account with a balance.", show: "field:accounts" },
+    { id: "investor", group: "savings", tier: "low", fact: "investor", title: "Investor",
+      how: "Add an investment account with a balance.", show: "field:accounts" },
+    { id: "traditional", group: "savings", tier: "low", fact: "traditional", title: "Tax later",
+      how: "Add a Traditional IRA or 401k with a balance.", show: "field:accounts" },
+    { id: "roth_account", group: "savings", tier: "low", fact: "roth_account", title: "Tax free",
+      how: "Add a Roth IRA or Roth 401k with a balance.", show: "field:accounts" },
+    { id: "work_savings", group: "savings", tier: "low", fact: "work_savings", title: "Saving at work",
+      how: "Turn on the 401k plan and its deposit shares.", show: "field:contributions.enabled" },
+    { id: "match_maker", group: "savings", tier: "medium", fact: "match", title: "Match maker",
+      how: "Turn on an employer match.", show: "field:you.employerMatch.enabled" },
+    { id: "hsa", group: "savings", tier: "medium", fact: "hsa", title: "Health saver", how: "Turn on the HSA.",
+      show: "field:hsa.enabled" },
+    { id: "medical", group: "life", tier: "low", fact: "medical", title: "Covered",
+      how: "Turn on the medical plan, or answer its question.", show: "field:premiums.medicalPlanEnabled" },
+    { id: "children", group: "life", tier: "low", fact: "children", title: "Family",
+      how: "Add your children.", show: "field:children" },
+    { id: "college", group: "life", tier: "low", fact: "college", title: "College fund",
+      how: "Add a 529 account with a balance.", show: "field:accounts" },
+    { id: "home", group: "life", tier: "medium", fact: "home", title: "Home base", how: "Add a home or rent.",
+      show: "field:homes" },
+    { id: "car", group: "life", tier: "medium", fact: "car", title: "Wheels", how: "Add a car.", show: "field:cars" },
+    { id: "social_security", group: "later", tier: "medium", fact: "social_security", title: "Benefit known",
+      how: "Enter a Social Security benefit.", show: "field:you.socialSecurityByAge" },
+    { id: "earnings", group: "later", tier: "high", fact: "earnings", title: "Work record",
+      how: "Add your earnings history.", show: "field:you.salaryHistory" },
+    { id: "heirs", group: "later", tier: "medium", fact: "heirs", title: "Legacy",
+      how: "Set your heirs or the estate tax rate.", show: "field:strategies.heirs" },
+    { id: "inflation", group: "later", tier: "medium", fact: "inflation", title: "Price watcher",
+      how: "Review and set the inflation range.", show: "field:inflation" },
     { id: "claim_scholar", title: "Claim scholar", how: "Finish Claim Age Showdown.", keys: ["game.claim.done"] },
     { id: "bracket_climber", title: "Bracket climber", how: "Finish Bracket Climber with 3 stars.",
       keys: ["game.bracket.stars"] },
@@ -242,8 +296,8 @@
   /**
    * Work out the facts the rules read from the app's state.
    *
-   * Input-based facts (the basics, the 401k plan, the medical plan, an employer match) count only in a scenario that
-   * is not the unedited example; the walkthrough answers count everywhere.
+   * Input-based facts (the plan awards' and the strategy quests') count only in a scenario that is not the unedited
+   * example; the walkthrough answers count everywhere.
    *
    * @param {object} source - The state to read.
    * @param {object} source.inputs - The open scenario's inputs.
@@ -253,12 +307,15 @@
    * @param {object} source.results - `{mc, compare, optimize}`: each the result, or null when there is none.
    * @param {object} source.seen - The ledger's `seen` table (view id to day).
    * @param {object} source.games - The ledger's `games` table (game id to `{plays, stars}`).
-   * @returns {object} `{effort, answered, seen, games, quests}`: the answered question ids, the result views opened
-   *     (view id to true or false), each mini game's `{done, stars}` (finished; finished with all 3 stars) and each
-   *     quest id's fact (true or false).
+   * @param {object} [source.defaults] - The example household's inputs (what "changed" is measured against).
+   * @param {number} [source.seed] - The Monte Carlo seed.
+   * @returns {object} `{effort, answered, seen, games, quests, awards}`: the answered question ids, the result views
+   *     opened (view id to true or false), each mini game's `{done, stars}` (finished; finished with all 3 stars), each
+   *     quest id's fact and each plan award fact (true or false).
    */
   function gamifyFacts(source) {
-    const { inputs, experience, effort, isExample, results, seen, games } = isRecord(source) ? source : {};
+    const { inputs, experience, effort, isExample, results, seen, games, defaults, seed } = isRecord(source) ? source
+      : {};
     const plan = isRecord(inputs) ? inputs : {};
     const walk = isRecord(experience) && isRecord(experience.walk) ? experience.walk : {};
     const answers = isRecord(walk.answers) ? walk.answers : {};
@@ -280,24 +337,68 @@
     const basics = own && number(you.currentAge) > 0 && sum(plan.expenses, "amount") > 0
       && sum(plan.accounts, "startingValue") > 0 && paySettled;
     const switchOn = (group, name) => isRecord(plan[group]) && plan[group][name] === true;
-    const quests = {
+    const asked = (...ids) => ids.some((id) => answered.includes(id));
+    const list = (name) => (Array.isArray(plan[name]) ? plan[name].filter(isRecord) : []);
+    const kinds = list("accounts").filter((account) => number(account.startingValue) > 0).map((account) => account.kind);
+    const hasKind = (...wanted) => own && kinds.some((kind) => wanted.includes(kind));
+    const example = isRecord(defaults) ? defaults : null;
+    const changed = (name) => example != null && JSON.stringify(plan[name]) !== JSON.stringify(example[name]);
+    const strategies = isRecord(plan.strategies) ? plan.strategies : {};
+    const exampleStrategies = example && isRecord(example.strategies) ? example.strategies : {};
+    const positive = (table) => isRecord(table) && Object.values(table).some((value) => number(value) > 0);
+    const mark = (key) => isDay(opened[key]);
+    const awards = {
+      age_set: (own && number(you.currentAge) > 0) || asked("age"),
+      pay_day: (own && (people.some((person) => number(person.salary) > 0) || you.retired === true))
+        || asked("salary"),
+      spending: (own && sum(plan.expenses, "amount") > 0) || asked("spending"),
+      partner: (own && isRecord(plan.partner)) || asked("partner"),
       basics,
       walk: walk.status === "done",
-      work_savings: (own && switchOn("contributions", "enabled")) || answered.includes("plan401k"),
-      medical: (own && switchOn("premiums", "medicalPlanEnabled")) || answered.includes("medicalPlan"),
+      cash: hasKind("Checking", "Savings", "CD & Bonds"),
+      investor: hasKind("Investments"),
+      traditional: hasKind("Traditional IRA", "Traditional 401k"),
+      roth_account: hasKind("Roth IRA", "Roth 401k"),
+      work_savings: (own && switchOn("contributions", "enabled")) || asked("plan401k"),
+      match: own && people.some((person) => isRecord(person.employerMatch) && person.employerMatch.enabled === true),
+      hsa: own && switchOn("hsa", "enabled"),
+      medical: (own && switchOn("premiums", "medicalPlanEnabled")) || asked("medicalPlan"),
+      children: (own && list("children").length > 0) || asked("children"),
+      college: hasKind("529"),
+      home: (own && (list("homes").some((home) => number(home.valueToday) > 0) || list("rents").length > 0))
+        || asked("homes", "rent"),
+      car: (own && list("cars").length > 0) || asked("cars"),
+      social_security: (own && people.some((person) => positive(person.socialSecurityByAge)))
+        || asked("ssBenefit", "partnerSsBenefit"),
+      earnings: (own && people.some((person) => positive(person.salaryHistory)
+        || (person.earningsHistoryMode === "lastSalary" && number(person.lastSalary) > 0)))
+        || asked("history", "partnerHistory"),
+      heirs: (own && (strategies.terminalTaxRate != null || (example != null
+        && JSON.stringify(strategies.heirs) !== JSON.stringify(exampleStrategies.heirs)))) || asked("heirs"),
+      inflation: own && (changed("inflation") || changed("useInflation")),
+    };
+    const conversion = isRecord(strategies.rothConversion) ? strategies.rothConversion : {};
+    const quests = {
       first_run: Boolean(done.mc),
       plots: seenViews.plots,
+      plot_tour: PLOT_IDS.every((id) => mark("plot_" + id)),
+      run_view: mark("run_average"),
+      explorer: SEEN_VIEWS.every((view) => seenViews[view]),
+      seed: Boolean(done.mc) && seed != null && Number(seed) !== DEFAULT_SEED,
       compare: Boolean(done.compare),
       optimize: Boolean(done.optimize),
-      match: own && people.some((person) => isRecord(person.employerMatch) && person.employerMatch.enabled === true),
-      claim: answered.includes("ssAge") || gameFacts.claim.done,
+      apply: mark("applied"),
+      withdrawal: own && typeof plan.withdrawalStrategy === "string" && plan.withdrawalStrategy !== DEFAULT_WITHDRAWAL,
+      roth: own && conversion.enabled === true,
       play: GAME_IDS.some((id) => gameFacts[id].done),
+      best_age: mark("earliest_opt"),
     };
-    return { effort: effort in EFFORT_RANK ? effort : "high", answered, seen: seenViews, games: gameFacts, quests };
+    return { effort: effort in EFFORT_RANK ? effort : "high", answered, seen: seenViews, games: gameFacts, quests,
+      awards };
   }
 
   /**
-   * Return each quest's state for the Awards view, in table order.
+   * Return each quest's state for the Quests view, in table order.
    *
    * A quest the ledger holds is `done` in every scenario; otherwise it is `locked` when its tier is above the effort,
    * `pending` when its fact is true now and it is not silenced (it is granted on the next evaluation), else `open`.
@@ -305,8 +406,8 @@
    * @param {object} facts - From `gamifyFacts`.
    * @param {object} ledger - The ledger.
    * @param {string} effort - The effort, one of low, medium, high.
-   * @returns {object[]} `{id, title, how, show, tier, xp, state, day, lockText}` per quest: `day` the day it was
-   *     earned (null when not), `lockText` "Unlocks at Medium" style text (null unless locked).
+   * @returns {object[]} `{id, title, how, why, show, tier, xp, capstone, state, day, lockText}` per quest: `day` the
+   *     day it was earned (null when not), `lockText` "Unlocks at Medium" style text (null unless locked).
    */
   function questStatus(facts, ledger, effort) {
     const { earned, silenced } = cleanLedger(ledger);
@@ -316,9 +417,32 @@
       const locked = effortRank(quest.tier) > effortRank(effort);
       const ready = now[quest.id] === true && !silenced.includes(key);
       const state = key in earned ? "done" : locked ? "locked" : ready ? "pending" : "open";
-      return { id: quest.id, title: quest.title, how: quest.how, show: quest.show, tier: quest.tier, xp: quest.xp,
-        state, day: key in earned ? earned[key] : null,
+      return { id: quest.id, title: quest.title, how: quest.how, why: quest.why, show: quest.show, tier: quest.tier,
+        xp: quest.xp, capstone: quest.capstone === true, state, day: key in earned ? earned[key] : null,
         lockText: state === "locked" ? "Unlocks at " + EFFORT_NAMES[quest.tier] : null };
+    });
+  }
+
+  /**
+   * Return each award's state for the Awards view, in table order.
+   *
+   * An award the ledger holds is `earned`; otherwise a plan award above the effort is `locked` (its field is not
+   * shown) and the rest are `open`. Earned or not, an award never changes the plan.
+   *
+   * @param {object} ledger - The ledger.
+   * @param {string} effort - The effort, one of low, medium, high.
+   * @returns {object[]} `{id, group, title, how, show, tier, state, day, lockText}` per award; a game badge has group
+   *     `games`, no `show` and never locks.
+   */
+  function awardStatus(ledger, effort) {
+    const { awards } = cleanLedger(ledger);
+    return AWARDS.map((award) => {
+      const locked = Boolean(award.tier) && effortRank(award.tier) > effortRank(effort);
+      const state = award.id in awards ? "earned" : locked ? "locked" : "open";
+      return { id: award.id, group: award.group || "games", title: award.title, how: award.how,
+        show: award.show || null, tier: award.tier || null, keys: award.keys || null, state,
+        day: award.id in awards ? awards[award.id] : null,
+        lockText: state === "locked" ? "More detail at " + EFFORT_NAMES[award.tier] : null };
     });
   }
 
@@ -344,12 +468,10 @@
     return rules;
   }
 
+  // A plan award by its fact now; a game badge by its rule keys earned.
   function awardMet(award, earned, facts) {
-    if (award.quest) return QUEST_PREFIX + award.quest in earned;
     if (award.keys) return award.keys.every((key) => key in earned);
-    if (award.seen) return award.seen.every((view) => isRecord(facts && facts.seen) && facts.seen[view] === true);
-    const xp = Object.keys(earned).reduce((sum, key) => sum + keyXp(key), 0);
-    return levelOf(xp).level >= award.level;
+    return isRecord(facts) && isRecord(facts.awards) && facts.awards[award.fact] === true;
   }
 
   /**
@@ -590,8 +712,8 @@
       more: Math.max(0, earned.length - MAX_STEPS), unlocks: opened.length ? opened : top ? ["Every bed and tool is open"] : [] };
   }
 
-  const api = { VERSION, MAX_KEYS, GAME_IDS, LEVELS, XP, QUESTS, AWARDS, emptyLedger, cleanLedger, mergeLedgers, xpOf, levelOf,
-    gamifyFacts, questStatus, evaluate, resetLedger, grantsText,
+  const api = { VERSION, MAX_KEYS, GAME_IDS, LEVELS, XP, QUESTS, AWARDS, AWARD_GROUPS, PLOT_IDS, emptyLedger, cleanLedger,
+    mergeLedgers, xpOf, levelOf, gamifyFacts, questStatus, awardStatus, evaluate, resetLedger, grantsText,
     ORIGINAL_GAME_IDS, TOOLS, toolsOpen, toolOf,
     BEDS, ACTION_PATHS, SEASONS, bedsOpen, unlocksAt, bedCounts, soilOf, growthStage, seasonAt, levelUpCard };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

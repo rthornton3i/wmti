@@ -2398,6 +2398,102 @@
     return found && found.preset ? found.preset : DEFAULT_RISK_PRESET;
   }
 
+  // ---- Coach: the setup checklist (Coach style, 49b-coach-mascot.js) ----
+  // Each item is ticked from the inputs, the places visited and the results there are; never by hand. `show` is where
+  // Show me goes: "field:<path>" (the input on its page) or "view:<view>".
+  const COACH_SEEN_PREFIX = "coach.seen.";  // a place visited, in `experience.progress`
+  const COACH_TRIED_PREFIX = "coach.tried.";  // a result made once (mc, compare, optimize), in `experience.progress`
+  const COACH_HIDDEN_KEY = "coach.mascotHidden";  // Hide coach, in `experience.progress`
+  const COACH_TRIED = ["mc", "compare", "optimize"];
+  const COACH_CHECKLIST = [
+    { id: "ages", title: "Enter your ages", why: "Every year of the plan counts from today's age.",
+      show: "field:you.currentAge" },
+    { id: "salary", title: "Add your pay", why: "Pay funds your savings and sets Social Security.",
+      show: "field:you.salary" },
+    { id: "partner", title: "Decide on a partner", why: "A partner changes taxes, benefits and spending.",
+      show: "field:filingStatus" },
+    { id: "accounts", title: "Add account balances", why: "What you have saved today is the starting point.",
+      show: "field:accounts" },
+    { id: "shares", title: "Set where savings go", why: "Shares and deposits decide which account gets spare cash.",
+      show: "field:accounts" },
+    { id: "match", title: "Check the employer match", why: "A match is free money; missing it is a common gap.",
+      show: "field:you.employerMatch.enabled" },
+    { id: "expenses", title: "List your spending", why: "Spending decides how long the money lasts.",
+      show: "field:expenses" },
+    { id: "homeCars", title: "Add home and cars", why: "Housing and cars are most households' biggest costs.",
+      show: "field:homes" },
+    { id: "children", title: "Children and college", why: "Kids and college change spending for years.",
+      show: "field:children" },
+    { id: "socialSecurity", title: "Set Social Security", why: "The benefit and claim age shape retirement income.",
+      show: "field:you.socialSecurityAge" },
+    { id: "inflation", title: "Review inflation", why: "Prices rise; check the range and how amounts are shown.",
+      show: "field:useInflation" },
+    { id: "monteCarlo", title: "Run a Monte Carlo", why: "Many runs show how likely the plan is to hold up.",
+      show: "view:summary" },
+    { id: "optimize", title: "Try Optimize", why: "It searches the strategies for a better outcome.",
+      show: "view:optimize" },
+    { id: "compare", title: "Try Compare", why: "Two scenarios on the same draws show what a change is worth.",
+      show: "view:compare" },
+  ];
+
+  // The `experience.progress` key that marks place `place` (such as "inputs.home") visited.
+  function coachSeenKey(place) {
+    return COACH_SEEN_PREFIX + String(place).replace(/[^A-Za-z0-9_.]/g, ".").slice(0, 60);
+  }
+
+  // The `experience.progress` key that marks result `kind` (one of COACH_TRIED) made once.
+  function coachTriedKey(kind) {
+    return COACH_TRIED_PREFIX + kind;
+  }
+
+  // The tried keys to add to `progress` for the results there are now (`results`: {mc, compare, optimize} truthy).
+  function coachTriedToAdd(results, progress) {
+    const made = results && typeof results === "object" ? results : {};
+    const kept = progress && typeof progress === "object" && !Array.isArray(progress) ? progress : {};
+    return COACH_TRIED.filter((kind) => made[kind] && !kept[coachTriedKey(kind)]).map(coachTriedKey);
+  }
+
+  // The checklist now: {items: [{id, title, why, show, done}], done, total}. `inputs` the plan, `progress` the
+  // experience block's table, `results` {mc, compare, optimize} truthy when that result is there now.
+  function coachChecklist({ inputs, progress, results } = {}) {
+    const plan = inputs && typeof inputs === "object" ? inputs : {};
+    const kept = progress && typeof progress === "object" && !Array.isArray(progress) ? progress : {};
+    const made = results && typeof results === "object" ? results : {};
+    const seen = (place) => Boolean(kept[coachSeenKey(place)]);
+    const record = (value) => (value && typeof value === "object" && !Array.isArray(value) ? value : {});
+    const list = (value) => (Array.isArray(value) ? value.filter((item) => item && typeof item === "object") : []);
+    const amount = (value) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
+    const you = record(plan.you);
+    const partner = plan.partner && typeof plan.partner === "object" ? plan.partner : null;
+    const people = partner ? [you, partner] : [you];
+    const accounts = list(plan.accounts);
+    const tried = (kind) => Boolean(made[kind]) || Boolean(kept[coachTriedKey(kind)]);
+    const depositShares = (person) => amount(record(person.retirementDeposit).traditionalShare)
+      + amount(record(person.retirementDeposit).rothShare) > 0;
+    const done = {
+      ages: people.every((person) => amount(person.currentAge) > 0),
+      salary: people.some((person) => amount(person.salary) > 0) || you.retired === true,
+      partner: partner != null || seen("setup"),
+      accounts: accounts.some((account) => amount(account.startingValue) > 0),
+      shares: accounts.some((account) => amount(account.surplusShare) > 0 || amount(account.monthlyDeposit) > 0)
+        || (record(plan.contributions).enabled === true && people.some(depositShares)),
+      match: people.some((person) => record(person.employerMatch).enabled === true) || seen("inputs.savings"),
+      expenses: list(plan.expenses).some((item) => amount(item.amount) > 0),
+      homeCars: list(plan.homes).some((home) => amount(home.valueToday) > 0) || list(plan.rents).length > 0
+        || list(plan.cars).length > 0 || seen("inputs.home") || seen("inputs.cars"),
+      children: list(plan.children).length > 0 || seen("inputs.children"),
+      socialSecurity: people.some((person) => person.socialSecurityBasis === "earnings"
+        || Object.values(record(person.socialSecurityByAge)).some((value) => amount(value) > 0))
+        || seen("inputs.retirement"),
+      inflation: plan.useInflation === true || seen("setup"),
+      monteCarlo: tried("mc"),
+      optimize: tried("optimize"),
+      compare: tried("compare"),
+    };
+    const items = COACH_CHECKLIST.map((item) => ({ ...item, done: done[item.id] === true }));
+    return { items, done: items.filter((item) => item.done).length, total: items.length };
+  }
+
   // How many inputs are left at the example household's values because the effort does not show them: the panel
   // entries (each schema panel's `fields`, tiered in its `tiers`, keyed in its `keys`) above `effort`, and not shown by
   // `overrides` (the scenario's `tierOverrides`, see detailShown), whose value in `inputs` equals the one in
@@ -2701,6 +2797,7 @@
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText,
     pickerLevelAt, pickerKeyLevel, coachDismissKey, coachDismissed, coachGapsShown, coachSweepKey, riskPresetOf, coachChangeText,
+    coachChecklist, coachSeenKey, coachTriedKey, coachTriedToAdd, COACH_HIDDEN_KEY,
     runChangePlan, runChangeRows, differenceLines, extrasOn };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;

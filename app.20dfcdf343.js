@@ -310,7 +310,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.bf8763e914.js");
+      worker = new Worker("worker.778f618ede.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -988,6 +988,7 @@
     if (tabShown("outputs")) gamerSeen(state.view);
     if (tabShown("strategy")) gamerSeen(state.strategyView);
     renderAwards();  // built only while it shows
+    glanceSync();  // Minimalist's bubble maps (57-glance.js)
   }
 
   // Move to a place (tab and view) and open it at its top, whether a tap or a swipe got there (the owner, s367: a new
@@ -1356,7 +1357,7 @@
   // (`.summary-only`: Expenses' summary card and the Home and Cars timelines), which has no chevron.
   const COLLAPSE_TABS = ["panel-setup", "panel-inputs", "panel-outputs", "panel-strategy"];
   const COLLAPSE_PANELS = ".card:not(details):not(.mc-bar):not(.summary-only), "
-    + "fieldset.pane:not(.subsection):not(.summary-only), .files-card, .run-card";
+    + "fieldset.pane:not(.subsection):not(.summary-only), fieldset.subsection.foldable, .files-card, .run-card";
   const COLLAPSE_HEADS = [":scope > legend", ":scope > .card-head", ":scope > .title-help:not(.note-help)",
     ":scope > .files-head", ":scope > h2", ":scope > figure.chart > figcaption"];
   const COLLAPSE_TITLE = "h2, h3, .legend-title, .chart-title";
@@ -1399,7 +1400,7 @@
   function collapseSwitch(panel) {
     const own = panel.querySelector(":scope > .pane-switch input[role=switch]");
     if (own) return own;
-    const first = Array.from(panel.querySelectorAll(".field")).find((field) => !field.closest(".subsection")
+    const first = Array.from(panel.querySelectorAll(".field")).find((field) => [null, panel].includes(field.closest(".subsection"))
       && field.closest(COLLAPSE_PANELS) === panel);
     const input = first ? first.querySelector(":scope > .switch-row input[role=switch]") : null;
     return input && (input.id.endsWith("-enabled") || COLLAPSE_FEATURE_SWITCHES.includes(input.id)) ? input : null;
@@ -1447,6 +1448,11 @@
         if (helpText && panel.contains(helpText)) helpText.classList.add("collapse-keep");
         panel.dataset.collapseKey = collapseKey(panel, head);
         let folded = isFolded(panel.dataset.collapseKey);
+        // A foldable sub-section (Healthcare plans) starts open only while its switch is on.
+        if (panel.classList.contains("foldable") && !collapseFolds.has(panel.dataset.collapseKey)) {
+          const gate = collapseSwitch(panel);
+          folded = !(gate && gate.checked);
+        }
         if (folded && panel.querySelector("[aria-invalid=true]")) {  // a field that needs a fix is shown
           folded = false;
           collapseFolds.set(panel.dataset.collapseKey, false);
@@ -2136,6 +2142,7 @@
     $("bandLabel").textContent = label;
     $("bandTitle").textContent = title || (lowOn() ? "Your plan" : chip ? chip.textContent : label);
     $("bandSub").textContent = sub;
+    coachMascotSync();  // the Coach tip follows the place (49b-coach-mascot.js)
   }
 
   // ---- Pinned tabs: Inputs' group chips, Outputs' view chips with their sub-tabs, or Strategy's view chips, stay
@@ -2540,7 +2547,8 @@
     const { entry, stale } = latestMonteCarlo();
     const low = lowShown() ? lowResultCards(entry, stale) : null;
     const lowHolder = low ? "<div class=\"low-results\" id=\"lowResults\"></div>" : "";
-    const nextSteps = "<div id=\"nextSteps\">" + renderNextSteps() + "</div>";  // Coach and Gamer (49-coach.js)
+    const nextSteps = "<div id=\"nextSteps\">" + renderNextSteps() + "</div>"  // Coach and Gamer (49-coach.js)
+      + "<div id=\"coachChecklist\">" + renderCoachChecklist() + "</div>";  // Coach only (49b-coach-mascot.js)
     const accountantCards = "<div id=\"accountantCards\"></div>";  // the Accountant extras (56-accountant.js)
     const accountantLedger = "<div id=\"accountantLedger\"></div>";
     if (!entry) {
@@ -2548,6 +2556,7 @@
         + "<div class=\"card empty-state\">No Monte Carlo yet. It starts on its own.</div>";
       placeLowResults(body, low);
       wireNextSteps(body);
+      wireCoachChecklist(body);
       wireAccountant(body);
       return;
     }
@@ -2572,6 +2581,7 @@
     body.innerHTML = html;
     placeLowResults(body, low);
     wireNextSteps(body);
+    wireCoachChecklist(body);
     wireAccountant(body);
   }
 
@@ -2902,6 +2912,7 @@
     }
     refreshDefaultsNotice();
     gamerStyleChanged();  // the Awards chip shows only in Gamer style
+    coachMascotSync();  // the Coach mascot shows only in Coach style
   }
 
   // Below High, how many inputs the effort leaves at the example household's values (defaultedInputCount; an input
@@ -4318,6 +4329,244 @@
     job.stopped = "background";
     engine.cancel(job.id);
   }
+  // ---- Coach guide: the mascot with a tip for each place, and the setup Checklist on Summary (Coach style only) ----
+  // The mascot sits above the tab bar. Each new place (tab, Inputs group, Strategy or Outputs view, chart) opens its
+  // tip; tap the mascot to show or hide it, X closes it until the next place. Hide coach is kept in the scenario's
+  // `experience.progress` (COACH_HIDDEN_KEY), as are the places visited and the results made once, which the
+  // Checklist (coachChecklist, shared.js) reads. Nothing here reads or changes a result or writes an input.
+  const { coachChecklist, coachSeenKey, coachTriedToAdd, COACH_HIDDEN_KEY } = window.WmtiShared;
+  // Tips by place: "setup", "inputs.<group>", "strategy.<view>", "outputs.<view>", "outputs.plots.<chart>".
+  const COACH_TIPS = {
+    setup: ["Setup", "Who is in the plan, where you file taxes and how many years to run. Enter real ages first: "
+      + "every year of the plan counts from them. Save a scenario here before big changes so you can compare later."],
+    inputs: ["Inputs", "The details of your plan, one group per chip. Work left to right and fill only what "
+      + "applies to you; rough numbers beat blanks."],
+    "inputs.low": ["Your plan", "Only the essentials: ages, pay, savings and spending. Rough numbers are fine. "
+      + "Raise the effort later to add detail."],
+    "inputs.income": ["Income", "Each person's yearly pay before tax, its raises and the age pay stops. Pay funds "
+      + "savings and sets Social Security. A common miss: leaving the stop age at the default when you plan to "
+      + "retire earlier."],
+    "inputs.children": ["Children", "Add each child with your age in their birth year. A child raises spending "
+      + "while at home, and college is charged as Major Spending in those years. Leave college at zero only if you "
+      + "will not help pay."],
+    "inputs.home": ["Home", "Homes you own with today's value and mortgage, or rent periods if you rent. Mortgage, "
+      + "property tax and insurance are counted here, so do not list them again under Expenses."],
+    "inputs.cars": ["Cars", "Each car's value, loan and when you replace it. Fuel, insurance and upkeep are "
+      + "charged from these figures. Replacing cars is a steady cost many plans forget."],
+    "inputs.loans": ["Loans", "Loans other than the mortgage: student, personal and the like. Enter the balance, "
+      + "rate and payment. Paying off high-rate debt is often a better use of spare cash than investing."],
+    "inputs.accounts": ["Accounts", "Each account with today's balance and its type: taxable, Traditional, Roth "
+      + "or HSA. Shares say where spare cash goes; the row order is the order money comes out. The same dollars are "
+      + "taxed very differently by type."],
+    "inputs.savings": ["Benefits", "Your workplace plan, employer match, health plan with HSA and dependent care "
+      + "FSA. Deposit at least enough to get the full match: it is part of your pay. An HSA can double as a "
+      + "retirement account."],
+    "inputs.healthcare": ["Healthcare", "Care costs before Medicare: visits, prices and drugs, or a flat yearly "
+      + "amount. The flat amount is fine to start. Health costs tend to rise faster than other prices, so do not "
+      + "set them too low."],
+    "inputs.expenses": ["Expenses", "Monthly spending no other tab enters: food, bills, travel and gifts. Big "
+      + "one-time costs go in as Major Spending at the ages they happen. The card at the top lists what other tabs "
+      + "already count; do not repeat it."],
+    "inputs.retirement": ["Retirement", "Social Security, health cover until Medicare, Medicare and how spending "
+      + "changes once you retire. Use your estimate from ssa.gov rather than a guess. Claiming later raises the "
+      + "monthly benefit for life; try a few claim ages."],
+    "strategy.strategies": ["Strategies", "Tax moves the plan can make: Roth conversions, the backdoor Roth, QCD "
+      + "gifts and a move to another state. Turn on one at a time and watch Summary. They matter most with large "
+      + "Traditional balances or high income."],
+    "strategy.compare": ["Compare", "Two scenarios run on the same random draws, so the gap comes from your "
+      + "settings, not luck. Save a copy under Setup, change one thing, then compare."],
+    "strategy.optimize": ["Optimize", "Searches strategy settings for a better outcome on your plan. It can take a "
+      + "while. Treat its pick as an idea to check, not advice."],
+    "outputs.summary": ["Summary", "How the plan holds up across many simulated markets. The first tile is the "
+      + "share of runs where the money lasts. Use Next steps and the Checklist below to improve the plan."],
+    "outputs.plots": ["Plots", "Charts of the last Monte Carlo, year by year. Pick a chart from the chips above."],
+    "outputs.plots.total": ["Total balance", "The line is the typical run; the shaded band covers most runs from "
+      + "bad to good markets. Watch the low edge: that is your plan in a rough decade."],
+    "outputs.plots.balances": ["Balances", "Each account's balance by year, stacked. See which accounts are spent "
+      + "first. A sudden drop usually means a big expense or a change in withdrawals."],
+    "outputs.plots.cashFlow": ["Cash flow", "Money in above zero, money out below, the leftover as a line. Years "
+      + "below zero are paid from savings; check that starts when you expect."],
+    "outputs.plots.flows": ["Deposits and withdrawals", "Deposits above zero, withdrawals below. Check deposits stop "
+      + "when pay stops and required minimums start in your 70s."],
+    "outputs.plots.taxes": ["Taxes", "Taxes by kind each year. Low-income years between retiring and Social "
+      + "Security can suit Roth conversions. A spike often comes from a big withdrawal or a sale."],
+    "outputs.plots.expenses": ["Expenses", "Spending by category each year. Check the big ones look right and that "
+      + "child costs end when they should."],
+  };
+  const COACH_MASCOT_SVG = "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\" focusable=\"false\">"
+    + "<ellipse class=\"cc-body\" cx=\"32\" cy=\"38\" rx=\"22\" ry=\"20\"/>"
+    + "<path class=\"cc-cap\" d=\"M11 33a21 19 0 0 1 42 0z\"/><rect class=\"cc-cap\" x=\"34\" y=\"30\" width=\"22\" "
+    + "height=\"5\" rx=\"2.5\"/><circle class=\"cc-eye\" cx=\"25\" cy=\"41\" r=\"4\"/><circle class=\"cc-eye\" "
+    + "cx=\"40\" cy=\"41\" r=\"4\"/><circle class=\"cc-pupil\" cx=\"26\" cy=\"42\" r=\"1.8\"/><circle "
+    + "class=\"cc-pupil\" cx=\"41\" cy=\"42\" r=\"1.8\"/><path class=\"cc-smile\" d=\"M27 50q5.5 4.5 11 0\"/>"
+    + "<path class=\"cc-cord\" d=\"M18 51q4 7 12 7\"/><circle class=\"cc-whistle\" cx=\"31\" cy=\"58\" r=\"3\"/></svg>";
+  const mascot = { place: null, open: false, root: null };
+
+  // Whether the Coach guide shows: Coach style with the gamify features on.
+  function coachStyleOn() {
+    return gamifyOn() && Boolean(state.info && state.experience) && shownExperience().style === "coach";
+  }
+
+  const coachProgress = () => (state.experience && isObject(state.experience.progress) ? state.experience.progress
+    : {});
+  const coachMascotHidden = () => coachProgress()[COACH_HIDDEN_KEY] === true;
+
+  // Add `keys` (true) to, or with `remove` drop them from, the experience block's progress: no run, undo or unsaved
+  // mark (saveExperience).
+  function coachMarkProgress(keys, remove) {
+    if (!state.experience || !keys.length) return;
+    const progress = { ...coachProgress() };
+    for (const key of keys) {
+      if (remove) delete progress[key];
+      else progress[key] = true;
+    }
+    saveExperience({ progress });
+  }
+
+  // Where the user is now, as a COACH_TIPS key.
+  function coachPlace() {
+    if (state.tab === "inputs") {
+      if (lowOn()) return "inputs.low";
+      const ids = state.schema ? inputsPanels().map((panel) => panel.id) : [];
+      const chip = ids.length ? inputsChip(ids, state.chips.settings) : null;
+      return chip ? "inputs." + chip : "inputs";
+    }
+    if (state.tab === "strategy") return "strategy." + state.strategyView;
+    if (state.tab === "outputs" && state.view === "plots") {
+      const chart = PLOT_VIEWS.some((view) => view.id === state.chips.plots) ? state.chips.plots : PLOT_VIEWS[0].id;
+      return "outputs.plots." + chart;
+    }
+    if (state.tab === "outputs") return "outputs." + state.view;
+    return state.tab;
+  }
+
+  // The tip for `place`: its own, else its parent place's, else null.
+  function coachTip(place) {
+    for (let key = place; key; key = key.includes(".") ? key.slice(0, key.lastIndexOf(".")) : "") {
+      if (COACH_TIPS[key]) return COACH_TIPS[key];
+    }
+    return null;
+  }
+
+  // Build the mascot once, at the end of the page.
+  function coachMascotRoot() {
+    if (mascot.root) return mascot.root;
+    const root = document.createElement("div");
+    root.className = "cc-coach";
+    root.id = "coachMascot";
+    root.hidden = true;
+    root.innerHTML = "<div class=\"cc-bubble\" id=\"coachBubble\" role=\"note\" aria-labelledby=\"coachTipTitle\" "
+      + "hidden><button type=\"button\" class=\"cc-close\" id=\"coachTipClose\" aria-label=\"Close tip\">"
+      + "<span aria-hidden=\"true\">&times;</span></button><p class=\"cc-tip-title\" id=\"coachTipTitle\"></p>"
+      + "<p class=\"cc-tip\" id=\"coachTipText\"></p><button type=\"button\" class=\"button button-quiet cc-hide\" "
+      + "id=\"coachHide\">Hide coach</button></div><button type=\"button\" class=\"cc-mascot\" id=\"coachMascotButton\" "
+      + "aria-controls=\"coachBubble\" aria-expanded=\"false\" aria-label=\"Coach tip\">" + COACH_MASCOT_SVG
+      + "</button>";
+    root.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      if (button.id === "coachMascotButton") mascot.open = !mascot.open;
+      else if (button.id === "coachTipClose") {
+        mascot.open = false;
+        $("coachMascotButton").focus();
+      } else if (button.id === "coachHide") {
+        mascot.open = false;
+        coachMarkProgress([COACH_HIDDEN_KEY]);
+        refreshCoachChecklist();
+      }
+      coachMascotDraw();
+    });
+    document.body.append(root);
+    mascot.root = root;
+    return root;
+  }
+
+  // Draw the mascot and its bubble for the current place.
+  function coachMascotDraw() {
+    const root = coachMascotRoot();
+    root.hidden = !coachStyleOn() || coachMascotHidden();
+    const tip = coachTip(mascot.place);
+    const open = !root.hidden && mascot.open && tip != null;
+    $("coachBubble").hidden = !open;
+    $("coachMascotButton").setAttribute("aria-expanded", String(open));
+    $("coachMascotButton").setAttribute("aria-label", open ? "Hide the coach tip" : "Show the coach tip");
+    if (tip) {
+      $("coachTipTitle").textContent = tip[0];
+      $("coachTipText").textContent = tip[1];
+    }
+  }
+
+  // The place may have changed (renderBand, a chart chip, the style): a new place opens its tip and is marked
+  // visited; Summary's Checklist is redrawn there.
+  function coachMascotSync() {
+    if (!coachStyleOn()) {
+      if (mascot.root) mascot.root.hidden = true;
+      return;
+    }
+    const place = coachPlace();
+    if (place !== mascot.place) {
+      mascot.place = place;
+      mascot.open = true;
+      const seen = coachSeenKey(place);
+      if (!coachProgress()[seen]) coachMarkProgress([seen]);
+      if (place === "outputs.summary") refreshCoachChecklist();
+    }
+    coachMascotDraw();
+  }
+
+  // Show me: a result view, or an input on its page (Inputs when it is not drawn at this effort).
+  function coachShowMe(target) {
+    if (target.startsWith("view:")) { selectView(target.slice(5)); return; }
+    if (target.startsWith("field:") && openInputsField(target.slice(6))) return;
+    selectTabFresh("inputs");
+  }
+
+  // The Checklist card's HTML ("" outside Coach style); results made once are kept so their items stay ticked.
+  function renderCoachChecklist() {
+    if (!coachStyleOn() || !state.inputs) return "";
+    const results = { mc: Boolean(latestMonteCarlo().entry), compare: Boolean(state.compare.cache[0]),
+      optimize: Boolean(state.optimize.entry) };
+    coachMarkProgress(coachTriedToAdd(results, coachProgress()));
+    const list = coachChecklist({ inputs: state.inputs, progress: coachProgress(), results });
+    const items = list.items.map((item) => "<li class=\"cc-item\" data-item=\"" + escapeText(item.id) + "\" data-done=\""
+      + item.done + "\"><span class=\"cc-tick\" aria-hidden=\"true\">" + (item.done ? "&#10003;" : "") + "</span>"
+      + "<div class=\"cc-text\"><strong>" + escapeText(item.title) + "</strong><span class=\"sr-only\">"
+      + (item.done ? " Done." : " To do.") + "</span><p>" + escapeText(item.why) + "</p></div>"
+      + (item.done ? "" : "<button type=\"button\" class=\"button button-quiet cc-show\" data-show=\""
+        + escapeText(item.show) + "\" aria-label=\"Show me: " + escapeText(item.title) + "\">Show me</button>")
+      + "</li>").join("");
+    return "<div class=\"card cc-checklist\" id=\"coachChecklistCard\"><div class=\"card-head\"><h2>Checklist</h2>"
+      + "</div><p class=\"cc-count\" id=\"coachChecklistCount\">" + list.done + " of " + list.total + " done</p>"
+      + "<progress class=\"cc-bar\" max=\"" + list.total + "\" value=\"" + list.done + "\" "
+      + "aria-labelledby=\"coachChecklistCount\"></progress><ul class=\"cc-list\">" + items + "</ul>"
+      + (coachMascotHidden() ? "<button type=\"button\" class=\"button button-quiet\" id=\"coachShow\">Show coach"
+        + "</button>" : "") + "</div>";
+  }
+
+  // Wire the card drawn in Summary's `body`.
+  function wireCoachChecklist(body) {
+    const card = body.querySelector("#coachChecklistCard");
+    if (!card) return;
+    card.addEventListener("click", (event) => {
+      const show = event.target.closest(".cc-show");
+      if (show) { coachShowMe(show.dataset.show); return; }
+      if (event.target.closest("#coachShow")) {
+        coachMarkProgress([COACH_HIDDEN_KEY], true);
+        mascot.open = true;
+        refreshCoachChecklist();
+        coachMascotDraw();
+        $("coachMascotButton").focus();
+      }
+    });
+  }
+
+  // Redraw the card in place.
+  function refreshCoachChecklist() {
+    const holder = $("coachChecklist");
+    if (!holder) return;
+    holder.innerHTML = renderCoachChecklist();
+    wireCoachChecklist(holder);
+  }
   // ---- Monte Carlo: runs on its own after every change (and on Run), in batches, with progress and cancel;
   // results kept per inputs ----
   let mcTimer = null;
@@ -4517,7 +4766,7 @@
   // Gamer's extras, one switch each (owner, 2026-10-30), over the HUD look of styles.css "Style looks": the Arcade tab
   // keeps Awards (with the level and XP), Quests (and the walkthrough's quest map) and a few light mini games
   // (LIGHT_GAMES); the Glass Garden (its beds, level-up card and tools) and the heavier games stay off, and a toast names
-  // only a new award. The off code is kept: true brings each back unchanged.
+  // only a new award or quest. The off code is kept: true brings each back unchanged.
   const GAMER_FEATURES = Object.freeze({ awards: true, quests: true, lightGames: true, heavyGames: false, garden: false,
     toasts: true });
   const LIGHT_GAMES = ["sudoku", "grow", "bigger", "wheel", "receipts"];  // short one-screen games; the rest are heavy
@@ -4596,7 +4845,7 @@
     return gamify.gamifyFacts({ inputs: state.inputs, experience: state.experience, effort: shownExperience().effort,
       isExample, results: { mc: state.inputs ? cachedResult(state.mc.cache, mcKey()) : null,
         compare: state.compare.cache[0] || null, optimize: state.optimize.entry },
-      seen: state.game.ledger.seen, games: state.game.ledger.games });
+      seen: state.game.ledger.seen, games: state.game.ledger.games, defaults: state.defaults, seed: state.seed });
   }
 
   // Grant what is met now, a moment after the last call (results, edits and walkthrough steps call it).
@@ -4620,7 +4869,7 @@
     if (grants.length && GAMER_FEATURES.toasts) {
       gamerToast(GAMER_FEATURES.garden
         ? gamify.grantsText(grants) + (card && !gardenCanReveal() ? " The garden has news." : "")
-        : gamify.grantsText(grants.filter((grant) => grant.kind === "award")));  // subtle: a new award only
+        : gamify.grantsText(grants.filter((grant) => grant.kind === "award" || grant.kind === "quest")));
     }
     if (awardsShown()) renderAwards();
   }
@@ -4642,6 +4891,27 @@
     ledger.seen[view] = gameToday();
     saveLedger(ledger);
     gamerTick();
+  }
+
+  // Mark `key` done once in the ledger's seen table (gamify.js lists the marks), then tick.
+  function gamerMark(key) {
+    if (!gamerOn() || key in state.game.ledger.seen) return;
+    const ledger = gamify.cleanLedger(state.game.ledger);
+    ledger.seen[key] = gameToday();
+    saveLedger(ledger);
+    gamerTick();
+  }
+
+  // A Plots view on screen: marks it, and the average run view when a per-year view shows it.
+  function gamerPlotSeen(viewId, perYear) {
+    if (!tabShown("outputs") || state.view !== "plots") return;
+    gamerMark("plot_" + viewId);
+    if (perYear && state.runView === "average") gamerMark("run_average");
+  }
+
+  // An Earliest retirement result: the capstone quest counts it only after an Optimize result was applied.
+  function gamerEarliestFound() {
+    if (state.game.ledger.seen.applied != null) gamerMark("earliest_opt");
   }
 
   const awardsShown = () => state.tab === "arcade" && gamerOn();
@@ -4705,24 +4975,41 @@
       + "\" value=\"" + (level.next == null ? 1 : level.into) + "\" aria-labelledby=\"gmLevel gmXp\"></progress><p "
       + "id=\"gmXp\">" + xp + " XP. " + toNext + "</p><p class=\"gd-next\">" + escapeText(next) + "</p></section>";
     if (garden) html += gardenDetailBox(model);
-    if (GAMER_FEATURES.awards) {
-      html += "<div class=\"card\"><div class=\"card-head\"><h2>Awards</h2></div><ul class=\"gm-list\" id=\"gmAwards\">"
-        + gamify.AWARDS.filter((award) => award.id in ledger.awards || !award.keys
-          || award.keys.every((key) => gameOn(key.split(".")[1]))).map((award) => {
-        const day = ledger.awards[award.id];
-        const earned = day != null;
-        return "<li class=\"gm-award\" data-award=\"" + escapeText(award.id) + "\" data-earned=\"" + earned
-          + "\"><strong>" + escapeText(award.title) + "</strong><p>" + (earned ? "Earned " + escapeText(gameDate(day))
-          + "." : escapeText(award.how)) + "</p></li>";
-      }).join("") + "</ul></div>";
-    }
+    if (GAMER_FEATURES.awards) html += awardListHtml(ledger);
     html += "<div class=\"card\"><p class=\"field-help\">Progress is saved with this scenario and goes with its file. "
       + "XP counts what you do and compare, never how a plan turns out.</p><button type=\"button\" "
       + "class=\"button button-danger\" id=\"gamerReset\">Reset progress</button></div>";
     return html;
   }
 
-  // The Arcade's Quests view: every quest, open ones first and done ones last, each open one with Show me.
+  // The Awards card: plan awards by group, each unearned one with what to add and Show me (none while its field is
+  // above the effort), then the game badges (a game's badge only while that game can be played, or once earned).
+  function awardListHtml(ledger) {
+    const awards = gamify.awardStatus(ledger, shownExperience().effort).filter((award) => award.state === "earned"
+      || !award.keys || award.keys.every((key) => gameOn(key.split(".")[1])));
+    const plan = awards.filter((award) => award.group !== "games");
+    const got = plan.filter((award) => award.state === "earned").length;
+    let html = "<div class=\"card\"><div class=\"card-head\"><h2>Awards</h2></div><p class=\"field-help\">Add detail "
+      + "to your plan to earn these. " + got + " of " + plan.length + " earned.</p><div id=\"gmAwards\">";
+    for (const [group, label] of gamify.AWARD_GROUPS) {
+      const items = awards.filter((award) => award.group === group);
+      if (!items.length) continue;
+      html += "<h3 class=\"gm-group\">" + escapeText(label) + "</h3><ul class=\"gm-list\">" + items.map((award) => {
+        const earned = award.state === "earned";
+        const text = earned ? "Earned " + gameDate(award.day) + "." : award.lockText ? award.how + " " + award.lockText
+          + "." : award.how;
+        const show = award.state === "open" && award.show ? "<button type=\"button\" class=\"button button-quiet "
+          + "gm-show\" data-show=\"" + escapeText(award.show) + "\" aria-label=\"Show me: " + escapeText(award.title)
+          + "\">Show me</button>" : "";
+        return "<li class=\"gm-award\" data-award=\"" + escapeText(award.id) + "\" data-earned=\"" + earned
+          + "\"><strong>" + escapeText(award.title) + "</strong>" + show + "<p>" + escapeText(text) + "</p></li>";
+      }).join("") + "</ul>";
+    }
+    return html + "</div></div>";
+  }
+
+  // The Arcade's Quests view: every quest, open ones first and done ones last, each with why and Go (none while
+  // locked); the capstone is marked.
   function questsHtml() {
     const quests = gamify.questStatus(gamerFacts(), state.game.ledger, shownExperience().effort)
       .map((quest, position) => ({ quest, position }))
@@ -4732,11 +5019,13 @@
       + quests.map((quest) => {
       const status = quest.state === "locked" ? quest.lockText
         : quest.state === "done" ? "Done " + gameDate(quest.day) : QUEST_STATE_TEXT[quest.state];
-      const show = quest.state === "open" ? "<button type=\"button\" class=\"button button-quiet gm-show\" data-show=\""
-        + escapeText(quest.show) + "\" aria-label=\"Show me: " + escapeText(quest.title) + "\">Show me</button>" : "";
-      return "<li class=\"gm-quest\" data-quest=\"" + escapeText(quest.id) + "\" data-state=\"" + quest.state + "\">"
-        + "<strong>" + escapeText(quest.title) + "</strong>" + show + "<p>" + escapeText(quest.how) + " " + quest.xp
-        + " XP. " + escapeText(status) + ".</p></li>";
+      const show = quest.state === "locked" ? "" : "<button type=\"button\" class=\"button button-quiet gm-show\" "
+        + "data-show=\"" + escapeText(quest.show) + "\" aria-label=\"Go: " + escapeText(quest.title) + "\">Go</button>";
+      const title = (quest.capstone ? "Capstone: " : "") + quest.title;
+      return "<li class=\"gm-quest\" data-quest=\"" + escapeText(quest.id) + "\" data-state=\"" + quest.state + "\""
+        + (quest.capstone ? " data-capstone=\"true\"" : "") + "><strong>" + escapeText(title) + "</strong>" + show
+        + "<p>" + escapeText(quest.how) + " " + quest.xp + " XP. " + escapeText(status) + ".</p><p class=\"gm-why\">"
+        + escapeText(quest.why) + "</p></li>";
     }).join("") + "</ul></div>";
   }
 
@@ -4777,9 +5066,16 @@
     maybeShowPending();
   }
 
-  // Show me: the walkthrough, a result view, or an input on its page (Inputs when it is not drawn at this effort).
+  // Show me and Go: the walkthrough, a result view, a Plots view, or an input on its page (Inputs when it is not drawn
+  // at this effort).
   function gamerShowMe(target) {
     if (target === "walk") { openWalk(); return; }
+    if (target.startsWith("plot:")) {
+      state.chips.plots = target.slice(5);
+      savePrefs();
+      selectView("plots");
+      return;
+    }
     if (target.startsWith("view:")) { selectView(target.slice(5)); return; }
     if (target.startsWith("field:") && openInputsField(target.slice(6))) return;
     selectTabFresh("inputs");
@@ -6741,6 +7037,208 @@
         }
       }, "ledgerCopyText"], ["Close", "button button-quiet", () => true, "ledgerClose"]] });
   }
+  // ---- Minimalist bubble maps ----
+  // In the Minimalist style (glanceOn) Inputs and Outputs open on a map: a hub bubble in the middle and one bubble per
+  // section round it. A tap opens that section alone with a round Back bubble. Only a way in to the panels the app
+  // already draws; the maps hold no data logic. Other styles never show them.
+  const glance = { inputs: true, outputs: true, fromMap: false, inKey: null, outKey: null };
+
+  // Where `count` satellites sit round the hub, clockwise from the top: [x, y] in percent of the map.
+  function glanceSpots(count) {
+    const ry = count > 8 ? 40 : 37;
+    const spots = [];
+    for (let index = 0; index < count; index += 1) {
+      const angle = (2 * Math.PI * index) / count;
+      spots.push([Math.round((50 + 36 * Math.sin(angle)) * 10) / 10, Math.round((50 - ry * Math.cos(angle)) * 10) / 10]);
+    }
+    return spots;
+  }
+
+  // A short count under an Inputs bubble ("2 children"), or "" when there is no cheap one.
+  function glanceInputNote(panelId, inputs) {
+    if (!inputs) return "";
+    const count = (list, one, many) => {
+      const size = Array.isArray(list) ? list.length : 0;
+      return size === 0 ? "None" : size + " " + (size === 1 ? one : many);
+    };
+    if (panelId === "income") return inputs.partner ? "2 people" : "1 person";
+    if (panelId === "children") return count(inputs.children, "child", "children");
+    if (panelId === "home") {
+      const homes = Array.isArray(inputs.homes) ? inputs.homes.length : 0;
+      if (homes === 0 && Array.isArray(inputs.rents) && inputs.rents.length) return "Renting";
+      return count(inputs.homes, "home", "homes");
+    }
+    if (panelId === "cars") return count(inputs.cars, "car", "cars");
+    if (panelId === "loans") return count(inputs.loans, "loan", "loans");
+    if (panelId === "accounts") return count(inputs.accounts, "account", "accounts");
+    if (panelId === "expenses") return count(inputs.expenses, "item", "items");
+    return "";
+  }
+
+  // One map: the lines, the hub and the satellites (`items`: {id, label, note}).
+  function glanceMapHtml(hub, items) {
+    const spots = glanceSpots(items.length);
+    const lines = spots.map(([x, y]) => "<line x1=\"50\" y1=\"50\" x2=\"" + x + "\" y2=\"" + y + "\"/>").join("");
+    const sats = items.map((item, index) => "<button type=\"button\" class=\"glance-bubble glance-sat\" data-glance=\""
+      + escapeText(item.id) + "\" style=\"left:" + spots[index][0] + "%;top:" + spots[index][1] + "%\"><span>"
+      + escapeText(item.label) + (item.note ? "<small>" + escapeText(item.note) + "</small>" : "") + "</span></button>")
+      .join("");
+    return "<svg class=\"glance-links\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\" aria-hidden=\"true\">"
+      + lines + "</svg>" + hub + sats;
+  }
+
+  function drawInputsMap() {
+    const map = $("glanceInputs");
+    const items = inputsPanels().map((panel) => ({ id: panel.id, label: panel.label,
+      note: glanceInputNote(panel.id, state.inputs) }));
+    const name = state.scenarioName ? "<small>" + escapeText(state.scenarioName) + "</small>" : "";
+    map.style.setProperty("--glance-h", glanceHeight(items.length));
+    map.innerHTML = glanceMapHtml("<div class=\"glance-bubble glance-hub\"><span>Your plan" + name + "</span></div>",
+      items);
+  }
+
+  // The hub: chance the money lasts and the median, from the last Monte Carlo; "Run to see" before one.
+  function glanceHubText() {
+    const { entry } = latestMonteCarlo();
+    if (!entry || needsSetup(state.inputs)) return "Results<strong>Run to see</strong>";
+    const find = (label) => entry.value.headlines.find((item) => item.label === label);
+    const out = find("Chance of running out");
+    const median = find("Median final worth");
+    const lasts = out && out.value != null ? "<strong>" + escapeText(percent(1 - out.value, 0)) + "</strong>" : "";
+    return (lasts ? "Money lasts" + lasts : "Results")
+      + (median ? "<small>median " + escapeText(compactMoney(median.value)) + "</small>" : "");
+  }
+
+  function drawOutputsMap() {
+    const map = $("glanceOutputs");
+    const items = PLOT_VIEWS.map((view) => ({ id: "plot:" + view.id, label: view.label }))
+      .concat([{ id: "compare", label: "Compare" }, { id: "optimize", label: "Optimize" }]);
+    map.style.setProperty("--glance-h", glanceHeight(items.length));
+    map.innerHTML = glanceMapHtml("<button type=\"button\" class=\"glance-bubble glance-hub\" data-glance=\"summary\" "
+      + "aria-label=\"Open the summary\"><span>" + glanceHubText() + "</span></button>", items);
+  }
+
+  // The map's height: more room for more bubbles.
+  function glanceHeight(count) {
+    return Math.max(360, 360 + (count - 6) * 24) + "px";
+  }
+
+  // Show the maps or the Back bubbles for the place shown now; called on every showPlace and redraw.
+  function glanceSync() {
+    if (!$("glanceInputs")) return;
+    const root = document.documentElement;
+    const on = glanceOn() && state.schema != null;
+    // A move to another section by other means (a swipe, a link) leaves the map.
+    const outKey = state.view + "/" + state.chips.plots;
+    if (glance.inputs && glance.inKey != null && state.chips.settings !== glance.inKey) glance.inputs = false;
+    if (glance.outputs && glance.outKey != null && outKey !== glance.outKey) glance.outputs = false;
+    const inMap = on && glance.inputs && !lowOn() && inputsPanels().length > 0;
+    const outMap = on && glance.outputs;
+    glance.inKey = inMap ? state.chips.settings : null;
+    glance.outKey = outMap ? outKey : null;
+    root.classList.toggle("glance-in-map", inMap);
+    root.classList.toggle("glance-out-map", outMap);
+    root.classList.toggle("glance-map-shown", !wide.on
+      && ((state.tab === "inputs" && inMap) || (state.tab === "outputs" && outMap)));
+    $("glanceInputs").hidden = !inMap;
+    $("glanceOutputs").hidden = !outMap;
+    $("glanceBackInputs").hidden = !on || inMap || lowOn();
+    $("glanceBackOutputs").hidden = !on || outMap;
+    $("glanceBackStrategy").hidden = !on || !glance.fromMap;
+    if (inMap && tabShown("inputs")) drawInputsMap();
+    if (outMap && tabShown("outputs")) drawOutputsMap();
+  }
+
+  function glanceBack(id) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "glance-back";
+    button.id = id;
+    button.hidden = true;
+    button.setAttribute("aria-label", "Back to the map");
+    button.innerHTML = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M15 5l-7 7 7 7\"/></svg>";
+    return button;
+  }
+
+  function glanceMap(id, label) {
+    const map = document.createElement("div");
+    map.className = "glance-map";
+    map.id = id;
+    map.hidden = true;
+    map.setAttribute("role", "group");
+    map.setAttribute("aria-label", label);
+    return map;
+  }
+
+  function openInputsMap() {
+    glance.inputs = true;
+    glanceSync();
+    scrollPlaceTop("inputs");
+  }
+
+  function openOutputsMap() {
+    glance.outputs = true;
+    glance.fromMap = false;
+    if (state.tab !== "outputs") goTo("outputs", state.view);
+    glanceSync();
+    scrollPlaceTop("outputs");
+  }
+
+  function wireGlance() {
+    $("panel-inputs").prepend(glanceBack("glanceBackInputs"), glanceMap("glanceInputs", "Inputs sections"));
+    $("panel-outputs").prepend(glanceBack("glanceBackOutputs"), glanceMap("glanceOutputs", "Outputs views"));
+    $("panel-strategy").prepend(glanceBack("glanceBackStrategy"));
+    $("glanceBackInputs").addEventListener("click", openInputsMap);
+    $("glanceBackOutputs").addEventListener("click", openOutputsMap);
+    $("glanceBackStrategy").addEventListener("click", openOutputsMap);
+    $("glanceInputs").addEventListener("click", (event) => {
+      const bubble = event.target.closest("[data-glance]");
+      if (!bubble) return;
+      glance.inputs = false;
+      state.chips.settings = bubble.dataset.glance;
+      savePrefs();
+      renderSettings();
+      glanceSync();
+      // The section opens unfolded: one section on its own needs no fold.
+      enhancePanels();
+      for (const panel of $("settings-body").querySelectorAll(".is-collapsed")) foldPanel(panel, false);
+      scrollPlaceTop("inputs");
+    });
+    $("glanceOutputs").addEventListener("click", (event) => {
+      const bubble = event.target.closest("[data-glance]");
+      if (!bubble) return;
+      const id = bubble.dataset.glance;
+      glance.outputs = false;
+      if (id === "compare" || id === "optimize") {
+        glance.fromMap = true;
+        goTo("strategy", id);
+      } else if (id === "summary") {
+        goTo("outputs", "summary");
+      } else {
+        state.chips.plots = id.slice("plot:".length);
+        savePrefs();
+        goTo("outputs", "plots");
+        renderPlots();
+      }
+      glanceSync();
+      scrollPlaceTop(state.tab);
+    });
+    // A tap on the Inputs or Outputs tab (after its own handler) opens its map.
+    document.addEventListener("click", (event) => {
+      const tab = event.target.closest(".tabbar .tab");
+      if (!tab) return;
+      glance.fromMap = false;
+      if (tab.dataset.tab === "inputs") glance.inputs = true;
+      if (tab.dataset.tab === "outputs") glance.outputs = true;
+      glanceSync();
+    });
+    if (window.MutationObserver) {
+      const watch = new MutationObserver(() => glanceSync());
+      watch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-style"] });
+      watch.observe($("settings-body"), { childList: true });
+      watch.observe($("results-body"), { childList: true });
+    }
+  }
   // ---- Optimize: search the strategy settings for the best score on the same draws, then apply on a tap ----
   // The search runs in the worker as a batched job ("optimize"); Stop posts a finish (the best so far is kept), Cancel
   // drops it. At its run budget the search pauses and the progress asks whether to continue with another budget of
@@ -7329,9 +7827,11 @@
         renderSettings();
         inputsChanged();
         renderOptimize();
+        gamerMark("applied");  // a Gamer quest
         return true;
       }, "optimizeApplyHere"]].concat(roomForNew ? [["Save as new scenario", "button", () => {
         if (settleTimer) settle();
+        gamerMark("applied");  // a Gamer quest; before the copy so the new scenario keeps it
         putScenario(optimizedName, reply.inputs);  // keeps the open scenario's experience block
         storeScenarios();
         renderSaved();
@@ -7754,7 +8254,10 @@
     else if (!reply) earliest.message = dropped ? { text: "The settings changed, so the search was dropped. Run it again." }
       : { text: "Cancelled. Nothing was kept from the search" + (earliest.entry ? "; the last result stays." : ".") };
     else if (!reply.value.ok) earliest.message = { error: true, text: reply.value.error };
-    else earliest.entry = { value: reply.value, inputsText, ms: reply.ms, appliedText: null };
+    else {
+      earliest.entry = { value: reply.value, inputsText, ms: reply.ms, appliedText: null };
+      gamerEarliestFound();  // the Gamer capstone quest
+    }
     renderOptimize();
     scheduleMc();  // an automatic Monte Carlo waits for the search
   }
@@ -8606,7 +9109,9 @@
     noteViewSoon();  // a view left or shown (25-collapse.js)
     const body = $("plots-body");
     const selected = PLOT_VIEWS.some((view) => view.id === state.chips.plots) ? state.chips.plots : PLOT_VIEWS[0].id;
-    renderChips("chips-plots", PLOT_VIEWS, selected, (id) => { state.chips.plots = id; savePrefs(); renderPlots(); });
+    renderChips("chips-plots", PLOT_VIEWS, selected, (id) => {
+      state.chips.plots = id; savePrefs(); renderPlots(); coachMascotSync();
+    });
     if (needsSetup(state.inputs)) { body.innerHTML = FINISH_SETUP_HTML; return; }
     const { entry, stale } = latestMonteCarlo();
     const parts = [];
@@ -8624,6 +9129,7 @@
       return;
     }
     const view = PLOT_VIEWS.find((item) => item.id === selected);
+    gamerPlotSeen(view.id, !view.charts);  // Gamer quests: each view and the average run view
     const result = entry.value;
     const figures = [];
     if (!view.charts) parts.push(runViewCard());  // the per-year views; Total balance spans every run
@@ -8909,7 +9415,9 @@
           subsections: section.subsections || null, help: section.help, lead: section.lead || null }));
     }
     const group = document.createElement("fieldset");
-    group.className = panel.subsection ? "group pane subsection" : "group pane";
+    // The Retirement pane's sub-sections (Healthcare plans) fold on their own, each a separate card.
+    group.className = panel.subsection ? "group pane subsection" + (panel.id === "retirement" ? " foldable" : "")
+      : "group pane";
     // The pane's title: an icon tile and the label (the icon adds no text, so the legend reads as the label); a
     // sub-section's title has no icon.
     const title = "<span class=\"legend-title\">" + (panel.subsection ? "" : "<span class=\"pane-icon\">"
@@ -17068,6 +17576,7 @@
     $("sheetBody").addEventListener("input", refreshLoanPayment);  // a car's or home's Monthly payment, live
     wireKeyboardInset();
     wireCollapse();
+    wireGlance();
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       if (!$("rowMenu").hidden) { closeRowMenu(); return; }
