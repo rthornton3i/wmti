@@ -2779,6 +2779,115 @@
     return { lines, more: Math.max(0, items.length - max) };
   }
 
+  // ---- Quick optimize (58b-quick-optimize.js); the range rules match wmti.dashboard.quickoptimize ----
+  const QUICK_LEAF_KINDS = ["number", "integer", "select", "toggle"];
+  const QUICK_WHOLE_UNITS = ["age", "count", "years", "months", "year"];
+
+  // Every input quick optimize can try, in schema order: {path, label, field}. Person fields come once per person,
+  // list fields once per item (named by the item's name); app-only (notEditable) fields are left out.
+  function quickFieldCatalog(schema, inputs) {
+    const found = [];
+    const hidden = (schema && schema.notEditable) || {};
+    const walk = (typeName, data, prefix, labels) => {
+      for (const field of (schema.types[typeName] || [])) {
+        if (hidden[typeName + "." + field.name] !== undefined || typeName === "Experience") continue;
+        const value = data == null ? undefined : data[field.name];
+        const path = prefix + field.name;
+        const label = labels.concat([field.label || field.name]);
+        if (field.kind === "object") {
+          if (value != null && field.type) walk(field.type, value, path + ".", label);
+        } else if (field.kind === "list") {
+          if (!Array.isArray(value) || !field.type) continue;
+          value.forEach((item, index) => {
+            const name = item && typeof item === "object" && item.name ? String(item.name)
+              : (field.label || field.name) + " " + (index + 1);
+            walk(field.type, item, path + "." + index + ".", labels.concat([name]));
+          });
+        } else if (QUICK_LEAF_KINDS.includes(field.kind) && value !== undefined) {
+          found.push({ path, label: label.join(" › "), field });
+        }
+      }
+    };
+    if (schema && schema.types && inputs) walk(schema.root || "RetirementInputs", inputs, "", []);
+    return found;
+  }
+
+  function quickTakesRange(field) {
+    return field.kind === "number" || field.kind === "integer"
+      || (field.kind === "select" && !(field.choices && field.choices.length));
+  }
+
+  function quickIsWhole(field) {
+    return field.kind === "integer" || (field.kind === "select" && QUICK_WHOLE_UNITS.includes(field.unit));
+  }
+
+  // How a range field's values are typed: percents as whole percents (4 for 0.04).
+  function quickScale(field) {
+    return field.unit === "percent" ? 100 : 1;
+  }
+
+  // The step used when none is typed: the field's own step (1 for whole numbers), times the smallest whole number
+  // that keeps the range to about `count` values.
+  function quickDefaultStep(field, low, high, count) {
+    const base = field.step || (quickIsWhole(field) ? 1 : (high - low) / (count - 1) || 1);
+    const multiple = Math.max(1, Math.ceil(Number(((high - low) / base).toFixed(9)) / (count - 1)));
+    return base * multiple;
+  }
+
+  // The values a range tries: min, min + step, ... and max last; {values} or {error}. `spec` holds stored values
+  // (not scaled): {min, max, step (null for the default)}.
+  function quickRangeValues(field, spec, max, count) {
+    const { min, max: high } = spec;
+    for (const [name, value] of [["Min", min], ["Max", high]]) {
+      if (typeof value !== "number" || !isFinite(value)) return { error: name + ": enter a number." };
+      if (field.minimum != null && value < field.minimum) {
+        return { error: name + ": use " + formatValue(field.minimum, field.unit) + " or more." };
+      }
+      if (field.maximum != null && value > field.maximum) {
+        return { error: name + ": use " + formatValue(field.maximum, field.unit) + " or less." };
+      }
+      if (quickIsWhole(field) && !Number.isInteger(value)) return { error: name + ": enter a whole number." };
+    }
+    if (min > high) return { error: "Max: use a value at least the min." };
+    let step = spec.step;
+    if (step != null && (typeof step !== "number" || !isFinite(step) || step <= 0)) {
+      return { error: "Step: enter a step above 0, or leave it blank." };
+    }
+    if (step != null && quickIsWhole(field) && !Number.isInteger(step)) return { error: "Step: enter a whole number." };
+    if (step == null) step = quickDefaultStep(field, min, high, count);
+    const steps = Math.floor(Number(((high - min) / step).toFixed(9))) + 1;
+    const clean = (value) => (quickIsWhole(field) ? Math.round(value) : Number(value.toFixed(10)));
+    const values = [];
+    for (let index = 0; index < Math.min(steps, max + 1); index += 1) values.push(clean(min + index * step));
+    if (steps <= max && values[values.length - 1] < high - 1e-9) values.push(clean(high));
+    const unique = values.filter((value, index) => values.indexOf(value) === index);
+    if (steps > max || unique.length > max) {
+      return { error: "That makes " + Math.max(steps, unique.length) + " values; use a larger step for at most "
+        + max + ".", count: Math.max(steps, unique.length) };
+    }
+    return { values: unique, step };
+  }
+
+  // The choices a choice or switch field offers: [value, label] pairs.
+  function quickChoices(field) {
+    if (field.kind === "toggle") return [[false, "Off"], [true, "On"]];
+    return (field.choices || []).map((choice) => [choice, choiceLabel(field, choice)]);
+  }
+
+  // The catalog entries whose label holds every typed word (any order, ignoring case).
+  function quickFieldSearch(catalog, query) {
+    const words = String(query || "").toLowerCase().split(/\s+/).filter(Boolean);
+    return catalog.filter((entry) => {
+      const text = (entry.label + " " + entry.path).toLowerCase();
+      return words.every((word) => text.includes(word));
+    });
+  }
+
+  // Whether the floating Quick optimize button shows: settings with their ages, nothing in the way.
+  function quickOrbShown(inputs, blocked) {
+    return !needsSetup(inputs) && !blocked;
+  }
+
   // Whether the source notes and estimates show: on unless the stored text is "off".
   function extrasOn(stored) {
     return stored !== "off";
@@ -2798,7 +2907,9 @@
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText,
     pickerLevelAt, pickerKeyLevel, coachDismissKey, coachDismissed, coachGapsShown, coachSweepKey, riskPresetOf, coachChangeText,
     coachChecklist, coachSeenKey, coachTriedKey, coachTriedToAdd, COACH_HIDDEN_KEY,
-    runChangePlan, runChangeRows, differenceLines, extrasOn };
+    runChangePlan, runChangeRows, differenceLines, extrasOn,
+    quickFieldCatalog, quickTakesRange, quickIsWhole, quickScale, quickDefaultStep, quickRangeValues, quickChoices,
+    quickFieldSearch, quickOrbShown };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);
