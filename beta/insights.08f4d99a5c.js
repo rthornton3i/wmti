@@ -314,31 +314,6 @@
         + list + "." };
   }
 
-  // An employer match not fully used: the person deposits less of their pay than the employer matches up to. The
-  // extra match a year at today's pay, grown at the real return to the year their pay ends. One item per person, on
-  // their own Traditional deposit share (the match is paid on it).
-  function unusedMatch(inputs, growth) {
-    const plan = (inputs && inputs.contributions) || {};
-    const items = [];
-    for (const [role, whose] of [["you", "Your"], ["partner", "Your partner's"]]) {
-      const person = inputs && inputs[role];
-      const share = plan.enabled && person ? number((person.retirementDeposit || {}).traditionalShare) : 0;
-      const match = person && person.employerMatch;
-      if (!person || person.retired || !match || !match.enabled || !(match.rate > 0) || !(match.cap > share)) continue;
-      const salary = number(person.salary);
-      const years = number(person.salaryEndAge) - number(person.currentAge);
-      if (salary <= 0 || years <= 0) continue;
-      const extra = (match.cap - share) * salary * match.rate;
-      const size = growth ? yearlyGrowth(extra, growth.real, years) : extra * years;
-      items.push({ id: "unusedMatch-" + role, age: person.salaryEndAge, size,
-        text: whose + " employer matches deposits up to " + percent(match.cap, 1) + " of pay, and the plan deposits "
-          + percent(share, 1) + "; depositing the difference would bring about " + money(extra) + " a year more in "
-          + "match at today's pay, about " + money(size) + " by the time that pay ends"
-          + (growth ? " at the plan's expected real return of " + rateText(growth.real) : "") + " (today's dollars)." });
-    }
-    return items;
-  }
-
   // Cash above a `RESERVE_MONTHS` reserve of today's spending that is expected to earn less than the investments do:
   // the difference the two returns make by the horizon.
   function idleCash(monteCarlo, inputs, growth, reach) {
@@ -382,7 +357,7 @@
     const growth = expectedReturn(inputs);
     const reach = horizon(inputs, agesOf(chartOf(monteCarlo, "bands")));
     const opportunities = [cutLargest(monteCarlo, inputs, growth, reach), savedYearly(inputs, growth, reach),
-      ...unusedMatch(inputs, growth), idleCash(monteCarlo, inputs, growth, reach), largestCategories(monteCarlo)]
+      idleCash(monteCarlo, inputs, growth, reach), largestCategories(monteCarlo)]
       .filter(Boolean).sort(bySize).slice(0, MAX_ITEMS);
     return { warnings, opportunities, note: NOTE };
   }
@@ -399,7 +374,7 @@
   const api = { MAX_ITEMS, NOTE, EMPTY_BALANCE, FALLING_YEARS, LIQUID_YEARS, WITHDRAWAL_RATE, RUN_OUT_SHARE,
     TAX_JUMP_SHARE, TAX_JUMP_FLOOR, CUT_SHARE, SAVED_YEARLY, TOP_CATEGORIES, RESERVE_MONTHS, CASH_FLOOR, SEVERITY,
     roundMoney, expectedReturn, yearlyGrowth, horizon, fallingWorth, lowLiquid, withdrawalRate, runOutChance, taxJump,
-    drainedEarly, unpaidSpending, categoriesToday, cutLargest, savedYearly, largestCategories, unusedMatch, idleCash,
+    drainedEarly, unpaidSpending, categoriesToday, cutLargest, savedYearly, largestCategories, idleCash,
     insights, insightLines };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiInsights = api;
