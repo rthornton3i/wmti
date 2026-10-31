@@ -2898,7 +2898,8 @@
     const size = { width: 340, height: 150, left: 46, right: 10, top: 8, bottom: 20 };
     const priors = (Array.isArray(previous) ? previous : [previous])
       .filter((item) => item && item.ages && item.ages.length);
-    const all = plot.low.concat(plot.high, plot.median, ...priors.map((item) => item.median), [0]);
+    const all = plot.low.concat(plot.high, plot.median, ...priors.map((item) => item.median),
+      ...(plot.accounts || []).map((item) => item.median), [0]);
     const low = Math.min(...all);
     const high = Math.max(...all) > low ? Math.max(...all) : low + 1;
     const first = ages[0];
@@ -2918,10 +2919,18 @@
     let marks = priors.map((item, index) => "<path class=\"quick-plot-prior\" style=\"stroke-opacity:"
       + round(0.15 + 0.45 * (index + 1) / priors.length) + "\" d=\"" + line(points(item.ages, item.median))
       + "\"></path>").join("");
+    // Each account's median (All accounts), a thin line in its series colour, under the total.
+    marks += (plot.accounts || []).map((item, index) => "<path class=\"quick-plot-account\" style=\"stroke:var(--s"
+      + ((index % 6) + 1) + ")\" d=\"" + line(points(ages, item.median)) + "\"></path>").join("");
     marks += "<g class=\"quick-plot-new\"><path class=\"quick-plot-band\" d=\"" + band + "\"></path>"
       + "<path class=\"quick-plot-median\" d=\"" + line(points(ages, plot.median)) + "\"></path></g>"
       + "<line class=\"quick-plot-zero\" x1=\"" + size.left + "\" x2=\"" + (size.width - size.right) + "\" y1=\""
       + y(0) + "\" y2=\"" + y(0) + "\"></line>";
+    const from = plot.fromAge;
+    if (from != null && from >= first && from <= last) {
+      marks += "<line class=\"quick-plot-mark\" x1=\"" + x(from) + "\" x2=\"" + x(from) + "\" y1=\""
+        + size.top + "\" y2=\"" + bottom + "\"></line>";
+    }
     const through = plot.throughAge;
     if (through != null && through >= first && through <= last) {
       marks += "<line class=\"quick-plot-mark\" x1=\"" + x(through) + "\" x2=\"" + x(through) + "\" y1=\""
