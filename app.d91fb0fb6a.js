@@ -203,6 +203,10 @@
     // The Next steps card (49-coach.js): the gaps and the inputs text they are for, the running check, each gap's kept
     // check and last message, and the scenario they belong to.
     coach: { gaps: null, gapsKey: null, pendingKey: null, job: null, entries: {}, messages: {}, scenarioName: null },
+    // Quick optimize (58b-quick-optimize.js): the sheet's step and choices, the running job and the last result.
+    quick: { info: null, open: false, picking: false, step: "field", path: null, query: "",
+      range: { min: "", max: "", step: "" }, values: [], goal: "best", preset: null, rule: "netWorth", account: null,
+      throughAge: null, passPercent: null, job: null, entry: null, message: null },
     // Gamer progress (51-gamer.js): `ledger` reads the open scenario's experience.progress.game, cleaned.
     game: { get ledger() { return gameLedgerOf(state.experience); } },
   };
@@ -310,7 +314,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.9269a0647c.js");
+      worker = new Worker("worker.52324ff4b3.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -640,6 +644,7 @@
     mcKeyChanged();
     optimizeInputsChanged();
     coachInputsChanged();
+    quickInputsChanged();
     gamerTick();
     runTimer = setTimeout(runNow, RUN_DELAY_MS);
   }
@@ -2292,6 +2297,7 @@
   function renderLoaded() {
     renderExampleBanner();
     renderOpenCard();
+    refreshQuickOrb();
   }
 
   // The open scenario card: its name, whether it is saved, the Auto-save switch (Save shows only while it is off),
@@ -4614,7 +4620,8 @@
     mcTimer = null;
     const mc = state.mc;
     if (window.WMTI_NO_AUTO_MC || walk.open || !state.info || singleBusy || state.error || mc.job
-      || state.compare.job || state.optimize.job || state.coach.job || reportRun.busy || needsSetup(state.inputs)) return;
+      || state.compare.job || state.optimize.job || state.coach.job || state.quick.job || reportRun.busy
+      || needsSetup(state.inputs)) return;
     const key = mcKey();
     if (cachedResult(mc.cache, key) || key === mc.skipKey) return;
     runMonteCarlo(true);
@@ -8137,6 +8144,540 @@
     runCompare();
   }
 
+  // ---- Quick optimize: the floating sphere, its sheet and "Pick on screen" ----
+  // Pick any number, choice or switch input, the values to try and a goal; the run is a batched worker job
+  // ("quickOptimize", wmti.dashboard.quickoptimize) on the Monte Carlo's draws (Run settings runs, Setup seed). Nothing
+  // changes until Apply, which writes the one value through applySettings as one Undo step.
+  const { quickFieldCatalog, quickTakesRange, quickScale, quickRangeValues, quickChoices, quickFieldSearch,
+    quickOrbShown } = window.WmtiShared;
+  const QUICK_LIST_MAX = 60;  // most inputs the field list draws at once
+  window.wmtiQuick = { open: openQuick, state: () => state.quick };  // for the tests
+
+  // Show the sphere only on a set-up plan and while no pick is under way (sheets and dialogs hide it in CSS).
+  function refreshQuickOrb() {
+    const orb = $("quickOrb");
+    if (orb) orb.hidden = !quickOrbShown(state.inputs, !state.schema || state.quick.picking);
+  }
+
+  function quickCatalog() {
+    return state.schema && state.inputs ? quickFieldCatalog(state.schema, state.inputs) : [];
+  }
+
+  function quickEntry() {
+    return quickCatalog().find((entry) => entry.path === state.quick.path) || null;
+  }
+
+  async function loadQuickInfo() {
+    if (state.quick.info) return;
+    const reply = await ask("quickOptimizeInfo", []);
+    if (reply && reply.ok) {
+      state.quick.info = reply;
+      if (!state.quick.open) return;
+      if (state.quick.passPercent == null) state.quick.passPercent = reply.defaultPassPercent;
+      renderQuick();
+    }
+  }
+
+  function openQuick(path) {
+    const quick = state.quick;
+    if (needsSetup(state.inputs)) return;
+    quick.open = true;
+    if (path) setQuickField(path);
+    else if (!quick.job && quick.step !== "result") quick.step = "field";
+    $("quickSheet").hidden = false;
+    $("quickBackdrop").hidden = false;
+    loadQuickInfo();
+    renderQuick();
+  }
+
+  // Close the sheet; a run under way is cancelled.
+  function closeQuick() {
+    const quick = state.quick;
+    if (!quick.open) return;
+    if (quick.job) {
+      quick.job.stopped = "user";
+      engine.cancel(quick.job.id);
+    }
+    quick.open = false;
+    $("quickSheet").hidden = true;
+    $("quickBackdrop").hidden = true;
+    refreshQuickOrb();
+    const orb = $("quickOrb");
+    if (orb && !orb.hidden) orb.focus();
+  }
+
+  // Start on a new field: its values reset to a range from the value now, or every choice.
+  function setQuickField(path) {
+    const quick = state.quick;
+    const entry = quickCatalog().find((item) => item.path === path);
+    if (!entry) return;
+    const field = entry.field;
+    const current = getPath(state.inputs, path);
+    quick.path = path;
+    quick.entry = null;
+    quick.message = null;
+    quick.step = "values";
+    if (quickTakesRange(field)) {
+      const base = typeof current === "number" ? current : field.minimum != null ? field.minimum : 0;
+      const top = base + (field.step || 1) * 9;
+      const high = field.maximum != null ? Math.min(field.maximum, top) : top;
+      const scale = quickScale(field);
+      quick.range = { min: shownNumber(base * scale), max: shownNumber(high * scale), step: "" };
+    } else {
+      const choices = quickChoices(field).map(([value]) => value);
+      quick.values = choices.length <= quickMax() ? choices : [current];
+    }
+  }
+
+  function shownNumber(value) {
+    return String(Number(Number(value).toPrecision(12)));
+  }
+
+  // The values the sheet holds now: {values} or {error}.
+  function quickValues(field) {
+    const quick = state.quick;
+    if (!quickTakesRange(field)) {
+      return quick.values.length ? { values: quickChoices(field).map(([value]) => value)
+        .filter((value) => quick.values.includes(value)) } : { error: "Pick at least one." };
+    }
+    const scale = quickScale(field);
+    const read = (text) => {
+      const clean = String(text).trim().replace(/[$,%\s]/g, "");
+      return clean === "" ? null : /^-?(\d+\.?\d*|\.\d+)$/.test(clean) ? Number((Number(clean) / scale).toPrecision(12))
+        : NaN;
+    };
+    const step = read(quick.range.step);
+    return quickRangeValues(field, { min: read(quick.range.min), max: read(quick.range.max),
+      step: step == null ? null : step }, quickMax(), quickCount());
+  }
+
+  function quickMax() {
+    return state.quick.info ? state.quick.info.maxCandidates : 25;
+  }
+
+  function quickCount() {
+    return state.quick.info ? state.quick.info.defaultCount : 10;
+  }
+
+  function quickValueText(field, value) {
+    if (field.kind === "toggle") return value ? "On" : "Off";
+    if (field.kind === "select" && field.choices && field.choices.length) return choiceLabel(field, value);
+    return formatValue(value, field.unit);
+  }
+
+  // Why Run is off: another run under way, or null.
+  function quickBusy() {
+    if (state.mc.job || state.compare.job || state.optimize.job || state.coach.job) {
+      return "Another run is under way. Wait for it to finish.";
+    }
+    return null;
+  }
+
+  function quickButton(label, id, quiet, onClick, disabled) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button" + (quiet ? " button-quiet" : "");
+    button.id = id;
+    button.textContent = label;
+    button.disabled = Boolean(disabled);
+    button.addEventListener("click", onClick);
+    return button;
+  }
+
+  function renderQuick() {
+    const quick = state.quick;
+    if (!quick.open) return;
+    const body = $("quickBody");
+    const actions = $("quickActions");
+    body.replaceChildren();
+    actions.replaceChildren();
+    const entry = quickEntry();
+    if (quick.step !== "field" && !entry) quick.step = "field";
+    const draw = { field: quickFieldStep, values: quickValuesStep, goal: quickGoalStep, run: quickRunStep,
+      result: quickResultStep }[quick.step];
+    draw(body, actions, entry);
+    if (quick.message) body.insertAdjacentHTML("beforeend", messageHtml(quick.message));
+  }
+
+  function quickFieldStep(body, actions) {
+    const quick = state.quick;
+    body.insertAdjacentHTML("beforeend", "<p class=\"field-help\">Pick an input to try a range of values on. "
+      + "Type to search, or pick it on the page.</p>"
+      + "<label class=\"field-label\" for=\"quickSearch\">Search inputs</label>"
+      + "<input class=\"input\" id=\"quickSearch\" type=\"search\" autocomplete=\"off\">"
+      + "<div class=\"quick-list\" id=\"quickList\" role=\"list\"></div>");
+    const search = body.querySelector("#quickSearch");
+    search.value = quick.query || "";
+    const fill = () => {
+      const found = quickFieldSearch(quickCatalog(), search.value);
+      const list = body.querySelector("#quickList");
+      list.replaceChildren(...found.slice(0, QUICK_LIST_MAX).map((item) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "quick-item";
+        button.setAttribute("role", "listitem");
+        button.dataset.path = item.path;
+        button.textContent = item.label;
+        button.addEventListener("click", () => { setQuickField(item.path); renderQuick(); });
+        return button;
+      }));
+      if (found.length > QUICK_LIST_MAX) {
+        list.insertAdjacentHTML("beforeend", "<p class=\"field-help\">" + (found.length - QUICK_LIST_MAX)
+          + " more: type to narrow the list.</p>");
+      } else if (!found.length) {
+        list.insertAdjacentHTML("beforeend", "<p class=\"field-help\">No input matches.</p>");
+      }
+    };
+    search.addEventListener("input", () => { quick.query = search.value; fill(); });
+    fill();
+    actions.append(quickButton("Cancel", "quickClose", true, closeQuick),
+      quickButton("Pick on screen", "quickPickStart", false, startQuickPick));
+  }
+
+  function quickValuesStep(body, actions, entry) {
+    const quick = state.quick;
+    const field = entry.field;
+    const current = getPath(state.inputs, entry.path);
+    body.insertAdjacentHTML("beforeend", "<h3 class=\"quick-field\">" + escapeText(entry.label) + "</h3>"
+      + "<p class=\"field-help\">Now: " + escapeText(quickValueText(field, current)) + "</p>");
+    const count = document.createElement("p");
+    count.className = "field-help";
+    count.id = "quickCount";
+    count.setAttribute("aria-live", "polite");
+    const next = quickButton("Next", "quickNext", false, () => { quick.step = "goal"; renderQuick(); });
+    const refresh = () => {
+      const found = quickValues(field);
+      next.disabled = Boolean(found.error);
+      count.textContent = found.error || found.values.length + (found.values.length === 1 ? " value" : " values")
+        + " to try: " + found.values.map((value) => quickValueText(field, value)).join(", ");
+      count.classList.toggle("field-error", Boolean(found.error));
+    };
+    if (quickTakesRange(field)) {
+      const unit = field.unit === "percent" ? " (%)" : field.unit === "money" ? " ($)" : "";
+      const box = document.createElement("div");
+      box.className = "quick-range";
+      for (const [key, label] of [["min", "Min"], ["max", "Max"], ["step", "Step (optional)"]]) {
+        const wrap = document.createElement("label");
+        wrap.className = "pair-field";
+        wrap.innerHTML = "<span class=\"field-label\">" + escapeText(label + unit) + "</span>";
+        const input = document.createElement("input");
+        input.className = "input";
+        input.type = "text";
+        input.inputMode = "decimal";
+        input.id = "quick" + key[0].toUpperCase() + key.slice(1);
+        input.value = quick.range[key];
+        if (key === "step") input.placeholder = "Auto";
+        input.addEventListener("input", () => { quick.range[key] = input.value; refresh(); });
+        wrap.append(input);
+        box.append(wrap);
+      }
+      body.append(box);
+      body.insertAdjacentHTML("beforeend", "<p class=\"field-help\">At most " + quickMax() + " values. A blank step "
+        + "splits the range into about " + quickCount() + ".</p>");
+    } else {
+      const group = document.createElement("fieldset");
+      group.className = "quick-choices";
+      group.innerHTML = "<legend class=\"field-label\">Values to try</legend>";
+      quickChoices(field).forEach(([value, label], index) => {
+        const row = document.createElement("label");
+        row.className = "quick-check";
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.id = "quickChoice" + index;
+        box.checked = quick.values.includes(value);
+        box.addEventListener("change", () => {
+          quick.values = box.checked ? quick.values.concat([value]) : quick.values.filter((item) => item !== value);
+          refresh();
+        });
+        row.append(box, document.createTextNode(" " + label));
+        group.append(row);
+      });
+      body.append(group);
+    }
+    body.append(count);
+    refresh();
+    actions.append(quickButton("Back", "quickBack", true, () => { quick.step = "field"; renderQuick(); }), next);
+  }
+
+  function quickGoalStep(body, actions, entry) {
+    const quick = state.quick;
+    const info = quick.info;
+    if (!info) {
+      body.insertAdjacentHTML("beforeend", "<p class=\"field-help\">Loading…</p>");
+      actions.append(quickButton("Back", "quickBack", true, () => { quick.step = "values"; renderQuick(); }));
+      return;
+    }
+    if (quick.passPercent == null) quick.passPercent = info.defaultPassPercent;
+    const radio = (name, value, label, checked) => "<label class=\"quick-check\"><input type=\"radio\" name=\"" + name
+      + "\" value=\"" + escapeText(value) + "\"" + (checked ? " checked" : "") + "> " + escapeText(label) + "</label>";
+    let html = "<h3 class=\"quick-field\">" + escapeText(entry.label) + "</h3>"
+      + "<fieldset class=\"quick-choices\"><legend class=\"field-label\">Goal</legend>"
+      + radio("quickGoal", "best", "Best result", quick.goal === "best")
+      + radio("quickGoal", "minimum", "Minimum acceptable", quick.goal === "minimum") + "</fieldset>";
+    if (quick.goal === "best") {
+      const preset = info.presets.find((item) => item.id === quick.preset) || info.presets.find((item) =>
+        item.id === info.defaultPreset);
+      quick.preset = preset.id;
+      html += selectHtml("quickPreset", "Score like Optimize", info.presets.map((item) => [item.id, item.label]),
+        quick.preset) + "<p class=\"field-help\">" + escapeText(preset.text) + "</p>";
+    } else {
+      const rule = info.rules.find((item) => item.id === quick.rule) || info.rules[0];
+      quick.rule = rule.id;
+      html += "<fieldset class=\"quick-choices\"><legend class=\"field-label\">Passes when</legend>"
+        + info.rules.map((item) => radio("quickRule", item.id, item.label, item.id === quick.rule)).join("")
+        + "</fieldset><p class=\"field-help\">" + escapeText(rule.help) + "</p>";
+      if (quick.rule === "account") {
+        const names = (state.inputs.accounts || []).map((account) => account.name);
+        if (!names.includes(quick.account)) quick.account = names[0] || null;
+        html += selectHtml("quickAccount", "Account", names.map((name) => [name, name]), quick.account)
+          + "<label class=\"pair-field\" for=\"quickThrough\"><span class=\"field-label\">Up to your age</span>"
+          + "<input class=\"input\" id=\"quickThrough\" type=\"text\" inputmode=\"numeric\" placeholder=\"End of run\" "
+          + "value=\"" + escapeText(quick.throughAge == null ? "" : quick.throughAge) + "\"></label>"
+          + "<p class=\"field-help\">Blank checks every year to the end of the run.</p>";
+      }
+      html += selectHtml("quickPass", "Runs that must pass", info.passPercents.slice().reverse()
+        .map((value) => [String(value), value + "%"]), String(quick.passPercent))
+        + "<p class=\"field-help\">Values are tried in order: the first value from min that passes wins.</p>";
+    }
+    const found = quickValues(entry.field);
+    const values = found.values ? found.values.length : 0;
+    const extra = quick.goal === "best" && found.values && !found.values.includes(getPath(state.inputs, entry.path)) ? 1 : 0;
+    html += "<p class=\"field-help\" id=\"quickRuns\">Up to " + (values + extra) * state.mc.runs + " runs: " + values
+      + (values === 1 ? " value" : " values") + (extra ? " and your current value" : "") + ", " + state.mc.runs
+      + " runs each (Run settings).</p>";
+    const busy = quickBusy();
+    if (busy) html += "<p class=\"field-help\" id=\"quickBusy\">" + escapeText(busy) + "</p>";
+    body.insertAdjacentHTML("beforeend", html);
+    for (const input of body.querySelectorAll("input[name=quickGoal]")) {
+      input.addEventListener("change", () => { quick.goal = input.value; renderQuick(); });
+    }
+    for (const input of body.querySelectorAll("input[name=quickRule]")) {
+      input.addEventListener("change", () => { quick.rule = input.value; renderQuick(); });
+    }
+    const listen = (id, event, apply) => {
+      const element = body.querySelector("#" + id);
+      if (element) element.addEventListener(event, () => apply(element));
+    };
+    listen("quickPreset", "change", (element) => { quick.preset = element.value; renderQuick(); });
+    listen("quickAccount", "change", (element) => { quick.account = element.value; });
+    listen("quickPass", "change", (element) => { quick.passPercent = Number(element.value); });
+    const run = quickButton("Run", "quickRun", false, runQuick, Boolean(busy || found.error));
+    listen("quickThrough", "input", (element) => {
+      const text = element.value.trim();
+      const ok = text === "" || /^\d{1,3}$/.test(text);
+      element.setAttribute("aria-invalid", String(!ok));
+      quick.throughAge = text === "" || !ok ? null : Number(text);
+      run.disabled = Boolean(busy || found.error || !ok);
+    });
+    actions.append(quickButton("Back", "quickBack", true, () => { quick.step = "values"; renderQuick(); }), run);
+  }
+
+  function quickRunStep(body, actions) {
+    body.insertAdjacentHTML("beforeend", "<div class=\"run-progress\"><div class=\"progress\" role=\"progressbar\" "
+      + "aria-label=\"Runs done\" aria-valuemin=\"0\" id=\"quickBar\"><span></span></div>"
+      + "<p class=\"progress-text\" id=\"quickProgressText\" aria-live=\"polite\">Starting</p></div>");
+    actions.append(quickButton("Cancel", "quickCancel", true, () => {
+      if (state.quick.job) {
+        state.quick.job.stopped = "user";
+        engine.cancel(state.quick.job.id);
+      }
+    }));
+    showQuickProgress();
+  }
+
+  function showQuickProgress() {
+    const job = state.quick.job;
+    const bar = $("quickBar");
+    if (!bar || !job) return;
+    bar.querySelector("span").style.width = (job.total ? Math.min(1, job.done / job.total) : 0) * 100 + "%";
+    bar.setAttribute("aria-valuemax", String(job.total || 0));
+    bar.setAttribute("aria-valuenow", String(job.done));
+    const detail = job.detail;
+    $("quickProgressText").textContent = (detail ? "Value " + Math.min(detail.tried + 1, detail.values) + " of "
+      + detail.values + " · " : "") + "run " + job.done + " of up to " + job.total;
+  }
+
+  async function runQuick() {
+    const quick = state.quick;
+    const entry = quickEntry();
+    if (!entry || quick.job || quickBusy()) return;
+    const found = quickValues(entry.field);
+    if (found.error) return;
+    const field = entry.field;
+    const options = { path: entry.path, goal: quick.goal, runs: state.mc.runs };
+    if (quickTakesRange(field)) {
+      Object.assign(options, { min: found.values[0], max: found.values[found.values.length - 1] });
+      if (found.step != null) options.step = found.step;
+    } else {
+      options.values = found.values;
+    }
+    if (quick.goal === "best") options.preset = quick.preset;
+    else {
+      Object.assign(options, { rule: quick.rule, passPercent: quick.passPercent });
+      if (quick.rule === "account") Object.assign(options, { account: quick.account, throughAge: quick.throughAge });
+    }
+    const inputsText = JSON.stringify(state.inputs);
+    clearTimeout(mcTimer);
+    mcTimer = null;
+    const job = engine.job("quickOptimize", [inputsText, JSON.stringify(options), state.seed], null, (message) => {
+      if (!quick.job || quick.job.id !== job.id) return;
+      Object.assign(quick.job, { done: message.done, total: message.total, detail: message.detail });
+      showQuickProgress();
+    });
+    quick.job = { id: job.id, inputsText, done: 0, total: 0, detail: null, stopped: null };
+    quick.entry = null;
+    quick.message = null;
+    quick.step = "run";
+    renderQuick();
+    let reply = null;
+    let failure = null;
+    try {
+      reply = await job.promise;
+    } catch (error) {
+      failure = String(error.message || error);
+    }
+    const { stopped } = quick.job;
+    quick.job = null;
+    quick.step = "goal";
+    if (failure) quick.message = { error: true, text: failure };
+    else if (!reply) quick.message = { text: stopped === "user" ? "Cancelled. Nothing changed."
+      : stopped === "inputs" ? "The settings changed, so the run stopped. Run it again."
+        : "Another run replaced this one. Run it again." };
+    else if (!reply.value.ok) quick.message = { error: true, text: reply.value.error };
+    else {
+      quick.entry = { value: reply.value, inputsText, path: entry.path, ms: reply.ms };
+      quick.step = "result";
+    }
+    renderQuick();
+    scheduleMc();  // an automatic Monte Carlo waits for the run
+  }
+
+  function quickResultStep(body, actions, entry) {
+    const quick = state.quick;
+    const result = quick.entry.value;
+    const field = entry.field;
+    const stale = quick.entry.inputsText !== JSON.stringify(state.inputs);
+    const mark = result.goal === "best" ? "Best" : "First pass";
+    let html = (stale ? "<p class=\"banner banner-warn\" role=\"note\">The settings changed since this run. Run it "
+      + "again; Apply is off.</p>" : "")
+      + "<h3 class=\"quick-field\">" + escapeText(entry.label) + "</h3>"
+      + "<p id=\"quickHeadline\">" + escapeText(result.headline) + "</p>"
+      + "<div class=\"table-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"Values tried\">"
+      + "<table class=\"data-table wrap-first quick-table\"><thead><tr><th scope=\"col\">Value</th>"
+      + "<th scope=\"col\">Result</th></tr></thead><tbody>"
+      + result.rows.map((row, index) => "<tr" + (index === result.winner ? " class=\"quick-win\"" : "") + ">"
+        + "<th scope=\"row\">" + escapeText(quickValueText(field, row.value)) + (row.current ? " (now)" : "")
+        + (index === result.winner ? " · " + mark : "") + "</th><td class=\"text\">" + escapeText(row.text)
+        + "</td></tr>").join("") + "</tbody></table></div>"
+      + "<p class=\"field-help\">" + result.runs + " runs · " + secondsText(quick.entry.ms) + ". Same random draws for "
+      + "every value.</p>";
+    body.insertAdjacentHTML("beforeend", html);
+    const change = result.change;
+    actions.append(quickButton("Cancel", "quickClose", true, closeQuick));
+    if (change) {
+      actions.append(quickButton("Apply " + quickValueText(field, change.value), "quickApply", false, applyQuick,
+        stale));
+    } else {
+      actions.append(quickButton("Try again", "quickAgain", false, () => { quick.step = "values"; renderQuick(); }));
+    }
+  }
+
+  // Write the winner through the normal edit path; one Undo step.
+  async function applyQuick() {
+    const quick = state.quick;
+    const entry = quick.entry;
+    if (!entry || !entry.value.change || entry.inputsText !== JSON.stringify(state.inputs)) return;
+    const inputsText = JSON.stringify(state.inputs);
+    const reply = await ask("applySettings", [inputsText, JSON.stringify([entry.value.change])]);
+    if (!reply || inputsText !== JSON.stringify(state.inputs)) return;
+    if (!reply.ok) {
+      quick.message = { error: true, text: reply.error || "That value could not be applied." };
+      renderQuick();
+      return;
+    }
+    if (settleTimer) settle();  // an edit still settling is a step of its own
+    state.inputs = reply.inputs;
+    renderSettings();
+    inputsChanged();
+    quick.entry = null;
+    quick.step = "field";
+    closeQuick();
+  }
+
+  // The settings changed: a run under way stops (its inputs are gone).
+  function quickInputsChanged() {
+    const job = state.quick.job;
+    if (job && job.inputsText !== JSON.stringify(state.inputs)) {
+      job.stopped = "inputs";
+      engine.cancel(job.id);
+    }
+    refreshQuickOrb();
+  }
+
+  // ---- Pick on screen: the sheet closes, the next tap on an input picks it ----
+  function startQuickPick() {
+    const quick = state.quick;
+    closeQuick();
+    quick.picking = true;
+    $("quickPickText").textContent = "Tap an input to try.";
+    $("quickPick").hidden = false;
+    refreshQuickOrb();
+    goToPane("inputs");
+  }
+
+  function endQuickPick() {
+    state.quick.picking = false;
+    $("quickPick").hidden = true;
+    refreshQuickOrb();
+  }
+
+  // The catalog path of the input a tap landed on, or "" for an input it cannot try, or null for no input.
+  function quickTappedPath(target) {
+    const label = target.closest("label[for]");
+    let element = label ? document.getElementById(label.htmlFor) : null;
+    if (!element) element = target.closest("[id^='f-']");
+    if (!element) {
+      const wrap = target.closest(".field");
+      element = wrap ? wrap.querySelector("[id^='f-']") : null;
+    }
+    if (!element) return null;
+    const entry = quickCatalog().find((item) => fieldId(item.path) === element.id);
+    return entry ? entry.path : "";
+  }
+
+  // Taps while picking: an input quick optimize can try is taken (the tap does nothing else); other taps go through,
+  // so chips, tabs and list rows still open.
+  function quickPickClick(event) {
+    if (!state.quick.picking || event.target.closest("#quickPick")) return;
+    const path = quickTappedPath(event.target);
+    if (path === null) return;
+    if (!path) {
+      $("quickPickText").textContent = "That input cannot be tried. Tap a number, choice or switch.";
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (sheetOpen) closeSheet(true);
+    endQuickPick();
+    openQuick(path);
+  }
+
+  function wireQuick() {
+    $("quickOrb").addEventListener("click", () => openQuick());
+    $("quickBackdrop").addEventListener("click", closeQuick);
+    $("quickPickCancel").addEventListener("click", endQuickPick);
+    document.addEventListener("click", quickPickClick, true);
+    document.addEventListener("pointerdown", (event) => {  // a tap on a select or text box picks before it opens
+      if (state.quick.picking && quickTappedPath(event.target)) event.preventDefault();
+    }, true);
+  }
+
+  // Escape closes the sheet or ends a pick; true when it did.
+  function quickEscape() {
+    if (state.quick.picking) { endQuickPick(); return true; }
+    if (state.quick.open) { closeQuick(); return true; }
+    return false;
+  }
   // ---- Earliest retirement: the earliest retirement ages whose failing runs stay within a limit, under Optimize ----
   // The search runs in the worker as a batched job ("earliestRetire", wmti.dashboard.earliest) in the strategy
   // search's slot (`state.optimize.job`, kind "earliest"), so every guard that waits for a search waits for it too;
@@ -17590,6 +18131,7 @@
       if (event.key !== "Escape") return;
       if (!$("rowMenu").hidden) { closeRowMenu(); return; }
       if (!$("dialog").hidden) { closeDialog(); return; }
+      if (quickEscape()) return;
       if (gameEscape()) return;  // a mini game over the walkthrough closes alone
       if (experienceEscape()) return;
       if (walkEscape()) return;
@@ -17599,6 +18141,7 @@
       closeInstallHelp();
       cancelSheet();
     });
+    wireQuick();
     $("menuButton").addEventListener("click", openMenu);
     $("menuBackdrop").addEventListener("click", closeMenu);
     $("undoButton").addEventListener("click", undoLast);

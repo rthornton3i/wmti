@@ -17,6 +17,7 @@
 // A Coach sweep ("leverSweep") is a short batched search with no finish, pause or run budget; a cancel drops it.
 // The Earliest retirement search ("earliestRetire") is batched like a strategy search: a finish keeps the best so far
 // and it pauses and resumes, but it has no run budget pause and no checkpoint.
+// A Quick optimize ("quickOptimize") is batched like a Coach sweep: no finish, pause or run budget; a cancel drops it.
 "use strict";
 
 // The host refuses .whl and .zip files, so they are published as *_whl.wasm / *_zip.wasm with unchanged bytes.
@@ -29,8 +30,8 @@ self.fetch = (input, init) => {
 
 // Batched jobs: the wmti.dashboard.web function that starts one, given the job's arguments.
 const BATCHED = { monteCarlo: "startMonteCarlo", compare: "startCompare", optimize: "startOptimize",
-  leverSweep: "startLeverSweep", earliestRetire: "startEarliestRetire" };
-const MODEL_FILE = "wmti.06d473d91b.wasm";  // the build gives it a content-hashed name
+  leverSweep: "startLeverSweep", earliestRetire: "startEarliestRetire", quickOptimize: "startQuickOptimize" };
+const MODEL_FILE = "wmti.2b9f0de07b.wasm";  // the build gives it a content-hashed name
 const CHECKPOINT_MS = 5000;  // a search's checkpoint is serialized at most this often while it runs
 const queue = [];
 let pyodide = null;
