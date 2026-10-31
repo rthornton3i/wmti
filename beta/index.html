@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-pEm8itdJQAykPXZBwwGv8tatnjd/E6OWKDyDK/628JE=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-+lhbe+v6kKh521MR2PJzzWufh9u/21XqZPDOIMEdZvk=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1529,15 +1529,19 @@ select.gm-cell[data-result="fixed"] { border-style: dashed; }
 .pk-stop.pk-on .pk-lab { color: var(--ink); }
 .pk-stop.pk-on .pk-lab .experience-label { font-weight: 800; }
 /* The style tiles: badge and (i) on the first row, the icon, the name */
-.pk-styles { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.pk-style { position: relative; height: var(--pk-tile); min-width: 0; display: grid; grid-template-rows: 22px minmax(0, 1fr) auto;
-  justify-items: center; align-items: center; gap: 2px; padding: 8px 8px 10px; border-radius: 18px; text-align: center;
+.pk-styles { --pk-n: 3; --pk-tile: max(52px, calc((var(--pk-h) - (var(--pk-n) - 1) * 8px) / var(--pk-n)));
+  display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+/* Each tile takes a share of the effort bar's height (--pk-n tiles): its icon beside its name, the badge and "i" above. */
+.pk-style { position: relative; height: var(--pk-tile); min-width: 0; display: grid;
+  grid-template-columns: auto minmax(0, 1fr); grid-template-rows: 20px minmax(0, 1fr);
+  align-items: center; column-gap: 8px; row-gap: 0; padding: 4px 10px 6px; border-radius: 14px; text-align: left;
   filter: saturate(0.8) brightness(0.96); transition: transform 0.15s, box-shadow 0.15s, filter 0.15s; }
 .pk-style:active { transform: translateY(3px); }
 .pk-style:has(.pk-radio:focus-visible) { outline: 3px solid var(--ink); outline-offset: 9px; }
-.pk-top { justify-self: stretch; display: flex; align-items: center; gap: 4px; min-width: 0; }
+.pk-top { grid-column: 1 / -1; justify-self: stretch; display: flex; align-items: center; gap: 4px; min-width: 0; }
 .pk-top .pk-info { margin-left: auto; }
-.pk-icon { height: 100%; max-height: 58px; min-height: 0; aspect-ratio: 1; display: grid; }
+.pk-icon { height: 100%; max-height: 40px; min-height: 0; aspect-ratio: 1; display: grid; }
+.pk-style .experience-blurb { display: none; }
 .pk-icon svg { width: 100%; height: 100%; }
 .pk-style .experience-label { max-width: 100%; overflow: hidden; white-space: nowrap; overflow-wrap: normal;
   font-size: 17px; font-size: clamp(15px, 7cqw, 22px); font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
@@ -2838,7 +2842,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "ce21a2e1b306", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "fe076eb70007", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.32bd461993.js"></script>
 <script src="charts.ae4d661d99.js"></script>
@@ -2847,7 +2851,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.8a732ab5b4.js"></script>
+<script src="app.c676db7d71.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

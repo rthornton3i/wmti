@@ -2843,6 +2843,7 @@
     const style = group("style", "Style");
     const tiles = document.createElement("div");
     tiles.className = "pk-styles";
+    tiles.style.setProperty("--pk-n", String(offered.styles.length));  // the tiles share the effort bar's height
     for (const item of offered.styles) {
       const look = Object.prototype.hasOwnProperty.call(PICKER_STYLE_ICONS, item.id) ? item.id : "accountant";
       const tile = document.createElement("div");
@@ -2995,10 +2996,13 @@
     const offered = state.info.experience;
     experiencePicker.choice = returning ? { ...offered.existingDefault }
       : first ? { ...offered.newUserDefault } : { ...shownExperience(), riskComfort: riskComfortShown() };
-    const pick = (change) => Object.assign(experiencePicker.choice, change);
+    // Risk comfort is Coach's own setting, so it shows only while Coach is the style picked.
+    const syncCoach = () => { const risk = $("xpPick-risk"); if (risk) risk.hidden = experiencePicker.choice.style !== "coach"; };
+    const pick = (change) => { Object.assign(experiencePicker.choice, change); syncCoach(); };
     if (!first) experiencePicker.choice.extras = accountantExtrasOn();
     $("experienceChoices").replaceChildren(...experienceGroups("xpPick", experiencePicker.choice, pick),
       ...(first ? [] : [riskComfortGroup(experiencePicker.choice), extrasGroup(experiencePicker.choice)]));
+    syncCoach();
     if (first) $("experienceDetail").hidden = true;
     else renderDetailList();  // the detail added to the scenario, each with its Hide it
     const button = (label, className, id, onClick) => {

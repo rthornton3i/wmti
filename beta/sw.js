@@ -13,7 +13,7 @@
 // leaves every request there alone (the beta's own worker, or the network, answers it).
 "use strict";
 
-const BUILD_ID = "ce21a2e1b306";
+const BUILD_ID = "fe076eb70007";
 const CHANNEL = "beta";
 const CACHE_FAMILY = CHANNEL === "beta" ? "wmti-beta" : "wmti";
 const CACHE_PREFIX = CACHE_FAMILY + ":" + self.registration.scope + ":";
@@ -24,7 +24,7 @@ const DOCS_PATH = new URL("docs/", self.registration.scope).pathname;
 const OTHER_CHANNEL_PATHS = CHANNEL === "beta" ? [] : [new URL("beta/", self.registration.scope).pathname];
 const FILES = [
  "./",
- "app.8a732ab5b4.js",
+ "app.c676db7d71.js",
  "charts.ae4d661d99.js",
  "fonts/ibm-plex-mono-latin-400-normal.woff2",
  "fonts/ibm-plex-mono-latin-500-normal.woff2",
