@@ -14782,6 +14782,19 @@
     $("aboutVersion").textContent = "Version: " + window.WMTI_BUILD.id;
     // Only the static-host build registers a service worker (pwa.js); on the artifact host updates come from the host.
     $("aboutCheck").hidden = !window.wmtiServiceWorker;
+    // The published app has two versions on one site: stable at the root and beta under beta/. Each keeps its own
+    // scenarios and settings (the beta starts, once, from a copy of the stable app's).
+    const channelKnown = CHANNEL === "stable" || isBetaChannel(CHANNEL);
+    $("aboutChannel").hidden = !channelKnown;
+    if (channelKnown) {
+      const beta = isBetaChannel(CHANNEL);
+      const folder = location.pathname.replace(/[^/]*$/, "");  // this page's folder
+      $("aboutChannelText").textContent = beta
+        ? "You are on the beta: new features first. Its scenarios are kept apart from the stable app's."
+        : "You are on the stable app. The beta gets new features first and starts from a copy of your scenarios.";
+      $("aboutSwitch").textContent = beta ? "Switch to stable" : "Switch to beta";
+      $("aboutSwitch").href = beta ? folder.replace(/beta\/$/, "") : folder + "beta/";
+    }
     if (!state.info) return;
     const versions = state.info.versions;
     const rows = [["Build", window.WMTI_BUILD.id], ["Pyodide", state.pyodideVersion || window.WMTI_BUILD.pyodide],
