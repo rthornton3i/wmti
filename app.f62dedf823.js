@@ -80,10 +80,10 @@
   // (window.WMTI_BUILD.channel), so a beta never reads or writes the stable app's scenarios and settings.
   const CHANNEL = (window.WMTI_BUILD || {}).channel;
   const STORAGE_PREFIX = storagePrefix(CHANNEL);
-  // The effort and style (gamify) features: the picker, risk comfort, Low and Medium, the surfacing list, the effort
-  // and style cues, the Coach Next steps card and every later gamify extra. build.py writes "off" for the stable
-  // pages build (publish_pages.py --channel stable) and "on" for every other build; with them off the app shows High
-  // and Accountant and keeps each scenario's experience block as it is. Every gamify entry point asks gamifyOn().
+  // The style (gamify) features: the style picker, risk comfort, the style cues, Coach, Gamer, the games and every
+  // later style extra. Effort (Low, Medium, High) is on every build. build.py writes "off" for the stable pages build
+  // (publish_pages.py --channel stable) and "on" for every other build; with them off the app shows Accountant and
+  // keeps each scenario's style as it is. Every style entry point asks gamifyOn().
   const GAMIFY = "off" !== "off";
   const BETA_COPY_MARK = "copiedFromStable.v1";  // set once the beta has copied the stable app's keys (kept by Clear)
   const DRAFT_KEY = STORAGE_PREFIX + "draft.v1";
@@ -315,7 +315,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.880026fa0e.js");
+      worker = new Worker("worker.12c1e1fde0.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -501,7 +501,7 @@
     // with High and Accountant chosen; never with gamify off); on a first launch then the walkthrough, then the tour
     // (once per device).
     await termsAgreed;
-    if (gamifyOn() && (firstVisit || !pickerDone)) {
+    if (firstVisit || !pickerDone) {
       await openExperiencePicker(firstVisit ? "firstLaunch" : "returning");
       try { localStorage.setItem(PICKER_KEY, "done"); } catch (error) { /* storage blocked */ }
     }
@@ -2895,19 +2895,19 @@
     }
     style.append(tiles);
 
-    grid.append(effort, style);
+    grid.append(effort, ...(gamifyOn() ? [style] : []));  // the style picker is beta only
     paintExperience(grid, choice);
     return [grid, pop];
   }
 
   // The effort and style shown for the open scenario: High and Accountant when its block holds one the app does not
-  // offer, and always with the gamify features off (gamifyOn).
+  // offer. Effort is on every build; with the style features off (gamifyOn, the stable build) the style is Accountant.
   function shownExperience() {
-    if (!gamifyOn()) return { effort: "high", style: "accountant" };
     const offered = state.info.experience;
     const experience = state.experience || {};
     const effort = offered.efforts.some((item) => item.id === experience.effort) ? experience.effort : "high";
-    const style = offered.styles.some((item) => item.id === experience.style) ? experience.style : "accountant";
+    const style = gamifyOn() && offered.styles.some((item) => item.id === experience.style) ? experience.style
+      : "accountant";
     return { effort, style };
   }
 
@@ -2923,13 +2923,9 @@
   function applyExperience() {
     if (!state.info || !state.experience) return;
     const { effort, style } = shownExperience();
-    if (gamifyOn()) {
-      document.documentElement.dataset.effort = effort;
-      document.documentElement.dataset.style = style;
-    } else {
-      delete document.documentElement.dataset.effort;
-      delete document.documentElement.dataset.style;
-    }
+    document.documentElement.dataset.effort = effort;
+    if (gamifyOn()) document.documentElement.dataset.style = style;
+    else delete document.documentElement.dataset.style;
     refreshDefaultsNotice();
     gamerStyleChanged();  // the Awards chip shows only in Gamer style
     coachMascotSync();  // the Coach mascot shows only in Coach style
@@ -3017,7 +3013,6 @@
   // returning user's one showing: High and Accountant chosen, Continue keeps it). Returns a promise of the choice
   // kept ({effort, style}), or null when it was cancelled (at once, with no picker, while gamify is off).
   function openExperiencePicker(mode) {
-    if (!gamifyOn()) return Promise.resolve(null);
     if (!$("experience").hidden) closeExperiencePicker(null);
     const returning = mode === "returning";
     const first = mode === "firstLaunch" || returning;  // a single Continue; Escape and the backdrop do nothing
@@ -3027,12 +3022,14 @@
     const offered = state.info.experience;
     experiencePicker.choice = returning ? { ...offered.existingDefault }
       : first ? { ...offered.newUserDefault } : { ...shownExperience(), riskComfort: riskComfortShown() };
+    // Without the style features (the stable build) only the effort is picked: the scenario keeps its style.
+    if (!gamifyOn()) experiencePicker.choice.style = (state.experience && state.experience.style) || "accountant";
     // Risk comfort is Coach's own setting, so it shows only while Coach is the style picked.
     const syncCoach = () => { const risk = $("xpPick-risk"); if (risk) risk.hidden = experiencePicker.choice.style !== "coach"; };
     const pick = (change) => { Object.assign(experiencePicker.choice, change); syncCoach(); };
     if (!first) experiencePicker.choice.extras = accountantExtrasOn();
     $("experienceChoices").replaceChildren(...experienceGroups("xpPick", experiencePicker.choice, pick),
-      ...(first ? [] : [riskComfortGroup(experiencePicker.choice), extrasGroup(experiencePicker.choice)]));
+      ...(first || !gamifyOn() ? [] : [riskComfortGroup(experiencePicker.choice), extrasGroup(experiencePicker.choice)]));
     syncCoach();
     if (first) $("experienceDetail").hidden = true;
     else renderDetailList();  // the detail added to the scenario, each with its Hide it
@@ -3061,8 +3058,10 @@
   // Keep mine; false when the user cancelled (Cancel, Escape or the backdrop). With gamify off, `found` as it is.
   function askExperience(name, found) {
     const offered = state.info.experience;
-    const current = shownExperience();
-    if (!gamifyOn() || !experienceDiffers(found, current, offered)) return Promise.resolve(found);
+    let current = shownExperience();
+    // Without the style features only a different effort asks; the scenario's style is kept either way.
+    if (!gamifyOn() && found && typeof found === "object") current = { ...current, style: found.style };
+    if (!experienceDiffers(found, current, offered)) return Promise.resolve(found);
     // An import from the walkthrough's first step: the walkthrough keeps the page (#app, which holds the dialog) inert,
     // so it is lifted while the dialog shows (its backdrop covers the walkthrough) and put back unless the walkthrough
     // has closed.
@@ -3136,7 +3135,12 @@
   }
 
   function wireExperience() {
-    $("menuExperience").hidden = !gamifyOn();
+    if (!gamifyOn()) {  // the stable build picks the effort only
+      $("menuExperience").querySelector("span").textContent = "Effort...";
+      $("experienceTitle").textContent = "Effort";
+      document.querySelector(".experience-notice").textContent = "You can switch effort any time in the menu. Your "
+        + "answers are kept.";
+    }
     $("menuExperience").addEventListener("click", () => { closeMenu(); openExperiencePicker("settings"); });
     $("experienceBackdrop").addEventListener("click", () => experienceEscape());
     $("experience").addEventListener("keydown", (event) => trapFocus(event, $("experience")));
@@ -11733,6 +11737,7 @@
     if (at && (RADIO_SEGMENTED[at.type] || []).includes(at.name)) return radioSegmentedField(field, path);
     if (at && at.type === "ExpenseItem" && at.name === "year") return expenseAgesField(field, path, at.item);
     if (path === "strategies.rothConversion.startAge") return rothAgesField(field, path);
+    if (at && at.type === "Account" && at.name === "depositToAge") return depositAgesField(field, path);
     if (/^(you|partner)\.socialSecurityAge$/.test(path)) return claimAgeField(field, path);
     if (path === "premiums.medicareAge") return medicareAgeField(field, path);
     if (path === PLAN_SHARE_PATH) return planShareToggle(field, path, value);
@@ -11896,6 +11901,26 @@
         if ("toAge" in stored && name === "at") setPath(state.inputs, toPath, stored.toAge);
         if ("year" in stored) setValue(path, stored.year);
         else setValue(toPath, stored.toAge);
+      },
+    });
+  }
+
+  // A monthly deposit's first and last ages (depositFromAge, depositToAge) as the two knobs of the ages slider from
+  // your age today to the last year anyone is paid (depositAgeKnobs). A From knob at today stores a blank; a To knob
+  // at the owner's last paid year stores a blank (while paid).
+  function depositAgesField(field, path) {
+    const fromPath = path.replace(/\.depositToAge$/, ".depositFromAge");
+    const item = () => getPath(state.inputs, path.replace(/\.depositToAge$/, ""));
+    const shown = depositAgeKnobs(state.inputs, item());
+    return ageRangeField(field, {
+      low: shown.low, high: shown.high, outside: shown.outside, set: true,
+      values: { from: shown.from, to: shown.to },
+      ids: { from: fieldId(fromPath), to: fieldId(path) },
+      text: () => depositAgeKnobs(state.inputs, item()).text,
+      store: (name, age) => {
+        const now = depositAgeKnobs(state.inputs, item());
+        if (name === "from") setValue(fromPath, age <= now.low ? null : age);
+        else setValue(path, age === now.ownerEnd ? null : age);
       },
     });
   }
@@ -14419,6 +14444,7 @@
     const sections = ((state.schema.sheetSections || {})[field.type] || []).map((section) => ({ section, fields: [] }));
     for (const entry of layout.shown) {
       if (field.type === "ExpenseItem" && entry.name === "toAge") continue;  // the year's ages slider has its knob
+      if (field.type === "Account" && entry.name === "depositFromAge") continue;  // a knob of the deposit ages slider
       const schemaChild = children.find((candidate) => candidate.name === entry.name);
       const label = sheetLabel(field.type, entry.name, items[position], state.info.sheetRules);
       const group = sheetGroup(field.type, entry.name, items[position], state.info.sheetRules);
@@ -17241,7 +17267,7 @@
 
   // The effort the walkthrough's answers are given at: the open scenario's (High with gamify off).
   function walkEffort() {
-    return state.experience && gamifyOn() ? state.experience.effort : "high";
+    return state.experience ? shownExperience().effort : "high";
   }
 
   // Write the current question's answer: `answer` (Continue: the shown values, written only when one was changed; an
@@ -17669,18 +17695,20 @@
     { title: "Pin the groups", page: "inputs", when: () => state.schema != null && !wide.on && !lowOn(),
       target: "#chipsPin",
       text: "The pin keeps the groups under the top bar while you scroll. Tap it to let them scroll away with the page." },
-    { title: "Your plan page", page: "inputs", when: () => gamifyOn() && lowOn(), target: "#lowPage",
+    { title: "Your plan page", page: "inputs", when: () => lowOn(), target: "#lowPage",
       text: "At Low effort your settings are one page: about you, pay, spending, savings, children and the "
         + "retirement and medical plans. Every change reruns the plan." },
     { title: "Strategy views", page: "strategy", view: "strategies", target: "#views-strategy",
-      text: "Strategy holds your tax strategies, such as Roth conversions and relocation, and two ways to weigh "
-        + "choices: Compare and Optimize." },
+      text: "Strategy holds your tax strategies and two ways to weigh choices: Compare and Optimize. For example, "
+        + "a Roth conversion moves some 401k money to a Roth in low-tax years after you retire, paying tax now so "
+        + "later withdrawals and required minimum withdrawals are smaller." },
     { title: "Compare", page: "strategy", view: "compare", target: "#view-compare",
       text: "Compare puts two saved scenarios side by side. With only one so far, go to Setup and tap Duplicate, "
         + "change one thing in the copy, then compare." },
     { title: "Optimize", page: "strategy", view: "optimize", target: "#view-optimize",
-      text: "Optimize tries other choices for you, such as when to claim Social Security or which state to retire "
-        + "in, and shows what each would be worth. Tick what you would consider, then tap Find best settings." },
+      text: "Optimize tries other choices for you and shows what each would be worth. For example, it might find "
+        + "that claiming Social Security at 67 instead of 62 and retiring in another state leaves you more. Tick what "
+        + "you would consider, then tap Find best settings." },
     { title: "Outputs views", page: "outputs", view: "summary", target: "#views-outputs",
       text: "Tap a view to see the results another way: Summary or Plots." },
     { title: "Summary", page: "outputs", view: "summary", target: "#view-summary",
@@ -17692,9 +17720,10 @@
     { title: "Undo", page: "bar", target: "#undoButton",
       text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
     { title: "Quick optimize", page: "bar", when: () => !$("quickOrb").hidden, target: "#quickOrb",
-      text: "The rising-arrow button in the corner is Quick optimize: pick a highlighted input, give it a range of "
-        + "values to try, and it finds the best one or the first that keeps your money (or one account) above zero, "
-        + "or avoids early withdrawals. Nothing changes until you tap Apply." },
+      text: "The rising-arrow button in the corner is Quick optimize: tap it, pick a highlighted input and give it "
+        + "a range to try. Best result picks the value that scores highest, such as the monthly savings deposit that "
+        + "leaves you the most. Minimum acceptable finds the edge that still works, such as the youngest retirement "
+        + "age that keeps your accounts above zero. Nothing changes until you tap Apply." },
     { title: "Walk me through it", page: "menu", target: "#menuWalk",
       text: "Walk me through it asks one question at a time and fills in your settings. Where a topic has more "
         + "detail, Go deeper adds its extra questions." },

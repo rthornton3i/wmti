@@ -130,7 +130,8 @@
   // not name follow in schema order, so a new input is never dropped from its sheet.
   const SHEET_LAYOUTS = {
     Account: {
-      order: ["name", "kind", "owner", "startingValue", "monthlyDeposit", "depositToAge", "meanReturn", "returnStdDev",
+      order: ["name", "kind", "owner", "startingValue", "monthlyDeposit", "depositToAge", "depositFromAge", "meanReturn",
+        "returnStdDev",
         "costBasis", "iraBasis", "stateIraBasis", "rothBasis"],
       groups: { meanReturn: "returns", returnStdDev: "returns", costBasis: "returns", iraBasis: "returns",
         stateIraBasis: "returns", rothBasis: "returns" },
@@ -211,7 +212,7 @@
       if (name === "autoCreated") return "set by the Roth conversion switch";
       const basisReason = accountBasisHidden(name, item.kind, rules);
       if (basisReason) return basisReason;
-      if ((name === "monthlyDeposit" || name === "depositToAge")
+      if ((name === "monthlyDeposit" || name === "depositToAge" || name === "depositFromAge")
         && !(rules.monthlyDepositKinds || []).includes(item.kind)) {
         return "cash, Investments and 529 accounts only";
       }
@@ -655,6 +656,37 @@
   }
 
   // The settings' run length: `years`, or for a blank one the years until you are 100 (wmti planYears).
+  // Your age in the last year with pay among `roles` (a person paid today: not retired, a salary above 0 and a
+  // retirement age still ahead; Social Security and other fixed income do not count), or null when none is paid.
+  function lastPaidAge(inputs, roles) {
+    const you = inputs && inputs.you;
+    let last = null;
+    for (const role of roles) {
+      const person = inputs && inputs[role];
+      if (!person || person.retired || !(person.salary > 0) || !(person.salaryEndAge > person.currentAge)) continue;
+      const age = person.salaryEndAge - 1 + (Number(you.currentAge) - Number(person.currentAge));
+      last = last == null ? age : Math.max(last, age);
+    }
+    return last;
+  }
+
+  // A cash, Investments or 529 account's monthly deposit ages on a two-knob slider from your age today to your age
+  // in the last year anyone is paid: {low, high, from, to, outside, text}. A blank From is today; a blank To is while
+  // the account's owner is paid (either of you for a joint account).
+  function depositAgeKnobs(inputs, item) {
+    const low = Number(inputs.you.currentAge);
+    const planEnd = low + (planYears(inputs) || 1) - 1;
+    const high = Math.min(planEnd, Math.max(low, lastPaidAge(inputs, ["you", "partner"]) ?? low));
+    const roles = item.owner === "PARTNER" ? ["partner"] : item.owner === "YOU" ? ["you"] : ["you", "partner"];
+    const ownerEnd = Math.min(high, Math.max(low, lastPaidAge(inputs, roles) ?? low));
+    const clamp = (age) => Math.min(high, Math.max(low, age));
+    const from = item.depositFromAge == null ? low : clamp(item.depositFromAge);
+    const to = Math.max(from, item.depositToAge == null ? ownerEnd : clamp(item.depositToAge));
+    const away = (age) => age != null && (age < low || age > high);
+    const text = "Ages " + from + " to " + to + (item.depositToAge == null ? " (while paid)" : "");
+    return { low, high, from, to, ownerEnd, outside: away(item.depositFromAge) || away(item.depositToAge), text };
+  }
+
   function planYears(inputs) {
     if (!inputs) return null;
     return inputs.years == null ? yearsToAge100(inputs.you && inputs.you.currentAge) : inputs.years;
@@ -1061,6 +1093,7 @@
       const monthly = (rules.monthlyDepositKinds || []).includes(item.kind);
       if (!monthly && item.monthlyDeposit != null) cleared.monthlyDeposit = null;
       if (!monthly && item.depositToAge != null) cleared.depositToAge = null;
+      if (!monthly && item.depositFromAge != null) cleared.depositFromAge = null;
     }
     // A car's How it is paid sets its Loan and Lease switches: Finance turns the Loan switch on, Lease the Lease
     // switch, Cash both off.
@@ -2790,6 +2823,7 @@
     "Person.salaryEndAge", "Person.socialSecurityAge",
     "Child.collegeCost", "Child.account529",
     "Account.surplusShare", "Account.deposit", "Account.monthlyDeposit", "Account.depositToAge",
+    "Account.depositFromAge",
     "ExpenseItem.amount", "ExpenseItem.year", "ExpenseItem.toAge", "ExpenseItem.retirementChange",
     "ContributionPlan.enabled",
     "PremiumPlan.medicareAge", "PremiumPlan.medicareType", "PremiumPlan.partB",
@@ -2990,7 +3024,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetFieldNote, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, lastPaidAge, depositAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetFieldNote, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkBasicsOnly,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
