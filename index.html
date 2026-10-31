@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-GyOKSFqxsuqEAdIY4U+JET9Y+HfMtKzBYUNrfwSzu2k=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-KU0dx1YNp5yKEY5GSSRjm01X5BR4j8faC7K2cVdOK5Q=' 'sha256-8O3sgrxnjgWL2pxzeezzrcaBift1KuB+8V1LZ0VMCZY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -274,6 +274,8 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .chips-wrap:is([data-place="inputs"], [data-place="outputs"], [data-place="strategy"]) { grid-template-columns: minmax(0, 1fr) auto; column-gap: 6px;
   align-items: center; }
 .chips-wrap:is([data-place="inputs"], [data-place="outputs"], [data-place="strategy"]) .chips { margin-inline-end: 0; padding-inline-end: 0; }
+/* A spacer after the last chip, so it (and its bubble's glow) scrolls fully clear of the pin. */
+.chips-wrap:is([data-place="inputs"], [data-place="outputs"], [data-place="strategy"]) .chips::after { content: ""; flex: none; width: 14px; }
 .chips-wrap:is([data-place="outputs"], [data-place="strategy"]) .chips-track { grid-column: 1 / -1; }
 .chips-pin { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--band-button);
   color: var(--band-button-ink); display: grid; place-items: center; cursor: pointer; }
@@ -412,8 +414,12 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .heirs-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); min-height: 44px; cursor: pointer; }
 .heirs-toggle input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
 /* Earliest retirement: who the search moves (a couple ticks one person or both). */
-.earliest-people { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; border: 0; margin: 8px 0 0; padding: 0; }
-.earliest-people legend { float: left; margin-right: 8px; padding: 0; }
+/* Advanced settings and the Strategy tab are not shown at Low effort. */
+:root[data-effort="low"] #advancedSettings, :root[data-effort="low"] #tab-strategy { display: none; }
+.earliest-row { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 16px; }
+.earliest-row .pair-field { width: 7.5em; }
+.earliest-people { display: flex; flex-wrap: wrap; align-items: center; gap: 0 14px; border: 0; margin: 0; padding: 0; }
+.earliest-people legend { float: left; margin-right: 4px; padding: 0; }
 .tile .tile-help { font-size: 12.5px; }
 /* A tile with a note: the label and its "i" (the 44px target overlaps the tile padding, so the row stays one line). */
 .tile-head { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; }
@@ -927,9 +933,12 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
 .seed-row .input { flex: 1; min-width: 0; }
 .seed-lock { display: inline-grid; place-items: center; width: 44px; height: 44px; flex: none; padding: 0;
   border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--muted); cursor: pointer; }
-.seed-lock .seed-lock-shackle { transform: translateX(4px); transition: transform 0.15s ease; }
+/* Unlocked: the shackle lifted with its right leg out of the body; locked: closed into it. */
+.seed-lock .seed-lock-closed { display: none; }
+.seed-lock .seed-lock-open { display: inline; }
 .seed-lock[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
-.seed-lock[aria-pressed="true"] .seed-lock-shackle { transform: none; }
+.seed-lock[aria-pressed="true"] .seed-lock-closed { display: inline; }
+.seed-lock[aria-pressed="true"] .seed-lock-open { display: none; }
 .seed-run .seed-lock { margin-left: 6px; vertical-align: middle; }
 .segmented { display: flex; border: 1px solid var(--line); border-radius: 10px; padding: 2px; background: var(--bg); }
 .segmented button { flex: 1; min-height: 40px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2);
@@ -1174,9 +1183,9 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
     radial-gradient(90% 130% at 0% 100%,
       color-mix(in srgb, var(--fx-s-a) calc(var(--fx-s) * var(--fx-cap-hero-s) * 1%), transparent), transparent 75%);
 }
-:root[data-effort="low"] { --fx-e: 0.35; --fx-e-hue: #46b6d8; }
-:root[data-effort="medium"] { --fx-e: 0.65; --fx-e-hue: #f2c94c; }
-:root[data-effort="high"] { --fx-e: 1; --fx-e-hue: #eb5757; }
+:root[data-effort="low"] { --fx-e: 0.35; --fx-e-hue: #3ccf73; }
+:root[data-effort="medium"] { --fx-e: 0.65; --fx-e-hue: #f2994a; }
+:root[data-effort="high"] { --fx-e: 1; --fx-e-hue: #ea5050; }
 :root[data-style="accountant"] { --fx-s: 0.3; --fx-s-a: #6b84a3; --fx-s-b: #6b84a3; }
 :root[data-style="glance"] { --fx-s: 0.15; --fx-s-a: #6b84a3; --fx-s-b: #6b84a3; }  /* Minimalist: half Accountant's slate */
 :root[data-style="coach"] { --fx-s: 0.6; --fx-s-a: #2cc492; --fx-s-b: #2cc492; }
@@ -1487,13 +1496,14 @@ select.gm-cell[data-result="fixed"] { border-style: dashed; }
    over its stop or tile. The bar's fill and knob sit at --pk-f (set by paintExperience, live while dragging), so
    nothing is measured at rest. Surfaces follow the scheme tokens; only the bar's metal and energy and the three style
    looks are fixed colours. */
-.dialog.experience-dialog { width: min(440px, calc(100% - 24px)); }
-.pk { container-type: inline-size; --pk-h: clamp(300px, 54dvh, 404px);
+.dialog.experience-dialog { width: min(380px, calc(100% - 24px)); }
+.pk { container-type: inline-size; --pk-h: clamp(220px, 36dvh, 300px);
   --pk-tile: max(96px, calc((var(--pk-h) - 2 * 12px) / 3));
   padding: 10px; border-radius: 16px; color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 4px 14px var(--edge-shadow);
-  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--ink) 4%, transparent) 0 2px, transparent 2px 9px),
-    radial-gradient(120% 80% at 20% 0%, var(--surface), color-mix(in srgb, var(--surface-2) 60%, var(--bg))); }
+  background: var(--surface); }
 .pk-grid { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: start; min-width: 0; }
+.pk-grid.pk-solo { grid-template-columns: minmax(0, 1fr); }
+.dialog.experience-dialog:has(.pk-solo) { width: min(300px, calc(100% - 24px)); }
 @container (max-width: 339px) {
   .pk-grid { grid-template-columns: 104px minmax(0, 1fr); gap: 12px; }
   .pk-lab { font-size: 12px; }
@@ -1536,15 +1546,15 @@ select.gm-cell[data-result="fixed"] { border-style: dashed; }
   box-shadow: 0 0 6px #ffd35a, 0 0 12px #ff8a3d; opacity: 0; }
 .pk-drag .pk-fill, .pk-drag .pk-knob, .pk-drag .pk-sparks { transition: none; }
 .pk-drag .pk-barwrap { cursor: grabbing; }
-.lv0 .pk-fill { background: linear-gradient(0deg, #2f7fd0, #46b6d8); }
-.lv1 .pk-fill { background: linear-gradient(0deg, #46b6d8, #f2c94c 70%, #f2994a); animation: pk-pulse 1.8s ease-in-out infinite;
+.lv0 .pk-fill { background: linear-gradient(0deg, #1e8e4a, #3ccf73); }
+.lv1 .pk-fill { background: linear-gradient(0deg, #3ccf73, #f2c94c 55%, #f2994a); animation: pk-pulse 1.8s ease-in-out infinite;
   box-shadow: 0 0 8px #f2c94c; }
 .lv1 .pk-spark.few { animation: pk-spark 1.8s ease-out infinite; }
 .lv1 .pk-bar { animation: pk-buzz 0.5s linear infinite; }
-.lv2 .pk-fill { background: linear-gradient(0deg, #f2994a, #eb5757 55%, #ff2d55); animation: pk-pulse 0.7s ease-in-out infinite;
-  box-shadow: 0 0 18px #ff5a3d; }
+.lv2 .pk-fill { background: linear-gradient(0deg, #f2994a, #c0261f 55%, #8b0000); animation: pk-pulse 0.7s ease-in-out infinite;
+  box-shadow: 0 0 18px #c0261f; }
 .lv2 .pk-bar { animation: pk-buzz 0.12s linear infinite;
-  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.6), 0 0 18px rgb(255 80 60 / 0.6); }
+  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.6), 0 0 18px rgb(192 38 31 / 0.6); }
 .lv2 .pk-spark { animation: pk-spark 1.1s ease-out infinite; }
 @keyframes pk-pulse { 50% { filter: brightness(1.25); } }
 @keyframes pk-buzz { 0% { transform: translate(0, 0); } 25% { transform: translate(0.8px, -0.5px); }
@@ -3081,16 +3091,16 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "df57a76353cb", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
+<script>window.WMTI_BUILD = { id: "68a692cd6d46", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.c229734897.js"></script>
+<script src="shared.f59170f581.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.08f4d99a5c.js"></script>
 <script src="gamify.3870f3326f.js"></script>
 <script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.f62dedf823.js"></script>
+<script src="app.1c929a9b19.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
@@ -3098,8 +3108,8 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 // build this copy runs; its Later button hides it until the next page load (a fresh load, or the next check that
 // finds the waiting build after one, shows it again). The page asks the host for a newer build whenever it comes back
 // into view. The About window's "Check for updates" asks too, through window.wmtiServiceWorker, and shows the bar
-// through window.wmtiOfferUpdate even after Later. At launch only (before any tap, see takeOver) a newer build
-// reloads the page on its own.
+// through window.wmtiOfferUpdate even after Later. A newer build never takes over on its own: at launch the bar shows
+// over the start-up screen, so the user picks Update or Later (owner, 2026-10-31).
 (function () {
   "use strict";
   var ARTIFACT_HOSTS = /(^|\.)(claude\.ai|claudeusercontent\.com|anthropic\.com)$/;
@@ -3107,19 +3117,9 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
       || ARTIFACT_HOSTS.test(location.hostname)) return;
   var reloading = false;
   var dismissed = false;  // Later was pressed: no bar until the next page load (or an explicit check)
-  // At launch, before the first tap or key and within its first 20 s, a newer build takes over at once (owner,
-  // 2026-10-30); after that the bar offers it.
-  var launchedAt = Date.now();
-  var touched = false;
-  ["pointerdown", "keydown"].forEach(function (name) {
-    window.addEventListener(name, function () { touched = true; }, { capture: true, once: true });
-  });
-
-  function takeOver(waiting) {
-    if (touched || Date.now() - launchedAt > 20000) return false;
-    reloading = true;
-    waiting.postMessage({ type: "skipWaiting" });
-    return true;
+  // The user always chooses: no build takes over on its own (owner, 2026-10-31; it did at launch before).
+  function takeOver() {
+    return false;
   }
 
   function offerUpdate(waiting) {
@@ -3130,7 +3130,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
     bar.setAttribute("role", "status");
     bar.innerHTML = "<span>New version ready</span><span class=\"update-actions\">"
       + "<button type=\"button\" class=\"button\" id=\"updateLater\">Later</button>"
-      + "<button type=\"button\" class=\"button\" id=\"updateReload\">Reload</button></span>";
+      + "<button type=\"button\" class=\"button\" id=\"updateReload\">Update</button></span>";
     bar.firstChild.textContent = "New version ready (this copy is build "
       + String((window.WMTI_BUILD && window.WMTI_BUILD.id) || "unknown") + ")";
     document.body.appendChild(bar);

@@ -687,6 +687,19 @@
     return { low, high, from, to, ownerEnd, outside: away(item.depositFromAge) || away(item.depositToAge), text };
   }
 
+  // A promotion asked as the years between promotions: the yearly chance that makes one within that many years 95%
+  // certain (1 - 0.05^(1/years)), and back. A chance of 0 is no promotions (null years).
+  const PROMOTION_CERTAINTY = 0.95;
+  function promotionChanceFor(years) {
+    if (years == null || !(years > 0)) return 0;
+    return Number((1 - Math.pow(1 - PROMOTION_CERTAINTY, 1 / years)).toPrecision(6));
+  }
+  function promotionYearsFor(chance) {
+    if (!(chance > 0)) return null;
+    if (chance >= 1) return 1;
+    return Math.round((Math.log(1 - PROMOTION_CERTAINTY) / Math.log(1 - chance)) * 10) / 10;
+  }
+
   function planYears(inputs) {
     if (!inputs) return null;
     return inputs.years == null ? yearsToAge100(inputs.you && inputs.you.currentAge) : inputs.years;
@@ -3024,7 +3037,7 @@
   }
 
   const api = { escapeText, compactMoney, fullMoney, tickMoney, percent, formatValue, groupDigits,
-    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, lastPaidAge, depositAgeKnobs, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetFieldNote, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
+    checkScenarioName, scenarioFileProblem, getPath, setPath, sheetFields, hiddenReason, sheetLabel, sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, lastPaidAge, depositAgeKnobs, promotionChanceFor, promotionYearsFor, expenseActiveAt, expenseSummary, expenseTotals, carSummary, homeSummary, spanText, hasCarLoan, carEstimatedValue, carValueToday, sheetGroup, sheetPrompt, carPaidBy, carPayMethodOf, carReplacementMethodOf, loanMonthlyPayment, loanBalanceAfter, loanNow, carLoanNow, homeMortgageNow, sheetLoanPayment, carReplaceRulesOf, sheetDefault, sheetFieldNote, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, showsDefault, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, panelDefault, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, sheetSources, yearOfAge, ageOfYear, timelineBars, primaryPeriod, periodsOverlap, choosePrimary, rentPeriod, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, heirShareTotal, heirDefaults, scaleHeirShares, addHeir, childHeirEdited, syncChildHeirs, missingChildHeirs, addChildHeirs, meanInflation, dollarsNote, beneficiaryPayoutText,
     normalCurvePoints, itemMatches, filteredPositions, filterStartValues, moveSelected, deleteSelected, moveItem, panelField, sameValue, syncResetFlags,
     resetGroup, matchPercent, matchTermsFromPercent, walkRead, walkNumber, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS, WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkBasicsOnly,
     walkProgress, walkTrail, walkDirection, walkClean, answerText, carTotalsOf, exampleLeftoverList, legalBlocks, termsAccepted, migrateLegacyStorage, updateCheckText, bannerFadeMs,
