@@ -2039,6 +2039,9 @@
     // The child inflation factor keeps its shipped default (20% per child): a blank 0 would make children cost nothing.
     const childFactor = (schema.types[schema.root] || []).find((field) => field.name === "childFactorPerChild");
     if (fieldDefault(childFactor) != null) inputs.childFactorPerChild = fieldDefault(childFactor);
+    // Inflation keeps its shipped range (1%, 3%, 6%): a blank 0 would assume prices never rise.
+    const inflation = (schema.types[schema.root] || []).find((field) => field.name === "inflation");
+    if (inflation && inflation.default && typeof inflation.default === "object") inputs.inflation = { ...inflation.default };
     return inputs;
   }
 
