@@ -2555,10 +2555,15 @@
       + "</span><span>" + escapeText(dollarsText(result.dollars)) + "</span></div>"
       + "<p class=\"note dollars-note\" id=\"dollarsNote\">"  // what the dollars are, before any figure
       + escapeText(dollarsNote(ranInputs(entry, stale), result.dollars)) + "</p>";
+    // The tiles: the Monte Carlo's, then the single run's, with What beneficiaries keep and Avg annual expense
+    // swapped so what beneficiaries keep closes the grid.
+    const tiles = result.headlines.map((headline, position) => [headline, position === 0, stale, "mc"])
+      .concat(state.result ? state.result.headlines.map((headline) => [headline, false, false, "single"]) : []);
+    const keep = tiles.findIndex(([headline]) => headline.label === "What beneficiaries keep");
+    const expense = tiles.findIndex(([headline]) => headline.label === "Avg annual expense");
+    if (keep >= 0 && expense >= 0) [tiles[keep], tiles[expense]] = [tiles[expense], tiles[keep]];
     html += (glanceOn() ? glanceDetails("About these figures", meta) : meta) + lowHolder + "<div class=\"tiles\">"
-      + result.headlines.map((headline, position) => tileHtml(headline, position === 0, stale, "mc")).join("")
-      + (state.result ? state.result.headlines.map((headline) => tileHtml(headline, false, false, "single")).join("")
-        : "")
+      + tiles.map((tile) => tileHtml(...tile)).join("")
       + "</div>" + (tables.shortfallNote ? "<p class=\"note shortfall-note\">" + escapeText(tables.shortfallNote) + "</p>" : "")
       + (tables.penaltyNote ? "<p class=\"note penalty-note\">" + escapeText(tables.penaltyNote) + "</p>" : "");
     html += accountantCards + nextSteps + renderInsights(result, entry, stale) + REPORT_POINTER_HTML + accountantLedger;
