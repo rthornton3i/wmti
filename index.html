@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-37HePmvXCAOUw4tRlGJcoWX792jfumhGyiWLMAdUs3M=' 'sha256-8O3sgrxnjgWL2pxzeezzrcaBift1KuB+8V1LZ0VMCZY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-0uzaKnjjgT1RaANwb6Xq4gmoOazTIwbqvL42dQNWgA0=' 'sha256-8O3sgrxnjgWL2pxzeezzrcaBift1KuB+8V1LZ0VMCZY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -260,6 +260,47 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 
 .band { background: var(--band); color: var(--band-ink); padding: 2px max(var(--gutter), calc((100% - 640px) / 2)) 16px; }
 .band-title { font-size: 28px; line-height: 1.2; font-weight: 650; letter-spacing: -0.01em; }
+/* The title row: the title, and on Inputs at Medium and High the checklist button at its right (47b-checklist.js). */
+.band-head { display: flex; align-items: center; gap: 12px; }
+.band-head > .band-title { flex: 1; min-width: 0; }
+.checklist-button { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px 0 10px;
+  border: 1px solid color-mix(in srgb, var(--band-sub) 45%, transparent); border-radius: 999px; background: var(--band-button);
+  color: var(--band-button-ink); font: inherit; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; cursor: pointer; }
+.checklist-button[hidden] { display: none; }
+.checklist-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-linejoin: round; }
+.checklist-button[data-complete="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+/* The checklist sheet: a count and bar, then one card per item with a round tick, its why, a Hint fold and Show me. */
+.ck-head { display: grid; gap: 6px; padding: var(--space-2) 0 var(--space-3); }
+.ck-count { margin: 0; font-weight: 700; color: var(--ink); }
+.ck-bar { width: 100%; height: 10px; accent-color: var(--accent); }
+.ck-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.ck-item { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: start; gap: var(--space-2) var(--space-3);
+  padding: var(--space-3); border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
+.ck-item[data-done="true"] { background: var(--surface); }
+.ck-tick { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+  border: 2px solid var(--accent); background: transparent; color: var(--accent-ink); }
+.ck-tick svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round;
+  stroke-linejoin: round; opacity: 0; }
+.ck-item[data-done="true"] .ck-tick { background: var(--accent); }
+.ck-item[data-done="true"] .ck-tick svg { opacity: 1; }
+.ck-tick:disabled { cursor: default; }
+.ck-text { min-width: 0; }
+.ck-text strong { display: block; padding-top: 5px; color: var(--ink); }
+.ck-item[data-done="true"] .ck-text strong { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--accent); }
+.ck-text p { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-2); }
+.ck-text details { margin-top: 4px; }
+.ck-text summary { display: inline-flex; align-items: center; min-height: 36px; cursor: pointer; font-size: 14px; font-weight: 650;
+  color: var(--accent); }
+.ck-hint { padding-top: 2px; }
+.ck-example { margin-top: 6px !important; padding: 8px 10px; border-radius: 10px; background: var(--accent-soft); color: var(--ink) !important; }
+.ck-example span { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--accent); }
+.ck-show { min-height: 40px; padding-inline: 12px; }
+@media (max-width: 420px) {
+  .ck-item { grid-template-columns: 36px minmax(0, 1fr); }
+  .ck-show { grid-column: 2; justify-self: start; }
+}
 .band-sub { color: var(--band-sub); font-size: 15px; margin: 2px 0 14px; }
 /* No chip row under the title (Setup): the panels sit closer to it. */
 .band:not(:has(> .chips-wrap:not([hidden]))) > .band-sub { margin-bottom: 0; }
@@ -2688,7 +2729,12 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
   </header>
 
   <div class="band">
-    <h1 class="band-title" id="bandTitle">Summary</h1>
+    <div class="band-head">
+      <h1 class="band-title" id="bandTitle">Summary</h1>
+      <!-- The Inputs checklist (47b-checklist.js): Inputs only, at Medium and High. -->
+      <button type="button" class="checklist-button" id="checklistButton" aria-haspopup="dialog" aria-controls="checklistSheet"
+        hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5l1.5 1.5L8 5.5"/><path d="M4 12.5l1.5 1.5L8 11.5"/><path d="M4 18.5l1.5 1.5L8 17.5"/><path d="M11 7h9M11 13h9M11 19h9"/></svg><span id="checklistButtonText">Checklist</span></button>
+    </div>
     <p class="band-sub" id="bandSub"></p>
     <div class="chips-wrap" data-place="outputs">
       <div class="chips" id="views-outputs" role="tablist" aria-label="Outputs sections">
@@ -2940,6 +2986,15 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
     <div class="sheet-foot"><button type="button" class="button" id="aboutClose">Close</button></div>
   </div>
 
+  <div class="sheet-backdrop" id="checklistBackdrop" hidden></div>
+  <div class="sheet checklist-sheet" id="checklistSheet" role="dialog" aria-modal="true" aria-labelledby="checklistTitle" hidden>
+    <div class="sheet-head">
+      <h2 id="checklistTitle">Checklist</h2>
+    </div>
+    <div class="sheet-body" id="checklistBody"></div>
+    <div class="sheet-foot"><button type="button" class="button" id="checklistClose">Close</button></div>
+  </div>
+
   <div class="sheet-backdrop" id="legalBackdrop" hidden></div>
   <div class="sheet" id="legalSheet" role="dialog" aria-modal="true" aria-labelledby="legalTitle" hidden>
     <div class="sheet-head">
@@ -3129,16 +3184,16 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "212ffc982775", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
+<script>window.WMTI_BUILD = { id: "3ec7cf915cfd", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.f59170f581.js"></script>
+<script src="shared.28e853d6a7.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.08f4d99a5c.js"></script>
 <script src="gamify.3870f3326f.js"></script>
 <script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.d173bd91e4.js"></script>
+<script src="app.88645c2bfe.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

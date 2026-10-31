@@ -2170,6 +2170,7 @@
     $("bandTitle").textContent = title || (lowOn() ? "Your plan" : chip ? chip.textContent : label);
     $("bandSub").textContent = sub;
     coachMascotSync();  // the Coach tip follows the place (49b-coach-mascot.js)
+    syncChecklistButton();  // the Inputs checklist button (47b-checklist.js)
   }
 
   // ---- Pinned tabs: Inputs' group chips, Outputs' view chips with their sub-tabs, or Strategy's view chips, stay
@@ -2950,6 +2951,7 @@
   // Add detail shows is not counted); hidden at High and when there are none. Follows every edit and every effort
   // change, with the line under it on the detail added (refreshDetailNotice).
   function refreshDefaultsNotice() {
+    syncChecklistButton();  // the checklist's count follows every edit too
     const notice = $("defaultsNotice");
     if (!notice || !state.schema || !state.inputs || !state.experience) return;
     const effort = shownExperience().effort;
@@ -3832,6 +3834,101 @@
     return sheet.queue;
   }
 
+  // ---- The Inputs checklist: a button beside the Inputs title (Medium and High, any style) that opens a sheet ----
+  // Each item (inputsChecklist, shared.js) ticks itself when the plan has it; the user can also tick it by hand (kept in
+  // the scenario's experience progress: no run and no undo step). Hint opens a short tip and an example; Show me goes
+  // to the input. Nothing here changes an input or a result.
+  const { inputsChecklist, CHECKLIST_TICK_PREFIX } = window.WmtiShared;
+  const checklist = { open: false };
+
+  function checklistProgress() {
+    return state.experience && isObject(state.experience.progress) ? state.experience.progress : {};
+  }
+
+  // The button shows on Inputs only, below Low (the Low page has its own one-page plan).
+  function checklistShown() {
+    return state.tab === "inputs" && Boolean(state.info && state.experience && state.inputs) && !lowOn();
+  }
+
+  // Show or hide the button and set its count; called with the header band.
+  function syncChecklistButton() {
+    const button = $("checklistButton");
+    if (!button) return;
+    const on = checklistShown();
+    button.hidden = !on;
+    if (!on) { if (checklist.open) closeChecklist(); return; }
+    const list = inputsChecklist({ inputs: state.inputs, progress: checklistProgress() });
+    $("checklistButtonText").textContent = list.done + "/" + list.total;
+    button.dataset.complete = String(list.done === list.total);
+    button.setAttribute("aria-label", "Checklist, " + list.done + " of " + list.total + " done");
+    if (checklist.open) renderChecklist();
+  }
+
+  function renderChecklist() {
+    const list = inputsChecklist({ inputs: state.inputs, progress: checklistProgress() });
+    const open = new Set([...$("checklistBody").querySelectorAll(".ck-item details[open]")]
+      .map((element) => element.closest(".ck-item").dataset.item));
+    const items = list.items.map((item) => {
+      const id = escapeText(item.id);
+      const auto = item.done && !item.ticked;  // the plan has it: the tick cannot be undone by hand
+      return "<li class=\"ck-item\" data-item=\"" + id + "\" data-done=\"" + item.done + "\">"
+        + "<button type=\"button\" class=\"ck-tick\" data-tick=\"" + id + "\" aria-pressed=\"" + item.done + "\""
+        + (auto ? " disabled" : "") + " aria-label=\"" + escapeText(item.title) + (item.done ? ", done" : ", to do")
+        + (auto ? " (from your plan)" : "") + "\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/>"
+        + "</svg></button><div class=\"ck-text\"><strong>" + escapeText(item.title) + "</strong><p>" + escapeText(item.why)
+        + "</p><details" + (open.has(item.id) ? " open" : "") + "><summary>Hint</summary><p class=\"ck-hint\">"
+        + escapeText(item.hint) + "</p><p class=\"ck-example\"><span>Example</span>" + escapeText(item.example)
+        + "</p></details></div><button type=\"button\" class=\"button button-quiet ck-show\" data-show=\""
+        + escapeText(item.show) + "\" aria-label=\"Show me: " + escapeText(item.title) + "\">Show me</button></li>";
+    }).join("");
+    $("checklistBody").innerHTML = "<div class=\"ck-head\"><p class=\"ck-count\" id=\"checklistCount\">" + list.done
+      + " of " + list.total + " done</p><progress class=\"ck-bar\" max=\"" + list.total + "\" value=\"" + list.done
+      + "\" aria-labelledby=\"checklistCount\"></progress></div><ul class=\"ck-list\">" + items + "</ul>";
+  }
+
+  function openChecklist() {
+    if (!checklistShown()) return;
+    checklist.open = true;
+    renderChecklist();
+    $("checklistSheet").hidden = false;
+    $("checklistBackdrop").hidden = false;
+    $("checklistClose").focus();
+  }
+
+  function closeChecklist(keepFocus) {
+    if (!checklist.open) return false;
+    checklist.open = false;
+    $("checklistSheet").hidden = true;
+    $("checklistBackdrop").hidden = true;
+    if (!keepFocus && !$("checklistButton").hidden) $("checklistButton").focus();
+    return true;
+  }
+
+  function wireChecklist() {
+    $("checklistButton").addEventListener("click", openChecklist);
+    $("checklistClose").addEventListener("click", () => closeChecklist());
+    $("checklistBackdrop").addEventListener("click", () => closeChecklist());
+    $("checklistBody").addEventListener("click", (event) => {
+      const tick = event.target.closest(".ck-tick");
+      if (tick && !tick.disabled) {
+        const key = CHECKLIST_TICK_PREFIX + tick.dataset.tick;
+        const progress = { ...checklistProgress() };
+        if (progress[key] === true) delete progress[key];
+        else progress[key] = true;
+        saveExperience({ progress });
+        syncChecklistButton();
+        const again = $("checklistBody").querySelector(".ck-tick[data-tick=\"" + tick.dataset.tick + "\"]");
+        if (again) again.focus();
+        return;
+      }
+      const show = event.target.closest(".ck-show");
+      if (show) {
+        closeChecklist(true);
+        const path = show.dataset.show.replace(/^field:/, "");
+        if (!openInputsField(path)) selectTabFresh("inputs");
+      }
+    });
+  }
   // ---- Surfacing: show and open one lever's inputs at any effort (the hook the Coach prompts call) ----
   // A lever is an id of the settings schema's `surface` (wmti.dashboard.tiers.SURFACE_TARGETS): each input it names
   // comes with the chain of holders up to its panel entry, built in Python. Surfacing writes each chain key not shown
@@ -18515,12 +18612,14 @@
       if (experienceEscape()) return;
       if (walkEscape()) return;
       closeMenu();
+      closeChecklist();
       closeAbout();
       closeLegal();
       closeInstallHelp();
       cancelSheet();
     });
     wireQuick();
+    wireChecklist();
     $("menuButton").addEventListener("click", openMenu);
     $("menuBackdrop").addEventListener("click", closeMenu);
     $("undoButton").addEventListener("click", undoLast);

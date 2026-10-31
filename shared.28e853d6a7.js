@@ -2540,6 +2540,38 @@
     return { items, done: items.filter((item) => item.done).length, total: items.length };
   }
 
+  // The Inputs checklist (Medium and High, any style): the Coach checklist's input items, each with a hint and an
+  // example the user can open, ticked when the plan has it or when the user ticked it (CHECKLIST_TICK_PREFIX + id in
+  // `experience.progress`).
+  const CHECKLIST_TICK_PREFIX = "check.";
+  const INPUTS_CHECKLIST_TIPS = {
+    ages: { hint: "Use your age today; the plan runs year by year from here.", example: "You 38, partner 36." },
+    salary: { hint: "Yearly pay before tax. Count a bonus only if it is steady.", example: "$95,000 a year." },
+    partner: { hint: "Add a partner if you share money; the filing status follows.", example: "Married filing jointly." },
+    accounts: { hint: "Use today's balance from each statement.", example: "401k $120,000, Roth IRA $35,000, savings $15,000." },
+    shares: { hint: "Give each account a monthly deposit or a share of leftover cash.",
+      example: "$500 a month to the Roth; the rest to savings." },
+    match: { hint: "Your benefits site lists the employer's match formula.", example: "50% of the first 6% of pay." },
+    expenses: { hint: "Start from a month of bank and card statements.", example: "Groceries $800, utilities $300 a month." },
+    homeCars: { hint: "Add your home's value and mortgage, or your rent, and each car.",
+      example: "$400,000 home with $250,000 left at 6%." },
+    children: { hint: "Add each child's age; college costs can follow.", example: "Two kids, ages 4 and 7." },
+    socialSecurity: { hint: "Your statement at ssa.gov shows the benefit at each claim age.", example: "$2,400 a month at 67." },
+    inflation: { hint: "Prices have risen about 3% a year over the long run.", example: "A range of 2% to 4% a year." },
+  };
+
+  // {items: [{id, title, why, show, hint, example, done, ticked}], done, total}: `ticked` the user ticked it by hand.
+  function inputsChecklist({ inputs, progress } = {}) {
+    const kept = progress && typeof progress === "object" && !Array.isArray(progress) ? progress : {};
+    const items = coachChecklist({ inputs, progress: kept }).items
+      .filter((item) => INPUTS_CHECKLIST_TIPS[item.id])
+      .map((item) => {
+        const ticked = kept[CHECKLIST_TICK_PREFIX + item.id] === true;
+        return { ...item, ...INPUTS_CHECKLIST_TIPS[item.id], ticked, done: item.done || ticked };
+      });
+    return { items, done: items.filter((item) => item.done).length, total: items.length };
+  }
+
   // How many inputs are left at the example household's values because the effort does not show them: the panel
   // entries (each schema panel's `fields`, tiered in its `tiers`, keyed in its `keys`) above `effort`, and not shown by
   // `overrides` (the scenario's `tierOverrides`, see detailShown), whose value in `inputs` equals the one in
@@ -3049,7 +3081,7 @@
     changedPaths, optimizeStepText, optimizeSecondsLeft, optimizeStatesEstimate, optimizeCheckpointKey, hasSocialSecurity, defaultSpendingStartAge, spendingStartAge, spendingFactor, spendingChangeActive, spendingChangeRows, spendingChangePreview,
     docsLink, stateRulesText, splitShare, splitFit, splitStep, splitRead, splitText,
     pickerLevelAt, pickerKeyLevel, coachDismissKey, coachDismissed, coachGapsShown, coachSweepKey, riskPresetOf, coachChangeText,
-    coachChecklist, coachSeenKey, coachTriedKey, coachTriedToAdd, COACH_HIDDEN_KEY,
+    coachChecklist, inputsChecklist, CHECKLIST_TICK_PREFIX, coachSeenKey, coachTriedKey, coachTriedToAdd, COACH_HIDDEN_KEY,
     runChangePlan, runChangeRows, differenceLines, extrasOn,
     quickFieldCatalog, quickTakesRange, quickIsWhole, quickScale, quickDefaultStep, quickRangeValues, quickChoices,
     quickFieldSearch, quickOrbShown, quickPlotSvg };
