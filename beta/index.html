@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-5jaGaZoml3e3O77LJscelCiKGP9qdplqghya9J0VyW4=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-DRCA9IMeSpqVab5Pa4XClzOlBgLHv9JqpVFX3EKUShw=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -499,7 +499,7 @@ li[data-status="fail"] .step-mark { background: var(--bad); border-color: var(--
 .view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; justify-self: start; }
 .view-toggle button { min-height: 40px; min-width: 76px; border: 0; background: transparent; border-radius: 999px; color: var(--ink-2); cursor: pointer; }
 .view-toggle button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); font-weight: 600; }
-.run-view { display: grid; gap: var(--space-2); margin-bottom: var(--space-2); }
+.run-view { display: grid; gap: var(--space-2); }
 /* A wide table scrolls inside its own box. The right edge carries a shadow while more columns lie beyond it: the
    surface-coloured cover scrolls with the content (local) and hides the shadow (scroll) once the end is reached. */
 .table-scroll { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--line); border-radius: 10px; max-width: 100%;
@@ -942,7 +942,8 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
 /* Summary's body stacks its meta line, tiles and cards with the same gap as the subpanel. */
 #results-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
 /* Strategy: Compare and Optimize cards are spaced like Outputs; the notice's info button sits tight above them */
-#compare-body, #optimize-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
+#compare-body, #optimize-body, #plots-body, #awards-body, #quests-body, #games-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
+#plots-body > *, #awards-body > *, #quests-body > *, #games-body > * { min-width: 0; }
 #panel-strategy > .mc-notice-row { margin-bottom: calc(-1 * var(--section-gap) + 4px); }
 #results-body > * { min-width: 0; }
 /* The Next steps and Accountant holders add no box: their cards take the body's own gap, and an empty one no row. */
@@ -2835,7 +2836,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "e07f0a7a56d6", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "05905fbebb55", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.b45f361a00.js"></script>
 <script src="charts.ae4d661d99.js"></script>
