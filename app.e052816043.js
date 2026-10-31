@@ -314,7 +314,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.5131eee1e3.js");
+      worker = new Worker("worker.1e4fe8f7ce.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -8439,7 +8439,10 @@
         + "Runs that must pass</label><output class=\"surplus-value\" id=\"quickPassValue\" for=\"quickPass\">"
         + quick.passPercent + "%</output></div><input type=\"range\" class=\"range\" id=\"quickPass\" min=\"0\" "
         + "max=\"100\" step=\"1\" value=\"" + quick.passPercent + "\"></div>"
-        + "<p class=\"field-help\">Values are tried in order: the first value from min that passes wins.</p>";
+        + "<fieldset class=\"quick-choices\"><legend class=\"field-label\">Try first</legend>"
+        + radio("quickOrder", "smallest", "Smallest value", quick.order !== "largest")
+        + radio("quickOrder", "largest", "Largest value", quick.order === "largest") + "</fieldset>"
+        + "<p class=\"field-help\">Values are tried in order from that end: the first that passes wins.</p>";
     }
     const found = quickValues(entry.field);
     const values = found.values ? found.values.length : 0;
@@ -8452,6 +8455,9 @@
     body.insertAdjacentHTML("beforeend", html);
     for (const input of body.querySelectorAll("input[name=quickGoal]")) {
       input.addEventListener("change", () => { quick.goal = input.value; renderQuick(); });
+    }
+    for (const input of body.querySelectorAll("input[name=quickOrder]")) {
+      input.addEventListener("change", () => { quick.order = input.value; });
     }
     for (const input of body.querySelectorAll("input[name=quickRule]")) {
       input.addEventListener("change", () => { quick.rule = input.value; renderQuick(); });
@@ -8518,7 +8524,8 @@
     }
     if (quick.goal === "best") options.preset = quick.preset;
     else {
-      Object.assign(options, { rule: quick.rule, passPercent: quick.passPercent });
+      Object.assign(options, { rule: quick.rule, passPercent: quick.passPercent,
+        order: quick.order === "largest" ? "largest" : "smallest" });
       if (quick.rule === "account") Object.assign(options, { account: quick.account, throughAge: quick.throughAge });
     }
     const inputsText = JSON.stringify(state.inputs);
@@ -8578,12 +8585,11 @@
       + "every value.</p>";
     body.insertAdjacentHTML("beforeend", html);
     const change = result.change;
-    actions.append(quickButton("Cancel", "quickClose", true, closeQuick));
+    // Close, and Apply only when the winner differs from what is set now.
+    actions.append(quickButton("Close", "quickClose", true, closeQuick));
     if (change) {
       actions.append(quickButton("Apply " + quickValueText(field, change.value), "quickApply", false, applyQuick,
         stale));
-    } else {
-      actions.append(quickButton("Try again", "quickAgain", false, () => { quick.step = "values"; renderQuick(); }));
     }
   }
 
