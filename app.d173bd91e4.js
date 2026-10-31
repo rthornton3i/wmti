@@ -919,6 +919,12 @@
     return tab === "strategy" ? "strategyView" : tab === "arcade" ? "arcadeView" : "view";
   }
 
+  // Strategy's views the effort shows: all three at High; below it Compare only (Strategies and Optimize are High).
+  function strategyViews() {
+    const high = !state.experience || !state.info || shownExperience().effort === "high";
+    return high ? STRATEGY_VIEWS : STRATEGY_VIEWS.filter((view) => view === "compare");
+  }
+
   // The tab a view belongs to: Strategy or Arcade for their three views, else Outputs.
   function viewTab(view) {
     if (ARCADE_VIEWS.includes(view)) return "arcade";
@@ -933,7 +939,7 @@
 
   // Go to the tab a settings panel is drawn on (`tab`, from paneTab): Strategy opens at its Strategies view.
   function goToPane(tab) {
-    goTo(tab, tab === "strategy" ? STRATEGY_VIEWS[0] : state.view);
+    goTo(tab, tab === "strategy" ? strategyViews()[0] : state.view);
   }
 
   // The key a scroll position is kept under: the tab, and for Outputs and Strategy its view too.
@@ -952,7 +958,8 @@
       $("tab-" + name).tabIndex = name === state.tab ? 0 : -1;
     }
     if (!VIEWS.includes(state.view)) state.view = VIEWS[0];
-    if (!STRATEGY_VIEWS.includes(state.strategyView)) state.strategyView = STRATEGY_VIEWS[0];
+    const strategyShown = strategyViews();
+    if (!strategyShown.includes(state.strategyView)) state.strategyView = strategyShown[0];
     const taken = outputsColumnTaken();
     for (const name of VIEWS) {
       $("view-" + name).hidden = name !== state.view;
@@ -963,6 +970,7 @@
       $("view-" + name).hidden = name !== state.strategyView;
       $("sub-" + name).setAttribute("aria-selected", String(name === state.strategyView));
       $("sub-" + name).tabIndex = name === state.strategyView ? 0 : -1;
+      $("sub-" + name).hidden = !strategyShown.includes(name);
     }
     if (!ARCADE_VIEWS.includes(state.arcadeView)) state.arcadeView = ARCADE_VIEWS[0];
     for (const name of ARCADE_VIEWS) {
@@ -1083,7 +1091,7 @@
       view = outputViews()[0];
       state.chips.plots = PLOT_VIEWS[0].id;
     } else if (tab === "strategy") {
-      view = STRATEGY_VIEWS[0];
+      view = strategyViews()[0];
     } else if (tab === "arcade") {
       view = arcadeViews()[0] || ARCADE_VIEWS[0];
     }
@@ -2000,7 +2008,7 @@
   // Every Outputs step in swipe order: each view's sub-tabs, then the next view's. Strategy's views have no sub-tabs:
   // one step each.
   function outputSteps(tab) {
-    if (tab === "strategy") return STRATEGY_VIEWS.map((view) => ({ view, sub: null }));
+    if (tab === "strategy") return strategyViews().map((view) => ({ view, sub: null }));
     if (tab === "arcade") return arcadeViews().map((view) => ({ view, sub: null }));
     return outputViews().flatMap((view) => (OUTPUT_SUBTABS[view] ? OUTPUT_SUBTABS[view].list.map((item) => ({ view, sub: item.id }))
       : [{ view, sub: null }]));
@@ -2930,6 +2938,7 @@
     const { effort, style } = shownExperience();
     document.documentElement.dataset.effort = effort;
     if (effort === "low" && state.tab === "strategy") selectTab("inputs");  // Low has no Strategy tab
+    else if (state.tab === "strategy") showPlace();  // below High Strategy shows Compare only
     if (gamifyOn()) document.documentElement.dataset.style = style;
     else delete document.documentElement.dataset.style;
     refreshDefaultsNotice();
@@ -17833,14 +17842,14 @@
     { title: "Your plan page", page: "inputs", when: () => lowOn(), target: "#lowPage",
       text: "At Low effort your settings are one page: about you, pay, spending, savings, children and the "
         + "retirement and medical plans. Every change reruns the plan." },
-    { title: "Strategy views", page: "strategy", when: () => !lowOn(), view: "strategies", target: "#views-strategy",
+    { title: "Strategy views", page: "strategy", when: () => strategyViews().includes("strategies"), view: "strategies", target: "#views-strategy",
       text: "Strategy holds your tax strategies and two ways to weigh choices: Compare and Optimize. For example, "
         + "a Roth conversion moves some 401k money to a Roth in low-tax years after you retire, paying tax now so "
         + "later withdrawals and required minimum withdrawals are smaller." },
     { title: "Compare", page: "strategy", when: () => !lowOn(), view: "compare", target: "#view-compare",
       text: "Compare puts two saved scenarios side by side. With only one so far, go to Setup and tap Duplicate, "
         + "change one thing in the copy, then compare." },
-    { title: "Optimize", page: "strategy", when: () => !lowOn(), view: "optimize", target: "#view-optimize",
+    { title: "Optimize", page: "strategy", when: () => strategyViews().includes("optimize"), view: "optimize", target: "#view-optimize",
       text: "Optimize tries other choices for you and shows what each would be worth. For example, it might find "
         + "that claiming Social Security at 67 instead of 62 and retiring in another state leaves you more. Tick what "
         + "you would consider, then tap Find best settings." },
