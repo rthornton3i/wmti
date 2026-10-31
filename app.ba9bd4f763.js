@@ -314,7 +314,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.52324ff4b3.js");
+      worker = new Worker("worker.5131eee1e3.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -8435,8 +8435,10 @@
           + "value=\"" + escapeText(quick.throughAge == null ? "" : quick.throughAge) + "\"></label>"
           + "<p class=\"field-help\">Blank checks every year to the end of the run.</p>";
       }
-      html += selectHtml("quickPass", "Runs that must pass", info.passPercents.slice().reverse()
-        .map((value) => [String(value), value + "%"]), String(quick.passPercent))
+      html += "<div class=\"quick-pass\"><div class=\"deposit-head\"><label class=\"field-label\" for=\"quickPass\">"
+        + "Runs that must pass</label><output class=\"surplus-value\" id=\"quickPassValue\" for=\"quickPass\">"
+        + quick.passPercent + "%</output></div><input type=\"range\" class=\"range\" id=\"quickPass\" min=\"0\" "
+        + "max=\"100\" step=\"1\" value=\"" + quick.passPercent + "\"></div>"
         + "<p class=\"field-help\">Values are tried in order: the first value from min that passes wins.</p>";
     }
     const found = quickValues(entry.field);
@@ -8460,7 +8462,10 @@
     };
     listen("quickPreset", "change", (element) => { quick.preset = element.value; renderQuick(); });
     listen("quickAccount", "change", (element) => { quick.account = element.value; });
-    listen("quickPass", "change", (element) => { quick.passPercent = Number(element.value); });
+    listen("quickPass", "input", (element) => {  // a slider from 0 to 100%: the value shows as it moves
+      quick.passPercent = Number(element.value);
+      $("quickPassValue").textContent = element.value + "%";
+    });
     const run = quickButton("Run", "quickRun", false, runQuick, Boolean(busy || found.error));
     listen("quickThrough", "input", (element) => {
       const text = element.value.trim();
