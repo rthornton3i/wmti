@@ -4438,10 +4438,21 @@
       + escapeText(estimateText(mc.runs)) + "</span></div>" + progressHtml("mc", mc.job) + messageHtml(mc.message)
       + (stale && !mc.job ? "<p class=\"banner banner-warn\" role=\"note\">Settings, runs or seed changed since the "
         + "last Monte Carlo. " + why + "; the dimmed outputs below are from the earlier run.</p>" : "");
-    $("mcRun").addEventListener("click", () => runMonteCarlo(false));
+    $("mcRun").addEventListener("click", () => {
+      if (entry && !stale) newSeed();  // Run again draws fresh markets; a first or stale run keeps the seed
+      runMonteCarlo(false);
+    });
     $("mcCancel").addEventListener("click", () => { if (mc.job) engine.cancel(mc.job.id); });
     showProgress("mc", mc.job);
     refreshCoachChecks();  // a Monte Carlo started or ended: the Next steps checks follow
+  }
+
+  // Run again: a random 6-digit seed, shown in the Seed field (Setup) and kept with the draft.
+  function newSeed() {
+    state.seed = 100000 + Math.floor(Math.random() * 900000);
+    const field = $("f-seed");
+    if (field) field.value = String(state.seed);
+    saveDraft();
   }
 
   // Run the Monte Carlo: `auto` when it started on its own (Cancel then leaves the focus where it was).
