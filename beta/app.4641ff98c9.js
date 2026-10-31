@@ -314,7 +314,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.1e4fe8f7ce.js");
+      worker = new Worker("worker.544914199e.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -8149,7 +8149,7 @@
   // ("quickOptimize", wmti.dashboard.quickoptimize) on the Monte Carlo's draws (Run settings runs, Setup seed). Nothing
   // changes until Apply, which writes the one value through applySettings as one Undo step.
   const { quickFieldCatalog, quickTakesRange, quickScale, quickRangeValues, quickChoices, quickFieldSearch,
-    quickOrbShown } = window.WmtiShared;
+    quickOrbShown, quickPlotSvg } = window.WmtiShared;
   const QUICK_LIST_MAX = 60;  // most inputs the field list draws at once
   window.wmtiQuick = { open: openQuick, state: () => state.quick };  // for the tests
 
@@ -8183,7 +8183,7 @@
     if (needsSetup(state.inputs)) return;
     quick.open = true;
     if (path) setQuickField(path);
-    else if (!quick.job && quick.step !== "result") quick.step = "field";
+    else if (!quick.job) quick.step = "field";  // after Close, a new search starts at the field list
     $("quickSheet").hidden = false;
     $("quickBackdrop").hidden = false;
     loadQuickInfo();
@@ -8396,7 +8396,7 @@
     }
     body.append(count);
     refresh();
-    actions.append(quickButton("Back", "quickBack", true, () => { quick.step = "field"; renderQuick(); }), next);
+    actions.append(quickButton("Pick another", "quickBack", true, startQuickPick), next);  // back to picking on screen
   }
 
   function quickGoalStep(body, actions, entry) {
@@ -8486,7 +8486,11 @@
   }
 
   function quickRunStep(body, actions) {
-    body.insertAdjacentHTML("beforeend", "<div class=\"run-progress\"><div class=\"progress\" role=\"progressbar\" "
+    body.insertAdjacentHTML("beforeend", "<section class=\"quick-live\" id=\"quickLive\" aria-label=\"Live plot\">"
+      + "<p class=\"quick-live-title\" id=\"quickTrying\" aria-live=\"polite\">Starting</p>"
+      + "<div class=\"quick-live-plot\" id=\"quickPlot\"></div>"
+      + "<p class=\"field-help quick-live-note\" id=\"quickPlotNote\">The plot shows once the first value is done.</p>"
+      + "</section><div class=\"run-progress\"><div class=\"progress\" role=\"progressbar\" "
       + "aria-label=\"Runs done\" aria-valuemin=\"0\" id=\"quickBar\"><span></span></div>"
       + "<p class=\"progress-text\" id=\"quickProgressText\" aria-live=\"polite\">Starting</p></div>");
     actions.append(quickButton("Cancel", "quickCancel", true, () => {
@@ -8508,6 +8512,31 @@
     const detail = job.detail;
     $("quickProgressText").textContent = (detail ? "Value " + Math.min(detail.tried + 1, detail.values) + " of "
       + detail.values + " · " : "") + "run " + job.done + " of up to " + job.total;
+    showQuickLive();
+  }
+
+  // The live plot above the bar: the value being tried, and the plot of the value last finished (redrawn only when
+  // a new value finishes; the one before stays as a faint line).
+  function showQuickLive() {
+    const job = state.quick.job;
+    const entry = quickEntry();
+    const title = $("quickTrying");
+    if (!title || !job || !job.detail || !entry) return;
+    const field = entry.field;
+    const detail = job.detail;
+    const named = (item) => quickValueText(field, item.value) + (item.current ? " (now)" : "");
+    title.textContent = detail.trying ? "Trying: " + named(detail.trying) + " · value "
+      + Math.min(detail.tried + 1, detail.count) + " of " + detail.count : "Finishing";
+    const plot = detail.plot;
+    const box = $("quickPlot");
+    if (!plot || (job.drawn && job.drawn.value === plot.value && box.firstChild)) return;
+    if (job.drawn && job.drawn.value !== plot.value) job.previous = (job.previous || []).concat([job.drawn]);
+    job.drawn = plot;
+    box.innerHTML = quickPlotSvg(plot, job.previous);
+    $("quickPlotNote").textContent = plot.label + " for " + named(plot) + ": median line and 10th to 90th "
+      + "percentile band of " + plot.runs + (plot.runs === 1 ? " run" : " runs") + "; $0 line"
+      + (plot.throughAge != null ? ", age " + plot.throughAge + " marked" : "")
+      + (job.previous && job.previous.length ? "; grey lines: earlier values, fainter the older" : "") + ".";
   }
 
   async function runQuick() {
@@ -8538,7 +8567,8 @@
       Object.assign(quick.job, { done: message.done, total: message.total, detail: message.detail });
       showQuickProgress();
     });
-    quick.job = { id: job.id, inputsText, done: 0, total: 0, detail: null, stopped: null };
+    quick.job = { id: job.id, inputsText, done: 0, total: 0, detail: null, stopped: null, drawn: null,
+      previous: null };
     quick.entry = null;
     quick.message = null;
     quick.step = "run";
@@ -8632,7 +8662,7 @@
     const quick = state.quick;
     closeQuick();
     quick.picking = true;
-    $("quickPickText").textContent = "Tap an input to try.";
+    $("quickPickText").textContent = "Select a field on screen";
     $("quickPick").hidden = false;
     refreshQuickOrb();
     goToPane("inputs");
@@ -8676,7 +8706,8 @@
   }
 
   function wireQuick() {
-    $("quickOrb").addEventListener("click", () => openQuick());
+    // The sphere starts a pick on screen; while a run is under way it shows the run.
+    $("quickOrb").addEventListener("click", () => (state.quick.job ? openQuick() : startQuickPick()));
     $("quickBackdrop").addEventListener("click", closeQuick);
     $("quickPickCancel").addEventListener("click", endQuickPick);
     document.addEventListener("click", quickPickClick, true);
