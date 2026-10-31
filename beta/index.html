@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-YICtBLJQ2SopwnT+AhyYX4A1Xgj+ji/84YL1tqDPacI=' 'sha256-8O3sgrxnjgWL2pxzeezzrcaBift1KuB+8V1LZ0VMCZY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-mCgzNGro2gmBmW3cw+We/LT9HphO6zsm4aUPwXYxQb4=' 'sha256-8O3sgrxnjgWL2pxzeezzrcaBift1KuB+8V1LZ0VMCZY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1502,8 +1502,38 @@ select.gm-cell[data-result="fixed"] { border-style: dashed; }
   padding: 10px; border-radius: 16px; color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 4px 14px var(--edge-shadow);
   background: var(--surface); }
 .pk-grid { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: start; min-width: 0; }
-.pk-grid.pk-solo { grid-template-columns: minmax(0, 1fr); }
-.dialog.experience-dialog:has(.pk-solo) { width: min(300px, calc(100% - 24px)); }
+/* Effort only (the stable build): the bar and its labels centred in a narrow dialog, with no frame around them. */
+.pk-grid.pk-solo { grid-template-columns: auto; justify-content: center; }
+/* The flat bar (pk-h, effort only): a battery filling left to right, its cap on the right; the labels under it and
+   no Effort heading (the dialog's title says it). */
+.pk-grid.pk-solo .pk-group > legend.pk-legend { display: none; }
+.pk-eff.pk-h { grid-template-columns: none; grid-template-rows: 46px auto; row-gap: 6px; height: auto; width: 240px; }
+.pk-h .pk-barwrap { height: 46px; }
+.pk-h .pk-cap { left: auto; right: 0; top: 15px; width: 8px; height: 16px; border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, #9aa4ae, #6b7580); }
+.pk-h .pk-bar { left: 0; right: 7px; top: 3px; bottom: auto; width: auto; height: 40px;
+  background: linear-gradient(180deg, #4b545e, #2b3138 50%, #4b545e); }
+.pk-h .pk-fill { top: 0; bottom: 0; left: 0; right: auto; height: auto; width: calc(var(--pk-f) * 100%);
+  transition: width 0.35s cubic-bezier(0.3, 1.5, 0.5, 1), background 0.3s; }
+.pk-h .pk-fill::after { background: linear-gradient(180deg, rgb(255 255 255 / 0.35), transparent 35%, transparent 65%,
+  rgb(255 255 255 / 0.15)); }
+.pk-h .pk-div { top: 0; bottom: 0; width: 3px; height: auto; }
+.pk-h .pk-rail { top: 0; bottom: 0; left: 4px; right: 11px; }
+.pk-h .pk-knob { top: -1px; left: calc(var(--pk-f) * 100%); width: 30px; height: 48px; transform: translateX(-15px);
+  transition: left 0.35s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.pk-h .pk-knob svg { transform: rotate(90deg); }
+.pk-h .pk-sparks { left: calc(var(--pk-f) * 100%); top: 3px; bottom: auto; width: 0; height: 40px;
+  transition: left 0.35s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.pk-h .pk-spark { left: -2px; top: var(--x); }
+.pk-h.lv0 .pk-fill { background: linear-gradient(90deg, #1e8e4a, #3ccf73); }
+.pk-h.lv1 .pk-fill { background: linear-gradient(90deg, #3ccf73, #f2c94c 55%, #f2994a); }
+.pk-h.lv2 .pk-fill { background: linear-gradient(90deg, #f2994a, #c0261f 55%, #8b0000); }
+.pk-h .pk-stops { height: 26px; }
+.pk-h .pk-stop { top: 0; left: calc(4px + (100% - 15px) * var(--pk-at)); right: auto; transform: translateX(-50%);
+  flex-direction: row; align-items: center; gap: 4px; }
+.pk-h.pk-drag .pk-fill, .pk-h.pk-drag .pk-knob, .pk-h.pk-drag .pk-sparks { transition: none; }
+.pk:has(.pk-solo) { padding: 0; background: none; box-shadow: none; }
+.dialog.experience-dialog:has(.pk-solo) { width: min(290px, calc(100% - 24px)); }
 @container (max-width: 339px) {
   .pk-grid { grid-template-columns: 104px minmax(0, 1fr); gap: 12px; }
   .pk-lab { font-size: 12px; }
@@ -3091,7 +3121,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "68a692cd6d46", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "5102a81e348c", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
 <script src="shared.f59170f581.js"></script>
 <script src="charts.ae4d661d99.js"></script>
@@ -3100,7 +3130,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.6179765957.js"></script>
+<script src="app.bbcfb6b3b6.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a

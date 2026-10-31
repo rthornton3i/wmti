@@ -2786,17 +2786,20 @@
     const efforts = offered.efforts;
     const effort = group("effort", "Effort");
     const eff = document.createElement("div");
-    eff.className = "pk-eff";
+    // Effort only (the stable build): the bar lies flat, Low on the left, to save space.
+    const flat = !gamifyOn();
+    eff.className = "pk-eff" + (flat ? " pk-h" : "");
     const slider = document.createElement("div");
     slider.className = "pk-barwrap";
     slider.tabIndex = 0;
     slider.setAttribute("role", "slider");
-    slider.setAttribute("aria-orientation", "vertical");
+    slider.setAttribute("aria-orientation", flat ? "horizontal" : "vertical");
     slider.setAttribute("aria-label", "Effort");
     slider.setAttribute("aria-valuemin", "0");
     slider.setAttribute("aria-valuemax", String(Math.max(0, efforts.length - 1)));
     slider.innerHTML = '<div class="pk-cap"></div><div class="pk-bar"><div class="pk-cells"><div class="pk-fill"></div>'
-      + '<div class="pk-div" style="top: 33.3%"></div><div class="pk-div" style="top: 66.6%"></div></div></div>'
+      + '<div class="pk-div" style="' + (flat ? "left" : "top") + ': 33.3%"></div><div class="pk-div" style="'
+      + (flat ? "left" : "top") + ': 66.6%"></div></div></div>'
       + '<div class="pk-rail"><div class="pk-sparks"></div><div class="pk-knob"><svg viewBox="0 0 24 24" aria-hidden="true">'
       + '<path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></div></div>';
     const sparks = slider.querySelector(".pk-sparks");
@@ -2814,7 +2817,7 @@
     efforts.forEach((item, index) => {
       const stop = document.createElement("div");
       stop.className = "pk-stop";
-      stop.style.setProperty("--pk-at", String(1 - (index + 0.5) / efforts.length));
+      stop.style.setProperty("--pk-at", String(flat ? (index + 0.5) / efforts.length : 1 - (index + 0.5) / efforts.length));
       const option = document.createElement("label");
       option.className = "pk-lab";
       const [input, label, blurb] = radio("effort", item);
@@ -2832,9 +2835,10 @@
     // Drag (mouse, touch or pen): the fill follows the pointer and the release chooses the level under it; a tap does
     // the same. A cancelled drag puts the chosen level back.
     const cells = slider.querySelector(".pk-cells");
-    const fractionAt = (y) => {
+    const fractionAt = (event) => {
       const box = cells.getBoundingClientRect();
-      const fraction = box.height > 0 ? (box.bottom - y) / box.height : 0;
+      const fraction = flat ? (box.width > 0 ? (event.clientX - box.left) / box.width : 0)
+        : box.height > 0 ? (box.bottom - event.clientY) / box.height : 0;
       return Math.min(1, Math.max(0.05, fraction));
     };
     let dragging = null;
@@ -2844,18 +2848,18 @@
       try { slider.setPointerCapture(event.pointerId); } catch (error) { /* a synthetic pointer: no capture */ }
       closePickerInfo(pop);
       eff.classList.add("pk-drag");
-      eff.style.setProperty("--pk-f", String(fractionAt(event.clientY)));
+      eff.style.setProperty("--pk-f", String(fractionAt(event)));
       event.preventDefault();
       slider.focus({ preventScroll: true });
     });
     slider.addEventListener("pointermove", (event) => {
       if (event.pointerId !== dragging) return;
-      eff.style.setProperty("--pk-f", String(fractionAt(event.clientY)));
+      eff.style.setProperty("--pk-f", String(fractionAt(event)));
     });
     slider.addEventListener("pointerup", (event) => {
       if (event.pointerId !== dragging) return;
       dragging = null;
-      pick({ effort: efforts[pickerLevelAt(fractionAt(event.clientY), efforts.length)].id });
+      pick({ effort: efforts[pickerLevelAt(fractionAt(event), efforts.length)].id });
     });
     slider.addEventListener("pointercancel", (event) => {
       if (event.pointerId !== dragging) return;
