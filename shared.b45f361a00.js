@@ -261,6 +261,7 @@
   // replacement rule is on and it is not leased; the loan figures of a replacement only while the replacements are
   // financed, the lease figures only while they are leased (`carReplacementPayFields`).
   function carHiddenReason(name, item, rules) {
+    if (name === "replaceInYears") return "set by the year bought and Replace every";  // no longer used
     if ((rules.carPaidBySwitches || []).includes(name)) return "set by How it is paid";
     if ((((rules.itemSwitches || {}).Car || {}).hasLoan || []).includes(name)) {
       if (carPaidBy(item) !== "finance") return "shown while How it is paid is Finance";
