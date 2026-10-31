@@ -1439,10 +1439,10 @@
             foldPanel(panel, !panel.classList.contains("is-collapsed"));
           });
         }
-        // The header reads title ... [i] [chevron] [switch]: the "i" moves into the tools, just before the chevron,
-        // and a switch (when the panel has one) sits last, at the far right.
+        // The header reads title ... [chevron] [i] [switch]: the "i" moves into the tools, just after the chevron, so
+        // it sits beside the switch (when the panel has one), which is last, at the far right.
         const ownHelp = head.querySelector(":scope > .help-button");
-        if (ownHelp) tools.insertBefore(ownHelp, tools.querySelector(":scope > .collapse-button"));
+        if (ownHelp) tools.insertBefore(ownHelp, tools.querySelector(":scope > .collapse-button").nextSibling);
         const help = head.querySelector(".help-button");  // the header's "i" text still opens while folded
         const helpText = help && document.getElementById(help.getAttribute("aria-controls"));
         if (helpText && panel.contains(helpText)) helpText.classList.add("collapse-keep");
