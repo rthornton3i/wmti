@@ -31,24 +31,25 @@
   const RUN_CARD_FIELDS = ["years"];  // fields of that panel drawn in the Run card, in Advanced settings
   const ROLLOVER_SWITCH = "strategies.rothConversion.enabled";  // adds or removes the rollover account
   // Plots chips: the chart spec id, the chip label, what the view shows and what it says when the run has no rows.
-  // Every plot is drawn from the last Monte Carlo: "total" is its spread, the others the runs' middle half average each year.
+  // Every plot is drawn from the last Monte Carlo: "total" is its spread, the others one typical run or the runs' middle
+  // half average each year (state.runView); "{runs}" in an intro names which.
   const PLOT_VIEWS = [
     { id: "total", label: "Total balance", charts: ["bands", "histogram"], intro: "The total balance over the runs "
       + "(the median run as a line, the 10th to 90th percentile shaded) and how the runs' final values spread." },
-    { id: "balances", label: "Balances", intro: "Each account's balance at the end of each year, stacked; the "
-      + "middle half average of the runs." },
+    { id: "balances", label: "Balances", intro: "Each account's balance at the end of each year, stacked; "
+      + "{runs}." },
     { id: "cashFlow", label: "Cash flow", intro: "Money in above zero: pay, Social Security and sale proceeds. Money out "
       + "below it (negative): expenses and taxes (early-withdrawal penalties included). Line: what is left over; above zero the year adds to the accounts, below "
-      + "zero the accounts pay for it. Moves into and out of the accounts are on Deposits and withdrawals. The middle half "
-      + "average of the runs." },
-    { id: "flows", label: "Deposits and withdrawals", intro: "The middle half average of the runs. Deposits into the accounts "
+      + "zero the accounts pay for it. Moves into and out of the accounts are on Deposits and withdrawals. Shows "
+      + "{runs}." },
+    { id: "flows", label: "Deposits and withdrawals", intro: "Shows {runs}. Deposits into the accounts "
       + "are above zero, withdrawals below it (negative). Traditional includes RMD and QCD; dotted line: the required "
       + "minimum. Social Security, pay and the Roth conversion are not bars." },
-    { id: "taxes", label: "Taxes", intro: "The taxes charged each year, by kind; the middle half average of the runs. The "
+    { id: "taxes", label: "Taxes", intro: "The taxes charged each year, by kind; {runs}. The "
       + "hatched bar is the sales tax inside your spending: already in expenses, shown for records, never added to the "
       + "taxes. The same figures by year, and the deductions, are tables in the Final report (PDF)." },
-    { id: "expenses", label: "Expenses", intro: "What the household spends each year, by category; the middle half "
-      + "average of the runs. Categories never charged are left out; taxes are in Taxes." },
+    { id: "expenses", label: "Expenses", intro: "What the household spends each year, by category; "
+      + "{runs}. Categories never charged are left out; taxes are in Taxes." },
   ];
   // What Compare does, behind the "i" beside the Compare card's heading.
   const COMPARE_HELP = "Pick two configs to compare. Both run on the same random draws (same seed), "
@@ -139,7 +140,7 @@
     setup: ["Setup", "Scenarios and run", "Your scenarios and files, the household and the run"],
     inputs: ["Inputs", "", "Every change reruns the plan"],
     "outputs/summary": ["Outputs", "Summary", "From the last Monte Carlo"],
-    "outputs/plots": ["Outputs", "Plots", "Middle half average of the runs"],
+    "outputs/plots": ["Outputs", "Plots", "A typical run, or the average of the runs"],
     "strategy/strategies": ["Strategy", "Strategies", "Tax strategies and end-of-plan settings"],
     "strategy/compare": ["Strategy", "Compare", "Two configs on the same random draws"],
     "strategy/optimize": ["Strategy", "Optimize", "The best strategy settings on the same random draws"],
@@ -187,7 +188,7 @@
     heirLocks: [], heirNotice: [], childHeirsOn: null, heirSeenChildren: null,  // beneficiaries: slider locks, warning, children seen
     tab: "outputs", view: "summary", strategyView: "strategies", arcadeView: "awards",
     chips: { plots: null, settings: "income" },
-    plotView: "chart", scenarios: Object.create(null), perRunMs: null,
+    plotView: "chart", runView: "typical", scenarios: Object.create(null), perRunMs: null,
     autoSaveOff: [], exampleHidden: false,
     openFolds: [],  // the closed-by-default disclosures opened this visit (the claim estimates, 80-settings.js)
     savedJustNow: false, undo: { stack: [], current: null },
@@ -293,7 +294,7 @@
     const compare = state.compare;
     store(PREFS_KEY, { tab: state.tab, view: state.view, strategyView: state.strategyView,
       arcadeView: state.arcadeView, chips: state.chips,
-      plotView: state.plotView,
+      plotView: state.plotView, runView: state.runView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
       exampleHidden: state.exampleHidden,
       compare: { seed: compare.seed, pair: compare.pair },
@@ -309,7 +310,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.b0e2db573f.js");
+      worker = new Worker("worker.35338db715.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -460,6 +461,7 @@
         state.chips.settings = null;  // Inputs opens at its first chip
       }
       if (prefs.plotView === "table") state.plotView = "table";
+      if (prefs.runView === "average") state.runView = "average";
       if (Array.isArray(prefs.surplusLocks)) state.surplusLocks = prefs.surplusLocks.filter((name) => typeof name === "string");
       restoreRunPrefs(prefs);
       // Auto-save is on unless turned off for a scenario; the older one-switch preference (`autoSave`) is not read, since
@@ -8503,6 +8505,51 @@
     return card;
   }
 
+  // Which run the per-year charts show (state.runView): one typical run, whose withdrawals always follow the order, or
+  // the middle half average, which can show a balance left in one account while a later one pays (different runs).
+  const RUN_VIEWS = [["typical", "Typical run"], ["average", "Average of runs"]];
+  const RUN_VIEW_TEXT = {
+    typical: "one typical run (the run whose final worth is the median)",
+    average: "the middle half average of the runs",
+  };
+  const RUN_VIEW_HELP = "Typical run is one real run: the run whose final worth is the median. Each year it draws the "
+    + "accounts in your withdrawal order, so a later account pays only once the earlier ones are empty. Average of runs "
+    + "averages each year over the middle half of the runs (25th to 75th percentile of final worth). Different runs "
+    + "empty different accounts in different years, so the average can show a balance left in one account while a "
+    + "later account in the order is paying.";
+
+  // The chart spec `id` of a Monte Carlo result in the chosen run view (the typical run's when it has one).
+  function runChart(result, id) {
+    const typical = state.runView !== "average" && (result.typicalCharts || []).find((item) => item.id === id);
+    return typical || result.charts.find((item) => item.id === id);
+  }
+
+  // A view's intro with "{runs}" naming the run view shown.
+  function runIntro(view) {
+    return view.intro.replace("{runs}", RUN_VIEW_TEXT[state.runView === "average" ? "average" : "typical"]);
+  }
+
+  // The Typical run / Average of runs switch over the per-year charts, its why behind the "i".
+  function runViewCard(rerender) {
+    const card = document.createElement("div");
+    card.className = "run-view";
+    card.innerHTML = "<div class=\"view-toggle\" role=\"group\" aria-label=\"Which runs\">"
+      + RUN_VIEWS.map(([id, label]) => "<button type=\"button\" data-run-view=\"" + id + "\" aria-pressed=\""
+        + String((state.runView === "average" ? "average" : "typical") === id) + "\">" + label + "</button>").join("")
+      + "</div>";
+    const note = noteHelp(state.runView === "average" ? "Averaged over the middle half of the runs."
+      : "One real run: the one whose final worth is the median.", RUN_VIEW_HELP, "muted");
+    card.insertAdjacentHTML("beforeend", note.head + note.text);
+    for (const button of card.querySelectorAll("[data-run-view]")) {
+      button.addEventListener("click", () => {
+        state.runView = button.dataset.runView;
+        savePrefs();
+        (rerender || renderPlots)();
+      });
+    }
+    return card;
+  }
+
   // Plots: the charts of the last Monte Carlo, marked when stale (their tables are in the Final report).
   function renderPlots() {
     noteViewSoon();  // a view left or shown (25-collapse.js)
@@ -8528,11 +8575,12 @@
     const view = PLOT_VIEWS.find((item) => item.id === selected);
     const result = entry.value;
     const figures = [];
+    if (!view.charts) parts.push(runViewCard());  // the per-year views; Total balance spans every run
     for (const id of view.charts || [view.id]) {
-      const spec = result.charts.find((item) => item.id === id);
+      const spec = runChart(result, id);
       if (!spec) continue;
       const card = chartCard(spec);
-      if (id === (view.charts || [view.id])[0]) addChartHelp(card, view.label, view.intro);
+      if (id === (view.charts || [view.id])[0]) addChartHelp(card, view.label, runIntro(view));
       if (spec.type === "histogram") {
         // The trim and its bounds stay on screen; why, behind the "i".
         const note = noteHelp("Leaves out the lowest and highest " + spec.trimmed.percent + "% of runs (below "
@@ -8574,7 +8622,7 @@
       const cards = [];
       const figures = [];
       for (const id of view.charts || [view.id]) {
-        const spec = entry.value.charts.find((item) => item.id === id);
+        const spec = runChart(entry.value, id);
         if (!spec) continue;
         const card = chartCard(spec, () => { fill(); renderPlots(); });
         if (stale) card.classList.add("stale-results");
