@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-CLoHbws+EBYB8FHV/BapBGzhEPl9V75XAZLKZS3mLaQ=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-NuStN7ZSncMpZ8sGW7p5lMW6BwQFs/4yopCX2GcB/7Y=' 'sha256-Atn8LpO4NLrIDaEnbXgJ/toFSK8LQvWh/GEEryRdldE=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI Beta"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -1208,6 +1208,12 @@ input[type="range"], .age-range { -webkit-user-select: none; user-select: none; 
 .gm-quest[data-state="locked"], .gm-award[data-earned="false"] { border-style: dashed; background: var(--surface-2); color: var(--ink-2); }
 .gm-award[data-earned="true"]:hover { transform: translateY(-1px); box-shadow: inset 4px 0 0 var(--accent),
   0 0 8px 0 color-mix(in srgb, var(--gm-violet) 35%, transparent); }
+/* Awards grouped by plan area (.gm-group headings); each quest's why line (.gm-why); the capstone quest stands out
+   with a violet border (its title also says Capstone). */
+.gm-group { margin: 12px 0 6px; font-size: 0.95rem; }
+.gm-group:first-child { margin-top: 0; }
+.gm-quest .gm-why { font-size: 0.85rem; }
+.gm-quest[data-capstone="true"] { border-width: 2px; border-color: var(--gm-violet); }
 .gm-toast { position: fixed; z-index: 75; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
   bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); padding: 12px 16px; border-radius: 14px;
   border: 1px solid var(--gm-pink); background: linear-gradient(180deg, var(--gm-panel), var(--gm-deep)); color: var(--gm-ink);
@@ -1580,6 +1586,71 @@ select.gm-cell[data-result="fixed"] { border-style: dashed; }
   .pk *, .pk *::after { animation: none !important; transition: none !important; }
 }
 /* End of the picker block */
+/* Minimalist bubble maps (57-glance.js): round bottom tabs, and Inputs and Outputs opening on a map of bubbles, a hub
+   with a bubble per section round it; a tap opens that section alone with a round Back bubble. Minimalist only. */
+[data-style="glance"] .tabbar { display: flex; justify-content: center; align-items: center; gap: 14px;
+  min-height: var(--tabbar); box-shadow: 0 -1px 0 var(--line); }
+[data-style="glance"] .tab { flex: none; width: 52px; height: 52px; min-height: 0; padding: 0; border-radius: 50%;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 500;
+  place-content: center; }
+[data-style="glance"] .tab svg { display: none; }
+[data-style="glance"] #pinned { display: none; }  /* no pinned number chips: the maps carry the headline */
+[data-style="glance"] .tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent);
+  color: var(--accent-ink); font-weight: 650; }
+[data-style="glance"] .band .chips-wrap:is([data-place="inputs"], [data-place="outputs"], [data-place="outputs/plots"]) {
+  display: none; }
+[data-style="glance"] .app:is(.inputs-pinned, .outputs-pinned) .band { position: static; }
+[data-style="glance"].glance-map-shown .band :is(.band-title, .band-sub) { display: none; }
+[data-style="glance"].glance-in-map #panel-inputs > :not(.glance-map),
+[data-style="glance"].glance-out-map #panel-outputs > :not(.glance-map) { display: none; }
+[data-style="glance"] .glance-map { position: relative; width: 100%; max-width: 460px; height: var(--glance-h, 360px);
+  margin: var(--space-2) auto var(--space-5); }
+[data-style="glance"] .glance-links { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+[data-style="glance"] .glance-links line { stroke: var(--line); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+[data-style="glance"] .glance-bubble { position: absolute; transform: translate(-50%, -50%); display: grid;
+  place-items: center; padding: 6px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface);
+  color: var(--ink); font: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.2; text-align: center;
+  overflow-wrap: anywhere; }
+[data-style="glance"] button.glance-bubble { cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+[data-style="glance"] button.glance-bubble:hover { border-color: var(--accent); color: var(--accent); }
+[data-style="glance"] .glance-bubble small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px;
+  font-weight: 400; }
+[data-style="glance"] .glance-hub { left: 50%; top: 50%; width: 124px; height: 124px; border-color: var(--accent);
+  background: var(--accent-soft); font-size: 15px; }
+[data-style="glance"] .glance-hub strong { display: block; color: var(--accent); font-size: 22px; font-weight: 650; }
+[data-style="glance"] .glance-sat { width: 78px; height: 78px; padding: 4px; font-size: 11px; overflow-wrap: normal;
+  hyphens: auto; }
+/* Glassy 3D bubbles: a light top-left highlight over a see-through tint, a soft accent glow and an inner shade. */
+[data-style="glance"] :is(.glance-bubble, .glance-back, .tab) {
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.85) 0 12%, rgba(255, 255, 255, 0.25) 42%,
+    transparent 70%), color-mix(in srgb, var(--accent) 12%, color-mix(in srgb, var(--surface) 55%, transparent));
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 26%, transparent), 0 8px 18px rgba(0, 0, 0, 0.10),
+    inset 0 -6px 12px color-mix(in srgb, var(--accent) 16%, transparent), inset 0 2px 4px rgba(255, 255, 255, 0.6); }
+[data-style="glance"] .glance-hub { background: radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.9) 0 10%,
+    rgba(255, 255, 255, 0.2) 45%, transparent 72%), color-mix(in srgb, var(--accent) 24%, transparent);
+  box-shadow: 0 0 34px color-mix(in srgb, var(--accent) 45%, transparent), 0 12px 26px rgba(0, 0, 0, 0.14),
+    inset 0 -10px 18px color-mix(in srgb, var(--accent) 28%, transparent), inset 0 3px 6px rgba(255, 255, 255, 0.7); }
+[data-style="glance"] .tab[aria-selected="true"] { background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.55) 0 10%,
+    transparent 60%), var(--accent); box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 55%, transparent),
+    inset 0 -5px 10px rgba(0, 0, 0, 0.18); }
+[data-style="glance"] button.glance-bubble { transition: transform 0.18s, box-shadow 0.18s; }
+[data-style="glance"] button.glance-bubble:hover { transform: translate(-50%, -50%) scale(1.06);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 50%, transparent), 0 10px 22px rgba(0, 0, 0, 0.12),
+    inset 0 -6px 12px color-mix(in srgb, var(--accent) 18%, transparent), inset 0 2px 4px rgba(255, 255, 255, 0.6); }
+[data-style="glance"] .glance-back { order: -1; justify-self: start; display: grid; place-items: center; width: 40px; height: 40px;
+  padding: 0; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  cursor: pointer; }
+/* The run bar takes row 2 so the Back bubble leads Outputs. */
+[data-style="glance"] #panel-outputs > #mc-bar:not([hidden]),
+[data-style="glance"] #mc-bar:not([hidden]) + .mc-notice-row { grid-row: 2; }
+[data-style="glance"] .glance-back svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; }
+[data-style="glance"] :is(#settings-body, #results-body, #plots-body) :is(.card, .group),
+[data-style="glance"] .mc-bar { background: transparent;
+  background-image: none; box-shadow: none; padding-inline: 0; }
+/* End of the Minimalist bubble maps */
 /* Add detail row (46-detail.js paneDetailRow): at Medium, at the end of a pane, a list sheet or Advanced settings,
    one sentence on the inputs it shows and its Add detail / Hide detail button; the Hide it line under "Using defaults
    for N inputs" (refreshDetailNotice). */
@@ -2333,6 +2404,53 @@ html[data-style="coach"] .nextstep h3::before { content: "Lesson " counter(lesso
 html[data-style="coach"] .walk-rail-list { counter-reset: lesson; }
 html[data-style="coach"] .walk-rail-item { counter-increment: lesson; }
 html[data-style="coach"] .walk-rail-label::before { content: counter(lesson) ". "; font-variant-numeric: tabular-nums; }
+/* Coach guide (49b-coach-mascot.js): the mascot above the tab bar with its tip bubble, and the Checklist card. */
+html[data-style="coach"] .panels { padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 88px); }
+html[data-style="coach"] .cc-coach { position: fixed; z-index: 35; right: var(--gutter);
+  bottom: calc(var(--tabbar) + 12px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column;
+  align-items: flex-end; gap: var(--space-2); pointer-events: none; }
+html[data-style="coach"] .cc-coach > * { pointer-events: auto; }
+html[data-style="coach"] .cc-mascot { width: 56px; height: 56px; padding: 2px; border: 2px solid var(--accent);
+  border-radius: 50%; background: var(--surface); box-shadow: 0 6px 20px var(--edge-shadow); cursor: pointer; }
+html[data-style="coach"] .cc-mascot svg { display: block; width: 100%; height: 100%; }
+html[data-style="coach"] .cc-mascot:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+html[data-style="coach"] .cc-body { fill: var(--accent); }
+html[data-style="coach"] .cc-cap { fill: var(--hero); }
+html[data-style="coach"] .cc-eye { fill: var(--surface); }
+html[data-style="coach"] .cc-pupil { fill: var(--ink); }
+html[data-style="coach"] .cc-smile, html[data-style="coach"] .cc-cord { fill: none; stroke: var(--accent-ink);
+  stroke-width: 2.5; stroke-linecap: round; }
+html[data-style="coach"] .cc-whistle { fill: var(--resume); }
+html[data-style="coach"] .cc-bubble { position: relative; box-sizing: border-box;
+  width: min(22rem, calc(100vw - 2 * var(--gutter))); max-height: 50vh; overflow-y: auto; display: grid;
+  gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid var(--panel-edge);
+  border-radius: 18px 18px 4px 18px; background: var(--surface); color: var(--ink);
+  box-shadow: 0 6px 20px var(--edge-shadow); }
+html[data-style="coach"] .cc-tip-title { margin: 0; padding-right: 36px; font-weight: 700; color: var(--accent); }
+html[data-style="coach"] .cc-tip { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink-2);
+  overflow-wrap: anywhere; }
+html[data-style="coach"] .cc-close { position: absolute; top: 2px; right: 2px; width: 44px; height: 44px; border: 0;
+  background: transparent; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; border-radius: 50%; }
+html[data-style="coach"] .cc-hide { justify-self: start; min-height: 44px; }
+html[data-style="coach"] .cc-count { margin: 0; font-weight: 700; }
+html[data-style="coach"] .cc-bar { width: 100%; height: 10px; accent-color: var(--accent); }
+html[data-style="coach"] .cc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+html[data-style="coach"] .cc-item { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center;
+  gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-3); border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--line); }
+html[data-style="coach"] .cc-tick { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%;
+  border: 2px solid var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 14px; }
+html[data-style="coach"] .cc-item[data-done="true"] .cc-tick { background: var(--accent); }
+html[data-style="coach"] .cc-text p { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+html[data-style="coach"] .cc-item[data-done="true"] .cc-text strong { color: var(--ink-2); }
+html[data-style="coach"] .cc-show { min-height: 44px; padding-inline: 12px; }
+@media (max-width: 420px) {
+  html[data-style="coach"] .cc-item { grid-template-columns: 28px minmax(0, 1fr); }
+  html[data-style="coach"] .cc-show { grid-column: 2; justify-self: start; }
+}
+@media (forced-colors: active) {
+  html[data-style="coach"] .cc-bubble { border: 1px solid CanvasText; }
+}
 
 /* ---- Minimalist (id glance): calm and sparse. One big number per tile in one column, more white space, lighter
    headings, fewer inner rules; Summary keeps the tiles' secondary lines and the run facts behind a Details tap
@@ -2846,16 +2964,16 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "23b5372068c0", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
+<script>window.WMTI_BUILD = { id: "c79fe1ceac52", pyodide: "0.29.5", docs: "./docs/", channel: "beta" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.3d732f03f9.js"></script>
+<script src="shared.21dcda97d1.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.08f4d99a5c.js"></script>
-<script src="gamify.291a069350.js"></script>
+<script src="gamify.3870f3326f.js"></script>
 <script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.740952ae3a.js"></script>
+<script src="app.90012573a7.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
