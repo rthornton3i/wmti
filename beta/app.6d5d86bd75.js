@@ -54,7 +54,7 @@
   // What Compare does, behind the "i" beside the Compare card's heading.
   const COMPARE_HELP = "Pick two configs to compare. Both run on the same random draws (same seed), "
     + "so the differences come from the settings, not from luck. Save scenarios under Setup to compare them "
-    + "here.";
+    + "here. Each Run comparison picks a new seed; turn on the lock beside the Seed to keep it.";
   const CACHED_RESULTS = 2;  // Monte Carlo and comparison results kept per kind, newest first
   const DEFAULT_RUN_MS = 250;  // a phone's time per run until this device has measured one
   const SAVED_LIMIT = 50;
@@ -180,7 +180,7 @@
     ["retirement", "sun"], ["summary", "chart"], ["cash", "chart"], ["flows", "sliders"]];
 
   const state = {
-    info: null, schema: null, defaults: null, inputs: null, base: null, scenarioName: EXAMPLE_NAME, seed: 1,
+    info: null, schema: null, defaults: null, inputs: null, base: null, scenarioName: EXAMPLE_NAME, seed: 1, seedLocked: false,
     experience: null, defaultExperience: null,  // the open scenario's experience block, and a block-less scenario's
     walkTree: null, result: null, error: null, lastRunMs: null, bootMs: null, pyodideVersion: null,
     resultInputsText: null,  // the inputs text the single run's result ran on
@@ -194,12 +194,12 @@
     savedJustNow: false, undo: { stack: [], current: null },
     // preview: Low's partial result; seq: the number stamped on each Monte Carlo when it starts (the run diff's order)
     mc: { runs: 25, job: null, cache: [], message: null, skipKey: null, preview: null, seq: 0 },
-    compare: { seed: 1, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
+    compare: { seed: 1, seedLocked: false, pair: null, check: null, job: null, cache: [], message: null, differencesOpen: false,
       armed: null, diffs: null, diffsPending: null, mergeUndo: [], merging: 0 },
     optimize: { info: null, job: null, entry: null, message: null, availability: null, availabilityPending: null,
       options: { effort: null, preset: null, dimensions: {}, states: [] },
       // The Earliest retirement card (59-earliest.js): its options (kept in the prefs), last result and message.
-      earliest: { options: { failurePercent: null }, entry: null, message: null } },
+      earliest: { options: { failurePercent: null, people: null }, entry: null, message: null } },
     // The Next steps card (49-coach.js): the gaps and the inputs text they are for, the running check, each gap's kept
     // check and last message, and the scenario they belong to.
     coach: { gaps: null, gapsKey: null, pendingKey: null, job: null, entries: {}, messages: {}, scenarioName: null },
@@ -301,7 +301,8 @@
       plotView: state.plotView, runView: state.runView,
       surplusLocks: state.surplusLocks, mc: { runs: state.mc.runs }, autoSaveOff: state.autoSaveOff,
       exampleHidden: state.exampleHidden,
-      compare: { seed: compare.seed, pair: compare.pair },
+      seedLocked: state.seedLocked,
+      compare: { seed: compare.seed, seedLocked: compare.seedLocked, pair: compare.pair },
       earliest: { ...state.optimize.earliest.options } });
   }
 
@@ -314,7 +315,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.15716adc80.js");
+      worker = new Worker("worker.880026fa0e.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -513,6 +514,8 @@
     if (prefs.mc && choices.includes(prefs.mc.runs)) state.mc.runs = prefs.mc.runs;  // an older page's own seed is ignored
     const compare = prefs.compare || {};  // an older page's own Compare runs are ignored: Compare uses Runs
     if (Number.isInteger(compare.seed)) state.compare.seed = compare.seed;
+    state.compare.seedLocked = compare.seedLocked === true;
+    state.seedLocked = prefs.seedLocked === true;
     // An older page kept up to four names as `selected` and the ceiling presets; the first two names become the pair.
     const pair = Array.isArray(compare.pair) ? compare.pair : compare.selected;
     if (Array.isArray(pair)) state.compare.pair = pair.filter((name) => typeof name === "string").slice(0, 2);
@@ -521,6 +524,7 @@
     const earliest = isObject(prefs.earliest) ? prefs.earliest : {};
     const options = state.optimize.earliest.options;
     if (Number.isInteger(earliest.failurePercent)) options.failurePercent = earliest.failurePercent;
+    if (Array.isArray(earliest.people)) options.people = earliest.people.filter((role) => role === "you" || role === "partner");
   }
 
   const isObject = (value) => value != null && typeof value === "object" && !Array.isArray(value);
@@ -4702,12 +4706,36 @@
       + (stale && !mc.job ? "<p class=\"banner banner-warn\" role=\"note\">Settings, runs or seed changed since the "
         + "last Monte Carlo. " + why + "; the dimmed outputs below are from the earlier run.</p>" : "");
     $("mcRun").addEventListener("click", () => {
-      if (entry && !stale) newSeed();  // Run again draws fresh markets; a first or stale run keeps the seed
+      if (entry && !stale && !state.seedLocked) newSeed();  // Run again draws fresh markets unless the seed is locked
       runMonteCarlo(false);
     });
     $("mcCancel").addEventListener("click", () => { if (mc.job) engine.cancel(mc.job.id); });
     showProgress("mc", mc.job);
     refreshCoachChecks();  // a Monte Carlo started or ended: the Next steps checks follow
+  }
+
+  // A padlock button beside a seed box: locked keeps the seed when the run is pressed again.
+  const LOCK_SVG = "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\" fill=\"none\" "
+    + "stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><rect x=\"5\" y=\"11\" width=\"14\" "
+    + "height=\"10\" rx=\"2\"/><path class=\"seed-lock-shackle\" d=\"M8 11V7a4 4 0 0 1 8 0v4\"/></svg>";
+  function seedLockButton(id, locked, onToggle) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "seed-lock";
+    button.id = id;
+    button.innerHTML = LOCK_SVG;
+    const show = (on) => {
+      button.setAttribute("aria-pressed", String(on));
+      button.setAttribute("aria-label", on ? "Seed locked: runs keep it" : "Seed unlocked: each run picks a new one");
+      button.title = button.getAttribute("aria-label");
+    };
+    show(locked);
+    button.addEventListener("click", () => {
+      const on = button.getAttribute("aria-pressed") !== "true";
+      show(on);
+      onToggle(on);
+    });
+    return button;
   }
 
   // Run again: a random 6-digit seed, shown in the Seed field (Setup) and kept with the draft.
@@ -6446,9 +6474,13 @@
       });
     });
     wireSeedControl(card, "compare", (seed) => { compare.seed = seed; changed(); });
+    card.querySelector("#compareSeed").after(seedLockButton("compareSeedLock", compare.seedLocked, (on) => {
+      compare.seedLocked = on;
+      savePrefs();
+    }));
     card.querySelector("#compareRun").addEventListener("click", () => {
-      // Each press draws fresh markets: a random 6-digit seed, shown in the Seed box.
-      if (!compare.job && compare.check && compare.check.ok) {
+      // Each press draws fresh markets (a random 6-digit seed, shown in the Seed box) unless the seed is locked.
+      if (!compare.job && compare.check && compare.check.ok && !compare.seedLocked) {
         compare.seed = 100000 + Math.floor(Math.random() * 900000);
         savePrefs();
       }
@@ -8712,7 +8744,7 @@
     const quick = state.quick;
     closeQuick();
     quick.picking = true;
-    showQuickBanner("Select a field on screen");
+    showQuickBanner("Select a field to optimize");
     refreshQuickOrb();
     goToPane("inputs");
     document.body.classList.add("quick-picking");
@@ -8842,6 +8874,13 @@
     return "No one has pay to stop" + (reasons.length ? ": " + reasons.join("; ") : "") + ".";
   }
 
+  // The people the search moves: the ones ticked on the card (everyone when nothing was stored), of those in the plan.
+  function earliestPeople(inputs) {
+    const roles = ["you", "partner"].filter((role) => inputs && inputs[role]);
+    const chosen = state.optimize.earliest.options.people;
+    return Array.isArray(chosen) ? roles.filter((role) => chosen.includes(role)) : roles;
+  }
+
   // The card's options, each one the info offers (a stored choice it no longer offers takes the default).
   function earliestOptions() {
     const info = state.optimize.info.earliest;
@@ -8866,20 +8905,34 @@
     const starts = [["you", "you"], ["partner", "partner"]].filter(([role]) => state.inputs && state.inputs[role])
       .map(([role, label]) => label + " " + state.inputs[role].salaryEndAge);
     const running = Boolean(job && job.kind === "earliest");
+    const included = earliestPeople(state.inputs);
+    // A couple picks who is moved: one person or both (at least one).
+    const pick = state.inputs && state.inputs.partner
+      ? "<fieldset class=\"earliest-people\"><legend class=\"field-label\">Include</legend>"
+        + [["you", "You"], ["partner", "Partner"]].map(([role, label]) => "<label class=\"heirs-toggle\">"
+          + "<input type=\"checkbox\" name=\"earliestPerson\" value=\"" + role + "\""
+          + (included.includes(role) ? " checked" : "") + (job ? " disabled" : "") + "> " + label + "</label>").join("")
+        + "</fieldset>"
+      : "";
     card.innerHTML = "<div class=\"card-head\">" + about.head + "</div>" + about.text
       + "<div class=\"pair\">" + selectHtml("earliestFailures", "Failures allowed", tolerances,
         String(options.failurePercent))
-      + "</div><p class=\"field-help\" id=\"earliestRuns\">" + state.mc.runs + " runs per age (Run settings)</p>"
+      + "</div>" + pick + "<p class=\"field-help\" id=\"earliestRuns\">" + state.mc.runs + " runs per age (Run settings)</p>"
       + failureHelp.head + failureHelp.text
       + "<p class=\"field-help\" id=\"earliestStart\">Starting from: " + escapeText(starts.join(", ")) + "</p>"
       + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"earliestRun\""
-      + (job || state.error || skip ? " disabled" : "") + ">Find earliest retirement</button></div>"
+      + (job || state.error || skip || !included.length ? " disabled" : "") + ">Find earliest retirement</button></div>"
       + (skip ? "<p class=\"field-help\" id=\"earliestSkip\">" + escapeText(skip) + "</p>" : "")
       + (running ? earliestProgressHtml() : "") + messageHtml(optimize.earliest.message);
     card.querySelector("#earliestFailures").addEventListener("change", (event) => {
       options.failurePercent = Number(event.target.value);
       savePrefs();
     });
+    card.querySelectorAll("input[name='earliestPerson']").forEach((box) => box.addEventListener("change", () => {
+      options.people = [...card.querySelectorAll("input[name='earliestPerson']:checked")].map((item) => item.value);
+      savePrefs();
+      renderOptimize();
+    }));
     card.querySelector("#earliestRun").addEventListener("click", () => runEarliest());
     const stop = card.querySelector("#earliestStop");
     if (stop) stop.addEventListener("click", () => { if (optimize.job) engine.finish(optimize.job.id); });
@@ -8917,13 +8970,14 @@
   // Start a search on the current settings with the card's options.
   async function runEarliest() {
     const optimize = state.optimize;
-    if (optimize.job || state.error || earliestSkip(state.inputs)) return;
+    const people = earliestPeople(state.inputs);
+    if (optimize.job || state.error || earliestSkip(state.inputs) || !people.length) return;
     const inputsText = JSON.stringify(state.inputs);
     const options = earliestOptions();
     if (state.mc.job) state.mc.job.silent = true;  // the engine runs one batched job: the search replaces it
     clearTimeout(mcTimer);
     const job = engine.job("earliestRetire", [inputsText, JSON.stringify({ runs: state.mc.runs,
-      failurePercent: options.failurePercent }), state.seed], null, (message) => {
+      failurePercent: options.failurePercent, people }), state.seed], null, (message) => {
       if (!optimize.job) return;
       optimize.job.detail = message.detail;
       showEarliestProgress();
@@ -11510,10 +11564,13 @@
     const control = state.schema.controls.seed;
     const wrap = fieldShell(control.label, control.help, "f-seed");
     const field = { kind: "integer", step: control.step, minimum: control.minimum, checkMinimum: true };
-    wrap.append(numberInput("f-seed", field, state.seed, (value) => {
+    const row = document.createElement("div");
+    row.className = "seed-row";
+    row.append(numberInput("f-seed", field, state.seed, (value) => {
       state.seed = value;
       inputsChanged();
-    }));
+    }), seedLockButton("seedLock", state.seedLocked, (on) => { state.seedLocked = on; savePrefs(); }));
+    wrap.append(row);
     return wrap;
   }
 
@@ -17635,9 +17692,9 @@
     { title: "Undo", page: "bar", target: "#undoButton",
       text: "Undo steps back through your last changes, one at a time. It is greyed out when there is nothing to undo." },
     { title: "Quick optimize", page: "bar", when: () => !$("quickOrb").hidden, target: "#quickOrb",
-      text: "The gauge button in the corner is Quick optimize: pick any input, give it a range of values to try, "
-        + "and it finds the best one or the first that keeps your money (or one account) above zero. Nothing changes "
-        + "until you tap Apply." },
+      text: "The rising-arrow button in the corner is Quick optimize: pick a highlighted input, give it a range of "
+        + "values to try, and it finds the best one or the first that keeps your money (or one account) above zero, "
+        + "or avoids early withdrawals. Nothing changes until you tap Apply." },
     { title: "Walk me through it", page: "menu", target: "#menuWalk",
       text: "Walk me through it asks one question at a time and fills in your settings. Where a topic has more "
         + "detail, Go deeper adds its extra questions." },
