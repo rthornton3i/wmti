@@ -6,7 +6,7 @@
 
   const { escapeText, compactMoney, fullMoney, percent, getPath, setPath, checkScenarioName, scenarioFileProblem, sheetFields, sheetLabel,
     sheetSwitches, clearedOnChange, kindReturnsFilled, kindOwnerFilled, returnsSummary, sheetDefault, showsDefault, sheetPrompt, sheetFieldNote, sheetSources,
-    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, carLoanNow, homeMortgageNow, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
+    panelDefault, sheetResetTarget, sheetBlank, panelResetTarget, lastSalaryDefault, fieldDefault, atFieldDefault, formatValue, unfilledSuggestion, expensePresetChoices, expensePresetItem, countedElsewhereMatch, countedElsewhereText, choiceLabel, filterChoices, comboOptions, comboMove, comboPick, expenseAgesText, expenseAgeKnobs, expenseAgeStored, rothAgeKnobs, depositAgeKnobs, promotionChanceFor, promotionYearsFor, expenseSummary, expenseTotals, carSummary, carEstimatedValue, carPaidBy, sheetLoanPayment, carLoanNow, homeMortgageNow, sheetGroup, homeSummary, spanText, hasCarLoan, yearOfAge, ageOfYear, timelineBars, choosePrimary, primaryClashText, ensureOnePrimary, normalPair, tabRoute, inputsChip, normalCurvePoints, filteredPositions, filterStartValues, addHeir, syncChildHeirs, missingChildHeirs, addChildHeirs, dollarsNote, beneficiaryPayoutText,
     moveSelected, deleteSelected, moveItem, panelField, syncResetFlags, resetGroup, sameValue, matchPercent,
     matchTermsFromPercent, walkRead, walkBoundsError, walkHint, walkIndex, walkLabel, walkStatus, WALK_TAGS,
     WALK_ACTION_LABELS, WALK_COUNT_LISTS, walkBasicsOnly, walkProgress, walkTrail, walkDirection, walkClean, answerText, carValueToday,
@@ -21,7 +21,7 @@
   const report = window.WmtiReport;
   const insightRules = window.WmtiInsights;
 
-  const BOOT_STEPS = [["script", "Loading the calculator"], ["boot", "Starting up"],
+  const BOOT_STEPS = [["script", "Checking for updates"], ["boot", "Starting up"],
     ["packages", "Installing libraries"], ["imports", "Importing libraries"],
     ["model", "Loading the retirement model"], ["startup", "Reading your settings and the example household"]];
   const NOTES_PANELS = new Set(["accounts", "cars", "expenses", "retirement", "savings", "strategies"]);  // panels that show settingsNotes
@@ -315,7 +315,7 @@
     const ready = new Promise((resolve) => { readyResolve = resolve; });
 
     function start() {
-      worker = new Worker("worker.12c1e1fde0.js");
+      worker = new Worker("worker.967107df72.js");
       worker.onmessage = (event) => {
         const message = event.data;
         if (message.kind === "step") return bootStep(message);
@@ -2739,6 +2739,7 @@
     pop.hidden = true;
     const grid = document.createElement("div");
     grid.className = "pk-grid";
+    if (!gamifyOn()) grid.classList.add("pk-solo");  // effort only: one column, a narrower dialog
     // The choice the groups mark now (the card's is repainted from outside too, so it is read back, not kept).
     const marked = () => {
       const read = (key) => (grid.querySelector('input[data-key="' + key + '"]:checked') || {}).value;
@@ -2924,6 +2925,7 @@
     if (!state.info || !state.experience) return;
     const { effort, style } = shownExperience();
     document.documentElement.dataset.effort = effort;
+    if (effort === "low" && state.tab === "strategy") selectTab("inputs");  // Low has no Strategy tab
     if (gamifyOn()) document.documentElement.dataset.style = style;
     else delete document.documentElement.dataset.style;
     refreshDefaultsNotice();
@@ -3171,9 +3173,12 @@
   }
 
   // The open scenario's tier overrides (an empty table when it has none).
+  // The scenario's field overrides (a surfaced input). A pane's old Add detail ("pane.<id>") is ignored: each effort
+  // shows every input of its tiers and no more.
   function tierOverrides() {
     const overrides = state.experience && state.experience.tierOverrides;
-    return overrides && typeof overrides === "object" && !Array.isArray(overrides) ? overrides : {};
+    if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) return {};
+    return Object.fromEntries(Object.entries(overrides).filter(([key]) => !key.startsWith("pane.")));
   }
 
   function paneDetailOn(paneId) {
@@ -3253,29 +3258,9 @@
       : text;
   }
 
-  // The Add detail row of a pane (`panelId`), drawn at the end of its body; `sheetInfo` ({hidden, changed, labels}) is
-  // a list sheet's own count of the fields it left out. Null at Low and High and while nothing is hidden.
-  function paneDetailRow(panelId, sheetInfo = null) {
-    if (panelId == null || !detailActive()) return null;
-    const panel = state.schema.panels.find((item) => item.id === panelId);
-    const info = sheetInfo || (panel ? detailHidden(state.schema, panel, detailEffort(), tierOverrides(), state.inputs,
-      state.defaults) : null);
-    if (!info || !info.hidden) return null;
-    const on = paneDetailOn(panelId);
-    const row = document.createElement("div");
-    row.className = "detail-row";
-    row.dataset.detailPane = panelId;
-    const text = document.createElement("p");
-    text.className = "note detail-text";
-    text.textContent = detailText(info, on);
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "button button-quiet detail-toggle";
-    button.textContent = on ? "Hide detail" : "Add detail";
-    button.setAttribute("aria-pressed", String(on));
-    button.addEventListener("click", () => setPaneDetail(panelId, !on, Boolean(row.closest("#sheetBody"))));
-    row.append(text, button);
-    return row;
+  // The Add detail row a pane once drew: gone (owner, 2026-10-31), each effort shows all its inputs, so no pane has one.
+  function paneDetailRow() {
+    return null;
   }
 
   // Turn a pane's Add detail on or off, redraw what shows it (the open sheet, Inputs and Setup) and put the focus back
@@ -4721,7 +4706,8 @@
   // A padlock button beside a seed box: locked keeps the seed when the run is pressed again.
   const LOCK_SVG = "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\" fill=\"none\" "
     + "stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><rect x=\"5\" y=\"11\" width=\"14\" "
-    + "height=\"10\" rx=\"2\"/><path class=\"seed-lock-shackle\" d=\"M8 11V7a4 4 0 0 1 8 0v4\"/></svg>";
+    + "height=\"10\" rx=\"2\"/><path class=\"seed-lock-closed\" d=\"M8 11V7a4 4 0 0 1 8 0v4\"/>"
+    + "<path class=\"seed-lock-open\" d=\"M8 11V5a4 4 0 0 1 8 0v1.5\"/></svg>";
   function seedLockButton(id, locked, onToggle) {
     const button = document.createElement("button");
     button.type = "button";
@@ -7491,7 +7477,7 @@
       cover.textContent = "Checking which options apply to your plan…";
       switches.before(cover);
     }
-    for (const dimension of info.dimensions) {
+    for (const dimension of info.dimensions.filter(optimizeDimensionShown)) {
       const option = optimizeOption(dimension.key);
       if (dimension.key === "states") {
         switches.append(optimizeStatesField(dimension, option, info));
@@ -7707,11 +7693,16 @@
     $("optimizeStop").focus();
   }
 
-  // The options' switches as the search takes them: an option that cannot be used is off.
+  // Whether an option shows at the open scenario's effort: the input it changes is shown (its tier, or Add detail).
+  function optimizeDimensionShown(dimension) {
+    return tierDetailShown(dimension.tier, dimension.field, null);
+  }
+
+  // The options' switches as the search takes them: an option that cannot be used, or not shown, is off.
   function optimizeDimensions() {
     const dimensions = { ...state.optimize.options.dimensions };
     for (const dimension of state.optimize.info.dimensions) {
-      if (!optimizeOption(dimension.key).available) dimensions[dimension.key] = false;
+      if (!optimizeOption(dimension.key).available || !optimizeDimensionShown(dimension)) dimensions[dimension.key] = false;
     }
     return dimensions;
   }
@@ -8569,9 +8560,9 @@
       ? ", ages " + (plot.fromAge != null ? plot.fromAge : "start") + " to " + (plot.throughAge != null ? plot.throughAge
         : "end") + " marked" : "";
     $("quickPlotNote").textContent = plot.label + " for " + named(plot) + ": median line and 10th to 90th "
-      + "percentile band of " + plot.runs + (plot.runs === 1 ? " run" : " runs") + "; $0 line" + ages
+      + "percentile band of " + plot.runs + (plot.runs === 1 ? " run" : " runs") + ages
       + (plot.accounts ? "; thin lines: each account" : "")
-      + (job.previous && job.previous.length ? "; grey lines: earlier values, fainter the older" : "") + ".";
+      + (job.previous && job.previous.length ? "; grey lines: earlier values" : "") + ".";
     // A key to the account lines, each name in its line's colour.
     const key = $("quickPlotKey") || $("quickPlotNote").insertAdjacentElement("afterend", document.createElement("p"));
     key.id = "quickPlotKey";
@@ -8903,11 +8894,12 @@
     const card = document.createElement("div");
     card.className = "card";
     card.id = "earliestCard";
-    const about = titleHelp("h2", "Earliest retirement", info.help);
-    const tolerances = info.tolerances.map((value) => [String(value), value + "%"]);
-    const failureHelp = noteHelp("What counts as a failing run", info.failureHelp, "field-help");
     const starts = [["you", "you"], ["partner", "partner"]].filter(([role]) => state.inputs && state.inputs[role])
       .map(([role, label]) => label + " " + state.inputs[role].salaryEndAge);
+    // The runs, what counts as a failing run and the starting ages sit behind the title's (i), not on the card.
+    const about = titleHelp("h2", "Earliest retirement", info.help + " " + state.mc.runs + " runs per age (Run "
+      + "settings). Starting from: " + starts.join(", ") + ". What counts as a failing run: " + info.failureHelp);
+    const tolerances = info.tolerances.map((value) => [String(value), value + "%"]);
     const running = Boolean(job && job.kind === "earliest");
     const included = earliestPeople(state.inputs);
     // A couple picks who is moved: one person or both (at least one).
@@ -8919,11 +8911,8 @@
         + "</fieldset>"
       : "";
     card.innerHTML = "<div class=\"card-head\">" + about.head + "</div>" + about.text
-      + "<div class=\"pair\">" + selectHtml("earliestFailures", "Failures allowed", tolerances,
-        String(options.failurePercent))
-      + "</div>" + pick + "<p class=\"field-help\" id=\"earliestRuns\">" + state.mc.runs + " runs per age (Run settings)</p>"
-      + failureHelp.head + failureHelp.text
-      + "<p class=\"field-help\" id=\"earliestStart\">Starting from: " + escapeText(starts.join(", ")) + "</p>"
+      + "<div class=\"earliest-row\">" + selectHtml("earliestFailures", "Failures allowed", tolerances,
+        String(options.failurePercent)) + pick + "</div>"
       + "<div class=\"run-row\"><button type=\"button\" class=\"button\" id=\"earliestRun\""
       + (job || state.error || skip || !included.length ? " disabled" : "") + ">Find earliest retirement</button></div>"
       + (skip ? "<p class=\"field-help\" id=\"earliestSkip\">" + escapeText(skip) + "</p>" : "")
@@ -11726,6 +11715,7 @@
   function specialField(field, path, value) {
     if (/^(you|partner)\.socialSecurityBasis$/.test(path)) return basisToggle(field, path, value);
     if (/^(you|partner)\.employerMatch\.percent$/.test(path)) return matchPercentField(field, path);
+    if (/^(you|partner)\.promotionChance$/.test(path)) return promotionYearsField(field, path);
     if (DEPOSIT_SHARE_PATH.test(path)) return depositShareField(field, path);
     const at = sheetItemOf(path);
     if (at && at.type === "Car" && at.name === "replaceBy") return segmentedField(field, path, value);
@@ -12207,6 +12197,21 @@
   // A person's employer match as one share of pay (the schema's derived field): shown as rate x cap, and an entered
   // share outside its bounds is refused with a message; a new share is stored as rate 1 and the share as the cap,
   // and the stored terms are kept while the share equals theirs (wmti.accounts.contributions.matchTermsFromPercent).
+  // The promotion chance asked as the years expected between promotions (promotionChanceFor: a promotion within
+  // that many years is 95% certain); blank is no promotions.
+  function promotionYearsField(field, path) {
+    const id = fieldId(path);
+    const years = { kind: "number", unit: "years", nullable: true, step: 1 };
+    const wrap = fieldShell("Years between promotions", "How many years you expect between promotions. The yearly "
+      + "chance is set so a promotion within that many years is 95% certain (" + (field.label || "Chance of promotion")
+      + " is stored). Leave it blank for no promotions.", id);
+    wrap.append(numberInput(id, years, promotionYearsFor(getPath(state.inputs, path)), (next) => {
+      const chance = promotionChanceFor(next);
+      if (chance !== getPath(state.inputs, path)) setValue(path, chance);
+    }));
+    return wrap;
+  }
+
   function matchPercentField(field, path) {
     const matchPath = path.slice(0, path.lastIndexOf("."));
     const id = fieldId(path);
@@ -17684,7 +17689,7 @@
         + "under it, saves, imports and exports scenarios and opens another one." },
     { title: "Your household", page: "setup", when: () => !lowOn(), target: "#householdCard legend",
       text: "Household holds your partner, your ages, how you file taxes and your home state." },
-    { title: "Advanced settings", page: "setup", target: "#advancedSettings", opens: "#advancedSettings",
+    { title: "Advanced settings", page: "setup", when: () => !lowOn(), target: "#advancedSettings", opens: "#advancedSettings",
       text: "Advanced settings hold how every result is worked out: the Inflation-adjusted dollars switch (off shows "
         + "today's dollars), the years to plan for, how many runs (possible futures) sit behind each result, and the "
         + "random seed. The defaults suit most people." },
@@ -17698,14 +17703,14 @@
     { title: "Your plan page", page: "inputs", when: () => lowOn(), target: "#lowPage",
       text: "At Low effort your settings are one page: about you, pay, spending, savings, children and the "
         + "retirement and medical plans. Every change reruns the plan." },
-    { title: "Strategy views", page: "strategy", view: "strategies", target: "#views-strategy",
+    { title: "Strategy views", page: "strategy", when: () => !lowOn(), view: "strategies", target: "#views-strategy",
       text: "Strategy holds your tax strategies and two ways to weigh choices: Compare and Optimize. For example, "
         + "a Roth conversion moves some 401k money to a Roth in low-tax years after you retire, paying tax now so "
         + "later withdrawals and required minimum withdrawals are smaller." },
-    { title: "Compare", page: "strategy", view: "compare", target: "#view-compare",
+    { title: "Compare", page: "strategy", when: () => !lowOn(), view: "compare", target: "#view-compare",
       text: "Compare puts two saved scenarios side by side. With only one so far, go to Setup and tap Duplicate, "
         + "change one thing in the copy, then compare." },
-    { title: "Optimize", page: "strategy", view: "optimize", target: "#view-optimize",
+    { title: "Optimize", page: "strategy", when: () => !lowOn(), view: "optimize", target: "#view-optimize",
       text: "Optimize tries other choices for you and shows what each would be worth. For example, it might find "
         + "that claiming Social Security at 67 instead of 62 and retiring in another state leaves you more. Tick what "
         + "you would consider, then tap Find best settings." },
