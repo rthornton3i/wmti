@@ -2888,6 +2888,58 @@
     return !needsSetup(inputs) && !blocked;
   }
 
+  // Quick optimize's live plot as inline SVG markup: the 10th-90th percentile band and median of `plot`
+  // ({label, ages, median, low, high, runs, throughAge}), a $0 line, `previous` (an earlier plot) as a faint median and
+  // a mark at the through age when it is in range. Colors come from CSS classes; "" when there is nothing to draw.
+  // `previous`: the values tried before (one plot or a list, oldest first), drawn grey and fainter the older they are.
+  function quickPlotSvg(plot, previous) {
+    const ages = plot && plot.ages;
+    if (!ages || !ages.length) return "";
+    const size = { width: 340, height: 150, left: 46, right: 10, top: 8, bottom: 20 };
+    const priors = (Array.isArray(previous) ? previous : [previous])
+      .filter((item) => item && item.ages && item.ages.length);
+    const all = plot.low.concat(plot.high, plot.median, ...priors.map((item) => item.median), [0]);
+    const low = Math.min(...all);
+    const high = Math.max(...all) > low ? Math.max(...all) : low + 1;
+    const first = ages[0];
+    const last = ages[ages.length - 1];
+    const round = (value) => Math.round(value * 10) / 10;
+    const x = (age) => round(size.left + (last > first ? (age - first) / (last - first) : 0)
+      * (size.width - size.left - size.right));
+    const y = (value) => round(size.top + ((high - value) / (high - low)) * (size.height - size.top - size.bottom));
+    const points = (list, values) => list.map((age, index) => [age, values[index]])
+      .filter(([age, value]) => age >= first && age <= last && value != null);
+    const line = (pairs) => pairs.map(([age, value], index) => (index ? "L" : "M") + x(age) + " " + y(value)).join("");
+    const band = line(points(ages, plot.high)) + line(points(ages, plot.low).reverse()).replace(/^M/, "L") + "Z";
+    const text = (left, top, words, anchor) => "<text x=\"" + left + "\" y=\"" + top + "\" text-anchor=\""
+      + anchor + "\">" + escapeText(words) + "</text>";
+    const bottom = size.height - size.bottom;
+    // Older values first, each fainter than the next; the value just run on top with its band.
+    let marks = priors.map((item, index) => "<path class=\"quick-plot-prior\" style=\"stroke-opacity:"
+      + round(0.15 + 0.45 * (index + 1) / priors.length) + "\" d=\"" + line(points(item.ages, item.median))
+      + "\"></path>").join("");
+    marks += "<g class=\"quick-plot-new\"><path class=\"quick-plot-band\" d=\"" + band + "\"></path>"
+      + "<path class=\"quick-plot-median\" d=\"" + line(points(ages, plot.median)) + "\"></path></g>"
+      + "<line class=\"quick-plot-zero\" x1=\"" + size.left + "\" x2=\"" + (size.width - size.right) + "\" y1=\""
+      + y(0) + "\" y2=\"" + y(0) + "\"></line>";
+    const through = plot.throughAge;
+    if (through != null && through >= first && through <= last) {
+      marks += "<line class=\"quick-plot-mark\" x1=\"" + x(through) + "\" x2=\"" + x(through) + "\" y1=\""
+        + size.top + "\" y2=\"" + bottom + "\"></line>"
+        + text(x(through) + (x(through) > size.width - 60 ? -3 : 3), size.top + 9, "Age " + through,
+          x(through) > size.width - 60 ? "end" : "start");
+    }
+    const labels = text(size.left - 4, y(high) + 4, tickMoney(high), "end")
+      + (high > 0 && low < 0 ? text(size.left - 4, y(0) + 4, "$0", "end") : "")
+      + text(size.left - 4, y(low) + 4, tickMoney(low), "end")
+      + text(size.left, size.height - 6, "Age " + first, "start") + text(size.width - size.right, size.height - 6,
+        String(last), "end");
+    const summary = plot.label + " by age, ages " + first + " to " + last + ": median and 10th to 90th percentile of "
+      + plot.runs + (plot.runs === 1 ? " run" : " runs") + (through != null ? "; marked at age " + through : "") + ".";
+    return "<svg class=\"quick-plot-svg\" viewBox=\"0 0 " + size.width + " " + size.height + "\" role=\"img\" "
+      + "aria-label=\"" + escapeText(summary) + "\">" + marks + labels + "</svg>";
+  }
+
   // Whether the source notes and estimates show: on unless the stored text is "off".
   function extrasOn(stored) {
     return stored !== "off";
@@ -2909,7 +2961,7 @@
     coachChecklist, coachSeenKey, coachTriedKey, coachTriedToAdd, COACH_HIDDEN_KEY,
     runChangePlan, runChangeRows, differenceLines, extrasOn,
     quickFieldCatalog, quickTakesRange, quickIsWhole, quickScale, quickDefaultStep, quickRangeValues, quickChoices,
-    quickFieldSearch, quickOrbShown };
+    quickFieldSearch, quickOrbShown, quickPlotSvg };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WmtiShared = api;
 })(typeof self !== "undefined" ? self : this);

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-0XQAYI54hFUsv7aHSy7ECIrfMGcsJBFT78sVVRwIKUc=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-T3vHhUarGkDpO4JX5u6owSggQk9uanrKxoDQhzusZp8=' 'sha256-74pH7eHUUJcMGGWFGRMO/yc5udzWLSAti/LttakhZ7k=' 'sha256-7HXGhqzUrbqJ6wvlm5PfXPNE1zYeVR1T7jzodn2DYWg=' 'sha256-C3LoREf0LCoqv2Xn5vmz/daECR5pDOPi9AqvW4lbVmY='; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0B4F6C"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="WMTI"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"></head><body><script>
 // Inlined first into the page by build.py --target pages only (the artifact host frames the page itself). When
 // another site shows this page in a frame, hide it and try to take over the whole tab, so the framing page cannot
 // line up its own buttons over this page's (clickjacking). A sandboxed frame that blocks the move shows a blank page.
@@ -2369,7 +2369,7 @@ details.accountant-card:not([open]) { row-gap: 0; }  /* the shut body takes no g
     inset -3px -4px 8px rgb(0 0 0 / 0.18);
   transition: transform 0.15s ease; }
 /* A gauge with its needle turned up marks it as Quick optimize. */
-.quick-orb svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.quick-orb svg { width: 30px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .quick-orb svg circle { fill: currentColor; stroke: none; }
 .quick-orb:hover { transform: scale(1.06); }
 .quick-orb:active { transform: scale(0.95); }
@@ -2390,6 +2390,21 @@ body:has(.sheet:not([hidden]), .dialog:not([hidden]), .menu:not([hidden]), .walk
 .quick-choices { display: grid; gap: var(--space-1); margin: 0; padding: 0; border: 0; }
 .quick-check { display: flex; align-items: center; gap: var(--space-2); min-height: 36px; }
 .quick-table .quick-win th, .quick-table .quick-win td { background: var(--accent-soft); font-weight: 700; }
+/* The live plot above the run bar while a quick optimize runs (no animation). */
+.quick-live { display: grid; gap: var(--space-1); min-width: 0; padding: var(--space-2); border: 1px solid var(--line);
+  border-radius: 10px; background: var(--surface-2); }
+.quick-live-title { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.quick-live-note { margin: 0; }
+.quick-plot-svg { display: block; width: 100%; height: auto; }
+.quick-plot-svg text { font-size: 10px; fill: var(--muted); }
+.quick-plot-band { fill: var(--s0); fill-opacity: 0.2; stroke: none; }
+.quick-plot-median { fill: none; stroke: var(--s0); stroke-width: 2; }
+.quick-plot-prior { fill: none; stroke: var(--muted); stroke-width: 1.5; }  /* opacity set per line: older is fainter */
+.quick-plot-new { animation: quick-plot-in 0.35s ease-out; }  /* the newest value fades in on top */
+@keyframes quick-plot-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .quick-plot-new { animation: none; } }
+.quick-plot-zero { stroke: var(--ink); stroke-width: 1; stroke-opacity: 0.6; }
+.quick-plot-mark { stroke: var(--bad); stroke-width: 1.5; stroke-dasharray: 3 3; }
 .quick-pick { position: fixed; z-index: 76; left: var(--gutter); right: var(--gutter); max-width: 34rem; margin-inline: auto;
   top: calc(env(safe-area-inset-top, 0px) + 8px); display: flex; align-items: center; justify-content: space-between;
   gap: var(--space-3); padding: 8px 8px 8px 16px; border-radius: 14px; background: var(--hero); color: var(--hero-ink);
@@ -2858,7 +2873,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
   <!-- Quick optimize (58b-quick-optimize.js): the sphere above the tab bar, its sheet (pick an input, the values, the
        goal, then the run and its result) and the banner shown while an input is picked on the page. -->
   <button type="button" class="quick-orb" id="quickOrb" aria-label="Quick optimize" title="Quick optimize" hidden><svg
-    viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4.5-5"/><circle cx="12"
+    viewBox="2.5 6.5 19 12.5" aria-hidden="true"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4.5-5"/><circle cx="12"
     cy="16" r="1.4"/><path d="M6.3 10.3l1 1M12 7.5V9M17.7 10.3l-1 1"/></svg></button>
   <div class="sheet-backdrop" id="quickBackdrop" hidden></div>
   <div class="sheet quick-sheet" id="quickSheet" role="dialog" aria-modal="true" aria-labelledby="quickTitle" hidden>
@@ -2869,7 +2884,7 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
     <div class="sheet-foot"><div class="sheet-foot-actions" id="quickActions"></div></div>
   </div>
   <div class="quick-pick" id="quickPick" role="status" hidden>
-    <span id="quickPickText">Tap an input to try.</span>
+    <span id="quickPickText">Select a field on screen</span>
     <button type="button" class="button button-quiet" id="quickPickCancel">Cancel</button>
   </div>
 
@@ -3032,16 +3047,16 @@ html[data-style="gamer"] .gm-bar::-moz-progress-bar { border-radius: 0; }
 <p class="walk-toast" id="walkToast" role="status" hidden></p>
 <p class="gm-toast" id="gamerToast" role="status" aria-live="polite" hidden></p>
 
-<script>window.WMTI_BUILD = { id: "a1e3c7d06f0f", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
+<script>window.WMTI_BUILD = { id: "92fc51b836b3", pyodide: "0.29.5", docs: "./docs/", channel: "stable" };</script>
 <script src="legal.5beed0797f.js"></script>
-<script src="shared.421650c8f1.js"></script>
+<script src="shared.bd55584f5d.js"></script>
 <script src="charts.ae4d661d99.js"></script>
 <script src="insights.08f4d99a5c.js"></script>
 <script src="gamify.3870f3326f.js"></script>
 <script src="games.e18966a4ef.js"></script>
 <script src="report.09a0bd29a3.js"></script>
 <script src="jspdf.822d41ab6f.js"></script>
-<script src="app.c5b4862594.js"></script>
+<script src="app.1659da855b.js"></script>
 <script>
 // Inlined into the page only by build.py --target pages (the static-host build). Registers sw.js when the page is
 // served over http(s) from a host other than the Claude artifact host, and shows a "New version ready" bar when a
